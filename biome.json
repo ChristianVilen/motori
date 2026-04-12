@@ -1,0 +1,85 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.4.11/schema.json",
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"lineWidth": 100
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"a11y": {
+				"recommended": true,
+				"noAriaUnsupportedElements": "error",
+				"useValidAriaRole": "error",
+				"useSemanticElements": "error"
+			},
+			"correctness": {
+				"recommended": true,
+				"noUnusedImports": "error",
+				"noUnusedVariables": "error",
+				"useExhaustiveDependencies": "error",
+				"useHookAtTopLevel": "error"
+			},
+			"suspicious": {
+				"recommended": true,
+				"noExplicitAny": "error",
+				"noArrayIndexKey": "error",
+				"noConsole": "warn",
+				"noDoubleEquals": "error"
+			},
+			"complexity": {
+				"recommended": true,
+				"noExcessiveCognitiveComplexity": "error",
+				"noForEach": "warn",
+				"useFlatMap": "error",
+				"useOptionalChain": "error"
+			},
+			"style": {
+				"recommended": true,
+				"noNonNullAssertion": "error",
+				"useBlockStatements": "error",
+				"useCollapsedElseIf": "error",
+				"useConsistentArrayType": "error",
+				"useFragmentSyntax": "error",
+				"useNamingConvention": "off",
+				"useFilenamingConvention": "off"
+			},
+			"security": {
+				"recommended": true,
+				"noDangerouslySetInnerHtml": "error"
+			},
+			"performance": {
+				"recommended": true
+			},
+			"nursery": {
+				"noLeakedRender": "error",
+				"useExplicitType": "off"
+			}
+		}
+	},
+	"css": {
+		"parser": {
+			"cssModules": false,
+			"tailwindDirectives": true
+		}
+	},
+	"files": {
+		"includes": [
+			"**/*.ts",
+			"**/*.tsx",
+			"**/*.json",
+			"**/*.css",
+			"!!**/routeTree.gen.ts",
+			"!!**/.claude"
+		]
+	}
+}

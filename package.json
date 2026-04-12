@@ -1,0 +1,39 @@
+{
+	"name": "vuokramoto",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"start": "node .output/server/index.mjs",
+		"db:migrate": "tsx --env-file=.env src/lib/db/migrate.ts",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"format": "biome format --write ."
+	},
+	"dependencies": {
+		"@tanstack/react-router": "^1.168.18",
+		"@tanstack/react-start": "^1.167.32",
+		"class-variance-authority": "^0.7.1",
+		"clsx": "^2.1.1",
+		"kysely": "^0.28.16",
+		"lucide-react": "^1.8.0",
+		"pg": "^8.20.0",
+		"react": "^19.2.5",
+		"react-dom": "^19.2.5",
+		"tailwind-merge": "^3.5.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.11",
+		"@tailwindcss/vite": "^4.2.2",
+		"@types/node": "^25.6.0",
+		"@types/pg": "^8.20.0",
+		"@types/react": "^19.2.14",
+		"@types/react-dom": "^19.2.3",
+		"@vitejs/plugin-react": "^6.0.1",
+		"tailwindcss": "^4.2.2",
+		"tsx": "^4.21.0",
+		"typescript": "^6.0.2",
+		"vite": "^8.0.8"
+	}
+}

@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16-alpine
+
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: vuokramoto
+      POSTGRES_PASSWORD: vuokramoto
+      POSTGRES_DB: vuokramoto
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
