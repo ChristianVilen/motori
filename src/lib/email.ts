@@ -23,8 +23,9 @@ function logMockEmail(payload: EmailPayload): void {
 	if (urls.length > 0) {
 		console.log(`├${bar}┤`);
 		console.log(`│ ${pad("🔗  Links:")} │`);
+		console.log(`├${bar}┤`);
 		for (const url of urls) {
-			console.log(`│   ${pad(url)} │`);
+			console.log(url);
 		}
 	}
 
