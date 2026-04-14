@@ -55,8 +55,28 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 		.addColumn("identifier", "text", (col) => col.notNull())
 		.addColumn("value", "text", (col) => col.notNull())
 		.addColumn("expiresAt", "timestamptz", (col) => col.notNull())
+		// createdAt/updatedAt intentionally nullable — BetterAuth may omit them
 		.addColumn("createdAt", "timestamptz")
 		.addColumn("updatedAt", "timestamptz")
+		.execute();
+
+	// PostgreSQL does not auto-create indexes for FK columns (unlike MySQL)
+	await db.schema
+		.createIndex("session_user_id_idx")
+		.on("session")
+		.column("userId")
+		.execute();
+
+	await db.schema
+		.createIndex("account_user_id_idx")
+		.on("account")
+		.column("userId")
+		.execute();
+
+	await db.schema
+		.createIndex("verification_identifier_idx")
+		.on("verification")
+		.column("identifier")
 		.execute();
 }
 
