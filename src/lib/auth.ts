@@ -15,6 +15,7 @@ export const auth = betterAuth({
 		requireEmailVerification: true,
 	},
 	emailVerification: {
+		expiresIn: 86400, // 24 hours — matches the Finnish email copy
 		sendVerificationEmail: async ({ user, url }) => {
 			await sendEmail({
 				to: user.email,
