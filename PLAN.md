@@ -11,21 +11,21 @@ Build a Tori.fi/Craigslist-style noticeboard for peer-to-peer motorcycle rentals
 
 ## Tech Stack
 
-| Layer | Choice | Rationale |
-|-------|--------|-----------|
-| Framework | TanStack Start (React) | Fullstack TypeScript, file-based routing, SSR, server functions |
-| Styling | Tailwind CSS v4 + shadcn/ui | Component primitives for rapid MVP, good TanStack Start support |
-| Database | PostgreSQL 17 | Full-text search (Finnish stemmer), PostGIS-ready for future maps |
-| Query Builder | **Kysely** | Type-safe SQL query builder, no magic — explicit queries, great PostgreSQL support |
-| Auth | BetterAuth (Google + Meta social login) | Session management, OAuth, pairs with Kysely via adapter |
-| Image Storage | Cloudflare R2 | S3-compatible, zero egress fees, presigned URLs for direct browser upload |
-| Email | Resend | Simple transactional email API |
-| Validation | Zod | Form + server function validation, TanStack ecosystem standard |
-| Search | PostgreSQL full-text search (`tsvector`, Finnish config) | Sufficient at Finnish-market scale, no extra service |
-| PWA | vite-plugin-pwa | Service worker, manifest, offline shell |
-| **Production** | **Hetzner VPS (Helsinki DC)** | Finnish data residency, low latency, ~8 EUR/month |
-| Reverse Proxy | Caddy | Automatic HTTPS via Let's Encrypt |
-| Containers | Docker Compose | App + PostgreSQL + Caddy |
+| Layer          | Choice                                                   | Rationale                                                                          |
+| -------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Framework      | TanStack Start (React)                                   | Fullstack TypeScript, file-based routing, SSR, server functions                    |
+| Styling        | Tailwind CSS v4 + shadcn/ui                              | Component primitives for rapid MVP, good TanStack Start support                    |
+| Database       | PostgreSQL 17                                            | Full-text search (Finnish stemmer), PostGIS-ready for future maps                  |
+| Query Builder  | **Kysely**                                               | Type-safe SQL query builder, no magic — explicit queries, great PostgreSQL support |
+| Auth           | BetterAuth (Google + Meta social login)                  | Session management, OAuth, pairs with Kysely via adapter                           |
+| Image Storage  | Cloudflare R2                                            | S3-compatible, zero egress fees, presigned URLs for direct browser upload          |
+| Email          | Resend                                                   | Simple transactional email API                                                     |
+| Validation     | Zod                                                      | Form + server function validation, TanStack ecosystem standard                     |
+| Search         | PostgreSQL full-text search (`tsvector`, Finnish config) | Sufficient at Finnish-market scale, no extra service                               |
+| PWA            | vite-plugin-pwa                                          | Service worker, manifest, offline shell                                            |
+| **Production** | **Hetzner VPS (Helsinki DC)**                            | Finnish data residency, low latency, ~8 EUR/month                                  |
+| Reverse Proxy  | Caddy                                                    | Automatic HTTPS via Let's Encrypt                                                  |
+| Containers     | Docker Compose                                           | App + PostgreSQL + Caddy                                                           |
 
 ---
 
@@ -100,27 +100,29 @@ vuokramoto/
 ```typescript
 // lib/db/schema.ts
 interface Database {
-  user: UserTable              // BetterAuth managed
-  session: SessionTable        // BetterAuth managed
-  account: AccountTable        // BetterAuth managed
-  verification: VerificationTable // BetterAuth managed
-  profile: ProfileTable
-  listing: ListingTable
-  listing_image: ListingImageTable
-  favorite: FavoriteTable
-  conversation: ConversationTable  // P1
-  message: MessageTable            // P1
-  review: ReviewTable              // P1
-  report: ReportTable              // P1
+  user: UserTable; // BetterAuth managed
+  session: SessionTable; // BetterAuth managed
+  account: AccountTable; // BetterAuth managed
+  verification: VerificationTable; // BetterAuth managed
+  profile: ProfileTable;
+  listing: ListingTable;
+  listing_image: ListingImageTable;
+  favorite: FavoriteTable;
+  conversation: ConversationTable; // P1
+  message: MessageTable; // P1
+  review: ReviewTable; // P1
+  report: ReportTable; // P1
 }
 ```
 
 ### Core Tables
 
 **profile** — extends BetterAuth user with motorcycle-specific data:
+
 - `user_id` (PK, FK -> user), `display_name`, `phone`, `show_phone`, `city`, `region`, `bio`, `license_class` (A1/A2/A), `language` (fi/en)
 
 **listing** — motorcycle rental ad:
+
 - Identity: `id`, `owner_id` (FK -> user)
 - Motorcycle: `title`, `brand`, `model`, `year`, `engine_cc`, `required_license`, `motorcycle_type`
 - Pricing: `price_per_day` (EUR cents), `price_per_week`, `price_description`, `deposit_amount`
@@ -158,18 +160,21 @@ interface Database {
 ## Key Flows
 
 ### Authentication
+
 1. BetterAuth catch-all API route at `/api/auth/*`
 2. Login page with "Jatka Googlella" + "Jatka Facebookilla" buttons
 3. After first login -> profile completion step (display name, city, phone optional)
 4. Protected routes via `beforeLoad` guard in TanStack Router
 
 ### Image Upload
+
 1. Client validates files (JPEG/PNG/WebP, max 5MB, max 8 images)
 2. Client requests presigned PUT URL from `/api/images/presign`
 3. Client uploads directly to R2 (no server bandwidth cost)
 4. Listing saved with R2 object keys
 
 ### Search
+
 - PostgreSQL `tsvector` with `finnish` text search configuration
 - GIN index on `search_vector` column
 - Combined FTS + structured filters (region, price range, type, license)
@@ -177,6 +182,7 @@ interface Database {
 - Sort: newest, price asc/desc, relevance
 
 ### Contact (MVP)
+
 - "Nayta yhteystiedot" button reveals phone + email (if provided)
 - P1 adds in-app messaging to reduce spam exposure
 
@@ -185,6 +191,7 @@ interface Database {
 ## Design Direction
 
 ### Color Palette (Nordic-inspired)
+
 - Primary: `#1a1a2e` (deep navy)
 - Accent: `#e07a3a` (warm amber -- motorcycle energy)
 - Background: `#fafaf9` (warm off-white)
@@ -192,9 +199,11 @@ interface Database {
 - Card: `#ffffff`, Border: `#e5e4e1`
 
 ### Typography
+
 - Inter for headings + body (clean, Nordic feel, excellent Finnish character support)
 
 ### Design Principles
+
 - Generous whitespace, card-based layouts with subtle shadows
 - Photography-forward (bike images are the product)
 - Mobile-first, thumb-friendly touch targets
@@ -205,6 +214,7 @@ interface Database {
 ## Feature Priority
 
 ### P0 — MVP (must ship)
+
 - [ ] Project scaffold (TanStack Start + Tailwind v4 + shadcn/ui + Kysely + Docker)
 - [ ] BetterAuth setup (Google + Meta social login)
 - [ ] User profiles (display name, city, phone, license class)
@@ -222,11 +232,13 @@ interface Database {
 - [ ] Deploy to Hetzner (Docker Compose + Caddy)
 
 ### Auth — Future improvements
+
 - [ ] **Parallel email verification**: Let users in immediately after registration. Email verification runs in the background — user has 2h–24h window to verify before access is restricted. Reduces registration friction significantly. Currently: verify-first, then profile completion.
 - [ ] **Social login**: Google + Meta OAuth (BetterAuth already supports this — just enable and add OAuth apps)
 - [ ] **Password reset flow**
 
 ### P1 — Ship soon after MVP
+
 - [ ] In-app messaging (conversations tied to listings)
 - [ ] Reviews/ratings (1-5 stars with comment)
 - [ ] Email notifications (new message, listing expiring, new review)
@@ -236,6 +248,7 @@ interface Database {
 - [ ] Sitemap + SEO refinement
 
 ### P2 — Nice to haves
+
 - [ ] Map-based browsing (Leaflet + OpenStreetMap)
 - [ ] Calendar/availability widget
 - [ ] Advanced filters (engine cc range, year range, specific brand)
