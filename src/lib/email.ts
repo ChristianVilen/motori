@@ -1,3 +1,5 @@
+// biome-ignore-all lint/suspicious/noConsole: mock email logger
+
 export interface EmailPayload {
 	to: string;
 	subject: string;
@@ -10,9 +12,7 @@ function logMockEmail(payload: EmailPayload): void {
 	const bar = "─".repeat(width);
 	const pad = (s: string) => s.substring(0, width - 2).padEnd(width - 2);
 
-	const urls = [...payload.html.matchAll(/https?:\/\/[^\s"'<>]+/g)].map(
-		(m) => m[0],
-	);
+	const urls = [...payload.html.matchAll(/https?:\/\/[^\s"'<>]+/g)].map((m) => m[0]);
 
 	console.log(`\n┌${bar}┐`);
 	console.log(`│ ${pad("📧  MOCK EMAIL")} │`);

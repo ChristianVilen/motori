@@ -12,24 +12,22 @@ type LicenseClass = (typeof VALID_LICENSE_CLASSES)[number];
 
 const saveProfile = createServerFn({ method: "POST" })
 	.inputValidator(
-		(data: {
-			displayName: string;
-			city: string;
-			phone: string;
-			licenseClass: string;
-		}) => {
+		(data: { displayName: string; city: string; phone: string; licenseClass: string }) => {
 			const displayName = data.displayName.trim();
-			if (!displayName) throw new Error("Näyttönimi on pakollinen");
-			const licenseClass =
-				VALID_LICENSE_CLASSES.includes(data.licenseClass as LicenseClass)
-					? (data.licenseClass as LicenseClass)
-					: "";
+			if (!displayName) {
+				throw new Error("Näyttönimi on pakollinen");
+			}
+			const licenseClass = VALID_LICENSE_CLASSES.includes(data.licenseClass as LicenseClass)
+				? (data.licenseClass as LicenseClass)
+				: "";
 			return { displayName, city: data.city, phone: data.phone, licenseClass };
 		},
 	)
 	.handler(async ({ data }) => {
 		const session = await getSession();
-		if (!session) throw new Error("Ei istuntoa");
+		if (!session) {
+			throw new Error("Ei istuntoa");
+		}
 		const licenseClass = data.licenseClass as LicenseClass | "";
 		await db
 			.insertInto("profile")
@@ -56,7 +54,9 @@ const saveProfile = createServerFn({ method: "POST" })
 export const Route = createFileRoute("/auth/complete-profile")({
 	loader: async () => {
 		const session = await getSession();
-		if (!session) throw redirect({ to: "/auth/login", search: { redirect: undefined } });
+		if (!session) {
+			throw redirect({ to: "/auth/login", search: { redirect: undefined } });
+		}
 		return { session };
 	},
 	component: CompleteProfilePage,
@@ -171,9 +171,7 @@ function CompleteProfilePage() {
 						{loading ? "Tallennetaan..." : "Valmis"}
 					</Button>
 
-					{error && (
-						<p className="text-sm text-destructive">{error}</p>
-					)}
+					{!!error && <p className="text-sm text-destructive">{error}</p>}
 				</form>
 			</div>
 		</div>

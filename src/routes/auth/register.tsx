@@ -11,14 +11,28 @@ export const Route = createFileRoute("/auth/register")({
 
 function passwordStrength(password: string): { score: number; label: string; color: string } {
 	let score = 0;
-	if (password.length >= 8) score++;
-	if (password.length >= 12) score++;
-	if (/[A-Z]/.test(password)) score++;
-	if (/[0-9]/.test(password)) score++;
-	if (/[^A-Za-z0-9]/.test(password)) score++;
+	if (password.length >= 8) {
+		score++;
+	}
+	if (password.length >= 12) {
+		score++;
+	}
+	if (/[A-Z]/.test(password)) {
+		score++;
+	}
+	if (/[0-9]/.test(password)) {
+		score++;
+	}
+	if (/[^A-Za-z0-9]/.test(password)) {
+		score++;
+	}
 
-	if (score <= 1) return { score, label: "Heikko", color: "bg-destructive" };
-	if (score <= 3) return { score, label: "Kohtalainen", color: "bg-warning" };
+	if (score <= 1) {
+		return { score, label: "Heikko", color: "bg-destructive" };
+	}
+	if (score <= 3) {
+		return { score, label: "Kohtalainen", color: "bg-warning" };
+	}
 	return { score, label: "Vahva", color: "bg-success" };
 }
 
@@ -125,9 +139,7 @@ function RegisterPage() {
 						)}
 					</div>
 
-					{error && (
-						<p className="text-sm text-destructive">{error}</p>
-					)}
+					{!!error && <p className="text-sm text-destructive">{error}</p>}
 
 					<Button
 						type="submit"
@@ -140,14 +152,16 @@ function RegisterPage() {
 
 				<p className="text-center text-sm text-muted">
 					Onko sinulla jo tili?{" "}
-					<Link to="/auth/login" search={{ redirect: undefined }} className="text-accent hover:underline">
+					<Link
+						to="/auth/login"
+						search={{ redirect: undefined }}
+						className="text-accent hover:underline"
+					>
 						Kirjaudu sisään
 					</Link>
 				</p>
 
-				<p className="text-center text-xs text-muted">
-					Rekisteröitymällä hyväksyt käyttöehdot
-				</p>
+				<p className="text-center text-xs text-muted">Rekisteröitymällä hyväksyt käyttöehdot</p>
 			</div>
 		</div>
 	);

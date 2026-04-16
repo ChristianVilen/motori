@@ -78,11 +78,13 @@ function LoginPage() {
 						/>
 					</div>
 
-					{error && (
-						<p className="text-sm text-destructive">{error}</p>
-					)}
+					{!!error && <p className="text-sm text-destructive">{error}</p>}
 
-					<Button type="submit" className="w-full bg-accent text-white hover:bg-accent-hover" disabled={loading}>
+					<Button
+						type="submit"
+						className="w-full bg-accent text-white hover:bg-accent-hover"
+						disabled={loading}
+					>
 						{loading ? "Kirjaudutaan..." : "Kirjaudu"}
 					</Button>
 				</form>
