@@ -1,6 +1,7 @@
 // src/lib/auth.ts
-import { betterAuth } from "better-auth";
+
 import { kyselyAdapter } from "@better-auth/kysely-adapter";
+import { betterAuth } from "better-auth";
 import { db } from "~/lib/db/index";
 import { sendEmail } from "~/lib/email";
 

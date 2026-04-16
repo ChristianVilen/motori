@@ -17,17 +17,11 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 		.addColumn("display_name", "text", (col) => col.notNull())
 		.addColumn("city", "text")
 		.addColumn("phone", "text")
-		.addColumn("show_phone", "boolean", (col) =>
-			col.notNull().defaultTo(false),
-		)
+		.addColumn("show_phone", "boolean", (col) => col.notNull().defaultTo(false))
 		.addColumn("license_class", "text") // 'A1' | 'A2' | 'A'
 		.addColumn("language", "text", (col) => col.notNull().defaultTo("fi"))
-		.addColumn("created_at", "timestamptz", (col) =>
-			col.notNull().defaultTo(sql`now()`),
-		)
-		.addColumn("updated_at", "timestamptz", (col) =>
-			col.notNull().defaultTo(sql`now()`),
-		)
+		.addColumn("created_at", "timestamptz", (col) => col.notNull().defaultTo(sql`now()`))
+		.addColumn("updated_at", "timestamptz", (col) => col.notNull().defaultTo(sql`now()`))
 		.execute();
 }
 

@@ -8,9 +8,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 		.addColumn("id", "text", (col) => col.primaryKey())
 		.addColumn("name", "text", (col) => col.notNull())
 		.addColumn("email", "text", (col) => col.notNull().unique())
-		.addColumn("emailVerified", "boolean", (col) =>
-			col.notNull().defaultTo(false),
-		)
+		.addColumn("emailVerified", "boolean", (col) => col.notNull().defaultTo(false))
 		.addColumn("image", "text")
 		.addColumn("createdAt", "timestamptz", (col) => col.notNull())
 		.addColumn("updatedAt", "timestamptz", (col) => col.notNull())
@@ -25,9 +23,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 		.addColumn("updatedAt", "timestamptz", (col) => col.notNull())
 		.addColumn("ipAddress", "text")
 		.addColumn("userAgent", "text")
-		.addColumn("userId", "text", (col) =>
-			col.notNull().references("user.id").onDelete("cascade"),
-		)
+		.addColumn("userId", "text", (col) => col.notNull().references("user.id").onDelete("cascade"))
 		.execute();
 
 	await db.schema
@@ -35,9 +31,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 		.addColumn("id", "text", (col) => col.primaryKey())
 		.addColumn("accountId", "text", (col) => col.notNull())
 		.addColumn("providerId", "text", (col) => col.notNull())
-		.addColumn("userId", "text", (col) =>
-			col.notNull().references("user.id").onDelete("cascade"),
-		)
+		.addColumn("userId", "text", (col) => col.notNull().references("user.id").onDelete("cascade"))
 		.addColumn("accessToken", "text")
 		.addColumn("refreshToken", "text")
 		.addColumn("idToken", "text")
@@ -61,17 +55,9 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 		.execute();
 
 	// PostgreSQL does not auto-create indexes for FK columns (unlike MySQL)
-	await db.schema
-		.createIndex("session_user_id_idx")
-		.on("session")
-		.column("userId")
-		.execute();
+	await db.schema.createIndex("session_user_id_idx").on("session").column("userId").execute();
 
-	await db.schema
-		.createIndex("account_user_id_idx")
-		.on("account")
-		.column("userId")
-		.execute();
+	await db.schema.createIndex("account_user_id_idx").on("account").column("userId").execute();
 
 	await db.schema
 		.createIndex("verification_identifier_idx")
