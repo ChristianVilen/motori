@@ -41,9 +41,9 @@ const saveProfile = createServerFn({ method: "POST" })
 	});
 
 export const Route = createFileRoute("/auth/complete-profile")({
-	beforeLoad: async () => {
+	loader: async () => {
 		const session = await getSession();
-		if (!session) throw redirect({ to: "/auth/login" });
+		if (!session) throw redirect({ to: "/auth/login", search: { redirect: undefined } });
 		return { session };
 	},
 	component: CompleteProfilePage,
@@ -52,7 +52,7 @@ export const Route = createFileRoute("/auth/complete-profile")({
 const LICENSE_CLASSES = ["A1", "A2", "A"] as const;
 
 function CompleteProfilePage() {
-	const { session } = Route.useRouteContext();
+	const { session } = Route.useLoaderData();
 	const navigate = useNavigate();
 	const [displayName, setDisplayName] = useState(session.user.name ?? "");
 	const [city, setCity] = useState("");

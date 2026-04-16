@@ -125,7 +125,7 @@ function RegisterPage() {
 
 				<p className="text-center text-sm text-muted">
 					Onko sinulla jo tili?{" "}
-					<Link to="/auth/login" className="text-accent hover:underline">
+					<Link to="/auth/login" search={{ redirect: undefined }} className="text-accent hover:underline">
 						Kirjaudu sisään
 					</Link>
 				</p>

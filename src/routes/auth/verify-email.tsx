@@ -23,7 +23,7 @@ function VerifyEmailPage() {
 
 				<p className="text-xs text-muted">
 					Eikö viesti tullut?{" "}
-					<Link to="/auth/login" className="text-accent hover:underline">
+					<Link to="/auth/login" search={{ redirect: undefined }} className="text-accent hover:underline">
 						Kirjaudu uudelleen
 					</Link>{" "}
 					lähettääksesi uuden.
