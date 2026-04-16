@@ -79,7 +79,8 @@
 			"**/*.json",
 			"**/*.css",
 			"!!**/routeTree.gen.ts",
-			"!!**/.claude"
+			"!!**/.claude",
+			"!!dist"
 		]
 	}
 }
