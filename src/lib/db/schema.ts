@@ -77,6 +77,62 @@ export type Profile = Selectable<ProfileTable>;
 export type NewProfile = Insertable<ProfileTable>;
 export type ProfileUpdate = Updateable<ProfileTable>;
 
+export interface ListingTable {
+	id: string;
+	owner_id: string;
+	title: string;
+	brand: string;
+	model: string;
+	year: number;
+	engine_cc: number | null;
+	required_license: "A1" | "A2" | "A" | null;
+	motorcycle_type: string;
+	price_per_day: number; // EUR cents
+	price_per_week: number | null; // EUR cents
+	price_description: string | null;
+	deposit_amount: number | null; // EUR cents
+	city: string;
+	region: string;
+	postal_code: string | null;
+	available_from: string | null; // date "YYYY-MM-DD"
+	available_to: string | null; // date "YYYY-MM-DD"
+	season_only: Generated<boolean>;
+	description: string;
+	includes_helmet: Generated<boolean>;
+	includes_insurance: Generated<boolean>;
+	insurance_info: string | null;
+	mileage_limit: number | null; // km/day
+	status: Generated<"active" | "paused" | "rented" | "removed">;
+	view_count: Generated<number>;
+	expires_at: ColumnType<Date, Date | undefined, Date> | null;
+	search_vector: Generated<string>; // tsvector, maintained by trigger
+	created_at: ColumnType<Date, Date | undefined, Date>;
+	updated_at: ColumnType<Date, Date | undefined, Date>;
+}
+
+export type Listing = Selectable<ListingTable>;
+export type NewListing = Insertable<ListingTable>;
+export type ListingUpdate = Updateable<ListingTable>;
+
+export interface ListingImageTable {
+	id: string;
+	listing_id: string;
+	url: string;
+	thumbnail_url: string | null;
+	order: Generated<number>;
+}
+
+export type ListingImage = Selectable<ListingImageTable>;
+export type NewListingImage = Insertable<ListingImageTable>;
+
+export interface FavoriteTable {
+	user_id: string;
+	listing_id: string;
+	created_at: ColumnType<Date, Date | undefined, never>;
+}
+
+export type Favorite = Selectable<FavoriteTable>;
+
 // ─── Database interface ───────────────────────────────────────────────────────
 
 export interface Database {
@@ -85,4 +141,7 @@ export interface Database {
 	account: AccountTable;
 	verification: VerificationTable;
 	profile: ProfileTable;
+	listing: ListingTable;
+	listing_image: ListingImageTable;
+	favorite: FavoriteTable;
 }

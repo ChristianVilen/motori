@@ -1,0 +1,103 @@
+// src/routes/listings/new.tsx
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import { ListingForm } from "~/components/listings/listing-form";
+import { db } from "~/lib/db/index";
+import { getSession } from "~/lib/session";
+import type { ListingFormData } from "~/lib/validators";
+import { listingFormSchema } from "~/lib/validators";
+
+const createListing = createServerFn({ method: "POST" })
+	.inputValidator((data: ListingFormData) => listingFormSchema.parse(data))
+	.handler(async ({ data }) => {
+		const session = await getSession();
+		if (!session) {
+			throw new Error("Kirjaudu sisään ensin");
+		}
+
+		const id = crypto.randomUUID();
+		const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days
+
+		await db
+			.insertInto("listing")
+			.values({
+				id,
+				owner_id: session.user.id,
+				title: data.title,
+				brand: data.brand,
+				model: data.model,
+				year: data.year,
+				engine_cc: data.engine_cc ?? null,
+				required_license: data.required_license ?? null,
+				motorcycle_type: data.motorcycle_type,
+				price_per_day: Math.round(data.price_per_day * 100),
+				price_per_week: data.price_per_week ? Math.round(data.price_per_week * 100) : null,
+				price_description: data.price_description ?? null,
+				deposit_amount: data.deposit_amount ? Math.round(data.deposit_amount * 100) : null,
+				city: data.city,
+				region: data.region,
+				postal_code: data.postal_code ?? null,
+				available_from: data.available_from ?? null,
+				available_to: data.available_to ?? null,
+				season_only: data.season_only,
+				description: data.description,
+				includes_helmet: data.includes_helmet,
+				includes_insurance: data.includes_insurance,
+				insurance_info: data.insurance_info ?? null,
+				mileage_limit: data.mileage_limit ?? null,
+				expires_at: expiresAt,
+				created_at: new Date(),
+				updated_at: new Date(),
+			})
+			.execute();
+
+		if (data.image_urls.length > 0) {
+			await db
+				.insertInto("listing_image")
+				.values(
+					data.image_urls.map((url, i) => ({
+						id: crypto.randomUUID(),
+						listing_id: id,
+						url,
+						order: i,
+					})),
+				)
+				.execute();
+		}
+
+		return { id };
+	});
+
+export const Route = createFileRoute("/listings/new")({
+	loader: async () => {
+		const session = await getSession();
+		if (!session) {
+			throw redirect({ to: "/auth/login", search: { redirect: undefined } });
+		}
+		return { session };
+	},
+	component: NewListingPage,
+});
+
+function NewListingPage() {
+	const navigate = useNavigate();
+
+	async function handleSubmit(data: ListingFormData) {
+		const { id } = await createListing({ data });
+		navigate({ to: "/listings/$listingId", params: { listingId: id } });
+	}
+
+	return (
+		<div className="min-h-screen bg-background">
+			<div className="mx-auto max-w-2xl px-4 py-8">
+				<div className="mb-8">
+					<h1 className="text-2xl font-bold text-primary">Uusi ilmoitus</h1>
+					<p className="mt-1 text-sm text-muted">
+						Täytä tiedot ja julkaise ilmoituksesi vuokralle
+					</p>
+				</div>
+				<ListingForm onSubmit={handleSubmit} submitLabel="Julkaise ilmoitus" />
+			</div>
+		</div>
+	);
+}
