@@ -92,9 +92,7 @@ function NewListingPage() {
 			<div className="mx-auto max-w-2xl px-4 py-8">
 				<div className="mb-8">
 					<h1 className="text-2xl font-bold text-primary">Uusi ilmoitus</h1>
-					<p className="mt-1 text-sm text-muted">
-						Täytä tiedot ja julkaise ilmoituksesi vuokralle
-					</p>
+					<p className="mt-1 text-sm text-muted">Täytä tiedot ja julkaise ilmoituksesi vuokralle</p>
 				</div>
 				<ListingForm onSubmit={handleSubmit} submitLabel="Julkaise ilmoitus" />
 			</div>

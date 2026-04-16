@@ -11,9 +11,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 	await db.schema
 		.createTable("listing")
 		.addColumn("id", "text", (col) => col.primaryKey())
-		.addColumn("owner_id", "text", (col) =>
-			col.notNull().references("user.id").onDelete("cascade"),
-		)
+		.addColumn("owner_id", "text", (col) => col.notNull().references("user.id").onDelete("cascade"))
 		.addColumn("title", "text", (col) => col.notNull())
 		.addColumn("brand", "text", (col) => col.notNull())
 		.addColumn("model", "text", (col) => col.notNull())
@@ -59,9 +57,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 	// ── favorite ─────────────────────────────────────────────────────────────────
 	await db.schema
 		.createTable("favorite")
-		.addColumn("user_id", "text", (col) =>
-			col.notNull().references("user.id").onDelete("cascade"),
-		)
+		.addColumn("user_id", "text", (col) => col.notNull().references("user.id").onDelete("cascade"))
 		.addColumn("listing_id", "text", (col) =>
 			col.notNull().references("listing.id").onDelete("cascade"),
 		)

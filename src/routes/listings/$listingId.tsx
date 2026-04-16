@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { LICENSE_CLASSES, LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
 import { db } from "~/lib/db/index";
+import type { Listing, ListingImage } from "~/lib/db/schema";
 import { getSession } from "~/lib/session";
 
 const getListing = createServerFn({ method: "GET" })
@@ -18,7 +19,9 @@ const getListing = createServerFn({ method: "GET" })
 			.where("listing.status", "!=", "removed")
 			.executeTakeFirst();
 
-		if (!listing) return null;
+		if (!listing) {
+			return null;
+		}
 
 		// Increment view count (fire and forget — don't block render)
 		db.updateTable("listing")
@@ -55,7 +58,9 @@ export const Route = createFileRoute("/listings/$listingId")({
 			getListing({ data: params.listingId }),
 			getSession(),
 		]);
-		if (!result) throw notFound();
+		if (!result) {
+			throw notFound();
+		}
 		return { ...result, session };
 	},
 	component: ListingDetailPage,
@@ -69,10 +74,184 @@ export const Route = createFileRoute("/listings/$listingId")({
 	),
 });
 
+function ListingGallery({ images, title }: { images: ListingImage[]; title: string }) {
+	const [activeImage, setActiveImage] = useState(0);
+
+	if (images.length === 0) {
+		return (
+			<div className="flex aspect-[16/10] items-center justify-center rounded-xl bg-muted-light">
+				<svg
+					className="h-16 w-16 text-border"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+					aria-hidden="true"
+				>
+					<path
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						strokeWidth={1}
+						d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 20.25h18A1.5 1.5 0 0022.5 18.75V6.75A1.5 1.5 0 0021 5.25H3A1.5 1.5 0 001.5 6.75v12A1.5 1.5 0 003 20.25z"
+					/>
+				</svg>
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-2">
+			<div className="aspect-[16/10] overflow-hidden rounded-xl bg-muted-light">
+				<img src={images[activeImage]?.url} alt={title} className="h-full w-full object-cover" />
+			</div>
+			{images.length > 1 && (
+				<div className="flex gap-2 overflow-x-auto pb-1">
+					{images.map((img, i) => (
+						<button
+							key={img.id}
+							type="button"
+							onClick={() => setActiveImage(i)}
+							className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition-colors ${
+								i === activeImage ? "border-accent" : "border-transparent"
+							}`}
+						>
+							<img src={img.url} alt="" className="h-full w-full object-cover" />
+						</button>
+					))}
+				</div>
+			)}
+		</div>
+	);
+}
+
+function ListingSpecs({ listing }: { listing: Listing }) {
+	return (
+		<div className="rounded-xl border border-border bg-card p-5">
+			<h2 className="mb-3 text-sm font-semibold text-foreground">Tiedot</h2>
+			<dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+				<div>
+					<dt className="text-muted">Merkki</dt>
+					<dd className="font-medium text-foreground">{listing.brand}</dd>
+				</div>
+				<div>
+					<dt className="text-muted">Malli</dt>
+					<dd className="font-medium text-foreground">{listing.model}</dd>
+				</div>
+				<div>
+					<dt className="text-muted">Vuosimalli</dt>
+					<dd className="font-medium text-foreground">{listing.year}</dd>
+				</div>
+				{!!listing.engine_cc && (
+					<div>
+						<dt className="text-muted">Moottori</dt>
+						<dd className="font-medium text-foreground">{listing.engine_cc} cc</dd>
+					</div>
+				)}
+				{!!listing.mileage_limit && (
+					<div>
+						<dt className="text-muted">Km-raja</dt>
+						<dd className="font-medium text-foreground">{listing.mileage_limit} km/pv</dd>
+					</div>
+				)}
+				{!!listing.available_from && (
+					<div>
+						<dt className="flex items-center gap-1 text-muted">
+							<Calendar className="h-3 w-3" />
+							Saatavilla
+						</dt>
+						<dd className="font-medium text-foreground">
+							{listing.available_from}
+							{listing.available_to ? ` – ${listing.available_to}` : ""}
+						</dd>
+					</div>
+				)}
+			</dl>
+		</div>
+	);
+}
+
+interface PricingCardProps {
+	pricePerDay: number;
+	pricePerWeek: number | null;
+	deposit: number | null;
+	listing: Listing;
+	owner: { display_name: string | null; city: string | null; phone: string | null } | null;
+	ownerEmail: string | null;
+	isOwner: boolean;
+}
+
+function PricingCard({
+	pricePerDay,
+	pricePerWeek,
+	deposit,
+	listing,
+	owner,
+	ownerEmail,
+	isOwner,
+}: PricingCardProps) {
+	const [contactVisible, setContactVisible] = useState(false);
+
+	return (
+		<div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+			<div className="mb-4">
+				<span className="text-3xl font-bold text-accent">{pricePerDay} €</span>
+				<span className="ml-1 text-sm text-muted">/päivä</span>
+				{!!pricePerWeek && <div className="mt-1 text-sm text-muted">{pricePerWeek} € / viikko</div>}
+				{!!deposit && <div className="mt-1 text-sm text-muted">Vakuus: {deposit} €</div>}
+				{!!listing.price_description && (
+					<div className="mt-1 text-xs text-muted">{listing.price_description}</div>
+				)}
+			</div>
+
+			{/* Contact reveal */}
+			{!contactVisible ? (
+				<Button
+					onClick={() => setContactVisible(true)}
+					className="w-full bg-accent text-white hover:bg-accent-hover"
+				>
+					Näytä yhteystiedot
+				</Button>
+			) : (
+				<div className="space-y-2 rounded-lg bg-muted-light p-3 text-sm">
+					<p className="font-medium text-foreground">{owner?.display_name ?? "Ilmoittaja"}</p>
+					{!!owner?.phone && (
+						<a href={`tel:${owner.phone}`} className="block text-accent hover:underline">
+							{owner.phone}
+						</a>
+					)}
+					{!!ownerEmail && (
+						<a href={`mailto:${ownerEmail}`} className="block text-accent hover:underline">
+							{ownerEmail}
+						</a>
+					)}
+					{!!owner?.city && <p className="text-muted">{owner.city}</p>}
+				</div>
+			)}
+
+			{/* Owner actions */}
+			{!!isOwner && (
+				<div className="mt-3 flex gap-2">
+					<Link
+						to="/listings/$listingId/edit"
+						params={{ listingId: listing.id }}
+						className="flex-1"
+					>
+						<Button variant="outline" className="w-full" size="sm">
+							Muokkaa
+						</Button>
+					</Link>
+					<Link to="/profile" className="flex-1">
+						<Button variant="outline" className="w-full" size="sm">
+							Omat ilmoitukset
+						</Button>
+					</Link>
+				</div>
+			)}
+		</div>
+	);
+}
+
 function ListingDetailPage() {
 	const { listing, images, owner, ownerEmail, session } = Route.useLoaderData();
-	const [contactVisible, setContactVisible] = useState(false);
-	const [activeImage, setActiveImage] = useState(0);
 
 	const isOwner = session?.user.id === listing.owner_id;
 	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
@@ -101,55 +280,7 @@ function ListingDetailPage() {
 				<div className="grid gap-8 lg:grid-cols-[1fr_320px]">
 					{/* Left column */}
 					<div className="space-y-6">
-						{/* Gallery */}
-						{images.length > 0 ? (
-							<div className="space-y-2">
-								<div className="aspect-[16/10] overflow-hidden rounded-xl bg-muted-light">
-									<img
-										src={images[activeImage]?.url}
-										alt={listing.title}
-										className="h-full w-full object-cover"
-									/>
-								</div>
-								{images.length > 1 && (
-									<div className="flex gap-2 overflow-x-auto pb-1">
-										{images.map((img, i) => (
-											<button
-												key={img.id}
-												type="button"
-												onClick={() => setActiveImage(i)}
-												className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition-colors ${
-													i === activeImage ? "border-accent" : "border-transparent"
-												}`}
-											>
-												<img
-													src={img.url}
-													alt=""
-													className="h-full w-full object-cover"
-												/>
-											</button>
-										))}
-									</div>
-								)}
-							</div>
-						) : (
-							<div className="flex aspect-[16/10] items-center justify-center rounded-xl bg-muted-light">
-								<svg
-									className="h-16 w-16 text-border"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-									aria-hidden="true"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={1}
-										d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 20.25h18A1.5 1.5 0 0022.5 18.75V6.75A1.5 1.5 0 0021 5.25H3A1.5 1.5 0 001.5 6.75v12A1.5 1.5 0 003 20.25z"
-									/>
-								</svg>
-							</div>
-						)}
+						<ListingGallery images={images} title={listing.title} />
 
 						{/* Title + badges */}
 						<div>
@@ -170,17 +301,17 @@ function ListingDetailPage() {
 									<MapPin className="h-3 w-3" />
 									{listing.city}, {regionLabel}
 								</span>
-								{licenseLabel && (
+								{!!licenseLabel && (
 									<span className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
 										Kortti {licenseLabel}
 									</span>
 								)}
-								{listing.includes_helmet && (
+								{!!listing.includes_helmet && (
 									<span className="rounded-full bg-success/10 px-3 py-1 text-xs text-success">
 										Kypärä mukana
 									</span>
 								)}
-								{listing.includes_insurance && (
+								{!!listing.includes_insurance && (
 									<span className="flex items-center gap-1 rounded-full bg-success/10 px-3 py-1 text-xs text-success">
 										<Shield className="h-3 w-3" />
 										Vakuutus mukana
@@ -189,48 +320,7 @@ function ListingDetailPage() {
 							</div>
 						</div>
 
-						{/* Specs */}
-						<div className="rounded-xl border border-border bg-card p-5">
-							<h2 className="mb-3 text-sm font-semibold text-foreground">Tiedot</h2>
-							<dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-								<div>
-									<dt className="text-muted">Merkki</dt>
-									<dd className="font-medium text-foreground">{listing.brand}</dd>
-								</div>
-								<div>
-									<dt className="text-muted">Malli</dt>
-									<dd className="font-medium text-foreground">{listing.model}</dd>
-								</div>
-								<div>
-									<dt className="text-muted">Vuosimalli</dt>
-									<dd className="font-medium text-foreground">{listing.year}</dd>
-								</div>
-								{listing.engine_cc && (
-									<div>
-										<dt className="text-muted">Moottori</dt>
-										<dd className="font-medium text-foreground">{listing.engine_cc} cc</dd>
-									</div>
-								)}
-								{listing.mileage_limit && (
-									<div>
-										<dt className="text-muted">Km-raja</dt>
-										<dd className="font-medium text-foreground">{listing.mileage_limit} km/pv</dd>
-									</div>
-								)}
-								{listing.available_from && (
-									<div>
-										<dt className="flex items-center gap-1 text-muted">
-											<Calendar className="h-3 w-3" />
-											Saatavilla
-										</dt>
-										<dd className="font-medium text-foreground">
-											{listing.available_from}
-											{listing.available_to ? ` – ${listing.available_to}` : ""}
-										</dd>
-									</div>
-								)}
-							</dl>
-						</div>
+						<ListingSpecs listing={listing} />
 
 						{/* Description */}
 						<div>
@@ -243,82 +333,18 @@ function ListingDetailPage() {
 
 					{/* Right column — sticky sidebar */}
 					<div className="space-y-4 lg:sticky lg:top-8 lg:self-start">
-						{/* Pricing card */}
-						<div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-							<div className="mb-4">
-								<span className="text-3xl font-bold text-accent">{pricePerDay} €</span>
-								<span className="ml-1 text-sm text-muted">/päivä</span>
-								{pricePerWeek && (
-									<div className="mt-1 text-sm text-muted">
-										{pricePerWeek} € / viikko
-									</div>
-								)}
-								{deposit && (
-									<div className="mt-1 text-sm text-muted">Vakuus: {deposit} €</div>
-								)}
-								{listing.price_description && (
-									<div className="mt-1 text-xs text-muted">{listing.price_description}</div>
-								)}
-							</div>
-
-							{/* Contact reveal */}
-							{!contactVisible ? (
-								<Button
-									onClick={() => setContactVisible(true)}
-									className="w-full bg-accent text-white hover:bg-accent-hover"
-								>
-									Näytä yhteystiedot
-								</Button>
-							) : (
-								<div className="space-y-2 rounded-lg bg-muted-light p-3 text-sm">
-									<p className="font-medium text-foreground">
-										{owner?.display_name ?? "Ilmoittaja"}
-									</p>
-									{owner?.phone && (
-										<a
-											href={`tel:${owner.phone}`}
-											className="block text-accent hover:underline"
-										>
-											{owner.phone}
-										</a>
-									)}
-									{ownerEmail && (
-										<a
-											href={`mailto:${ownerEmail}`}
-											className="block text-accent hover:underline"
-										>
-											{ownerEmail}
-										</a>
-									)}
-									{owner?.city && (
-										<p className="text-muted">{owner.city}</p>
-									)}
-								</div>
-							)}
-
-							{/* Owner actions */}
-							{isOwner && (
-								<div className="mt-3 flex gap-2">
-									<Link
-										to="/listings/$listingId/edit"
-										params={{ listingId: listing.id }}
-										className="flex-1"
-									>
-										<Button variant="outline" className="w-full" size="sm">
-											Muokkaa
-										</Button>
-									</Link>
-									<Link to="/profile" className="flex-1">
-										<Button variant="outline" className="w-full" size="sm">
-											Omat ilmoitukset
-										</Button>
-									</Link>
-								</div>
-							)}
-						</div>
+						<PricingCard
+							pricePerDay={pricePerDay}
+							pricePerWeek={pricePerWeek}
+							deposit={deposit}
+							listing={listing}
+							owner={owner}
+							ownerEmail={ownerEmail}
+							isOwner={!!isOwner}
+						/>
 
 						{/* Insurance info */}
-						{listing.includes_insurance && listing.insurance_info && (
+						{!!listing.includes_insurance && !!listing.insurance_info && (
 							<div className="rounded-xl border border-border bg-card p-4 text-sm">
 								<p className="mb-1 flex items-center gap-1 font-medium text-foreground">
 									<Shield className="h-4 w-4 text-success" />
@@ -329,9 +355,7 @@ function ListingDetailPage() {
 						)}
 
 						{/* Listing meta */}
-						<p className="text-center text-xs text-muted">
-							{listing.view_count} näyttökertaa
-						</p>
+						<p className="text-center text-xs text-muted">{listing.view_count} näyttökertaa</p>
 					</div>
 				</div>
 			</div>

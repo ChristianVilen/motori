@@ -25,7 +25,10 @@ function getStorageClient() {
 	});
 }
 
-export async function generatePresignedUploadUrl(key: string, contentType: string): Promise<string> {
+export async function generatePresignedUploadUrl(
+	key: string,
+	contentType: string,
+): Promise<string> {
 	const client = getStorageClient();
 	const command = new PutObjectCommand({
 		Bucket: process.env.STORAGE_BUCKET,

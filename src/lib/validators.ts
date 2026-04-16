@@ -3,10 +3,17 @@ import { z } from "zod";
 import { CURRENT_YEAR } from "~/lib/constants";
 
 export const listingFormSchema = z.object({
-	title: z.string().min(5, "Otsikko on liian lyhyt (min 5 merkkiä)").max(100, "Otsikko on liian pitkä"),
+	title: z
+		.string()
+		.min(5, "Otsikko on liian lyhyt (min 5 merkkiä)")
+		.max(100, "Otsikko on liian pitkä"),
 	brand: z.string().min(1, "Valitse merkki"),
 	model: z.string().min(1, "Malli on pakollinen").max(50),
-	year: z.number().int().min(1970, "Vuosimalli liian vanha").max(CURRENT_YEAR + 1, "Vuosimalli ei voi olla tulevaisuudessa"),
+	year: z
+		.number()
+		.int()
+		.min(1970, "Vuosimalli liian vanha")
+		.max(CURRENT_YEAR + 1, "Vuosimalli ei voi olla tulevaisuudessa"),
 	engine_cc: z.number().int().min(50).max(3000).nullable().optional(),
 	motorcycle_type: z.string().min(1, "Valitse tyyppi"),
 	required_license: z.enum(["A1", "A2", "A"]).nullable().optional(),

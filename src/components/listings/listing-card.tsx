@@ -57,7 +57,7 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 					<h3 className="line-clamp-2 text-sm font-semibold text-foreground leading-tight">
 						{listing.title}
 					</h3>
-					{listing.required_license && (
+					{!!listing.required_license && (
 						<span className="shrink-0 rounded bg-primary px-1.5 py-0.5 text-xs font-medium text-primary-foreground">
 							{listing.required_license}
 						</span>
@@ -69,7 +69,7 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 					<span>{typeLabel}</span>
 					<span>·</span>
 					<span>{listing.year}</span>
-					{listing.engine_cc && (
+					{!!listing.engine_cc && (
 						<>
 							<span>·</span>
 							<span>{listing.engine_cc}cc</span>

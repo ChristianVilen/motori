@@ -4,14 +4,16 @@ import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-rout
 import { createServerFn } from "@tanstack/react-start";
 import { MapPin, Pencil, Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { LICENSE_CLASSES, LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
+import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { getSession } from "~/lib/session";
 
 const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 	const session = await getSession();
-	if (!session) throw new Error("Kirjaudu sisään");
+	if (!session) {
+		throw new Error("Kirjaudu sisään");
+	}
 
 	const listings = await db
 		.selectFrom("listing")
@@ -45,7 +47,9 @@ const setListingStatus = createServerFn({ method: "POST" })
 	.inputValidator((data: { id: string; status: "active" | "paused" | "removed" }) => data)
 	.handler(async ({ data }) => {
 		const session = await getSession();
-		if (!session) throw new Error("Kirjaudu sisään");
+		if (!session) {
+			throw new Error("Kirjaudu sisään");
+		}
 
 		const listing = await db
 			.selectFrom("listing")
@@ -104,7 +108,9 @@ function ListingRow({ listing, images, onStatusChange }: ListingRowProps) {
 	}
 
 	async function handleDelete() {
-		if (!window.confirm("Poistetaanko ilmoitus? Tätä ei voi peruuttaa.")) return;
+		if (!window.confirm("Poistetaanko ilmoitus? Tätä ei voi peruuttaa.")) {
+			return;
+		}
 		await setListingStatus({ data: { id: listing.id, status: "removed" } });
 		onStatusChange();
 	}

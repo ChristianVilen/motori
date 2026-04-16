@@ -10,7 +10,6 @@ if (!url) {
 	process.exit(1);
 }
 
-execSync(
-	`kysely-codegen --url="${url}" --out-file=src/lib/db/schema.generated.ts`,
-	{ stdio: "inherit" },
-);
+execSync(`kysely-codegen --url="${url}" --out-file=src/lib/db/schema.generated.ts`, {
+	stdio: "inherit",
+});

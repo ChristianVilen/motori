@@ -1,9 +1,8 @@
 // src/routes/listings/$listingId_.edit.tsx
 // Trailing underscore on $listingId_ opts out of $listingId.tsx as parent layout.
-import { createFileRoute, notFound, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ArrowLeft } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 import { ListingForm } from "~/components/listings/listing-form";
 import { db } from "~/lib/db/index";
 import { getSession } from "~/lib/session";
@@ -14,7 +13,9 @@ const getListingForEdit = createServerFn({ method: "GET" })
 	.inputValidator((id: string) => id)
 	.handler(async ({ data: id }) => {
 		const session = await getSession();
-		if (!session) throw new Error("Kirjaudu sisään");
+		if (!session) {
+			throw new Error("Kirjaudu sisään");
+		}
 
 		const listing = await db
 			.selectFrom("listing")
@@ -22,8 +23,12 @@ const getListingForEdit = createServerFn({ method: "GET" })
 			.where("id", "=", id)
 			.executeTakeFirst();
 
-		if (!listing) return null;
-		if (listing.owner_id !== session.user.id) throw new Error("Ei oikeuksia");
+		if (!listing) {
+			return null;
+		}
+		if (listing.owner_id !== session.user.id) {
+			throw new Error("Ei oikeuksia");
+		}
 
 		const images = await db
 			.selectFrom("listing_image")
@@ -42,7 +47,9 @@ const updateListing = createServerFn({ method: "POST" })
 	}))
 	.handler(async ({ data }) => {
 		const session = await getSession();
-		if (!session) throw new Error("Kirjaudu sisään");
+		if (!session) {
+			throw new Error("Kirjaudu sisään");
+		}
 
 		const existing = await db
 			.selectFrom("listing")
@@ -50,8 +57,12 @@ const updateListing = createServerFn({ method: "POST" })
 			.where("id", "=", data.id)
 			.executeTakeFirst();
 
-		if (!existing) throw new Error("Ilmoitusta ei löydy");
-		if (existing.owner_id !== session.user.id) throw new Error("Ei oikeuksia");
+		if (!existing) {
+			throw new Error("Ilmoitusta ei löydy");
+		}
+		if (existing.owner_id !== session.user.id) {
+			throw new Error("Ei oikeuksia");
+		}
 
 		const { form } = data;
 
@@ -110,7 +121,9 @@ export const Route = createFileRoute("/listings/$listingId_/edit")({
 			throw redirect({ to: "/auth/login", search: { redirect: undefined } });
 		}
 		const result = await getListingForEdit({ data: params.listingId });
-		if (!result) throw notFound();
+		if (!result) {
+			throw notFound();
+		}
 		return result;
 	},
 	component: EditListingPage,

@@ -63,6 +63,7 @@ const MAX_IMAGES = 8;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: large form with many fields
 export function ListingForm({
 	initialValues,
 	initialImageUrls = [],
@@ -110,7 +111,9 @@ export function ListingForm({
 
 		const valid: File[] = [];
 		for (const file of files) {
-			if (valid.length >= remaining) break;
+			if (valid.length >= remaining) {
+				break;
+			}
 			if (!ALLOWED_TYPES.includes(file.type)) {
 				setImageError("Vain JPEG, PNG ja WebP tiedostot ovat sallittuja");
 				continue;
@@ -225,7 +228,9 @@ export function ListingForm({
 							onChange={(e) => setTitle(e.target.value)}
 							placeholder="Honda CB500F 2020 — siisti vuosimalli"
 						/>
-						<p className="mt-1 text-xs text-muted">Kuvaava otsikko houkuttelee enemmän yhteydenottoja</p>
+						<p className="mt-1 text-xs text-muted">
+							Kuvaava otsikko houkuttelee enemmän yhteydenottoja
+						</p>
 					</div>
 
 					<div className="grid grid-cols-2 gap-4">
@@ -454,10 +459,7 @@ export function ListingForm({
 						</div>
 					</div>
 					<div className="w-1/2 pr-2">
-						<label
-							htmlFor="postal_code"
-							className="mb-1 block text-sm font-medium text-foreground"
-						>
+						<label htmlFor="postal_code" className="mb-1 block text-sm font-medium text-foreground">
 							Postinumero
 						</label>
 						<Input
@@ -473,9 +475,7 @@ export function ListingForm({
 
 			{/* ── Saatavuus ─────────────────────────────────────────────────── */}
 			<section className="rounded-lg border border-border bg-card p-6">
-				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-					Saatavuus
-				</h2>
+				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Saatavuus</h2>
 				<div className="space-y-4">
 					<div className="grid grid-cols-2 gap-4">
 						<div>
@@ -563,7 +563,7 @@ export function ListingForm({
 						/>
 						<span className="text-sm text-foreground">Vakuutus sisältyy hintaan</span>
 					</label>
-					{includesInsurance && (
+					{!!includesInsurance && (
 						<div className="ml-7">
 							<Input
 								value={insuranceInfo}
@@ -608,7 +608,10 @@ export function ListingForm({
 				{(imageUrls.length > 0 || imagePreviews.length > 0) && (
 					<div className="mb-4 grid grid-cols-4 gap-2">
 						{imageUrls.map((url) => (
-							<div key={url} className="group relative aspect-square overflow-hidden rounded-md bg-muted-light">
+							<div
+								key={url}
+								className="group relative aspect-square overflow-hidden rounded-md bg-muted-light"
+							>
 								<img src={url} alt="" className="h-full w-full object-cover" />
 								<button
 									type="button"
@@ -622,7 +625,7 @@ export function ListingForm({
 						))}
 						{imagePreviews.map((preview, i) => (
 							<div
-								key={`preview-${i}`}
+								key={`${pendingFiles[i]?.name ?? i}-${pendingFiles[i]?.size ?? i}`}
 								className="group relative aspect-square overflow-hidden rounded-md bg-muted-light"
 							>
 								<img src={preview} alt="" className="h-full w-full object-cover" />
@@ -672,11 +675,11 @@ export function ListingForm({
 					</label>
 				)}
 
-				{imageError && <p className="mt-2 text-sm text-destructive">{imageError}</p>}
+				{!!imageError && <p className="mt-2 text-sm text-destructive">{imageError}</p>}
 			</section>
 
 			{/* ── Submit ────────────────────────────────────────────────────── */}
-			{error && (
+			{!!error && (
 				<div className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">
 					{error}
 				</div>
@@ -688,6 +691,7 @@ export function ListingForm({
 				className="w-full bg-accent text-white hover:bg-accent-hover"
 				size="lg"
 			>
+				{/* biome-ignore lint/nursery/noLeakedRender: safe string prop with default */}
 				{loading ? "Tallennetaan..." : submitLabel}
 			</Button>
 		</form>

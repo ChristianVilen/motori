@@ -5,124 +5,125 @@
 
 import type { ColumnType } from "kysely";
 
-export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
-  ? ColumnType<S, I | undefined, U>
-  : ColumnType<T, T | undefined, T>;
+export type Generated<T> =
+	T extends ColumnType<infer S, infer I, infer U>
+		? ColumnType<S, I | undefined, U>
+		: ColumnType<T, T | undefined, T>;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Account {
-  accessToken: string | null;
-  accessTokenExpiresAt: Timestamp | null;
-  accountId: string;
-  createdAt: Timestamp;
-  id: string;
-  idToken: string | null;
-  password: string | null;
-  providerId: string;
-  refreshToken: string | null;
-  refreshTokenExpiresAt: Timestamp | null;
-  scope: string | null;
-  updatedAt: Timestamp;
-  userId: string;
+	accessToken: string | null;
+	accessTokenExpiresAt: Timestamp | null;
+	accountId: string;
+	createdAt: Timestamp;
+	id: string;
+	idToken: string | null;
+	password: string | null;
+	providerId: string;
+	refreshToken: string | null;
+	refreshTokenExpiresAt: Timestamp | null;
+	scope: string | null;
+	updatedAt: Timestamp;
+	userId: string;
 }
 
 export interface Favorite {
-  created_at: Generated<Timestamp>;
-  listing_id: string;
-  user_id: string;
+	created_at: Generated<Timestamp>;
+	listing_id: string;
+	user_id: string;
 }
 
 export interface Listing {
-  available_from: Timestamp | null;
-  available_to: Timestamp | null;
-  brand: string;
-  city: string;
-  created_at: Generated<Timestamp>;
-  deposit_amount: number | null;
-  description: string;
-  engine_cc: number | null;
-  expires_at: Timestamp | null;
-  id: string;
-  includes_helmet: Generated<boolean>;
-  includes_insurance: Generated<boolean>;
-  insurance_info: string | null;
-  mileage_limit: number | null;
-  model: string;
-  motorcycle_type: string;
-  owner_id: string;
-  postal_code: string | null;
-  price_description: string | null;
-  price_per_day: number;
-  price_per_week: number | null;
-  region: string;
-  required_license: string | null;
-  search_vector: string | null;
-  season_only: Generated<boolean>;
-  status: Generated<string>;
-  title: string;
-  updated_at: Generated<Timestamp>;
-  view_count: Generated<number>;
-  year: number;
+	available_from: Timestamp | null;
+	available_to: Timestamp | null;
+	brand: string;
+	city: string;
+	created_at: Generated<Timestamp>;
+	deposit_amount: number | null;
+	description: string;
+	engine_cc: number | null;
+	expires_at: Timestamp | null;
+	id: string;
+	includes_helmet: Generated<boolean>;
+	includes_insurance: Generated<boolean>;
+	insurance_info: string | null;
+	mileage_limit: number | null;
+	model: string;
+	motorcycle_type: string;
+	owner_id: string;
+	postal_code: string | null;
+	price_description: string | null;
+	price_per_day: number;
+	price_per_week: number | null;
+	region: string;
+	required_license: string | null;
+	search_vector: string | null;
+	season_only: Generated<boolean>;
+	status: Generated<string>;
+	title: string;
+	updated_at: Generated<Timestamp>;
+	view_count: Generated<number>;
+	year: number;
 }
 
 export interface ListingImage {
-  id: string;
-  listing_id: string;
-  order: Generated<number>;
-  thumbnail_url: string | null;
-  url: string;
+	id: string;
+	listing_id: string;
+	order: Generated<number>;
+	thumbnail_url: string | null;
+	url: string;
 }
 
 export interface Profile {
-  city: string | null;
-  created_at: Generated<Timestamp>;
-  display_name: string;
-  language: Generated<string>;
-  license_class: string | null;
-  phone: string | null;
-  show_phone: Generated<boolean>;
-  updated_at: Generated<Timestamp>;
-  user_id: string;
+	city: string | null;
+	created_at: Generated<Timestamp>;
+	display_name: string;
+	language: Generated<string>;
+	license_class: string | null;
+	phone: string | null;
+	show_phone: Generated<boolean>;
+	updated_at: Generated<Timestamp>;
+	user_id: string;
 }
 
 export interface Session {
-  createdAt: Timestamp;
-  expiresAt: Timestamp;
-  id: string;
-  ipAddress: string | null;
-  token: string;
-  updatedAt: Timestamp;
-  userAgent: string | null;
-  userId: string;
+	createdAt: Timestamp;
+	expiresAt: Timestamp;
+	id: string;
+	ipAddress: string | null;
+	token: string;
+	updatedAt: Timestamp;
+	userAgent: string | null;
+	userId: string;
 }
 
 export interface User {
-  createdAt: Timestamp;
-  email: string;
-  emailVerified: Generated<boolean>;
-  id: string;
-  image: string | null;
-  name: string;
-  updatedAt: Timestamp;
+	createdAt: Timestamp;
+	email: string;
+	emailVerified: Generated<boolean>;
+	id: string;
+	image: string | null;
+	name: string;
+	updatedAt: Timestamp;
 }
 
 export interface Verification {
-  createdAt: Timestamp | null;
-  expiresAt: Timestamp;
-  id: string;
-  identifier: string;
-  updatedAt: Timestamp | null;
-  value: string;
+	createdAt: Timestamp | null;
+	expiresAt: Timestamp;
+	id: string;
+	identifier: string;
+	updatedAt: Timestamp | null;
+	value: string;
 }
 
 export interface DB {
-  account: Account;
-  favorite: Favorite;
-  listing: Listing;
-  listing_image: ListingImage;
-  profile: Profile;
-  session: Session;
-  user: User;
-  verification: Verification;
+	account: Account;
+	favorite: Favorite;
+	listing: Listing;
+	listing_image: ListingImage;
+	profile: Profile;
+	session: Session;
+	user: User;
+	verification: Verification;
 }
