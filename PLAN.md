@@ -11,21 +11,21 @@ Build a Tori.fi/Craigslist-style noticeboard for peer-to-peer motorcycle rentals
 
 ## Tech Stack
 
-| Layer          | Choice                                                   | Rationale                                                                          |
-| -------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Framework      | TanStack Start (React)                                   | Fullstack TypeScript, file-based routing, SSR, server functions                    |
-| Styling        | Tailwind CSS v4 + shadcn/ui                              | Component primitives for rapid MVP, good TanStack Start support                    |
-| Database       | PostgreSQL 17                                            | Full-text search (Finnish stemmer), PostGIS-ready for future maps                  |
-| Query Builder  | **Kysely**                                               | Type-safe SQL query builder, no magic — explicit queries, great PostgreSQL support |
-| Auth           | BetterAuth (Google + Meta social login)                  | Session management, OAuth, pairs with Kysely via adapter                           |
-| Image Storage  | Cloudflare R2                                            | S3-compatible, zero egress fees, presigned URLs for direct browser upload          |
-| Email          | Resend                                                   | Simple transactional email API                                                     |
-| Validation     | Zod                                                      | Form + server function validation, TanStack ecosystem standard                     |
-| Search         | PostgreSQL full-text search (`tsvector`, Finnish config) | Sufficient at Finnish-market scale, no extra service                               |
-| PWA            | vite-plugin-pwa                                          | Service worker, manifest, offline shell                                            |
-| **Production** | **Hetzner VPS (Helsinki DC)**                            | Finnish data residency, low latency, ~8 EUR/month                                  |
-| Reverse Proxy  | Caddy                                                    | Automatic HTTPS via Let's Encrypt                                                  |
-| Containers     | Docker Compose                                           | App + PostgreSQL + Caddy                                                           |
+| Layer | Choice | Rationale |
+|-------|--------|-----------|
+| Framework | TanStack Start (React) | Fullstack TypeScript, file-based routing, SSR, server functions |
+| Styling | Tailwind CSS v4 + shadcn/ui | Component primitives for rapid MVP, good TanStack Start support |
+| Database | PostgreSQL 17 | Full-text search (Finnish stemmer), PostGIS-ready for future maps |
+| Query Builder | **Kysely** | Type-safe SQL query builder, no magic — explicit queries, great PostgreSQL support |
+| Auth | BetterAuth (Google + Meta social login) | Session management, OAuth, pairs with Kysely via adapter |
+| Image Storage | Hetzner Object Storage (Helsinki) | S3-compatible, Finnish data residency, single vendor with VPS, presigned URLs for direct browser upload |
+| Email | Resend | Simple transactional email API |
+| Validation | Zod | Form + server function validation, TanStack ecosystem standard |
+| Search | PostgreSQL full-text search (`tsvector`, Finnish config) | Sufficient at Finnish-market scale, no extra service |
+| PWA | vite-plugin-pwa | Service worker, manifest, offline shell |
+| **Production** | **Hetzner VPS + Object Storage (Helsinki DC)** | Finnish data residency, low latency, single vendor, ~8 EUR/month VPS |
+| Reverse Proxy | Caddy | Automatic HTTPS via Let's Encrypt |
+| Containers | Docker Compose | App + PostgreSQL + Caddy |
 
 ---
 
@@ -84,7 +84,7 @@ vuokramoto/
         migrations/          # Kysely migrations (up/down functions)
       auth.ts                # BetterAuth server config
       auth-client.ts         # BetterAuth client config
-      r2.ts                  # R2/S3 presign helpers
+      storage.ts             # Hetzner Object Storage presign helpers (S3-compatible)
       search.ts              # PostgreSQL FTS helpers
       validators.ts          # Zod schemas
       constants.ts           # Finnish regions, license classes, motorcycle types
@@ -170,8 +170,8 @@ interface Database {
 
 1. Client validates files (JPEG/PNG/WebP, max 5MB, max 8 images)
 2. Client requests presigned PUT URL from `/api/images/presign`
-3. Client uploads directly to R2 (no server bandwidth cost)
-4. Listing saved with R2 object keys
+3. Client uploads directly to Hetzner Object Storage (no server bandwidth cost)
+4. Listing saved with object storage public URLs
 
 ### Search
 
@@ -219,7 +219,7 @@ interface Database {
 - [ ] BetterAuth setup (Google + Meta social login)
 - [ ] User profiles (display name, city, phone, license class)
 - [ ] Listing CRUD (create, edit, delete, pause)
-- [ ] Image upload to R2 (presigned URLs, max 8 per listing)
+- [ ] Image upload to Hetzner Object Storage (presigned URLs, max 8 per listing)
 - [ ] Browse/search with filters (region, type, license, price range)
 - [ ] PostgreSQL full-text search (Finnish stemmer)
 - [ ] Listing detail page with contact info reveal
@@ -276,13 +276,14 @@ interface Database {
 
 ```
 Internet -> Caddy (HTTPS) -> TanStack Start (Node.js :3000) -> PostgreSQL 17
-                                                             -> Cloudflare R2 (images)
+                                                             -> Hetzner Object Storage hel1 (images)
                                                              -> Resend (email)
 ```
 
 - **VPS**: Hetzner CPX21 (~8 EUR/month), Helsinki datacenter
 - **Docker Compose**: app + db + caddy containers
 - **Backups**: Daily pg_dump to R2 via cron
+- **Object Storage**: Hetzner Object Storage in hel1 (Helsinki) — S3-compatible, create bucket via Hetzner Cloud Console
 - **CI/CD**: GitHub Actions -> build -> SSH deploy (or Docker registry + Watchtower)
 - **Domain**: vuokramoto.fi
 
@@ -292,7 +293,7 @@ Internet -> Caddy (HTTPS) -> TanStack Start (Node.js :3000) -> PostgreSQL 17
 
 - Run `docker compose up` locally — app, db, caddy all start
 - Create account via Google OAuth -> profile completion -> user appears in DB
-- Create listing with images -> verify R2 upload, listing appears in browse
+- Create listing with images -> verify Hetzner Object Storage upload, listing appears in browse
 - Search "Honda Helsinki" -> verify FTS returns relevant results
 - Open on mobile -> verify responsive layout, PWA install prompt
 - Run Lighthouse audit -> check performance, accessibility, SEO scores
