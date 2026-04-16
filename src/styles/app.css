@@ -3,18 +3,37 @@
 @theme {
 	--font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
-	/* Nordic-inspired palette from PLAN.md */
-	--color-primary: #1a1a2e;
-	--color-accent: #e07a3a;
-	--color-background: #fafaf9;
-	--color-foreground: #1a1a2e;
-	--color-muted: #6b6966;
-	--color-muted-light: #f0efed;
-	--color-card: #ffffff;
-	--color-border: #e5e4e1;
-	--color-destructive: #dc2626;
+	/* Core palette */
+	--color-primary:            #1a1a2e;
+	--color-primary-foreground: #ffffff;
+	--color-accent:             #e07a3a;
+	--color-accent-hover:       #c96830;
+	--color-accent-foreground:  #ffffff;
+	--color-background:         #fafaf9;
+	--color-foreground:         #1a1a2e;
+	--color-muted:              #6b6966;
+	--color-muted-foreground:   #6b6966;
+	--color-muted-light:        #f0efed;
+	--color-card:               #ffffff;
+	--color-card-foreground:    #1a1a2e;
+	--color-border:             #e5e4e1;
+	--color-input:              #e5e4e1;
+	--color-ring:               #e07a3a;
+	--color-destructive:        #dc2626;
+	--color-destructive-foreground: #ffffff;
+	--color-success:            #16a34a;
+	--color-warning:            #d97706;
 
-	--radius-sm: 0.25rem;
-	--radius-md: 0.375rem;
-	--radius-lg: 0.5rem;
+	/* shadcn secondary (maps to muted-light surface) */
+	--color-secondary:          #f0efed;
+	--color-secondary-foreground: #1a1a2e;
+
+	/* shadcn popover (same as card) */
+	--color-popover:            #ffffff;
+	--color-popover-foreground: #1a1a2e;
+
+	/* Radius scale */
+	--radius-sm: 0.375rem;
+	--radius-md: 0.5rem;
+	--radius-lg: 0.75rem;
 }
