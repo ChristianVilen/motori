@@ -1,5 +1,5 @@
 // src/routes/auth/verify-email.tsx
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Mail } from "lucide-react";
 
 export const Route = createFileRoute("/auth/verify-email")({
@@ -22,11 +22,7 @@ function VerifyEmailPage() {
 				</div>
 
 				<p className="text-xs text-muted">
-					Eikö viesti tullut?{" "}
-					<Link to="/auth/login" search={{ redirect: undefined }} className="text-accent hover:underline">
-						Kirjaudu uudelleen
-					</Link>{" "}
-					lähettääksesi uuden.
+					Eikö viesti tullut? Ota yhteyttä tukeen jos viesti ei saavu.
 				</p>
 			</div>
 		</div>

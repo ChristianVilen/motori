@@ -7,6 +7,9 @@ import { Input } from "~/components/ui/input";
 import { db } from "~/lib/db/index";
 import { getSession } from "~/lib/session";
 
+const VALID_LICENSE_CLASSES = ["A1", "A2", "A"] as const;
+type LicenseClass = (typeof VALID_LICENSE_CLASSES)[number];
+
 const saveProfile = createServerFn({ method: "POST" })
 	.inputValidator(
 		(data: {
@@ -14,18 +17,28 @@ const saveProfile = createServerFn({ method: "POST" })
 			city: string;
 			phone: string;
 			licenseClass: string;
-			userId: string;
-		}) => data,
+		}) => {
+			const displayName = data.displayName.trim();
+			if (!displayName) throw new Error("Näyttönimi on pakollinen");
+			const licenseClass =
+				VALID_LICENSE_CLASSES.includes(data.licenseClass as LicenseClass)
+					? (data.licenseClass as LicenseClass)
+					: "";
+			return { displayName, city: data.city, phone: data.phone, licenseClass };
+		},
 	)
 	.handler(async ({ data }) => {
+		const session = await getSession();
+		if (!session) throw new Error("Ei istuntoa");
+		const licenseClass = data.licenseClass as LicenseClass | "";
 		await db
 			.insertInto("profile")
 			.values({
-				user_id: data.userId,
+				user_id: session.user.id,
 				display_name: data.displayName,
 				city: data.city || null,
 				phone: data.phone || null,
-				license_class: (data.licenseClass as "A1" | "A2" | "A") || null,
+				license_class: licenseClass || null,
 				language: "fi",
 			})
 			.onConflict((oc) =>
@@ -33,7 +46,7 @@ const saveProfile = createServerFn({ method: "POST" })
 					display_name: data.displayName,
 					city: data.city || null,
 					phone: data.phone || null,
-					license_class: (data.licenseClass as "A1" | "A2" | "A") || null,
+					license_class: licenseClass || null,
 					updated_at: new Date(),
 				}),
 			)
@@ -59,23 +72,28 @@ function CompleteProfilePage() {
 	const [phone, setPhone] = useState("");
 	const [licenseClass, setLicenseClass] = useState("");
 	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
+		setError(null);
 		setLoading(true);
 
-		await saveProfile({
-			data: {
-				userId: session.user.id,
-				displayName,
-				city,
-				phone,
-				licenseClass,
-			},
-		});
-
-		setLoading(false);
-		navigate({ to: "/" });
+		try {
+			await saveProfile({
+				data: {
+					displayName,
+					city,
+					phone,
+					licenseClass,
+				},
+			});
+			navigate({ to: "/" });
+		} catch {
+			setError("Profiilin tallentaminen epäonnistui. Yritä uudelleen.");
+		} finally {
+			setLoading(false);
+		}
 	}
 
 	return (
@@ -152,6 +170,10 @@ function CompleteProfilePage() {
 					>
 						{loading ? "Tallennetaan..." : "Valmis"}
 					</Button>
+
+					{error && (
+						<p className="text-sm text-destructive">{error}</p>
+					)}
 				</form>
 			</div>
 		</div>

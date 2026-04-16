@@ -30,6 +30,10 @@ function LoginPage() {
 		setLoading(false);
 
 		if (result.error) {
+			if (result.error.code === "EMAIL_NOT_VERIFIED") {
+				navigate({ to: "/auth/verify-email" });
+				return;
+			}
 			setError("Väärä sähköposti tai salasana.");
 			return;
 		}
