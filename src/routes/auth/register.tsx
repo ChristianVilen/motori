@@ -24,6 +24,7 @@ function passwordStrength(password: string): { score: number; label: string; col
 
 function RegisterPage() {
 	const navigate = useNavigate();
+	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState<string | null>(null);
@@ -37,9 +38,9 @@ function RegisterPage() {
 		setLoading(true);
 
 		const result = await signUp.email({
+			name,
 			email,
 			password,
-			name: email.split("@")[0],
 			callbackURL: "/auth/complete-profile",
 		});
 
@@ -66,6 +67,20 @@ function RegisterPage() {
 				</div>
 
 				<form onSubmit={handleSubmit} className="space-y-4">
+					<div className="space-y-2">
+						<label htmlFor="name" className="text-sm font-medium text-foreground">
+							Nimi
+						</label>
+						<Input
+							id="name"
+							type="text"
+							autoComplete="name"
+							required
+							value={name}
+							onChange={(e) => setName(e.target.value)}
+						/>
+					</div>
+
 					<div className="space-y-2">
 						<label htmlFor="email" className="text-sm font-medium text-foreground">
 							Sähköposti

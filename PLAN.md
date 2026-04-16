@@ -15,7 +15,7 @@ Build a Tori.fi/Craigslist-style noticeboard for peer-to-peer motorcycle rentals
 |-------|--------|-----------|
 | Framework | TanStack Start (React) | Fullstack TypeScript, file-based routing, SSR, server functions |
 | Styling | Tailwind CSS v4 + shadcn/ui | Component primitives for rapid MVP, good TanStack Start support |
-| Database | PostgreSQL 16 | Full-text search (Finnish stemmer), PostGIS-ready for future maps |
+| Database | PostgreSQL 17 | Full-text search (Finnish stemmer), PostGIS-ready for future maps |
 | Query Builder | **Kysely** | Type-safe SQL query builder, no magic — explicit queries, great PostgreSQL support |
 | Auth | BetterAuth (Google + Meta social login) | Session management, OAuth, pairs with Kysely via adapter |
 | Image Storage | Cloudflare R2 | S3-compatible, zero egress fees, presigned URLs for direct browser upload |
@@ -221,6 +221,11 @@ interface Database {
 - [ ] SEO basics (meta tags, Open Graph, Schema.org structured data)
 - [ ] Deploy to Hetzner (Docker Compose + Caddy)
 
+### Auth — Future improvements
+- [ ] **Parallel email verification**: Let users in immediately after registration. Email verification runs in the background — user has 2h–24h window to verify before access is restricted. Reduces registration friction significantly. Currently: verify-first, then profile completion.
+- [ ] **Social login**: Google + Meta OAuth (BetterAuth already supports this — just enable and add OAuth apps)
+- [ ] **Password reset flow**
+
 ### P1 — Ship soon after MVP
 - [ ] In-app messaging (conversations tied to listings)
 - [ ] Reviews/ratings (1-5 stars with comment)
@@ -257,7 +262,7 @@ interface Database {
 ## Deployment (Hetzner Helsinki)
 
 ```
-Internet -> Caddy (HTTPS) -> TanStack Start (Node.js :3000) -> PostgreSQL 16
+Internet -> Caddy (HTTPS) -> TanStack Start (Node.js :3000) -> PostgreSQL 17
                                                              -> Cloudflare R2 (images)
                                                              -> Resend (email)
 ```
