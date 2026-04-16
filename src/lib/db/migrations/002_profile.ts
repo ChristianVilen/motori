@@ -1,4 +1,10 @@
 // src/lib/db/migrations/002_profile.ts
+//
+// Convention: app-owned tables use snake_case columns.
+// BetterAuth tables (001_betterauth) keep BetterAuth's camelCase — that is externally dictated.
+//
+// updated_at: defaultTo(now()) fires only on INSERT. Every UPDATE query against this
+// table must explicitly set updated_at = new Date() in application code.
 import type { Kysely } from "kysely";
 import { sql } from "kysely";
 
