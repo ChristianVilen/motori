@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
+import { Route as ListingsIndexRouteImport } from './routes/listings/index'
 import { Route as ListingsNewRouteImport } from './routes/listings/new'
 import { Route as ListingsListingIdRouteImport } from './routes/listings/$listingId'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
@@ -28,6 +29,11 @@ const IndexRoute = IndexRouteImport.update({
 const ProfileIndexRoute = ProfileIndexRouteImport.update({
   id: '/profile/',
   path: '/profile/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListingsIndexRoute = ListingsIndexRouteImport.update({
+  id: '/listings/',
+  path: '/listings/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ListingsNewRoute = ListingsNewRouteImport.update({
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/listings/$listingId': typeof ListingsListingIdRoute
   '/listings/new': typeof ListingsNewRoute
+  '/listings/': typeof ListingsIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/listings/$listingId/edit': typeof ListingsListingIdEditRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/listings/$listingId': typeof ListingsListingIdRoute
   '/listings/new': typeof ListingsNewRoute
+  '/listings': typeof ListingsIndexRoute
   '/profile': typeof ProfileIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/listings/$listingId/edit': typeof ListingsListingIdEditRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/listings/$listingId': typeof ListingsListingIdRoute
   '/listings/new': typeof ListingsNewRoute
+  '/listings/': typeof ListingsIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/listings/$listingId_/edit': typeof ListingsListingIdEditRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/auth/verify-email'
     | '/listings/$listingId'
     | '/listings/new'
+    | '/listings/'
     | '/profile/'
     | '/api/auth/$'
     | '/listings/$listingId/edit'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/auth/verify-email'
     | '/listings/$listingId'
     | '/listings/new'
+    | '/listings'
     | '/profile'
     | '/api/auth/$'
     | '/listings/$listingId/edit'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/auth/verify-email'
     | '/listings/$listingId'
     | '/listings/new'
+    | '/listings/'
     | '/profile/'
     | '/api/auth/$'
     | '/listings/$listingId_/edit'
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
   ListingsListingIdRoute: typeof ListingsListingIdRoute
   ListingsNewRoute: typeof ListingsNewRoute
+  ListingsIndexRoute: typeof ListingsIndexRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ListingsListingIdEditRoute: typeof ListingsListingIdEditRoute
@@ -174,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile/'
       preLoaderRoute: typeof ProfileIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/listings/': {
+      id: '/listings/'
+      path: '/listings'
+      fullPath: '/listings/'
+      preLoaderRoute: typeof ListingsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/listings/new': {
@@ -243,6 +263,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
   ListingsListingIdRoute: ListingsListingIdRoute,
   ListingsNewRoute: ListingsNewRoute,
+  ListingsIndexRoute: ListingsIndexRoute,
   ProfileIndexRoute: ProfileIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ListingsListingIdEditRoute: ListingsListingIdEditRoute,

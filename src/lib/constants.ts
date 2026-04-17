@@ -82,3 +82,46 @@ export const LISTING_STATUSES = {
 export type ListingStatus = keyof typeof LISTING_STATUSES;
 
 export const CURRENT_YEAR = new Date().getFullYear();
+
+export const ADJACENT_REGIONS: Record<string, string[]> = {
+	uusimaa: ["paijat-hame", "kanta-hame", "kymenlaakso"],
+	pirkanmaa: ["kanta-hame", "satakunta", "keski-suomi"],
+	"varsinais-suomi": ["satakunta", "kanta-hame", "uusimaa"],
+	"pohjois-pohjanmaa": ["kainuu", "keski-pohjanmaa", "lappi"],
+	"keski-suomi": ["pirkanmaa", "pohjois-savo", "etela-pohjanmaa"],
+	"pohjois-savo": ["keski-suomi", "pohjois-karjala", "etela-savo"],
+	"paijat-hame": ["uusimaa", "kanta-hame", "keski-suomi"],
+	satakunta: ["pirkanmaa", "varsinais-suomi", "pohjanmaa"],
+	pohjanmaa: ["etela-pohjanmaa", "keski-pohjanmaa", "satakunta"],
+	lappi: ["pohjois-pohjanmaa", "kainuu"],
+	"etela-karjala": ["kymenlaakso", "etela-savo", "paijat-hame"],
+	"etela-savo": ["pohjois-savo", "etela-karjala", "paijat-hame"],
+	kainuu: ["pohjois-pohjanmaa", "pohjois-karjala", "lappi"],
+	"keski-pohjanmaa": ["pohjanmaa", "pohjois-pohjanmaa", "etela-pohjanmaa"],
+	kymenlaakso: ["uusimaa", "etela-karjala", "paijat-hame"],
+	"pohjois-karjala": ["pohjois-savo", "kainuu", "etela-savo"],
+	"etela-pohjanmaa": ["pohjanmaa", "keski-suomi", "pirkanmaa"],
+	"kanta-hame": ["uusimaa", "pirkanmaa", "paijat-hame"],
+	ahvenanmaa: ["varsinais-suomi"],
+};
+
+export const SORT_OPTIONS = [
+	{ value: "newest", label: "Uusimmat ensin" },
+	{ value: "price_asc", label: "Hinta: halvin" },
+	{ value: "price_desc", label: "Hinta: kallein" },
+	{ value: "relevance", label: "Osuvimmat" },
+] as const;
+
+export type SortOption = (typeof SORT_OPTIONS)[number]["value"];
+
+export const TYPE_EMOJI: Record<string, string> = {
+	naked: "\u26A1",
+	sport: "\uD83C\uDFCE",
+	touring: "\uD83E\uDDED",
+	adventure: "\uD83C\uDFD4",
+	cruiser: "\uD83D\uDEE3",
+	enduro: "\uD83C\uDF32",
+	motocross: "\uD83C\uDFC1",
+	scooter: "\uD83D\uDEF5",
+	custom: "\uD83D\uDD27",
+};

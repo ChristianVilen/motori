@@ -1,7 +1,6 @@
-// src/components/listings/listing-card.tsx
 import { Link } from "@tanstack/react-router";
-import { MapPin, Tag } from "lucide-react";
-import { MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
+import { Heart } from "lucide-react";
+import { MOTORCYCLE_TYPES, REGIONS, TYPE_EMOJI } from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 
 interface ListingCardProps {
@@ -15,21 +14,26 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 	const typeLabel =
 		MOTORCYCLE_TYPES.find((t) => t.value === listing.motorcycle_type)?.label ??
 		listing.motorcycle_type;
+	const typeEmoji = TYPE_EMOJI[listing.motorcycle_type] ?? "";
 	const priceEur = Math.round(listing.price_per_day / 100);
+
+	const isNew = Date.now() - new Date(listing.created_at).getTime() < 48 * 60 * 60 * 1000;
+
+	const imageCount = images.length;
 
 	return (
 		<Link
 			to="/listings/$listingId"
 			params={{ listingId: listing.id }}
-			className="group block rounded-lg border border-border bg-card shadow-sm transition-shadow hover:shadow-md"
+			className="group block overflow-hidden rounded-xl border border-border bg-card card-hover hover:card-hover-active"
 		>
 			{/* Image */}
-			<div className="aspect-[4/3] overflow-hidden rounded-t-lg bg-muted-light">
+			<div className="relative aspect-[16/10] overflow-hidden bg-muted-light">
 				{firstImage ? (
 					<img
 						src={firstImage.url}
 						alt={listing.title}
-						className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+						className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
 					/>
 				) : (
 					<div className="flex h-full items-center justify-center">
@@ -49,12 +53,51 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 						</svg>
 					</div>
 				)}
+
+				{/* Badges overlay */}
+				{isNew && (
+					<span className="absolute top-2.5 left-2.5 rounded-md bg-accent px-2 py-0.5 text-xs font-semibold text-white">
+						Uusi
+					</span>
+				)}
+
+				{/* Favorite button placeholder */}
+				<button
+					type="button"
+					className="absolute top-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-muted transition-transform hover:scale-110"
+					onClick={(e) => {
+						e.preventDefault();
+						e.stopPropagation();
+					}}
+					aria-label="Lisää suosikkeihin"
+				>
+					<Heart className="h-4 w-4" />
+				</button>
+
+				{/* Frosted trust bar at bottom of image */}
+				<div className="absolute right-0 bottom-0 left-0 flex items-center gap-1.5 bg-gradient-to-t from-black/50 to-transparent px-3 pt-6 pb-2.5">
+					{!!listing.includes_helmet && (
+						<span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm">
+							Kypärä
+						</span>
+					)}
+					{!!listing.includes_insurance && (
+						<span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm">
+							Vakuutus
+						</span>
+					)}
+					{imageCount > 1 && (
+						<span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm">
+							📷 {imageCount}
+						</span>
+					)}
+				</div>
 			</div>
 
 			{/* Content */}
 			<div className="p-4">
 				<div className="mb-1 flex items-start justify-between gap-2">
-					<h3 className="line-clamp-2 text-sm font-semibold text-foreground leading-tight">
+					<h3 className="line-clamp-1 text-sm font-semibold text-foreground leading-tight">
 						{listing.title}
 					</h3>
 					{!!listing.required_license && (
@@ -64,28 +107,18 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 					)}
 				</div>
 
-				<div className="mt-1 flex items-center gap-1 text-xs text-muted">
-					<Tag className="h-3 w-3" />
-					<span>{typeLabel}</span>
-					<span>·</span>
-					<span>{listing.year}</span>
-					{!!listing.engine_cc && (
-						<>
-							<span>·</span>
-							<span>{listing.engine_cc}cc</span>
-						</>
-					)}
-				</div>
+				<p className="mt-1 text-xs text-muted">
+					{typeEmoji} {typeLabel}
+					{listing.engine_cc ? ` · ${listing.engine_cc} cc` : ""}
+				</p>
 
-				<div className="mt-2 flex items-center justify-between">
-					<div className="flex items-center gap-1 text-xs text-muted">
-						<MapPin className="h-3 w-3" />
-						<span>
-							{listing.city}, {regionLabel}
-						</span>
-					</div>
+				{/* Footer with border-top */}
+				<div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+					<span className="text-xs text-muted">
+						{listing.city}, {regionLabel}
+					</span>
 					<div className="text-right">
-						<span className="text-base font-bold text-accent">{priceEur} €</span>
+						<span className="font-heading text-lg font-bold text-accent">{priceEur} €</span>
 						<span className="text-xs text-muted">/pv</span>
 					</div>
 				</div>

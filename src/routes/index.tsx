@@ -1,14 +1,237 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
+import { ListingCard } from "~/components/listings/listing-card";
+import { getHomepageStats, getLatestListings } from "~/lib/listings-queries";
 
 export const Route = createFileRoute("/")({
-	component: Home,
+	loader: async () => {
+		const [latestListings, stats] = await Promise.all([getLatestListings(), getHomepageStats()]);
+		return { latestListings, stats };
+	},
+	component: HomePage,
 });
 
-function Home() {
+function HomePage() {
+	const { latestListings, stats } = Route.useLoaderData();
+	const navigate = useNavigate();
+
+	const isRidingSeason = (() => {
+		const month = new Date().getMonth();
+		return month >= 3 && month <= 9;
+	})();
+
+	function handleSearch(e: React.FormEvent<HTMLFormElement>) {
+		e.preventDefault();
+		const formData = new FormData(e.currentTarget);
+		const q = (formData.get("q") as string)?.trim() || undefined;
+		navigate({
+			to: "/listings",
+			search: q ? { q } : {},
+		});
+	}
+
 	return (
-		<div className="flex min-h-screen flex-col items-center justify-center">
-			<h1 className="text-4xl font-bold text-primary">Vuokramoto</h1>
-			<p className="mt-4 text-lg text-muted">Vuokraa moottoripyörä — tai ilmoita omasi vuokralle</p>
+		<div className="min-h-screen">
+			{/* Hero */}
+			<section className="relative overflow-hidden bg-primary">
+				<div className="mx-auto grid min-h-[92vh] max-w-7xl lg:grid-cols-2">
+					{/* Left column */}
+					<div className="flex flex-col justify-center px-6 py-16 lg:px-12 lg:py-24">
+						{/* Seasonal tag */}
+						{isRidingSeason && (
+							<div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5">
+								<span className="relative flex h-2 w-2">
+									<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+									<span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+								</span>
+								<span className="text-sm text-white/70">Kausi 2026 on käynnissä</span>
+							</div>
+						)}
+
+						<h1 className="font-heading text-4xl leading-[1.1] font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+							Vuokraa moottoripyörä <span className="text-accent">suoraan omistajalta</span>
+						</h1>
+
+						<p className="mt-4 max-w-md text-lg text-white/60">
+							Suomen suurin vertaisvuokrauspalvelu moottoripyörille. Löydä unelmiesi pyörä tai
+							tienaa omallasi.
+						</p>
+
+						{/* Search bar */}
+						<form onSubmit={handleSearch} className="mt-8 flex max-w-lg gap-2">
+							<input
+								name="q"
+								type="text"
+								placeholder="Hae merkkiä, mallia, kaupunkia..."
+								className="h-12 flex-1 rounded-lg bg-white/10 px-4 text-white placeholder:text-white/40 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent"
+							/>
+							<button
+								type="submit"
+								className="h-12 rounded-lg bg-accent px-6 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
+							>
+								Hae
+							</button>
+						</form>
+
+						{/* Quick filter chips */}
+						<div className="mt-4 flex flex-wrap gap-2">
+							{[
+								{ label: "Uusimaa", search: { region: "uusimaa" } },
+								{ label: "Pirkanmaa", search: { region: "pirkanmaa" } },
+								{ label: "Naked", search: { type: ["naked"] } },
+								{ label: "A2-kortti", search: { license: ["A2"] } },
+								{ label: "Touring", search: { type: ["touring"] } },
+							].map((chip) => (
+								<Link
+									key={chip.label}
+									to="/listings"
+									search={chip.search}
+									className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+								>
+									{chip.label}
+								</Link>
+							))}
+						</div>
+
+						{/* Stats */}
+						<div className="mt-10 flex gap-8">
+							<div>
+								<p className="font-heading text-2xl font-bold text-accent">{stats.totalListings}</p>
+								<p className="text-xs tracking-wide text-white/40 uppercase">ilmoitusta</p>
+							</div>
+							<div>
+								<p className="font-heading text-2xl font-bold text-accent">{stats.regionCount}</p>
+								<p className="text-xs tracking-wide text-white/40 uppercase">aluetta</p>
+							</div>
+							{stats.minPricePerDay > 0 && (
+								<div>
+									<p className="font-heading text-2xl font-bold text-accent">
+										{stats.minPricePerDay} €
+									</p>
+									<p className="text-xs tracking-wide text-white/40 uppercase">alk. / päivä</p>
+								</div>
+							)}
+						</div>
+					</div>
+
+					{/* Right column — hero image placeholder */}
+					<div className="relative hidden lg:block">
+						<div className="absolute inset-y-0 left-0 z-10 w-32 bg-gradient-to-r from-primary to-transparent" />
+						{/*
+							HERO IMAGE PLACEHOLDER
+							Replace this div with an <img> or background image.
+							The user has 3-4 hero images to slot in.
+							Options: single image, or a subtle crossfade/slideshow.
+						*/}
+						<div className="h-full w-full bg-gradient-to-br from-primary via-primary/80 to-accent/20" />
+					</div>
+				</div>
+			</section>
+
+			{/* Seasonal strip */}
+			<div className="bg-gradient-to-r from-accent to-accent-hover px-4 py-3 text-center text-sm font-medium text-white">
+				{isRidingSeason
+					? `Kesäkausi on täällä — ${stats.totalListings} pyörää odottaa sinua ympäri Suomea`
+					: "Varaa ensi kaudelle — ilmoituksia lisätään jatkuvasti"}
+			</div>
+
+			{/* Latest listings */}
+			{latestListings.length > 0 && (
+				<section className="mx-auto max-w-6xl px-4 py-16">
+					<div className="mb-8 flex items-end justify-between">
+						<div>
+							<h2 className="font-heading text-2xl font-bold text-foreground">
+								Uusimmat ilmoitukset
+							</h2>
+							<p className="mt-1 text-sm text-muted">Tuoreimmat lisäykset</p>
+						</div>
+						<Link
+							to="/listings"
+							search={{ sort: "newest" }}
+							className="flex items-center gap-1 text-sm font-medium text-accent hover:underline"
+						>
+							Selaa kaikkia
+							<ArrowRight className="h-4 w-4" />
+						</Link>
+					</div>
+
+					<div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+						{latestListings.slice(0, 6).map((listing) => (
+							<ListingCard key={listing.id} listing={listing} images={listing.images} />
+						))}
+					</div>
+				</section>
+			)}
+
+			{/* How it works */}
+			<section className="bg-primary px-4 py-16">
+				<div className="mx-auto max-w-4xl">
+					<h2 className="mb-12 text-center font-heading text-2xl font-bold text-white">
+						Näin se toimii
+					</h2>
+
+					<div className="grid grid-cols-1 gap-10 md:grid-cols-3">
+						{[
+							{
+								num: "01",
+								title: "Löydä pyörä",
+								desc: "Selaa ilmoituksia alueittain, tyypeittäin tai hae vapaalla haulla.",
+							},
+							{
+								num: "02",
+								title: "Ota yhteyttä",
+								desc: "Sovi vuokrauksen yksityiskohdat suoraan omistajan kanssa.",
+							},
+							{
+								num: "03",
+								title: "Lähde ajamaan",
+								desc: "Nouda pyörä, nauti matkasta ja palauta sovitusti.",
+							},
+						].map((step) => (
+							<div key={step.num} className="relative pl-16">
+								<span className="absolute top-0 left-0 font-heading text-5xl font-bold text-white/5">
+									{step.num}
+								</span>
+								<div className="mb-2 h-1 w-8 rounded-full bg-accent" />
+								<h3 className="font-heading text-lg font-semibold text-white">{step.title}</h3>
+								<p className="mt-1 text-sm leading-relaxed text-white/50">{step.desc}</p>
+							</div>
+						))}
+					</div>
+				</div>
+			</section>
+
+			{/* Lister CTA */}
+			<section className="px-4 py-16 text-center">
+				<h2 className="font-heading text-2xl font-bold text-foreground">
+					Pyöräsi seisoo tallissa?
+				</h2>
+				<p className="mt-2 text-muted">
+					Ilmoittaminen on ilmaista. Tavoita tuhansia moottoripyöräilystä kiinnostuneita.
+				</p>
+				<Link
+					to="/listings/new"
+					className="mt-6 inline-block rounded-lg bg-accent px-8 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
+				>
+					Lisää ilmoitus
+				</Link>
+			</section>
+
+			{/* Footer */}
+			<footer className="border-t border-border px-4 py-8">
+				<div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
+					<p className="font-heading text-sm font-semibold text-foreground">vuokramoto</p>
+					<div className="flex gap-6 text-xs text-muted">
+						<Link to="/listings" className="hover:text-foreground">
+							Selaa ilmoituksia
+						</Link>
+						<Link to="/listings/new" className="hover:text-foreground">
+							Ilmoita pyörä
+						</Link>
+					</div>
+					<p className="text-xs text-muted">© {new Date().getFullYear()} Vuokramoto</p>
+				</div>
+			</footer>
 		</div>
 	);
 }
