@@ -65,7 +65,10 @@ export const Route = createFileRoute("/listings/$listingId")({
 	},
 	component: ListingDetailPage,
 	notFoundComponent: () => (
-		<div className="flex min-h-screen flex-col items-center justify-center gap-4">
+		<div
+			data-testid="listing-not-found"
+			className="flex min-h-screen flex-col items-center justify-center gap-4"
+		>
 			<p className="text-muted">Ilmoitusta ei löydy.</p>
 			<Link to="/" className="text-sm text-accent underline">
 				Etusivulle
@@ -192,11 +195,21 @@ function PricingCard({
 
 	return (
 		<div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-			<div className="mb-4">
-				<span className="text-3xl font-bold text-accent">{pricePerDay} €</span>
+			<div data-testid="price-info" className="mb-4">
+				<span data-testid="price-per-day" className="text-3xl font-bold text-accent">
+					{pricePerDay} €
+				</span>
 				<span className="ml-1 text-sm text-muted">/päivä</span>
-				{!!pricePerWeek && <div className="mt-1 text-sm text-muted">{pricePerWeek} € / viikko</div>}
-				{!!deposit && <div className="mt-1 text-sm text-muted">Vakuus: {deposit} €</div>}
+				{!!pricePerWeek && (
+					<div data-testid="price-per-week" className="mt-1 text-sm text-muted">
+						{pricePerWeek} € / viikko
+					</div>
+				)}
+				{!!deposit && (
+					<div data-testid="price-deposit" className="mt-1 text-sm text-muted">
+						Vakuus: {deposit} €
+					</div>
+				)}
 				{!!listing.price_description && (
 					<div className="mt-1 text-xs text-muted">{listing.price_description}</div>
 				)}
@@ -205,25 +218,43 @@ function PricingCard({
 			{/* Contact reveal */}
 			{!contactVisible ? (
 				<Button
+					data-testid="owner-contact-reveal"
 					onClick={() => setContactVisible(true)}
 					className="w-full bg-accent text-white hover:bg-accent-hover"
 				>
 					Näytä yhteystiedot
 				</Button>
 			) : (
-				<div className="space-y-2 rounded-lg bg-muted-light p-3 text-sm">
-					<p className="font-medium text-foreground">{owner?.display_name ?? "Ilmoittaja"}</p>
+				<div
+					data-testid="owner-contact"
+					className="space-y-2 rounded-lg bg-muted-light p-3 text-sm"
+				>
+					<p data-testid="owner-name" className="font-medium text-foreground">
+						{owner?.display_name ?? "Ilmoittaja"}
+					</p>
 					{!!owner?.phone && (
-						<a href={`tel:${owner.phone}`} className="block text-accent hover:underline">
+						<a
+							data-testid="owner-phone"
+							href={`tel:${owner.phone}`}
+							className="block text-accent hover:underline"
+						>
 							{owner.phone}
 						</a>
 					)}
 					{!!ownerEmail && (
-						<a href={`mailto:${ownerEmail}`} className="block text-accent hover:underline">
+						<a
+							data-testid="owner-email"
+							href={`mailto:${ownerEmail}`}
+							className="block text-accent hover:underline"
+						>
 							{ownerEmail}
 						</a>
 					)}
-					{!!owner?.city && <p className="text-muted">{owner.city}</p>}
+					{!!owner?.city && (
+						<p data-testid="owner-city" className="text-muted">
+							{owner.city}
+						</p>
+					)}
 				</div>
 			)}
 
@@ -231,6 +262,7 @@ function PricingCard({
 			{!!isOwner && (
 				<div className="mt-3 flex gap-2">
 					<Link
+						data-testid="listing-edit-link"
 						to="/listings/$listingId/edit"
 						params={{ listingId: listing.id }}
 						className="flex-1"
@@ -239,7 +271,7 @@ function PricingCard({
 							Muokkaa
 						</Button>
 					</Link>
-					<Link to="/profile" className="flex-1">
+					<Link data-testid="listing-owner-profile-link" to="/profile" className="flex-1">
 						<Button variant="outline" className="w-full" size="sm">
 							Omat ilmoitukset
 						</Button>
@@ -266,10 +298,11 @@ function ListingDetailPage() {
 	const statusLabel = LISTING_STATUSES[listing.status as keyof typeof LISTING_STATUSES];
 
 	return (
-		<div className="min-h-screen bg-background">
+		<div data-testid="listing-detail" className="min-h-screen bg-background">
 			<div className="mx-auto max-w-4xl px-4 py-8">
 				{/* Back */}
 				<Link
+					data-testid="listing-detail-back"
 					to="/"
 					className="mb-6 flex items-center gap-1 text-sm text-muted hover:text-foreground"
 				>
@@ -285,19 +318,30 @@ function ListingDetailPage() {
 						{/* Title + badges */}
 						<div>
 							<div className="flex items-start justify-between gap-3">
-								<h1 className="text-2xl font-bold text-primary">{listing.title}</h1>
+								<h1 data-testid="listing-detail-title" className="text-2xl font-bold text-primary">
+									{listing.title}
+								</h1>
 								{listing.status !== "active" && (
-									<span className="shrink-0 rounded bg-warning/20 px-2 py-1 text-xs font-medium text-warning">
+									<span
+										data-testid="listing-status-badge"
+										className="shrink-0 rounded bg-warning/20 px-2 py-1 text-xs font-medium text-warning"
+									>
 										{statusLabel}
 									</span>
 								)}
 							</div>
 							<div className="mt-2 flex flex-wrap gap-2">
-								<span className="flex items-center gap-1 rounded-full bg-muted-light px-3 py-1 text-xs text-muted">
+								<span
+									data-testid="listing-type"
+									className="flex items-center gap-1 rounded-full bg-muted-light px-3 py-1 text-xs text-muted"
+								>
 									<Tag className="h-3 w-3" />
 									{typeLabel}
 								</span>
-								<span className="flex items-center gap-1 rounded-full bg-muted-light px-3 py-1 text-xs text-muted">
+								<span
+									data-testid="location-info"
+									className="flex items-center gap-1 rounded-full bg-muted-light px-3 py-1 text-xs text-muted"
+								>
 									<MapPin className="h-3 w-3" />
 									{listing.city}, {regionLabel}
 								</span>

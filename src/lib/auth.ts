@@ -13,7 +13,7 @@ export const auth = betterAuth({
 	secret: process.env.BETTER_AUTH_SECRET,
 	emailAndPassword: {
 		enabled: true,
-		requireEmailVerification: true,
+		requireEmailVerification: process.env.DISABLE_EMAIL_VERIFICATION !== "true",
 	},
 	emailVerification: {
 		expiresIn: 86400, // 24 hours — matches the Finnish email copy

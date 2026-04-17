@@ -37,7 +37,10 @@ export function EmptyState({ search }: EmptyStateProps) {
 	}
 
 	return (
-		<div className="flex flex-col items-center py-16 text-center">
+		<div
+			data-testid="listings-empty-state"
+			className="flex flex-col items-center py-16 text-center"
+		>
 			<Search className="mb-4 h-12 w-12 text-border" />
 			<h3 className="font-heading text-lg font-semibold text-foreground">
 				Ei tuloksia näillä hakuehdoilla

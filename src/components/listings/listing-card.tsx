@@ -23,6 +23,8 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 
 	return (
 		<Link
+			data-testid="listing-card"
+			data-listing-id={listing.id}
 			to="/listings/$listingId"
 			params={{ listingId: listing.id }}
 			className="group block overflow-hidden rounded-xl border border-border bg-card card-hover hover:card-hover-active"
@@ -97,7 +99,10 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 			{/* Content */}
 			<div className="p-4">
 				<div className="mb-1 flex items-start justify-between gap-2">
-					<h3 className="line-clamp-1 text-sm font-semibold text-foreground leading-tight">
+					<h3
+						data-testid="listing-card-title"
+						className="line-clamp-1 text-sm font-semibold text-foreground leading-tight"
+					>
 						{listing.title}
 					</h3>
 					{!!listing.required_license && (
@@ -118,7 +123,12 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 						{listing.city}, {regionLabel}
 					</span>
 					<div className="text-right">
-						<span className="font-heading text-lg font-bold text-accent">{priceEur} €</span>
+						<span
+							data-testid="listing-card-price"
+							className="font-heading text-lg font-bold text-accent"
+						>
+							{priceEur} €
+						</span>
 						<span className="text-xs text-muted">/pv</span>
 					</div>
 				</div>

@@ -80,13 +80,14 @@ function RegisterPage() {
 					<p className="mt-1 text-sm text-muted">Luo tili</p>
 				</div>
 
-				<form onSubmit={handleSubmit} className="space-y-4">
+				<form onSubmit={handleSubmit} data-testid="register-form" className="space-y-4">
 					<div className="space-y-2">
 						<label htmlFor="name" className="text-sm font-medium text-foreground">
 							Nimi
 						</label>
 						<Input
 							id="name"
+							data-testid="register-name"
 							type="text"
 							autoComplete="name"
 							required
@@ -101,6 +102,7 @@ function RegisterPage() {
 						</label>
 						<Input
 							id="email"
+							data-testid="register-email"
 							type="email"
 							autoComplete="email"
 							required
@@ -115,6 +117,7 @@ function RegisterPage() {
 						</label>
 						<Input
 							id="password"
+							data-testid="register-password"
 							type="password"
 							autoComplete="new-password"
 							required
@@ -123,7 +126,11 @@ function RegisterPage() {
 							onChange={(e) => setPassword(e.target.value)}
 						/>
 						{password.length > 0 && (
-							<div className="space-y-1">
+							<div
+								data-testid="password-strength"
+								data-strength={strength.label}
+								className="space-y-1"
+							>
 								<div className="flex gap-1">
 									{[1, 2, 3, 4, 5].map((i) => (
 										<div
@@ -134,14 +141,21 @@ function RegisterPage() {
 										/>
 									))}
 								</div>
-								<p className="text-xs text-muted">{strength.label}</p>
+								<p data-testid="password-strength-label" className="text-xs text-muted">
+									{strength.label}
+								</p>
 							</div>
 						)}
 					</div>
 
-					{!!error && <p className="text-sm text-destructive">{error}</p>}
+					{!!error && (
+						<p data-testid="register-error" className="text-sm text-destructive">
+							{error}
+						</p>
+					)}
 
 					<Button
+						data-testid="register-submit"
 						type="submit"
 						className="w-full bg-accent text-white hover:bg-accent-hover"
 						disabled={loading}
@@ -153,6 +167,7 @@ function RegisterPage() {
 				<p className="text-center text-sm text-muted">
 					Onko sinulla jo tili?{" "}
 					<Link
+						data-testid="register-login-link"
 						to="/auth/login"
 						search={{ redirect: undefined }}
 						className="text-accent hover:underline"

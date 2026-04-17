@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 import { createRootRoute, HeadContent, Link, Outlet, Scripts } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import appCss from "~/styles/app.css?url";
 
 export const Route = createRootRoute({
@@ -32,6 +32,11 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+	// Signals React hydration for e2e tests — event handlers are not attached during SSR,
+	// and clicking before hydration causes native form submits instead of React's onSubmit.
+	useEffect(() => {
+		document.documentElement.setAttribute("data-hydrated", "true");
+	}, []);
 	return (
 		<RootDocument>
 			<Outlet />

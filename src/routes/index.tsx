@@ -48,7 +48,10 @@ function HomePage() {
 							</div>
 						)}
 
-						<h1 className="font-heading text-4xl leading-[1.1] font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+						<h1
+							data-testid="home-hero-heading"
+							className="font-heading text-4xl leading-[1.1] font-bold tracking-tight text-white sm:text-5xl lg:text-6xl"
+						>
 							Vuokraa moottoripyörä <span className="text-accent">suoraan omistajalta</span>
 						</h1>
 
@@ -58,14 +61,20 @@ function HomePage() {
 						</p>
 
 						{/* Search bar */}
-						<form onSubmit={handleSearch} className="mt-8 flex max-w-lg gap-2">
+						<form
+							onSubmit={handleSearch}
+							data-testid="home-search-form"
+							className="mt-8 flex max-w-lg gap-2"
+						>
 							<input
+								data-testid="home-search-input"
 								name="q"
 								type="text"
 								placeholder="Hae merkkiä, mallia, kaupunkia..."
 								className="h-12 flex-1 rounded-lg bg-white/10 px-4 text-white placeholder:text-white/40 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent"
 							/>
 							<button
+								data-testid="home-search-submit"
 								type="submit"
 								className="h-12 rounded-lg bg-accent px-6 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
 							>
@@ -76,14 +85,15 @@ function HomePage() {
 						{/* Quick filter chips */}
 						<div className="mt-4 flex flex-wrap gap-2">
 							{[
-								{ label: "Uusimaa", search: { region: "uusimaa" } },
-								{ label: "Pirkanmaa", search: { region: "pirkanmaa" } },
-								{ label: "Naked", search: { type: ["naked"] } },
-								{ label: "A2-kortti", search: { license: ["A2"] } },
-								{ label: "Touring", search: { type: ["touring"] } },
+								{ label: "Uusimaa", slug: "uusimaa", search: { region: "uusimaa" } },
+								{ label: "Pirkanmaa", slug: "pirkanmaa", search: { region: "pirkanmaa" } },
+								{ label: "Naked", slug: "naked", search: { type: ["naked"] } },
+								{ label: "A2-kortti", slug: "a2", search: { license: ["A2"] } },
+								{ label: "Touring", slug: "touring", search: { type: ["touring"] } },
 							].map((chip) => (
 								<Link
 									key={chip.label}
+									data-testid={`home-chip-${chip.slug}`}
 									to="/listings"
 									search={chip.search}
 									className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs text-white/60 transition-colors hover:bg-white/10 hover:text-white"
@@ -146,6 +156,7 @@ function HomePage() {
 							<p className="mt-1 text-sm text-muted">Tuoreimmat lisäykset</p>
 						</div>
 						<Link
+							data-testid="home-browse-all"
 							to="/listings"
 							search={{ sort: "newest" }}
 							className="flex items-center gap-1 text-sm font-medium text-accent hover:underline"
@@ -210,6 +221,7 @@ function HomePage() {
 					Ilmoittaminen on ilmaista. Tavoita tuhansia moottoripyöräilystä kiinnostuneita.
 				</p>
 				<Link
+					data-testid="home-add-listing-cta"
 					to="/listings/new"
 					className="mt-6 inline-block rounded-lg bg-accent px-8 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
 				>

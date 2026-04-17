@@ -80,7 +80,10 @@
 			"**/*.css",
 			"!!**/routeTree.gen.ts",
 			"!!**/.claude",
-			"!!dist"
+			"!!dist",
+			"!!e2e/.auth",
+			"!!e2e/.test-results",
+			"!!playwright-report"
 		]
 	}
 }

@@ -90,8 +90,9 @@ function BrowsePage() {
 			{/* Search header */}
 			<div className="bg-primary px-4 py-6">
 				<div className="mx-auto max-w-6xl">
-					<form onSubmit={handleSearch} className="flex gap-2">
+					<form onSubmit={handleSearch} data-testid="listings-search-form" className="flex gap-2">
 						<input
+							data-testid="listings-search-input"
 							name="q"
 							type="text"
 							defaultValue={search.q ?? ""}
@@ -99,6 +100,7 @@ function BrowsePage() {
 							className="h-11 flex-1 rounded-lg bg-white/10 px-4 text-sm text-white placeholder:text-white/50 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent"
 						/>
 						<button
+							data-testid="listings-search-submit"
 							type="submit"
 							className="h-11 rounded-lg bg-accent px-6 text-sm font-semibold text-white hover:bg-accent-hover"
 						>
@@ -106,6 +108,7 @@ function BrowsePage() {
 						</button>
 						{/* Mobile filter button */}
 						<button
+							data-testid="listings-filter-drawer-toggle"
 							type="button"
 							onClick={() => setDrawerOpen(true)}
 							className="relative h-11 rounded-lg bg-white/10 px-3 text-white lg:hidden"
@@ -119,11 +122,14 @@ function BrowsePage() {
 							)}
 						</button>
 					</form>
-					<p className="mt-2 text-sm text-white/60">
-						<span className="font-semibold text-white">{totalCount}</span> ilmoitusta
+					<p data-testid="listings-result-count" className="mt-2 text-sm text-white/60">
+						<span data-testid="listings-total-count" className="font-semibold text-white">
+							{totalCount}
+						</span>{" "}
+						ilmoitusta
 						{hasQuery ? <> haulle &lsquo;{search.q}&rsquo;</> : null}
 						{" — "}
-						{regionLabel}
+						<span data-testid="listings-region-label">{regionLabel}</span>
 					</p>
 				</div>
 			</div>
@@ -143,7 +149,10 @@ function BrowsePage() {
 						<EmptyState search={search} />
 					) : (
 						<>
-							<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+							<div
+								data-testid="listings-grid"
+								className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+							>
 								{allListings.map((listing) => (
 									<ListingCard key={listing.id} listing={listing} images={listing.images} />
 								))}
@@ -157,6 +166,7 @@ function BrowsePage() {
 							{nextCursor && remaining > 0 && (
 								<div className="mt-8 text-center">
 									<button
+										data-testid="listings-load-more"
 										type="button"
 										onClick={loadMore}
 										disabled={isLoading}

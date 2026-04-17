@@ -49,13 +49,14 @@ function LoginPage() {
 					<p className="mt-1 text-sm text-muted">Kirjaudu sisään</p>
 				</div>
 
-				<form onSubmit={handleSubmit} className="space-y-4">
+				<form onSubmit={handleSubmit} data-testid="login-form" className="space-y-4">
 					<div className="space-y-2">
 						<label htmlFor="email" className="text-sm font-medium text-foreground">
 							Sähköposti
 						</label>
 						<Input
 							id="email"
+							data-testid="login-email"
 							type="email"
 							autoComplete="email"
 							required
@@ -70,6 +71,7 @@ function LoginPage() {
 						</label>
 						<Input
 							id="password"
+							data-testid="login-password"
 							type="password"
 							autoComplete="current-password"
 							required
@@ -78,9 +80,14 @@ function LoginPage() {
 						/>
 					</div>
 
-					{!!error && <p className="text-sm text-destructive">{error}</p>}
+					{!!error && (
+						<p data-testid="login-error" className="text-sm text-destructive">
+							{error}
+						</p>
+					)}
 
 					<Button
+						data-testid="login-submit"
 						type="submit"
 						className="w-full bg-accent text-white hover:bg-accent-hover"
 						disabled={loading}
@@ -91,7 +98,11 @@ function LoginPage() {
 
 				<p className="text-center text-sm text-muted">
 					Ei tiliä?{" "}
-					<Link to="/auth/register" className="text-accent hover:underline">
+					<Link
+						data-testid="login-register-link"
+						to="/auth/register"
+						className="text-accent hover:underline"
+					>
 						Rekisteröidy
 					</Link>
 				</p>

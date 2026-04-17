@@ -1,4 +1,7 @@
 node_modules
+e2e/.auth/
+e2e/.test-results/
+playwright-report/
 .output
 dist
 .env
@@ -7,3 +10,8 @@ dist
 .vite
 .tanstack
 .superpowers/
+
+# Raw image originals — optimized output goes to public/images/
+/images/
+!/images/.gitkeep
+*:Zone.Identifier
