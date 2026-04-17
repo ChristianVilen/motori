@@ -62,7 +62,10 @@ function applyCursor(query: any, cursor: string, sort: SortMode) {
 function applySort(query: any, sort: SortMode, tsquery: string | null) {
 	if (sort === "relevance" && tsquery) {
 		return query
-			.orderBy(sql`ts_rank_cd(listing.search_vector, to_tsquery('finnish', ${tsquery}))`, "desc")
+			.orderBy(
+				sql`ts_rank_cd(listing.search_vector, to_tsquery('finnish_unaccent', ${tsquery}))`,
+				"desc",
+			)
 			.orderBy("listing.created_at", "desc");
 	}
 	if (sort === "price_asc") {
@@ -121,7 +124,7 @@ export const searchListings = createServerFn({ method: "GET" })
 
 		if (tsquery) {
 			baseQuery = baseQuery.where(
-				sql<SqlBool>`listing.search_vector @@ to_tsquery('finnish', ${tsquery})`,
+				sql<SqlBool>`listing.search_vector @@ to_tsquery('finnish_unaccent', ${tsquery})`,
 			);
 		}
 		if (params.region) {
