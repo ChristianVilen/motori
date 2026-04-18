@@ -247,6 +247,18 @@ interface Database {
 - [ ] Admin moderation queue (simple admin routes)
 - [ ] Sitemap + SEO refinement
 
+### Localization — Future work
+
+Design spec: `docs/superpowers/specs/2026-04-18-localization-design.md`. Initial pass adds Finnish-only i18n with type-safe catalogs and Finnish route paths. Deferred:
+
+- [ ] English catalog (`src/lib/i18n/resources/en/*`) and `/en/*` routes
+- [ ] Path-mapping layer across locales (`{ fi: { listings: 'ilmoitukset' }, en: { listings: 'listings' } }` manifest + server rewrite + `localizedPath()` link helper)
+- [ ] Language switcher UI component
+- [ ] Translation of user-generated content (listing titles, descriptions, cities)
+- [ ] Pluralization / ICU messages / gender rules
+- [ ] Translation management tooling (Lokalise / Crowdin)
+- [ ] Server-side redirects from legacy English route paths (only if needed pre-launch)
+
 ### P2 — Nice to haves
 
 - [ ] Map-based browsing (Leaflet + OpenStreetMap)
