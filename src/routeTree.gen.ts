@@ -10,8 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProfileIndexRouteImport } from './routes/profile/index'
 import { Route as ListingsIndexRouteImport } from './routes/listings/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as ProfileSettingsRouteImport } from './routes/profile/settings'
+import { Route as ProfileUserIdRouteImport } from './routes/profile/$userId'
 import { Route as ListingsNewRouteImport } from './routes/listings/new'
 import { Route as ListingsListingIdRouteImport } from './routes/listings/$listingId'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
@@ -26,14 +28,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfileIndexRoute = ProfileIndexRouteImport.update({
-  id: '/profile/',
-  path: '/profile/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ListingsIndexRoute = ListingsIndexRouteImport.update({
   id: '/listings/',
   path: '/listings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileSettingsRoute = ProfileSettingsRouteImport.update({
+  id: '/profile/settings',
+  path: '/profile/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileUserIdRoute = ProfileUserIdRouteImport.update({
+  id: '/profile/$userId',
+  path: '/profile/$userId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ListingsNewRoute = ListingsNewRouteImport.update({
@@ -85,8 +97,10 @@ export interface FileRoutesByFullPath {
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/listings/$listingId': typeof ListingsListingIdRoute
   '/listings/new': typeof ListingsNewRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
+  '/profile/settings': typeof ProfileSettingsRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/listings/': typeof ListingsIndexRoute
-  '/profile/': typeof ProfileIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/listings/$listingId/edit': typeof ListingsListingIdEditRoute
 }
@@ -98,8 +112,10 @@ export interface FileRoutesByTo {
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/listings/$listingId': typeof ListingsListingIdRoute
   '/listings/new': typeof ListingsNewRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
+  '/profile/settings': typeof ProfileSettingsRoute
+  '/dashboard': typeof DashboardIndexRoute
   '/listings': typeof ListingsIndexRoute
-  '/profile': typeof ProfileIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/listings/$listingId/edit': typeof ListingsListingIdEditRoute
 }
@@ -112,8 +128,10 @@ export interface FileRoutesById {
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/listings/$listingId': typeof ListingsListingIdRoute
   '/listings/new': typeof ListingsNewRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
+  '/profile/settings': typeof ProfileSettingsRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/listings/': typeof ListingsIndexRoute
-  '/profile/': typeof ProfileIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/listings/$listingId_/edit': typeof ListingsListingIdEditRoute
 }
@@ -127,8 +145,10 @@ export interface FileRouteTypes {
     | '/auth/verify-email'
     | '/listings/$listingId'
     | '/listings/new'
+    | '/profile/$userId'
+    | '/profile/settings'
+    | '/dashboard/'
     | '/listings/'
-    | '/profile/'
     | '/api/auth/$'
     | '/listings/$listingId/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -140,8 +160,10 @@ export interface FileRouteTypes {
     | '/auth/verify-email'
     | '/listings/$listingId'
     | '/listings/new'
+    | '/profile/$userId'
+    | '/profile/settings'
+    | '/dashboard'
     | '/listings'
-    | '/profile'
     | '/api/auth/$'
     | '/listings/$listingId/edit'
   id:
@@ -153,8 +175,10 @@ export interface FileRouteTypes {
     | '/auth/verify-email'
     | '/listings/$listingId'
     | '/listings/new'
+    | '/profile/$userId'
+    | '/profile/settings'
+    | '/dashboard/'
     | '/listings/'
-    | '/profile/'
     | '/api/auth/$'
     | '/listings/$listingId_/edit'
   fileRoutesById: FileRoutesById
@@ -167,8 +191,10 @@ export interface RootRouteChildren {
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
   ListingsListingIdRoute: typeof ListingsListingIdRoute
   ListingsNewRoute: typeof ListingsNewRoute
+  ProfileUserIdRoute: typeof ProfileUserIdRoute
+  ProfileSettingsRoute: typeof ProfileSettingsRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
   ListingsIndexRoute: typeof ListingsIndexRoute
-  ProfileIndexRoute: typeof ProfileIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ListingsListingIdEditRoute: typeof ListingsListingIdEditRoute
 }
@@ -182,18 +208,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/profile/': {
-      id: '/profile/'
-      path: '/profile'
-      fullPath: '/profile/'
-      preLoaderRoute: typeof ProfileIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/listings/': {
       id: '/listings/'
       path: '/listings'
       fullPath: '/listings/'
       preLoaderRoute: typeof ListingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/settings': {
+      id: '/profile/settings'
+      path: '/profile/settings'
+      fullPath: '/profile/settings'
+      preLoaderRoute: typeof ProfileSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/$userId': {
+      id: '/profile/$userId'
+      path: '/profile/$userId'
+      fullPath: '/profile/$userId'
+      preLoaderRoute: typeof ProfileUserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/listings/new': {
@@ -263,8 +303,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
   ListingsListingIdRoute: ListingsListingIdRoute,
   ListingsNewRoute: ListingsNewRoute,
+  ProfileUserIdRoute: ProfileUserIdRoute,
+  ProfileSettingsRoute: ProfileSettingsRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
   ListingsIndexRoute: ListingsIndexRoute,
-  ProfileIndexRoute: ProfileIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ListingsListingIdEditRoute: ListingsListingIdEditRoute,
 }

@@ -1,18 +1,50 @@
 /// <reference types="vite/client" />
 
-import { createRootRoute, HeadContent, Link, Outlet, Scripts } from "@tanstack/react-router";
-import { type ReactNode, useEffect } from "react";
+import {
+	createRootRoute,
+	HeadContent,
+	Link,
+	Outlet,
+	Scripts,
+	useRouter,
+} from "@tanstack/react-router";
+import { type ReactNode, useEffect, useState } from "react";
+import { LoginModal } from "~/components/auth/login-modal";
+import { signOut } from "~/lib/auth-client";
+import { getSession } from "~/lib/session";
 import appCss from "~/styles/app.css?url";
 
 export const Route = createRootRoute({
+	loader: async () => {
+		const session = await getSession();
+		return { session };
+	},
 	head: () => ({
 		meta: [
 			{ charSet: "utf-8" },
 			{ name: "viewport", content: "width=device-width, initial-scale=1" },
 			{ title: "Vuokramoto — Vuokraa moottoripyörä" },
+			{
+				name: "description",
+				content:
+					"Suomalainen moottoripyörien vuokrausilmoitukset. Vuokraa kaksipyöräinen tai ilmoita omasi vuokralle.",
+			},
+			{ name: "theme-color", content: "#1a1a2e" },
+			{ property: "og:type", content: "website" },
+			{ property: "og:site_name", content: "Vuokramoto" },
+			{ property: "og:title", content: "Vuokramoto — Vuokraa moottoripyörä" },
+			{
+				property: "og:description",
+				content: "Suomalainen moottoripyörien vuokrausilmoitukset.",
+			},
+			{ property: "og:locale", content: "fi_FI" },
+			{ name: "twitter:card", content: "summary_large_image" },
 		],
 		links: [
 			{ rel: "stylesheet", href: appCss },
+			{ rel: "manifest", href: "/manifest.webmanifest" },
+			{ rel: "icon", href: "/favicon.ico", sizes: "any" },
+			{ rel: "apple-touch-icon", href: "/icon-192.png" },
 			{
 				rel: "preconnect",
 				href: "https://fonts.googleapis.com",
@@ -58,14 +90,29 @@ function RootComponent() {
 	useEffect(() => {
 		document.documentElement.setAttribute("data-hydrated", "true");
 	}, []);
+	const { session } = Route.useLoaderData();
 	return (
-		<RootDocument>
+		<RootDocument session={session}>
 			<Outlet />
 		</RootDocument>
 	);
 }
 
-function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
+interface RootDocumentProps {
+	children: ReactNode;
+	session?: Awaited<ReturnType<typeof getSession>>;
+}
+
+function RootDocument({ children, session }: RootDocumentProps) {
+	const router = useRouter();
+	const [loginOpen, setLoginOpen] = useState(false);
+
+	async function handleSignOut() {
+		await signOut();
+		router.invalidate();
+		router.navigate({ to: "/" });
+	}
+
 	return (
 		<html lang="fi">
 			<head>
@@ -77,7 +124,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 						<Link to="/" className="font-heading text-lg font-bold text-white">
 							vuokramoto
 						</Link>
-						<div className="flex items-center gap-6">
+						<div className="flex items-center gap-4 sm:gap-6">
 							<Link to="/listings" className="text-sm text-white/70 hover:text-white">
 								Selaa
 							</Link>
@@ -87,10 +134,39 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 							>
 								Ilmoita pyörä
 							</Link>
+							{session ? (
+								<>
+									<Link
+										data-testid="nav-dashboard"
+										to="/dashboard"
+										className="text-sm text-white/70 hover:text-white"
+									>
+										Omat
+									</Link>
+									<button
+										type="button"
+										data-testid="nav-signout"
+										onClick={handleSignOut}
+										className="text-sm text-white/70 hover:text-white"
+									>
+										Kirjaudu ulos
+									</button>
+								</>
+							) : (
+								<button
+									type="button"
+									data-testid="nav-login"
+									onClick={() => setLoginOpen(true)}
+									className="text-sm text-white/70 hover:text-white"
+								>
+									Kirjaudu
+								</button>
+							)}
 						</div>
 					</div>
 				</nav>
 				{children}
+				<LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
 				<Scripts />
 			</body>
 		</html>

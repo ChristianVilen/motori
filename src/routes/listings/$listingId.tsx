@@ -40,14 +40,21 @@ const getListing = createServerFn({ method: "GET" })
 			.orderBy("order", "asc")
 			.execute();
 
-		const owner = await db
+		const ownerRow = await db
 			.selectFrom("profile")
 			.select(["display_name", "city", "phone", "show_phone"])
 			.where("user_id", "=", listing.owner_id)
 			.executeTakeFirst();
 
-		// Email is the BetterAuth login identity — only expose it to the owner themselves.
+		// Gate contact details: only signed-in users get phone (and only if owner opted in),
+		// and the email address is exposed only to the owner themselves.
 		const isOwner = session?.user.id === listing.owner_id;
+		const isSignedIn = !!session;
+		const phone = ownerRow && isSignedIn && ownerRow.show_phone ? ownerRow.phone : null;
+		const owner = ownerRow
+			? { display_name: ownerRow.display_name, city: ownerRow.city, phone }
+			: null;
+
 		let ownerEmail: string | null = null;
 		if (isOwner) {
 			const ownerUser = await db
@@ -58,7 +65,7 @@ const getListing = createServerFn({ method: "GET" })
 			ownerEmail = ownerUser?.email ?? null;
 		}
 
-		return { listing, images, owner: owner ?? null, ownerEmail };
+		return { listing, images, owner, ownerEmail };
 	});
 
 export const Route = createFileRoute("/listings/$listingId")({
@@ -189,6 +196,7 @@ interface PricingCardProps {
 	owner: { display_name: string | null; city: string | null; phone: string | null } | null;
 	ownerEmail: string | null;
 	isOwner: boolean;
+	isSignedIn: boolean;
 }
 
 function PricingCard({
@@ -199,6 +207,7 @@ function PricingCard({
 	owner,
 	ownerEmail,
 	isOwner,
+	isSignedIn,
 }: PricingCardProps) {
 	const [contactVisible, setContactVisible] = useState(false);
 
@@ -224,8 +233,17 @@ function PricingCard({
 				)}
 			</div>
 
-			{/* Contact reveal */}
-			{!contactVisible ? (
+			{/* Contact reveal — gated behind sign-in to deter scrapers */}
+			{!isSignedIn ? (
+				<Link
+					data-testid="owner-contact-login"
+					to="/auth/login"
+					search={{ redirect: `/listings/${listing.id}` }}
+					className="block w-full rounded-md bg-accent px-4 py-2 text-center text-sm font-medium text-white hover:bg-accent-hover"
+				>
+					Kirjaudu nähdäksesi yhteystiedot
+				</Link>
+			) : !contactVisible ? (
 				<Button
 					data-testid="owner-contact-reveal"
 					onClick={() => setContactVisible(true)}
@@ -238,9 +256,14 @@ function PricingCard({
 					data-testid="owner-contact"
 					className="space-y-2 rounded-lg bg-muted-light p-3 text-sm"
 				>
-					<p data-testid="owner-name" className="font-medium text-foreground">
+					<Link
+						data-testid="owner-name"
+						to="/profile/$userId"
+						params={{ userId: listing.owner_id }}
+						className="block font-medium text-foreground hover:text-accent"
+					>
 						{owner?.display_name ?? "Ilmoittaja"}
-					</p>
+					</Link>
 					{!!owner?.phone && (
 						<a
 							data-testid="owner-phone"
@@ -280,7 +303,7 @@ function PricingCard({
 							Muokkaa
 						</Button>
 					</Link>
-					<Link data-testid="listing-owner-profile-link" to="/profile" className="flex-1">
+					<Link data-testid="listing-owner-profile-link" to="/dashboard" className="flex-1">
 						<Button variant="outline" className="w-full" size="sm">
 							Omat ilmoitukset
 						</Button>
@@ -394,6 +417,7 @@ function ListingDetailPage() {
 							owner={owner}
 							ownerEmail={ownerEmail}
 							isOwner={!!isOwner}
+							isSignedIn={!!session}
 						/>
 
 						{/* Insurance info */}

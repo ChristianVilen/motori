@@ -1,9 +1,6 @@
 // src/routes/auth/login.tsx
-import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useState } from "react";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { signIn } from "~/lib/auth-client";
+import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
+import { LoginForm } from "~/components/auth/login-form";
 
 export const Route = createFileRoute("/auth/login")({
 	validateSearch: (search: Record<string, unknown>) => ({
@@ -13,33 +10,7 @@ export const Route = createFileRoute("/auth/login")({
 });
 
 function LoginPage() {
-	const navigate = useNavigate();
 	const { redirect } = useSearch({ from: "/auth/login" });
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const [error, setError] = useState<string | null>(null);
-	const [loading, setLoading] = useState(false);
-
-	async function handleSubmit(e: React.FormEvent) {
-		e.preventDefault();
-		setError(null);
-		setLoading(true);
-
-		const result = await signIn.email({ email, password });
-
-		setLoading(false);
-
-		if (result.error) {
-			if (result.error.code === "EMAIL_NOT_VERIFIED") {
-				navigate({ to: "/auth/verify-email" });
-				return;
-			}
-			setError("Väärä sähköposti tai salasana.");
-			return;
-		}
-
-		navigate({ to: redirect ?? "/" });
-	}
 
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -49,52 +20,7 @@ function LoginPage() {
 					<p className="mt-1 text-sm text-muted">Kirjaudu sisään</p>
 				</div>
 
-				<form onSubmit={handleSubmit} data-testid="login-form" className="space-y-4">
-					<div className="space-y-2">
-						<label htmlFor="email" className="text-sm font-medium text-foreground">
-							Sähköposti
-						</label>
-						<Input
-							id="email"
-							data-testid="login-email"
-							type="email"
-							autoComplete="email"
-							required
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-						/>
-					</div>
-
-					<div className="space-y-2">
-						<label htmlFor="password" className="text-sm font-medium text-foreground">
-							Salasana
-						</label>
-						<Input
-							id="password"
-							data-testid="login-password"
-							type="password"
-							autoComplete="current-password"
-							required
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-						/>
-					</div>
-
-					{!!error && (
-						<p data-testid="login-error" className="text-sm text-destructive">
-							{error}
-						</p>
-					)}
-
-					<Button
-						data-testid="login-submit"
-						type="submit"
-						className="w-full bg-accent text-white hover:bg-accent-hover"
-						disabled={loading}
-					>
-						{loading ? "Kirjaudutaan..." : "Kirjaudu"}
-					</Button>
-				</form>
+				<LoginForm redirect={redirect} />
 
 				<p className="text-center text-sm text-muted">
 					Ei tiliä?{" "}

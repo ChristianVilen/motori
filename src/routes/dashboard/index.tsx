@@ -1,4 +1,4 @@
-// src/routes/profile/index.tsx
+// src/routes/dashboard/index.tsx
 // User dashboard — my listings, with quick actions
 import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
@@ -68,7 +68,7 @@ const setListingStatus = createServerFn({ method: "POST" })
 			.execute();
 	});
 
-export const Route = createFileRoute("/profile/")({
+export const Route = createFileRoute("/dashboard/")({
 	loader: async () => {
 		const session = await getSession();
 		if (!session) {
@@ -269,7 +269,7 @@ function ProfilePage() {
 
 				{/* Profile link */}
 				<div className="mt-8 text-center">
-					<Link to="/auth/complete-profile" className="text-sm text-muted hover:text-foreground">
+					<Link to="/profile/settings" className="text-sm text-muted hover:text-foreground">
 						Muokkaa profiilia →
 					</Link>
 				</div>

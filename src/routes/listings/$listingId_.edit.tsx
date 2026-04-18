@@ -138,7 +138,7 @@ export const Route = createFileRoute("/listings/$listingId_/edit")({
 	notFoundComponent: () => (
 		<div className="flex min-h-screen flex-col items-center justify-center gap-4">
 			<p className="text-muted">Ilmoitusta ei löydy.</p>
-			<Link to="/profile" className="text-sm text-accent underline">
+			<Link to="/dashboard" className="text-sm text-accent underline">
 				Omat ilmoitukset
 			</Link>
 		</div>
