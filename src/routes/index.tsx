@@ -34,7 +34,20 @@ function HomePage() {
 		<div className="min-h-screen">
 			{/* Hero */}
 			<section className="relative overflow-hidden bg-primary">
-				<div className="mx-auto grid min-h-[92vh] max-w-7xl lg:grid-cols-2">
+				{/* Hero image — full bleed on mobile, right half on lg */}
+				<img
+					src="/images/kawasaki-ninja-rider-sunset-1200w.webp"
+					srcSet="/images/kawasaki-ninja-rider-sunset-400w.webp 400w, /images/kawasaki-ninja-rider-sunset-800w.webp 800w, /images/kawasaki-ninja-rider-sunset-1200w.webp 1200w, /images/kawasaki-ninja-rider-sunset-1920w.webp 1920w"
+					sizes="(min-width: 1024px) 50vw, 100vw"
+					alt="Motoristi Kawasaki Ninjalla auringonlaskussa"
+					className="absolute inset-0 h-full w-full object-cover lg:left-1/2 lg:w-1/2"
+				/>
+				{/* Mobile darken */}
+				<div className="absolute inset-0 bg-primary/85 lg:hidden" />
+				{/* Desktop left-edge fade */}
+				<div className="absolute inset-y-0 left-1/2 hidden w-32 bg-gradient-to-r from-primary to-transparent lg:block" />
+
+				<div className="relative mx-auto grid min-h-[70vh] max-w-7xl lg:min-h-[92vh] lg:grid-cols-2">
 					{/* Left column */}
 					<div className="flex flex-col justify-center px-6 py-16 lg:px-12 lg:py-24">
 						{/* Seasonal tag */}
@@ -122,18 +135,6 @@ function HomePage() {
 								</div>
 							)}
 						</div>
-					</div>
-
-					{/* Right column — hero image placeholder */}
-					<div className="relative hidden lg:block">
-						<div className="absolute inset-y-0 left-0 z-10 w-32 bg-gradient-to-r from-primary to-transparent" />
-						{/*
-							HERO IMAGE PLACEHOLDER
-							Replace this div with an <img> or background image.
-							The user has 3-4 hero images to slot in.
-							Options: single image, or a subtle crossfade/slideshow.
-						*/}
-						<div className="h-full w-full bg-gradient-to-br from-primary via-primary/80 to-accent/20" />
 					</div>
 				</div>
 			</section>
