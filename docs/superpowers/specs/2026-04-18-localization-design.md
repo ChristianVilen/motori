@@ -123,7 +123,7 @@ Replaces any existing ad-hoc formatting in components.
 7. Introduce `formatEur` / `formatDate`; replace ad-hoc formatting.
 8. Update affected Playwright tests (URL changes; visible Finnish text unchanged).
 
-### Explicitly out of scope (tracked in `PLAN.md`)
+### Explicitly out of scope (tracked in `BACKLOG.md`)
 
 - Language switcher UI component.
 - English catalog (`resources/en/*`) and `/en/*` routes.

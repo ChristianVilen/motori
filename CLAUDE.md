@@ -62,5 +62,5 @@ Structured logging via pino with AsyncLocalStorage context (`withLogContext`) â€
 
 - Minimal comments. Only write a comment when the WHY is non-obvious (hidden constraint, subtle invariant, workaround). The existing `schema.ts` and `__root.tsx` show the style.
 - No premature abstraction; three similar lines beats a helper.
-- Plans go in `PLAN.md` at repo root. Design specs and implementation plans produced via the superpowers skills go under `docs/superpowers/` (specs in `docs/superpowers/specs/`, plans in `docs/superpowers/plans/`).
+- Product backlog lives in `BACKLOG.md` at repo root. Design specs and implementation plans produced via the superpowers skills go under `docs/superpowers/` (specs in `docs/superpowers/specs/`, plans in `docs/superpowers/plans/`).
 - Commits: no `Co-Authored-By` lines.
