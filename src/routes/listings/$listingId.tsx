@@ -1,6 +1,7 @@
 // src/routes/listings/$listingId.tsx
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { sql } from "kysely";
 import { ArrowLeft, Calendar, MapPin, Shield, Tag } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -12,6 +13,8 @@ import { getSession } from "~/lib/session";
 const getListing = createServerFn({ method: "GET" })
 	.inputValidator((id: string) => id)
 	.handler(async ({ data: id }) => {
+		const session = await getSession();
+
 		const listing = await db
 			.selectFrom("listing")
 			.selectAll()
@@ -23,9 +26,9 @@ const getListing = createServerFn({ method: "GET" })
 			return null;
 		}
 
-		// Increment view count (fire and forget — don't block render)
+		// Fire-and-forget — sql expression avoids RMW race on concurrent views.
 		db.updateTable("listing")
-			.set({ view_count: listing.view_count + 1 })
+			.set({ view_count: sql`view_count + 1`, updated_at: new Date() })
 			.where("id", "=", id)
 			.execute()
 			.catch(() => {});
@@ -43,13 +46,19 @@ const getListing = createServerFn({ method: "GET" })
 			.where("user_id", "=", listing.owner_id)
 			.executeTakeFirst();
 
-		const ownerUser = await db
-			.selectFrom("user")
-			.select(["email"])
-			.where("id", "=", listing.owner_id)
-			.executeTakeFirst();
+		// Email is the BetterAuth login identity — only expose it to the owner themselves.
+		const isOwner = session?.user.id === listing.owner_id;
+		let ownerEmail: string | null = null;
+		if (isOwner) {
+			const ownerUser = await db
+				.selectFrom("user")
+				.select(["email"])
+				.where("id", "=", listing.owner_id)
+				.executeTakeFirst();
+			ownerEmail = ownerUser?.email ?? null;
+		}
 
-		return { listing, images, owner: owner ?? null, ownerEmail: ownerUser?.email ?? null };
+		return { listing, images, owner: owner ?? null, ownerEmail };
 	});
 
 export const Route = createFileRoute("/listings/$listingId")({
@@ -295,7 +304,7 @@ function ListingDetailPage() {
 	const pricePerDay = Math.round(listing.price_per_day / 100);
 	const pricePerWeek = listing.price_per_week ? Math.round(listing.price_per_week / 100) : null;
 	const deposit = listing.deposit_amount ? Math.round(listing.deposit_amount / 100) : null;
-	const statusLabel = LISTING_STATUSES[listing.status as keyof typeof LISTING_STATUSES];
+	const statusLabel = LISTING_STATUSES[listing.status];
 
 	return (
 		<div data-testid="listing-detail" className="min-h-screen bg-background">

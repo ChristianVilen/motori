@@ -68,57 +68,58 @@ const updateListing = createServerFn({ method: "POST" })
 
 		const { form } = data;
 
-		await db
-			.updateTable("listing")
-			.set({
-				title: form.title,
-				brand: form.brand,
-				model: form.model,
-				year: form.year,
-				engine_cc: form.engine_cc ?? null,
-				required_license: form.required_license ?? null,
-				motorcycle_type: form.motorcycle_type,
-				price_per_day: Math.round(form.price_per_day * 100),
-				price_per_week: form.price_per_week ? Math.round(form.price_per_week * 100) : null,
-				price_description: form.price_description ?? null,
-				deposit_amount: form.deposit_amount ? Math.round(form.deposit_amount * 100) : null,
-				city: form.city,
-				region: form.region,
-				postal_code: form.postal_code ?? null,
-				available_from: form.available_from ?? null,
-				available_to: form.available_to ?? null,
-				season_only: form.season_only,
-				description: form.description,
-				includes_helmet: form.includes_helmet,
-				includes_insurance: form.includes_insurance,
-				insurance_info: form.insurance_info ?? null,
-				mileage_limit: form.mileage_limit ?? null,
-				updated_at: new Date(),
-			})
-			.where("id", "=", data.id)
-			.execute();
+		await db.transaction().execute(async (trx) => {
+			await trx
+				.updateTable("listing")
+				.set({
+					title: form.title,
+					brand: form.brand,
+					model: form.model,
+					year: form.year,
+					engine_cc: form.engine_cc ?? null,
+					required_license: form.required_license ?? null,
+					motorcycle_type: form.motorcycle_type,
+					price_per_day: Math.round(form.price_per_day * 100),
+					price_per_week: form.price_per_week ? Math.round(form.price_per_week * 100) : null,
+					price_description: form.price_description ?? null,
+					deposit_amount: form.deposit_amount ? Math.round(form.deposit_amount * 100) : null,
+					city: form.city,
+					region: form.region,
+					postal_code: form.postal_code ?? null,
+					available_from: form.available_from ?? null,
+					available_to: form.available_to ?? null,
+					season_only: form.season_only,
+					description: form.description,
+					includes_helmet: form.includes_helmet,
+					includes_insurance: form.includes_insurance,
+					insurance_info: form.insurance_info ?? null,
+					mileage_limit: form.mileage_limit ?? null,
+					updated_at: new Date(),
+				})
+				.where("id", "=", data.id)
+				.execute();
+
+			await trx.deleteFrom("listing_image").where("listing_id", "=", data.id).execute();
+
+			if (form.image_urls.length > 0) {
+				await trx
+					.insertInto("listing_image")
+					.values(
+						form.image_urls.map((url, i) => ({
+							id: crypto.randomUUID(),
+							listing_id: data.id,
+							url,
+							order: i,
+						})),
+					)
+					.execute();
+			}
+		});
 
 		log.event(EVENTS.listing.updated, {
 			listingId: data.id,
 			fields: Object.keys(data.form).filter((k) => k !== "id"),
 		});
-
-		// Replace images: delete existing, insert new
-		await db.deleteFrom("listing_image").where("listing_id", "=", data.id).execute();
-
-		if (form.image_urls.length > 0) {
-			await db
-				.insertInto("listing_image")
-				.values(
-					form.image_urls.map((url, i) => ({
-						id: crypto.randomUUID(),
-						listing_id: data.id,
-						url,
-						order: i,
-					})),
-				)
-				.execute();
-		}
 	});
 
 export const Route = createFileRoute("/listings/$listingId_/edit")({

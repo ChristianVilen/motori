@@ -11,6 +11,7 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { getSession } from "~/lib/session";
@@ -45,15 +46,22 @@ export function getPublicUrl(key: string): string {
 	return `${base}/${key}`;
 }
 
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MIME_EXT = {
+	"image/jpeg": "jpg",
+	"image/png": "png",
+	"image/webp": "webp",
+} as const;
+
+const uploadInputSchema = z.object({
+	filename: z.string().max(255),
+	contentType: z.enum(
+		Object.keys(MIME_EXT) as [keyof typeof MIME_EXT, ...(keyof typeof MIME_EXT)[]],
+		{ message: "Vain JPEG, PNG ja WebP tiedostot ovat sallittuja" },
+	),
+});
 
 export const getImageUploadUrl = createServerFn({ method: "POST" })
-	.inputValidator((data: { filename: string; contentType: string }) => {
-		if (!ALLOWED_TYPES.includes(data.contentType)) {
-			throw new Error("Vain JPEG, PNG ja WebP tiedostot ovat sallittuja");
-		}
-		return data;
-	})
+	.inputValidator((data: unknown) => uploadInputSchema.parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();
 		if (!session) {
@@ -65,7 +73,7 @@ export const getImageUploadUrl = createServerFn({ method: "POST" })
 		}
 
 		try {
-			const ext = data.filename.split(".").pop() ?? "jpg";
+			const ext = MIME_EXT[data.contentType];
 			const key = `listings/${session.user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
 			const uploadUrl = await generatePresignedUploadUrl(key, data.contentType);
 			const publicUrl = getPublicUrl(key);

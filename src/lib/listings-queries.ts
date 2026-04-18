@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
-import { type SqlBool, sql } from "kysely";
+import { type SelectQueryBuilder, type SqlBool, sql } from "kysely";
 import { ADJACENT_REGIONS } from "~/lib/constants";
 import { db } from "~/lib/db/index";
-import type { Listing, ListingImage } from "~/lib/db/schema";
+import type { Database, Listing, ListingImage } from "~/lib/db/schema";
 import { toTsQuery } from "~/lib/search";
 import type { BrowseSearchParams } from "~/lib/validators";
 
@@ -18,16 +18,16 @@ export interface SearchResult {
 	totalCount: number;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: Kysely query builder types are complex generics
-function applyCursor(query: any, cursor: string, sort: SortMode) {
+type ListingQuery<O> = SelectQueryBuilder<Database, "listing", O>;
+
+function applyCursor<O>(query: ListingQuery<O>, cursor: string, sort: SortMode): ListingQuery<O> {
 	const [cursorVal, cursorId] = cursor.split("__");
 	if (!cursorVal || !cursorId) {
 		return query;
 	}
 
 	if (sort === "price_asc") {
-		// biome-ignore lint/suspicious/noExplicitAny: Kysely expression builder type
-		return query.where((eb: any) =>
+		return query.where((eb) =>
 			eb.or([
 				eb("listing.price_per_day", ">", Number(cursorVal)),
 				eb.and([
@@ -38,8 +38,7 @@ function applyCursor(query: any, cursor: string, sort: SortMode) {
 		);
 	}
 	if (sort === "price_desc") {
-		// biome-ignore lint/suspicious/noExplicitAny: Kysely expression builder type
-		return query.where((eb: any) =>
+		return query.where((eb) =>
 			eb.or([
 				eb("listing.price_per_day", "<", Number(cursorVal)),
 				eb.and([
@@ -49,8 +48,7 @@ function applyCursor(query: any, cursor: string, sort: SortMode) {
 			]),
 		);
 	}
-	// biome-ignore lint/suspicious/noExplicitAny: Kysely expression builder type
-	return query.where((eb: any) =>
+	return query.where((eb) =>
 		eb.or([
 			eb("listing.created_at", "<", new Date(cursorVal)),
 			eb.and([eb("listing.created_at", "=", new Date(cursorVal)), eb("listing.id", "<", cursorId)]),
@@ -58,8 +56,11 @@ function applyCursor(query: any, cursor: string, sort: SortMode) {
 	);
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: Kysely query builder types are complex generics
-function applySort(query: any, sort: SortMode, tsquery: string | null) {
+function applySort<O>(
+	query: ListingQuery<O>,
+	sort: SortMode,
+	tsquery: string | null,
+): ListingQuery<O> {
 	if (sort === "relevance" && tsquery) {
 		return query
 			.orderBy(

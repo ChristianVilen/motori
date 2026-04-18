@@ -4,11 +4,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { LICENSE_CLASSES, type LicenseClass } from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import { getSession } from "~/lib/session";
 
-const VALID_LICENSE_CLASSES = ["A1", "A2", "A"] as const;
-type LicenseClass = (typeof VALID_LICENSE_CLASSES)[number];
+const LICENSE_CLASS_VALUES = LICENSE_CLASSES.map((c) => c.value) as LicenseClass[];
 
 const saveProfile = createServerFn({ method: "POST" })
 	.inputValidator(
@@ -17,7 +17,7 @@ const saveProfile = createServerFn({ method: "POST" })
 			if (!displayName) {
 				throw new Error("Näyttönimi on pakollinen");
 			}
-			const licenseClass = VALID_LICENSE_CLASSES.includes(data.licenseClass as LicenseClass)
+			const licenseClass = LICENSE_CLASS_VALUES.includes(data.licenseClass as LicenseClass)
 				? (data.licenseClass as LicenseClass)
 				: "";
 			return { displayName, city: data.city, phone: data.phone, licenseClass };
@@ -61,8 +61,6 @@ export const Route = createFileRoute("/auth/complete-profile")({
 	},
 	component: CompleteProfilePage,
 });
-
-const LICENSE_CLASSES = ["A1", "A2", "A"] as const;
 
 function CompleteProfilePage() {
 	const { session } = Route.useLoaderData();
@@ -148,16 +146,16 @@ function CompleteProfilePage() {
 						<div className="flex gap-2">
 							{LICENSE_CLASSES.map((cls) => (
 								<button
-									key={cls}
+									key={cls.value}
 									type="button"
-									onClick={() => setLicenseClass(licenseClass === cls ? "" : cls)}
+									onClick={() => setLicenseClass(licenseClass === cls.value ? "" : cls.value)}
 									className={`flex-1 rounded-md border py-2 text-sm font-medium transition-colors ${
-										licenseClass === cls
+										licenseClass === cls.value
 											? "border-accent bg-accent text-white"
 											: "border-border bg-background text-foreground hover:bg-muted-light"
 									}`}
 								>
-									{cls}
+									{cls.label}
 								</button>
 							))}
 						</div>

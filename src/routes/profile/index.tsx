@@ -87,18 +87,17 @@ const STATUS_STYLES: Record<string, string> = {
 
 interface ListingRowProps {
 	listing: Listing;
-	images: ListingImage[];
+	firstImage: ListingImage | undefined;
 	onStatusChange: () => void;
 }
 
-function ListingRow({ listing, images, onStatusChange }: ListingRowProps) {
-	const firstImage = images.find((img) => img.listing_id === listing.id);
+function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 	const typeLabel =
 		MOTORCYCLE_TYPES.find((t) => t.value === listing.motorcycle_type)?.label ??
 		listing.motorcycle_type;
 	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
 	const priceEur = Math.round(listing.price_per_day / 100);
-	const statusLabel = LISTING_STATUSES[listing.status as keyof typeof LISTING_STATUSES];
+	const statusLabel = LISTING_STATUSES[listing.status];
 	const statusStyle = STATUS_STYLES[listing.status] ?? "bg-muted-light text-muted";
 
 	async function handleTogglePause() {
@@ -217,6 +216,13 @@ function ProfilePage() {
 	const paused = listings.filter((l) => l.status === "paused");
 	const rented = listings.filter((l) => l.status === "rented");
 
+	const firstImageByListing = new Map<string, ListingImage>();
+	for (const img of images) {
+		if (!firstImageByListing.has(img.listing_id)) {
+			firstImageByListing.set(img.listing_id, img);
+		}
+	}
+
 	return (
 		<div className="min-h-screen bg-background">
 			<div className="mx-auto max-w-3xl px-4 py-8">
@@ -254,7 +260,7 @@ function ProfilePage() {
 							<ListingRow
 								key={listing.id}
 								listing={listing}
-								images={images}
+								firstImage={firstImageByListing.get(listing.id)}
 								onStatusChange={refresh}
 							/>
 						))}
