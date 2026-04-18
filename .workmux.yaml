@@ -1,20 +1,16 @@
 files:
-  copy:
-    - .env
+    copy:
+        - .env
 
 post_create:
-  - pnpm install
+    - pnpm install
 
 pre_merge:
-  - pnpm lint
-  - pnpm build
+    - pnpm lint
+    - pnpm build
 
 panes:
-  - command: <agent>
-    focus: true
-  - command: pnpm dev
-    split: horizontal
-    percentage: 30
-  - command: ""
-    split: vertical
-    percentage: 50
+    - command: <agent>
+      focus: true
+    - split: horizontal
+      percentage: 50
