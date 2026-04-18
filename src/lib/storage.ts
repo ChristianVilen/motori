@@ -11,6 +11,8 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createServerFn } from "@tanstack/react-start";
+import { log } from "~/lib/log";
+import { EVENTS } from "~/lib/log/events";
 import { getSession } from "~/lib/session";
 
 function getStorageClient() {
@@ -58,12 +60,21 @@ export const getImageUploadUrl = createServerFn({ method: "POST" })
 			throw new Error("Kirjaudu sisään ladataksesi kuvia");
 		}
 		if (!process.env.STORAGE_ENDPOINT) {
+			log.event(EVENTS.image.upload_failed, { reason: "storage-not-configured" });
 			throw new Error("Kuvatallennusta ei ole konfiguroitu");
 		}
 
-		const ext = data.filename.split(".").pop() ?? "jpg";
-		const key = `listings/${session.user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-		const uploadUrl = await generatePresignedUploadUrl(key, data.contentType);
-		const publicUrl = getPublicUrl(key);
-		return { uploadUrl, publicUrl };
+		try {
+			const ext = data.filename.split(".").pop() ?? "jpg";
+			const key = `listings/${session.user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+			const uploadUrl = await generatePresignedUploadUrl(key, data.contentType);
+			const publicUrl = getPublicUrl(key);
+			log.event(EVENTS.image.uploaded, { key, contentType: data.contentType });
+			return { uploadUrl, publicUrl };
+		} catch (err) {
+			log.event(EVENTS.image.upload_failed, {
+				reason: (err as Error).message,
+			});
+			throw err;
+		}
 	});

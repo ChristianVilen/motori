@@ -3,6 +3,8 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ListingForm } from "~/components/listings/listing-form";
 import { db } from "~/lib/db/index";
+import { log } from "~/lib/log";
+import { EVENTS } from "~/lib/log/events";
 import { getSession } from "~/lib/session";
 import type { ListingFormData } from "~/lib/validators";
 import { listingFormSchema } from "~/lib/validators";
@@ -50,6 +52,8 @@ const createListing = createServerFn({ method: "POST" })
 				updated_at: new Date(),
 			})
 			.execute();
+
+		log.event(EVENTS.listing.created, { listingId: id });
 
 		if (data.image_urls.length > 0) {
 			await db

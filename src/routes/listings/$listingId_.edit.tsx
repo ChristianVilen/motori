@@ -5,6 +5,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { ArrowLeft } from "lucide-react";
 import { ListingForm } from "~/components/listings/listing-form";
 import { db } from "~/lib/db/index";
+import { log } from "~/lib/log";
+import { EVENTS } from "~/lib/log/events";
 import { getSession } from "~/lib/session";
 import type { ListingFormData } from "~/lib/validators";
 import { listingFormSchema } from "~/lib/validators";
@@ -95,6 +97,11 @@ const updateListing = createServerFn({ method: "POST" })
 			})
 			.where("id", "=", data.id)
 			.execute();
+
+		log.event(EVENTS.listing.updated, {
+			listingId: data.id,
+			fields: Object.keys(data.form).filter((k) => k !== "id"),
+		});
 
 		// Replace images: delete existing, insert new
 		await db.deleteFrom("listing_image").where("listing_id", "=", data.id).execute();
