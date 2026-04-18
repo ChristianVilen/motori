@@ -29,7 +29,28 @@ export const Route = createRootRoute({
 		],
 	}),
 	component: RootComponent,
+	notFoundComponent: NotFound,
 });
+
+function NotFound() {
+	return (
+		<RootDocument>
+			<div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
+				<p className="font-heading text-7xl font-bold text-accent">404</p>
+				<h1 className="mt-4 font-heading text-2xl font-bold text-foreground">Sivua ei löytynyt</h1>
+				<p className="mt-2 max-w-md text-sm text-muted">
+					Etsimääsi sivua ei ole olemassa tai se on poistettu.
+				</p>
+				<Link
+					to="/"
+					className="mt-8 rounded-lg bg-accent px-6 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
+				>
+					Takaisin etusivulle
+				</Link>
+			</div>
+		</RootDocument>
+	);
+}
 
 function RootComponent() {
 	// Signals React hydration for e2e tests — event handlers are not attached during SSR,
