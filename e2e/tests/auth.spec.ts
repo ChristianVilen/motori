@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { uniqueEmail, uniqueName } from "../helpers";
+import { HomePage } from "../pages/home.page";
 import { LoginPage } from "../pages/login.page";
 import { RegisterPage } from "../pages/register.page";
 
@@ -72,7 +73,7 @@ test.describe("Register", () => {
 		// First registration succeeds
 		await register.goto();
 		await register.register(name, email, "Password123!");
-		await expect(page).not.toHaveURL(/\/rekisteroidy/);
+		await page.waitForURL((url) => url.pathname !== "/rekisteroidy");
 
 		// Second attempt with the same email surfaces the error
 		await register.goto();
@@ -88,5 +89,33 @@ test.describe("Register", () => {
 		await register.register(uniqueName(), uniqueEmail(), "Password123!");
 
 		await expect(page).not.toHaveURL(/\/rekisteroidy/);
+	});
+});
+
+test.describe("Navbar", () => {
+	test("reflects auth state correctly", async ({ page }) => {
+		const home = new HomePage(page);
+		const register = new RegisterPage(page);
+		const login = new LoginPage(page);
+		const email = uniqueEmail();
+		const name = uniqueName();
+		const password = "Password123!";
+
+		// 1. Register a new user
+		await register.goto();
+		await register.register(name, email, password);
+		await expect(home.navDashboardLink).toBeVisible();
+
+		// 2. Log out
+		await home.navSignOutLink.click();
+		await expect(home.navLoginLink).toBeVisible();
+		await expect(home.navDashboardLink).not.toBeVisible();
+
+		// 3. Log back in from the modal
+		await home.navLoginLink.click();
+		await expect(home.loginModal).toBeVisible();
+		await login.login(email, password);
+		await expect(home.loginModal).not.toBeVisible();
+		await expect(home.navDashboardLink).toBeVisible();
 	});
 });

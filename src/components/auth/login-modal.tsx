@@ -36,11 +36,10 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 		return null;
 	}
 
-	function handleSuccess() {
+	async function handleSuccess() {
 		router.invalidate();
 		onClose();
 	}
-
 	return (
 		<div
 			data-testid="login-modal"
