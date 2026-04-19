@@ -4,8 +4,7 @@ export default {
 		seasonTag: "Kausi 2026 on käynnissä",
 		heading: "Vuokraa moottoripyörä",
 		headingAccent: "suoraan omistajalta",
-		subheading:
-			"Suomen suurin vertaisvuokrauspalvelu moottoripyörille. Löydä unelmiesi pyörä tai tienaa omallasi.",
+		subheading: "Vuokraa moottoripyörä suoraan omistajalta tai laita omasi vuokralle.",
 		searchPlaceholder: "Hae merkkiä, mallia, kaupunkia...",
 		searchButton: "Hae",
 		chips: {
@@ -20,8 +19,8 @@ export default {
 		statsPrice: "alk. / päivä",
 	},
 	seasonalStrip: {
-		active: "Kesäkausi on täällä — {{total}} pyörää odottaa sinua ympäri Suomea",
-		inactive: "Varaa ensi kaudelle — ilmoituksia lisätään jatkuvasti",
+		active: "Kesäkausi on täällä. {{total}} pyörää saatavilla ympäri Suomea.",
+		inactive: "Varaa ensi kaudelle. Ilmoituksia lisätään jatkuvasti.",
 	},
 	latestListings: {
 		heading: "Uusimmat ilmoitukset",
@@ -45,7 +44,7 @@ export default {
 	},
 	cta: {
 		heading: "Pyöräsi seisoo tallissa?",
-		body: "Ilmoittaminen on ilmaista. Tavoita tuhansia moottoripyöräilystä kiinnostuneita.",
+		body: "Ilmoittaminen on ilmaista. Vuokraajat löytyvät suoraan palvelusta.",
 		button: "Lisää ilmoitus",
 	},
 	footer: {
