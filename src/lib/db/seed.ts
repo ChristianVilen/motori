@@ -25,8 +25,6 @@ type SeedListing = {
 	city: string;
 	region: string;
 	description: string;
-	includes_helmet: boolean;
-	includes_insurance: boolean;
 	status?: "active" | "paused";
 	images: string[];
 };
@@ -46,8 +44,6 @@ const listings: SeedListing[] = [
 		region: "uusimaa",
 		description:
 			"Hyvin huollettu R6, sopii kokeneelle kuljettajalle. Renkaat uudet keväällä, akrapovic-pakoputki.",
-		includes_helmet: true,
-		includes_insurance: true,
 		images: [R6, LINEUP],
 	},
 	{
@@ -63,8 +59,6 @@ const listings: SeedListing[] = [
 		city: "Tampere",
 		region: "pirkanmaa",
 		description: "Vihreä Ninja, hyvässä kunnossa. Kypärä mukana, vakuutus omasta.",
-		includes_helmet: true,
-		includes_insurance: false,
 		images: [LINEUP],
 	},
 	{
@@ -80,8 +74,6 @@ const listings: SeedListing[] = [
 		city: "Turku",
 		region: "varsinais-suomi",
 		description: "Loistava arkikäyttöön ja kaupunkiajoon. A2-rajoitettu.",
-		includes_helmet: false,
-		includes_insurance: true,
 		images: [TANK],
 	},
 	{
@@ -97,8 +89,6 @@ const listings: SeedListing[] = [
 		city: "Espoo",
 		region: "uusimaa",
 		description: "Helppo ja luotettava. Sopii myös vasta-alkajalle (A2-luokka).",
-		includes_helmet: true,
-		includes_insurance: true,
 		images: [FERRY],
 	},
 	{
@@ -115,8 +105,6 @@ const listings: SeedListing[] = [
 		region: "keski-suomi",
 		description:
 			"Täysvarustelu: cruise control, lämmittimet, sivulaukut. Ihanteellinen reissupyörä.",
-		includes_helmet: true,
-		includes_insurance: true,
 		images: [LINEUP, FERRY],
 	},
 	{
@@ -132,8 +120,6 @@ const listings: SeedListing[] = [
 		city: "Oulu",
 		region: "pohjois-pohjanmaa",
 		description: "Mukavin tapa kierrellä Lappia. Audio, GPS, lämpenevät kahvat ja istuin.",
-		includes_helmet: false,
-		includes_insurance: true,
 		images: [FERRY],
 	},
 	{
@@ -150,8 +136,6 @@ const listings: SeedListing[] = [
 		region: "lappi",
 		description:
 			"Loistava Lapin reissupyörä. Off-road-renkaat saatavissa pyynnöstä, pannarit mukana.",
-		includes_helmet: false,
-		includes_insurance: false,
 		images: [LINEUP],
 	},
 	{
@@ -167,8 +151,6 @@ const listings: SeedListing[] = [
 		city: "Tampere",
 		region: "pirkanmaa",
 		description: "Mukava ja ketterä adventure-pyörä. Sivulaukut ja topcase mukana.",
-		includes_helmet: true,
-		includes_insurance: true,
 		images: [FERRY],
 	},
 	{
@@ -184,8 +166,6 @@ const listings: SeedListing[] = [
 		city: "Helsinki",
 		region: "uusimaa",
 		description: "Mustan klassinen H-D. Sopii Helsinki–Hanko-reissuille kesäisin.",
-		includes_helmet: true,
-		includes_insurance: false,
 		images: [TANK],
 	},
 	{
@@ -201,8 +181,6 @@ const listings: SeedListing[] = [
 		city: "Lahti",
 		region: "paijat-hame",
 		description: "Vastuullinen ensimmäinen pyörä. A1-kortilla ajettava.",
-		includes_helmet: true,
-		includes_insurance: true,
 		status: "paused",
 		images: [TANK],
 	},
@@ -280,9 +258,6 @@ async function main() {
 				available_from: null,
 				available_to: null,
 				description: seed.description,
-				includes_helmet: seed.includes_helmet,
-				includes_insurance: seed.includes_insurance,
-				insurance_info: null,
 				mileage_limit: null,
 				status: seed.status,
 				expires_at: expiresAt,

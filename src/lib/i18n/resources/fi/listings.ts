@@ -28,8 +28,6 @@ export default {
 	card: {
 		newBadge: "Uusi",
 		addToFavoritesAriaLabel: "Lisää suosikkeihin",
-		helmet: "Kypärä",
-		insurance: "Vakuutus",
 		perDay: "/pv",
 	},
 	empty: {
@@ -58,10 +56,7 @@ export default {
 			available: "Saatavilla",
 		},
 		description: "Kuvaus",
-		helmetBadge: "Kypärä mukana",
-		insuranceBadge: "Vakuutus mukana",
 		licenseBadge: "Kortti {{license}}",
-		insuranceInfo: "Vakuutustiedot",
 		viewCount: "{{n}} näyttökertaa",
 		pricing: {
 			perDay: "/päivä",
@@ -97,7 +92,6 @@ export default {
 			location: "Sijainti",
 			availability: "Saatavuus",
 			description: "Kuvaus",
-			equipmentInsurance: "Varusteet & vakuutus",
 			images: "Kuvat",
 		},
 		fields: {
@@ -135,9 +129,6 @@ export default {
 			descriptionPlaceholder:
 				"Kerro pyörästä, sen kunnosta, varusteluista ja vuokrauskäytännöistäsi...",
 			descriptionCharCount: "{{n}}/5000 merkkiä",
-			includesHelmet: "Kypärä sisältyy hintaan",
-			includesInsurance: "Vakuutus sisältyy hintaan",
-			insuranceInfoPlaceholder: "Vakuutusyhtiö ja vakuutuksen tiedot",
 			mileageLimit: "Kilometriraja (km/pv)",
 			mileageLimitPlaceholder: "200",
 			mileageLimitHint: "Jätä tyhjäksi jos ei kilometrirajoitusta",

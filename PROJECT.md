@@ -128,7 +128,7 @@ interface Database {
 - Pricing: `price_per_day` (EUR cents), `price_per_week`, `price_description`, `deposit_amount`
 - Location: `city`, `region`, `postal_code`
 - Availability: `available_from`, `available_to`, `season_only`
-- Details: `description`, `includes_helmet`, `includes_insurance`, `insurance_info`, `mileage_limit`
+- Details: `description`, `mileage_limit`
 - Status: `status` (active/paused/rented/removed), `view_count`, `expires_at` (90-day auto-expiry)
 - Search: `search_vector` (tsvector, GIN-indexed)
 - Indexes: `(region, status)`, `(motorcycle_type, status)`, `(required_license, status)`

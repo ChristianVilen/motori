@@ -28,9 +28,6 @@ export const listingFormSchema = z.object({
 	available_to: z.string().nullable().optional(), // YYYY-MM-DD
 	season_only: z.boolean().default(false),
 	description: z.string().min(20, "Kuvaus on liian lyhyt (min 20 merkkiä)").max(5000),
-	includes_helmet: z.boolean().default(false),
-	includes_insurance: z.boolean().default(false),
-	insurance_info: z.string().max(500).nullable().optional(),
 	mileage_limit: z.number().int().min(0).max(10000).nullable().optional(),
 	image_urls: z.array(z.string()).max(8).default([]),
 });

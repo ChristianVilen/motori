@@ -79,16 +79,6 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 
 				{/* Frosted trust bar at bottom of image */}
 				<div className="absolute right-0 bottom-0 left-0 flex items-center gap-1.5 bg-gradient-to-t from-black/50 to-transparent px-3 pt-6 pb-2.5">
-					{!!listing.includes_helmet && (
-						<span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm">
-							{t("card.helmet")}
-						</span>
-					)}
-					{!!listing.includes_insurance && (
-						<span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm">
-							{t("card.insurance")}
-						</span>
-					)}
 					{imageCount > 1 && (
 						<span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm">
 							📷 {imageCount}

@@ -91,9 +91,6 @@ const updateListing = createServerFn({ method: "POST" })
 					available_to: form.available_to ?? null,
 					season_only: form.season_only,
 					description: form.description,
-					includes_helmet: form.includes_helmet,
-					includes_insurance: form.includes_insurance,
-					insurance_info: form.insurance_info ?? null,
 					mileage_limit: form.mileage_limit ?? null,
 					updated_at: new Date(),
 				})
@@ -173,9 +170,6 @@ function EditListingPage() {
 		available_to: listing.available_to ?? "",
 		season_only: listing.season_only,
 		description: listing.description,
-		includes_helmet: listing.includes_helmet,
-		includes_insurance: listing.includes_insurance,
-		insurance_info: listing.insurance_info ?? "",
 		mileage_limit: listing.mileage_limit,
 	};
 

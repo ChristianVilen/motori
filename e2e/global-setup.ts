@@ -111,7 +111,6 @@ async function seedListings(ownerId: string) {
 			available_to: null,
 			description:
 				"E2E seed listing. Do not edit manually — global-setup recreates this row on every run.",
-			insurance_info: null,
 			mileage_limit: 200,
 			expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
 			created_at: new Date(),

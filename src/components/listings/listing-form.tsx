@@ -42,9 +42,6 @@ export interface ListingFormValues {
 	available_to: string;
 	season_only: boolean;
 	description: string;
-	includes_helmet: boolean;
-	includes_insurance: boolean;
-	insurance_info: string;
 	mileage_limit: number | null;
 }
 
@@ -92,11 +89,6 @@ export function ListingForm({
 	const [availableTo, setAvailableTo] = useState(initialValues?.available_to ?? "");
 	const [seasonOnly, setSeasonOnly] = useState(initialValues?.season_only ?? false);
 	const [description, setDescription] = useState(initialValues?.description ?? "");
-	const [includesHelmet, setIncludesHelmet] = useState(initialValues?.includes_helmet ?? false);
-	const [includesInsurance, setIncludesInsurance] = useState(
-		initialValues?.includes_insurance ?? false,
-	);
-	const [insuranceInfo, setInsuranceInfo] = useState(initialValues?.insurance_info ?? "");
 	const [mileageLimit, setMileageLimit] = useState(String(initialValues?.mileage_limit ?? ""));
 
 	const [imageUrls, setImageUrls] = useState<string[]>(initialImageUrls);
@@ -195,9 +187,6 @@ export function ListingForm({
 				available_to: availableTo || null,
 				season_only: seasonOnly,
 				description: description.trim(),
-				includes_helmet: includesHelmet,
-				includes_insurance: includesInsurance,
-				insurance_info: insuranceInfo.trim() || null,
 				mileage_limit: toNum(mileageLimit),
 				image_urls: allImageUrls,
 			});
@@ -422,6 +411,24 @@ export function ListingForm({
 							/>
 						</div>
 					</div>
+					<div className="w-1/3">
+						<label
+							htmlFor="mileage_limit"
+							className="mb-1 block text-sm font-medium text-foreground"
+						>
+							{t("form.fields.mileageLimit")}
+						</label>
+						<Input
+							id="mileage_limit"
+							type="number"
+							min={0}
+							max={10000}
+							value={mileageLimit}
+							onChange={(e) => setMileageLimit(e.target.value)}
+							placeholder={t("form.fields.mileageLimitPlaceholder")}
+						/>
+						<p className="mt-1 text-xs text-muted">{t("form.fields.mileageLimitHint")}</p>
+					</div>
 				</div>
 			</section>
 
@@ -546,62 +553,6 @@ export function ListingForm({
 					<p className="mt-1 text-xs text-muted">
 						{t("form.fields.descriptionCharCount", { n: description.length })}
 					</p>
-				</div>
-			</section>
-
-			{/* ── Varusteet & vakuutus ──────────────────────────────────────── */}
-			<section className="rounded-lg border border-border bg-card p-6">
-				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-					{t("form.sections.equipmentInsurance")}
-				</h2>
-				<div className="space-y-3">
-					<label className="flex cursor-pointer items-center gap-3">
-						<input
-							type="checkbox"
-							checked={includesHelmet}
-							onChange={(e) => setIncludesHelmet(e.target.checked)}
-							className="h-4 w-4 rounded border-border accent-accent"
-						/>
-						<span className="text-sm text-foreground">{t("form.fields.includesHelmet")}</span>
-					</label>
-					<label className="flex cursor-pointer items-center gap-3">
-						<input
-							type="checkbox"
-							checked={includesInsurance}
-							onChange={(e) => setIncludesInsurance(e.target.checked)}
-							className="h-4 w-4 rounded border-border accent-accent"
-						/>
-						<span className="text-sm text-foreground">{t("form.fields.includesInsurance")}</span>
-					</label>
-					{!!includesInsurance && (
-						<div className="ml-7">
-							<Input
-								value={insuranceInfo}
-								onChange={(e) => setInsuranceInfo(e.target.value)}
-								placeholder={t("form.fields.insuranceInfoPlaceholder")}
-							/>
-						</div>
-					)}
-					<div className="pt-1">
-						<label
-							htmlFor="mileage_limit"
-							className="mb-1 block text-sm font-medium text-foreground"
-						>
-							{t("form.fields.mileageLimit")}
-						</label>
-						<div className="w-1/3">
-							<Input
-								id="mileage_limit"
-								type="number"
-								min={0}
-								max={10000}
-								value={mileageLimit}
-								onChange={(e) => setMileageLimit(e.target.value)}
-								placeholder={t("form.fields.mileageLimitPlaceholder")}
-							/>
-						</div>
-						<p className="mt-1 text-xs text-muted">{t("form.fields.mileageLimitHint")}</p>
-					</div>
 				</div>
 			</section>
 

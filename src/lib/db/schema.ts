@@ -98,9 +98,6 @@ export interface ListingTable {
 	available_to: string | null; // date "YYYY-MM-DD"
 	season_only: Generated<boolean>;
 	description: string;
-	includes_helmet: Generated<boolean>;
-	includes_insurance: Generated<boolean>;
-	insurance_info: string | null;
 	mileage_limit: number | null; // km/day
 	status: Generated<"active" | "paused" | "rented" | "removed">;
 	view_count: Generated<number>;

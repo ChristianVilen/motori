@@ -45,9 +45,6 @@ export interface Listing {
 	engine_cc: number | null;
 	expires_at: Timestamp | null;
 	id: string;
-	includes_helmet: Generated<boolean>;
-	includes_insurance: Generated<boolean>;
-	insurance_info: string | null;
 	mileage_limit: number | null;
 	model: string;
 	motorcycle_type: string;

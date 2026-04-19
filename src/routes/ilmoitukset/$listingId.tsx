@@ -2,7 +2,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { sql } from "kysely";
-import { ArrowLeft, Calendar, MapPin, Shield, Tag } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Tag } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { LICENSE_CLASSES, LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
@@ -391,17 +391,6 @@ function ListingDetailPage() {
 										{t("detail.licenseBadge", { license: licenseLabel })}
 									</span>
 								)}
-								{!!listing.includes_helmet && (
-									<span className="rounded-full bg-success/10 px-3 py-1 text-xs text-success">
-										{t("detail.helmetBadge")}
-									</span>
-								)}
-								{!!listing.includes_insurance && (
-									<span className="flex items-center gap-1 rounded-full bg-success/10 px-3 py-1 text-xs text-success">
-										<Shield className="h-3 w-3" />
-										{t("detail.insuranceBadge")}
-									</span>
-								)}
 							</div>
 						</div>
 
@@ -430,17 +419,6 @@ function ListingDetailPage() {
 							isOwner={!!isOwner}
 							isSignedIn={!!session}
 						/>
-
-						{/* Insurance info */}
-						{!!listing.includes_insurance && !!listing.insurance_info && (
-							<div className="rounded-xl border border-border bg-card p-4 text-sm">
-								<p className="mb-1 flex items-center gap-1 font-medium text-foreground">
-									<Shield className="h-4 w-4 text-success" />
-									{t("detail.insuranceInfo")}
-								</p>
-								<p className="text-muted">{listing.insurance_info}</p>
-							</div>
-						)}
 
 						{/* Listing meta */}
 						<p className="text-center text-xs text-muted">
