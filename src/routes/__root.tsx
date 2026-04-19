@@ -204,6 +204,17 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 					</div>
 				</nav>
 				{children}
+				<footer className="border-t border-border px-4 py-6 text-center text-xs text-muted">
+					<span>© {new Date().getFullYear()} Christian Vilen</span>
+					<span className="mx-2">·</span>
+					<Link to="/kayttoehdot" className="hover:text-foreground">
+						Käyttöehdot
+					</Link>
+					<span className="mx-2">·</span>
+					<Link to="/tietosuoja" className="hover:text-foreground">
+						Tietosuoja
+					</Link>
+				</footer>
 				<LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
 				<Scripts />
 				<script

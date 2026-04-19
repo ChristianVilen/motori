@@ -10,9 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VahvistaSahkopostiRouteImport } from './routes/vahvista-sahkoposti'
+import { Route as TietosuojaRouteImport } from './routes/tietosuoja'
 import { Route as TaydennaProfiiliRouteImport } from './routes/taydenna-profiili'
 import { Route as RekisteroidyRouteImport } from './routes/rekisteroidy'
 import { Route as KirjauduRouteImport } from './routes/kirjaudu'
+import { Route as KayttoehdotRouteImport } from './routes/kayttoehdot'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OmatIndexRouteImport } from './routes/omat/index'
 import { Route as IlmoituksetIndexRouteImport } from './routes/ilmoitukset/index'
@@ -28,6 +30,11 @@ const VahvistaSahkopostiRoute = VahvistaSahkopostiRouteImport.update({
   path: '/vahvista-sahkoposti',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TietosuojaRoute = TietosuojaRouteImport.update({
+  id: '/tietosuoja',
+  path: '/tietosuoja',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TaydennaProfiiliRoute = TaydennaProfiiliRouteImport.update({
   id: '/taydenna-profiili',
   path: '/taydenna-profiili',
@@ -41,6 +48,11 @@ const RekisteroidyRoute = RekisteroidyRouteImport.update({
 const KirjauduRoute = KirjauduRouteImport.update({
   id: '/kirjaudu',
   path: '/kirjaudu',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KayttoehdotRoute = KayttoehdotRouteImport.update({
+  id: '/kayttoehdot',
+  path: '/kayttoehdot',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -92,9 +104,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/kayttoehdot': typeof KayttoehdotRoute
   '/kirjaudu': typeof KirjauduRoute
   '/rekisteroidy': typeof RekisteroidyRoute
   '/taydenna-profiili': typeof TaydennaProfiiliRoute
+  '/tietosuoja': typeof TietosuojaRoute
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
@@ -107,9 +121,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/kayttoehdot': typeof KayttoehdotRoute
   '/kirjaudu': typeof KirjauduRoute
   '/rekisteroidy': typeof RekisteroidyRoute
   '/taydenna-profiili': typeof TaydennaProfiiliRoute
+  '/tietosuoja': typeof TietosuojaRoute
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
@@ -123,9 +139,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/kayttoehdot': typeof KayttoehdotRoute
   '/kirjaudu': typeof KirjauduRoute
   '/rekisteroidy': typeof RekisteroidyRoute
   '/taydenna-profiili': typeof TaydennaProfiiliRoute
+  '/tietosuoja': typeof TietosuojaRoute
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
@@ -140,9 +158,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/kayttoehdot'
     | '/kirjaudu'
     | '/rekisteroidy'
     | '/taydenna-profiili'
+    | '/tietosuoja'
     | '/vahvista-sahkoposti'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
@@ -155,9 +175,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/kayttoehdot'
     | '/kirjaudu'
     | '/rekisteroidy'
     | '/taydenna-profiili'
+    | '/tietosuoja'
     | '/vahvista-sahkoposti'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
@@ -170,9 +192,11 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/kayttoehdot'
     | '/kirjaudu'
     | '/rekisteroidy'
     | '/taydenna-profiili'
+    | '/tietosuoja'
     | '/vahvista-sahkoposti'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
@@ -186,9 +210,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  KayttoehdotRoute: typeof KayttoehdotRoute
   KirjauduRoute: typeof KirjauduRoute
   RekisteroidyRoute: typeof RekisteroidyRoute
   TaydennaProfiiliRoute: typeof TaydennaProfiiliRoute
+  TietosuojaRoute: typeof TietosuojaRoute
   VahvistaSahkopostiRoute: typeof VahvistaSahkopostiRoute
   IlmoituksetListingIdRoute: typeof IlmoituksetListingIdRoute
   IlmoituksetUusiRoute: typeof IlmoituksetUusiRoute
@@ -207,6 +233,13 @@ declare module '@tanstack/react-router' {
       path: '/vahvista-sahkoposti'
       fullPath: '/vahvista-sahkoposti'
       preLoaderRoute: typeof VahvistaSahkopostiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tietosuoja': {
+      id: '/tietosuoja'
+      path: '/tietosuoja'
+      fullPath: '/tietosuoja'
+      preLoaderRoute: typeof TietosuojaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/taydenna-profiili': {
@@ -228,6 +261,13 @@ declare module '@tanstack/react-router' {
       path: '/kirjaudu'
       fullPath: '/kirjaudu'
       preLoaderRoute: typeof KirjauduRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kayttoehdot': {
+      id: '/kayttoehdot'
+      path: '/kayttoehdot'
+      fullPath: '/kayttoehdot'
+      preLoaderRoute: typeof KayttoehdotRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -298,9 +338,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  KayttoehdotRoute: KayttoehdotRoute,
   KirjauduRoute: KirjauduRoute,
   RekisteroidyRoute: RekisteroidyRoute,
   TaydennaProfiiliRoute: TaydennaProfiiliRoute,
+  TietosuojaRoute: TietosuojaRoute,
   VahvistaSahkopostiRoute: VahvistaSahkopostiRoute,
   IlmoituksetListingIdRoute: IlmoituksetListingIdRoute,
   IlmoituksetUusiRoute: IlmoituksetUusiRoute,
