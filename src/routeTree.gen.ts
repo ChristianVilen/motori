@@ -10,17 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ListingsIndexRouteImport } from './routes/listings/index'
+import { Route as IlmoituksetIndexRouteImport } from './routes/ilmoitukset/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as ProfileSettingsRouteImport } from './routes/profile/settings'
 import { Route as ProfileUserIdRouteImport } from './routes/profile/$userId'
-import { Route as ListingsNewRouteImport } from './routes/listings/new'
-import { Route as ListingsListingIdRouteImport } from './routes/listings/$listingId'
+import { Route as IlmoituksetUusiRouteImport } from './routes/ilmoitukset/uusi'
+import { Route as IlmoituksetListingIdRouteImport } from './routes/ilmoitukset/$listingId'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthCompleteProfileRouteImport } from './routes/auth/complete-profile'
-import { Route as ListingsListingIdEditRouteImport } from './routes/listings/$listingId_.edit'
+import { Route as IlmoituksetListingIdMuokkaaRouteImport } from './routes/ilmoitukset/$listingId_.muokkaa'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -28,9 +28,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ListingsIndexRoute = ListingsIndexRouteImport.update({
-  id: '/listings/',
-  path: '/listings/',
+const IlmoituksetIndexRoute = IlmoituksetIndexRouteImport.update({
+  id: '/ilmoitukset/',
+  path: '/ilmoitukset/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -48,14 +48,14 @@ const ProfileUserIdRoute = ProfileUserIdRouteImport.update({
   path: '/profile/$userId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ListingsNewRoute = ListingsNewRouteImport.update({
-  id: '/listings/new',
-  path: '/listings/new',
+const IlmoituksetUusiRoute = IlmoituksetUusiRouteImport.update({
+  id: '/ilmoitukset/uusi',
+  path: '/ilmoitukset/uusi',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ListingsListingIdRoute = ListingsListingIdRouteImport.update({
-  id: '/listings/$listingId',
-  path: '/listings/$listingId',
+const IlmoituksetListingIdRoute = IlmoituksetListingIdRouteImport.update({
+  id: '/ilmoitukset/$listingId',
+  path: '/ilmoitukset/$listingId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
@@ -78,11 +78,12 @@ const AuthCompleteProfileRoute = AuthCompleteProfileRouteImport.update({
   path: '/auth/complete-profile',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ListingsListingIdEditRoute = ListingsListingIdEditRouteImport.update({
-  id: '/listings/$listingId_/edit',
-  path: '/listings/$listingId/edit',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const IlmoituksetListingIdMuokkaaRoute =
+  IlmoituksetListingIdMuokkaaRouteImport.update({
+    id: '/ilmoitukset/$listingId_/muokkaa',
+    path: '/ilmoitukset/$listingId/muokkaa',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -95,14 +96,14 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
-  '/listings/$listingId': typeof ListingsListingIdRoute
-  '/listings/new': typeof ListingsNewRoute
+  '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
+  '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/profile/settings': typeof ProfileSettingsRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/listings/': typeof ListingsIndexRoute
+  '/ilmoitukset/': typeof IlmoituksetIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/listings/$listingId/edit': typeof ListingsListingIdEditRoute
+  '/ilmoitukset/$listingId/muokkaa': typeof IlmoituksetListingIdMuokkaaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,14 +111,14 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
-  '/listings/$listingId': typeof ListingsListingIdRoute
-  '/listings/new': typeof ListingsNewRoute
+  '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
+  '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/profile/settings': typeof ProfileSettingsRoute
   '/dashboard': typeof DashboardIndexRoute
-  '/listings': typeof ListingsIndexRoute
+  '/ilmoitukset': typeof IlmoituksetIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/listings/$listingId/edit': typeof ListingsListingIdEditRoute
+  '/ilmoitukset/$listingId/muokkaa': typeof IlmoituksetListingIdMuokkaaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -126,14 +127,14 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
-  '/listings/$listingId': typeof ListingsListingIdRoute
-  '/listings/new': typeof ListingsNewRoute
+  '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
+  '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/profile/settings': typeof ProfileSettingsRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/listings/': typeof ListingsIndexRoute
+  '/ilmoitukset/': typeof IlmoituksetIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/listings/$listingId_/edit': typeof ListingsListingIdEditRoute
+  '/ilmoitukset/$listingId_/muokkaa': typeof IlmoituksetListingIdMuokkaaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -143,14 +144,14 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/auth/verify-email'
-    | '/listings/$listingId'
-    | '/listings/new'
+    | '/ilmoitukset/$listingId'
+    | '/ilmoitukset/uusi'
     | '/profile/$userId'
     | '/profile/settings'
     | '/dashboard/'
-    | '/listings/'
+    | '/ilmoitukset/'
     | '/api/auth/$'
-    | '/listings/$listingId/edit'
+    | '/ilmoitukset/$listingId/muokkaa'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -158,14 +159,14 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/auth/verify-email'
-    | '/listings/$listingId'
-    | '/listings/new'
+    | '/ilmoitukset/$listingId'
+    | '/ilmoitukset/uusi'
     | '/profile/$userId'
     | '/profile/settings'
     | '/dashboard'
-    | '/listings'
+    | '/ilmoitukset'
     | '/api/auth/$'
-    | '/listings/$listingId/edit'
+    | '/ilmoitukset/$listingId/muokkaa'
   id:
     | '__root__'
     | '/'
@@ -173,14 +174,14 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/auth/verify-email'
-    | '/listings/$listingId'
-    | '/listings/new'
+    | '/ilmoitukset/$listingId'
+    | '/ilmoitukset/uusi'
     | '/profile/$userId'
     | '/profile/settings'
     | '/dashboard/'
-    | '/listings/'
+    | '/ilmoitukset/'
     | '/api/auth/$'
-    | '/listings/$listingId_/edit'
+    | '/ilmoitukset/$listingId_/muokkaa'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -189,14 +190,14 @@ export interface RootRouteChildren {
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
-  ListingsListingIdRoute: typeof ListingsListingIdRoute
-  ListingsNewRoute: typeof ListingsNewRoute
+  IlmoituksetListingIdRoute: typeof IlmoituksetListingIdRoute
+  IlmoituksetUusiRoute: typeof IlmoituksetUusiRoute
   ProfileUserIdRoute: typeof ProfileUserIdRoute
   ProfileSettingsRoute: typeof ProfileSettingsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
-  ListingsIndexRoute: typeof ListingsIndexRoute
+  IlmoituksetIndexRoute: typeof IlmoituksetIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
-  ListingsListingIdEditRoute: typeof ListingsListingIdEditRoute
+  IlmoituksetListingIdMuokkaaRoute: typeof IlmoituksetListingIdMuokkaaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -208,11 +209,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/listings/': {
-      id: '/listings/'
-      path: '/listings'
-      fullPath: '/listings/'
-      preLoaderRoute: typeof ListingsIndexRouteImport
+    '/ilmoitukset/': {
+      id: '/ilmoitukset/'
+      path: '/ilmoitukset'
+      fullPath: '/ilmoitukset/'
+      preLoaderRoute: typeof IlmoituksetIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -236,18 +237,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileUserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/listings/new': {
-      id: '/listings/new'
-      path: '/listings/new'
-      fullPath: '/listings/new'
-      preLoaderRoute: typeof ListingsNewRouteImport
+    '/ilmoitukset/uusi': {
+      id: '/ilmoitukset/uusi'
+      path: '/ilmoitukset/uusi'
+      fullPath: '/ilmoitukset/uusi'
+      preLoaderRoute: typeof IlmoituksetUusiRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/listings/$listingId': {
-      id: '/listings/$listingId'
-      path: '/listings/$listingId'
-      fullPath: '/listings/$listingId'
-      preLoaderRoute: typeof ListingsListingIdRouteImport
+    '/ilmoitukset/$listingId': {
+      id: '/ilmoitukset/$listingId'
+      path: '/ilmoitukset/$listingId'
+      fullPath: '/ilmoitukset/$listingId'
+      preLoaderRoute: typeof IlmoituksetListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/verify-email': {
@@ -278,11 +279,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCompleteProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/listings/$listingId_/edit': {
-      id: '/listings/$listingId_/edit'
-      path: '/listings/$listingId/edit'
-      fullPath: '/listings/$listingId/edit'
-      preLoaderRoute: typeof ListingsListingIdEditRouteImport
+    '/ilmoitukset/$listingId_/muokkaa': {
+      id: '/ilmoitukset/$listingId_/muokkaa'
+      path: '/ilmoitukset/$listingId/muokkaa'
+      fullPath: '/ilmoitukset/$listingId/muokkaa'
+      preLoaderRoute: typeof IlmoituksetListingIdMuokkaaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -301,14 +302,14 @@ const rootRouteChildren: RootRouteChildren = {
   AuthLoginRoute: AuthLoginRoute,
   AuthRegisterRoute: AuthRegisterRoute,
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
-  ListingsListingIdRoute: ListingsListingIdRoute,
-  ListingsNewRoute: ListingsNewRoute,
+  IlmoituksetListingIdRoute: IlmoituksetListingIdRoute,
+  IlmoituksetUusiRoute: IlmoituksetUusiRoute,
   ProfileUserIdRoute: ProfileUserIdRoute,
   ProfileSettingsRoute: ProfileSettingsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
-  ListingsIndexRoute: ListingsIndexRoute,
+  IlmoituksetIndexRoute: IlmoituksetIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
-  ListingsListingIdEditRoute: ListingsListingIdEditRoute,
+  IlmoituksetListingIdMuokkaaRoute: IlmoituksetListingIdMuokkaaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

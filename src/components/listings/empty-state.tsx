@@ -24,7 +24,7 @@ export function EmptyState({ search }: EmptyStateProps) {
 
 	function clearRegion() {
 		navigate({
-			to: "/listings",
+			to: "/ilmoitukset",
 			search: (prev) => ({ ...prev, region: undefined, cursor: undefined }),
 			replace: true,
 		});
@@ -32,7 +32,7 @@ export function EmptyState({ search }: EmptyStateProps) {
 
 	function clearAll() {
 		navigate({
-			to: "/listings",
+			to: "/ilmoitukset",
 			search: {},
 			replace: true,
 		});
@@ -83,7 +83,7 @@ export function LowResultNudge() {
 	return (
 		<div className="mt-6 rounded-lg border border-border bg-muted-light px-4 py-3 text-center text-sm text-muted">
 			{t("empty.lowResults")}{" "}
-			<Link to="/listings/new" className="font-medium text-accent hover:underline">
+			<Link to="/ilmoitukset/uusi" className="font-medium text-accent hover:underline">
 				{t("empty.lowResultsLink")}
 			</Link>
 			.

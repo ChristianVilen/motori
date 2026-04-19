@@ -26,7 +26,7 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 		<Link
 			data-testid="listing-card"
 			data-listing-id={listing.id}
-			to="/listings/$listingId"
+			to="/ilmoitukset/$listingId"
 			params={{ listingId: listing.id }}
 			className="group block overflow-hidden rounded-xl border border-border bg-card card-hover hover:card-hover-active"
 		>

@@ -1,4 +1,4 @@
-// src/routes/listings/new.tsx
+// src/routes/ilmoitukset/uusi.tsx
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ListingForm } from "~/components/listings/listing-form";
@@ -67,13 +67,13 @@ const createListing = createServerFn({ method: "POST" })
 						order: i,
 					})),
 				)
-				.execute();
+				.execute()
 		}
 
 		return { id };
-	});
+	})
 
-export const Route = createFileRoute("/listings/new")({
+export const Route = createFileRoute("/ilmoitukset/uusi")({
 	loader: async () => {
 		const session = await getSession();
 		if (!session) {
@@ -90,7 +90,7 @@ function NewListingPage() {
 
 	async function handleSubmit(data: ListingFormData) {
 		const { id } = await createListing({ data });
-		navigate({ to: "/listings/$listingId", params: { listingId: id } });
+		navigate({ to: "/ilmoitukset/$listingId", params: { listingId: id } });
 	}
 
 	return (
@@ -103,5 +103,5 @@ function NewListingPage() {
 				<ListingForm onSubmit={handleSubmit} submitLabel={t("create.submitLabel")} />
 			</div>
 		</div>
-	);
+	)
 }

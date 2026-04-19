@@ -27,7 +27,7 @@ function HomePage() {
 		const formData = new FormData(e.currentTarget);
 		const q = (formData.get("q") as string)?.trim() || undefined;
 		navigate({
-			to: "/listings",
+			to: "/ilmoitukset",
 			search: q ? { q } : {},
 		});
 	}
@@ -122,7 +122,7 @@ function HomePage() {
 								<Link
 									key={chip.slug}
 									data-testid={`home-chip-${chip.slug}`}
-									to="/listings"
+									to="/ilmoitukset"
 									search={chip.search}
 									className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs text-white/60 transition-colors hover:bg-white/10 hover:text-white"
 								>
@@ -179,7 +179,7 @@ function HomePage() {
 						</div>
 						<Link
 							data-testid="home-browse-all"
-							to="/listings"
+							to="/ilmoitukset"
 							search={{ sort: "newest" }}
 							className="flex items-center gap-1 text-sm font-medium text-accent hover:underline"
 						>
@@ -240,7 +240,7 @@ function HomePage() {
 				<p className="mt-2 text-muted">{t("cta.body")}</p>
 				<Link
 					data-testid="home-add-listing-cta"
-					to="/listings/new"
+					to="/ilmoitukset/uusi"
 					className="mt-6 inline-block rounded-lg bg-accent px-8 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
 				>
 					{t("cta.button")}
@@ -252,10 +252,10 @@ function HomePage() {
 				<div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
 					<p className="font-heading text-sm font-semibold text-foreground">{t("footer.brand")}</p>
 					<div className="flex gap-6 text-xs text-muted">
-						<Link to="/listings" className="hover:text-foreground">
+						<Link to="/ilmoitukset" className="hover:text-foreground">
 							{t("footer.browseListings")}
 						</Link>
-						<Link to="/listings/new" className="hover:text-foreground">
+						<Link to="/ilmoitukset/uusi" className="hover:text-foreground">
 							{t("footer.addListing")}
 						</Link>
 					</div>

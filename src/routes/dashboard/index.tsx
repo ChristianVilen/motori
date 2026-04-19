@@ -119,7 +119,7 @@ function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 		<div className="flex gap-4 rounded-xl border border-border bg-card p-4">
 			{/* Thumbnail */}
 			<Link
-				to="/listings/$listingId"
+				to="/ilmoitukset/$listingId"
 				params={{ listingId: listing.id }}
 				className="h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-muted-light"
 			>
@@ -149,7 +149,7 @@ function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 			<div className="min-w-0 flex-1">
 				<div className="flex flex-wrap items-start justify-between gap-2">
 					<Link
-						to="/listings/$listingId"
+						to="/ilmoitukset/$listingId"
 						params={{ listingId: listing.id }}
 						className="text-sm font-semibold text-foreground hover:text-accent"
 					>
@@ -181,7 +181,7 @@ function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 
 				{/* Actions */}
 				<div className="mt-3 flex flex-wrap gap-2">
-					<Link to="/listings/$listingId/edit" params={{ listingId: listing.id }}>
+					<Link to="/ilmoitukset/$listingId/muokkaa" params={{ listingId: listing.id }}>
 						<Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs">
 							<Pencil className="h-3 w-3" />
 							{t("dashboard.row.edit")}
@@ -242,7 +242,7 @@ function ProfilePage() {
 							{t("dashboard.stats", { active: active.length, paused: paused.length, rented: rented.length })}
 						</p>
 					</div>
-					<Link to="/listings/new">
+					<Link to="/ilmoitukset/uusi">
 						<Button className="gap-2 bg-accent text-white hover:bg-accent-hover">
 							<Plus className="h-4 w-4" />
 							{t("dashboard.newListing")}
@@ -254,7 +254,7 @@ function ProfilePage() {
 				{listings.length === 0 ? (
 					<div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border py-16 text-center">
 						<p className="text-muted">{t("dashboard.emptyState")}</p>
-						<Link to="/listings/new">
+						<Link to="/ilmoitukset/uusi">
 							<Button className="bg-accent text-white hover:bg-accent-hover">
 								{t("dashboard.createFirst")}
 							</Button>

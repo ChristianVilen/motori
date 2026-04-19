@@ -1,5 +1,5 @@
 // src/components/listings/listing-form.tsx
-// Shared between /listings/new and /listings/$listingId/edit
+// Shared between /ilmoitukset/uusi and /ilmoitukset/$listingId/muokkaa
 import { X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";

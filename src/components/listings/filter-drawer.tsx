@@ -36,7 +36,7 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 
 	function updateFilter(updates: Partial<BrowseSearchParams>) {
 		navigate({
-			to: "/listings",
+			to: "/ilmoitukset",
 			search: (prev) => ({
 				...prev,
 				...updates,
@@ -54,7 +54,7 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 
 	function clearAll() {
 		navigate({
-			to: "/listings",
+			to: "/ilmoitukset",
 			search: {},
 			replace: true,
 		});

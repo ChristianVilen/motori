@@ -1,4 +1,4 @@
-// src/routes/listings/$listingId_.edit.tsx
+// src/routes/ilmoitukset/$listingId_.muokkaa.tsx
 // Trailing underscore on $listingId_ opts out of $listingId.tsx as parent layout.
 import { createFileRoute, Link, notFound, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
@@ -41,7 +41,7 @@ const getListingForEdit = createServerFn({ method: "GET" })
 			.execute();
 
 		return { listing, images };
-	});
+	})
 
 const updateListing = createServerFn({ method: "POST" })
 	.inputValidator((data: { id: string; form: ListingFormData }) => ({
@@ -98,7 +98,7 @@ const updateListing = createServerFn({ method: "POST" })
 					updated_at: new Date(),
 				})
 				.where("id", "=", data.id)
-				.execute();
+				.execute()
 
 			await trx.deleteFrom("listing_image").where("listing_id", "=", data.id).execute();
 
@@ -113,17 +113,17 @@ const updateListing = createServerFn({ method: "POST" })
 							order: i,
 						})),
 					)
-					.execute();
+					.execute()
 			}
-		});
+		})
 
 		log.event(EVENTS.listing.updated, {
 			listingId: data.id,
 			fields: Object.keys(data.form).filter((k) => k !== "id"),
-		});
-	});
+		})
+	})
 
-export const Route = createFileRoute("/listings/$listingId_/edit")({
+export const Route = createFileRoute("/ilmoitukset/$listingId_/muokkaa")({
 	loader: async ({ params }) => {
 		const session = await getSession();
 		if (!session) {
@@ -145,7 +145,7 @@ export const Route = createFileRoute("/listings/$listingId_/edit")({
 					{t("edit.notFoundBack")}
 				</Link>
 			</div>
-		);
+		)
 	},
 });
 
@@ -177,11 +177,11 @@ function EditListingPage() {
 		includes_insurance: listing.includes_insurance,
 		insurance_info: listing.insurance_info ?? "",
 		mileage_limit: listing.mileage_limit,
-	};
+	}
 
 	async function handleSubmit(data: ListingFormData) {
 		await updateListing({ data: { id: listing.id, form: data } });
-		navigate({ to: "/listings/$listingId", params: { listingId: listing.id } });
+		navigate({ to: "/ilmoitukset/$listingId", params: { listingId: listing.id } });
 	}
 
 	return (
@@ -189,7 +189,7 @@ function EditListingPage() {
 			<div className="mx-auto max-w-2xl px-4 py-8">
 				<div className="mb-8">
 					<Link
-						to="/listings/$listingId"
+						to="/ilmoitukset/$listingId"
 						params={{ listingId: listing.id }}
 						className="mb-4 flex items-center gap-1 text-sm text-muted hover:text-foreground"
 					>
@@ -207,5 +207,5 @@ function EditListingPage() {
 				/>
 			</div>
 		</div>
-	);
+	)
 }

@@ -171,11 +171,11 @@ function RootDocument({ children, session, locale = "fi" }: RootDocumentProps) {
 							vuokramoto
 						</Link>
 						<div className="flex items-center gap-4 sm:gap-6">
-							<Link to="/listings" className="text-sm text-white/70 hover:text-white">
+							<Link to="/ilmoitukset" className="text-sm text-white/70 hover:text-white">
 								{t("nav.browse")}
 							</Link>
 							<Link
-								to="/listings/new"
+								to="/ilmoitukset/uusi"
 								className="rounded-md bg-accent px-3.5 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
 							>
 								{t("nav.listMotorcycle")}

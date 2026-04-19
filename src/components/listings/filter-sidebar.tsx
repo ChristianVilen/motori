@@ -21,7 +21,7 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 
 	function updateFilter(updates: Partial<BrowseSearchParams>) {
 		navigate({
-			to: "/listings",
+			to: "/ilmoitukset",
 			search: (prev) => ({
 				...prev,
 				...updates,
@@ -39,7 +39,7 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 
 	function clearAll() {
 		navigate({
-			to: "/listings",
+			to: "/ilmoitukset",
 			search: {},
 			replace: true,
 		});
