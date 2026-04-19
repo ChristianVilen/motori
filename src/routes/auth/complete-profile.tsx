@@ -6,6 +6,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { LICENSE_CLASSES, type LicenseClass } from "~/lib/constants";
 import { db } from "~/lib/db/index";
+import { useTranslation } from "~/lib/i18n";
 import { getSession } from "~/lib/session";
 
 const LICENSE_CLASS_VALUES = LICENSE_CLASSES.map((c) => c.value) as LicenseClass[];
@@ -65,6 +66,7 @@ export const Route = createFileRoute("/auth/complete-profile")({
 function CompleteProfilePage() {
 	const { session } = Route.useLoaderData();
 	const navigate = useNavigate();
+	const { t } = useTranslation("auth");
 	const [displayName, setDisplayName] = useState(session.user.name ?? "");
 	const [city, setCity] = useState("");
 	const [phone, setPhone] = useState("");
@@ -88,7 +90,7 @@ function CompleteProfilePage() {
 			});
 			navigate({ to: "/" });
 		} catch {
-			setError("Profiilin tallentaminen epäonnistui. Yritä uudelleen.");
+			setError(t("completeProfile.errorGeneric"));
 		} finally {
 			setLoading(false);
 		}
@@ -98,14 +100,14 @@ function CompleteProfilePage() {
 		<div className="flex min-h-screen items-center justify-center bg-background px-4">
 			<div className="w-full max-w-sm space-y-6">
 				<div className="text-center">
-					<h1 className="text-2xl font-bold text-primary">Viimeistele profiilisi</h1>
-					<p className="mt-1 text-sm text-muted">Kertoo muille käyttäjille kuka olet</p>
+					<h1 className="text-2xl font-bold text-primary">{t("completeProfile.heading")}</h1>
+					<p className="mt-1 text-sm text-muted">{t("completeProfile.tagline")}</p>
 				</div>
 
 				<form onSubmit={handleSubmit} className="space-y-4">
 					<div className="space-y-2">
 						<label htmlFor="displayName" className="text-sm font-medium text-foreground">
-							Näyttönimi <span className="text-destructive">*</span>
+							{t("completeProfile.displayNameLabel")} <span className="text-destructive">*</span>
 						</label>
 						<Input
 							id="displayName"
@@ -118,7 +120,7 @@ function CompleteProfilePage() {
 
 					<div className="space-y-2">
 						<label htmlFor="city" className="text-sm font-medium text-foreground">
-							Kaupunki
+							{t("completeProfile.cityLabel")}
 						</label>
 						<Input
 							id="city"
@@ -130,7 +132,7 @@ function CompleteProfilePage() {
 
 					<div className="space-y-2">
 						<label htmlFor="phone" className="text-sm font-medium text-foreground">
-							Puhelinnumero
+							{t("completeProfile.phoneLabel")}
 						</label>
 						<Input
 							id="phone"
@@ -142,7 +144,9 @@ function CompleteProfilePage() {
 					</div>
 
 					<div className="space-y-2">
-						<span className="text-sm font-medium text-foreground">Ajokorttilaji</span>
+						<span className="text-sm font-medium text-foreground">
+							{t("completeProfile.licenseClassLabel")}
+						</span>
 						<div className="flex gap-2">
 							{LICENSE_CLASSES.map((cls) => (
 								<button
@@ -166,7 +170,7 @@ function CompleteProfilePage() {
 						className="w-full bg-accent text-white hover:bg-accent-hover"
 						disabled={loading || !displayName.trim()}
 					>
-						{loading ? "Tallennetaan..." : "Valmis"}
+						{loading ? t("completeProfile.submitLoading") : t("completeProfile.submitIdle")}
 					</Button>
 
 					{!!error && <p className="text-sm text-destructive">{error}</p>}

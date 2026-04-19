@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { signIn } from "~/lib/auth-client";
+import { useTranslation } from "~/lib/i18n";
 
 interface LoginFormProps {
 	onSuccess?: () => void;
@@ -13,6 +14,7 @@ interface LoginFormProps {
 
 export function LoginForm({ onSuccess, redirect }: LoginFormProps) {
 	const navigate = useNavigate();
+	const { t } = useTranslation("auth");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState<string | null>(null);
@@ -32,7 +34,7 @@ export function LoginForm({ onSuccess, redirect }: LoginFormProps) {
 				navigate({ to: "/auth/verify-email" });
 				return;
 			}
-			setError("Väärä sähköposti tai salasana.");
+			setError(t("login.errorInvalidCredentials"));
 			return;
 		}
 
@@ -47,7 +49,7 @@ export function LoginForm({ onSuccess, redirect }: LoginFormProps) {
 		<form onSubmit={handleSubmit} data-testid="login-form" className="space-y-4">
 			<div className="space-y-2">
 				<label htmlFor="login-email" className="text-sm font-medium text-foreground">
-					Sähköposti
+					{t("login.emailLabel")}
 				</label>
 				<Input
 					id="login-email"
@@ -62,7 +64,7 @@ export function LoginForm({ onSuccess, redirect }: LoginFormProps) {
 
 			<div className="space-y-2">
 				<label htmlFor="login-password" className="text-sm font-medium text-foreground">
-					Salasana
+					{t("login.passwordLabel")}
 				</label>
 				<Input
 					id="login-password"
@@ -87,7 +89,7 @@ export function LoginForm({ onSuccess, redirect }: LoginFormProps) {
 				className="w-full bg-accent text-white hover:bg-accent-hover"
 				disabled={loading}
 			>
-				{loading ? "Kirjaudutaan..." : "Kirjaudu"}
+				{loading ? t("login.submitLoading") : t("login.submitIdle")}
 			</Button>
 		</form>
 	);

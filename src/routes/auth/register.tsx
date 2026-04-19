@@ -4,12 +4,19 @@ import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { signUp } from "~/lib/auth-client";
+import { useTranslation } from "~/lib/i18n";
 
 export const Route = createFileRoute("/auth/register")({
 	component: RegisterPage,
 });
 
-function passwordStrength(password: string): { score: number; label: string; color: string } {
+type StrengthKey = "strengthWeak" | "strengthFair" | "strengthStrong";
+
+function passwordStrength(password: string): {
+	score: number;
+	labelKey: StrengthKey;
+	color: string;
+} {
 	let score = 0;
 	if (password.length >= 8) {
 		score++;
@@ -28,16 +35,17 @@ function passwordStrength(password: string): { score: number; label: string; col
 	}
 
 	if (score <= 1) {
-		return { score, label: "Heikko", color: "bg-destructive" };
+		return { score, labelKey: "strengthWeak", color: "bg-destructive" };
 	}
 	if (score <= 3) {
-		return { score, label: "Kohtalainen", color: "bg-warning" };
+		return { score, labelKey: "strengthFair", color: "bg-warning" };
 	}
-	return { score, label: "Vahva", color: "bg-success" };
+	return { score, labelKey: "strengthStrong", color: "bg-success" };
 }
 
 function RegisterPage() {
 	const navigate = useNavigate();
+	const { t } = useTranslation("auth");
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -62,9 +70,9 @@ function RegisterPage() {
 
 		if (result.error) {
 			if (result.error.code === "USER_ALREADY_EXISTS") {
-				setError("Tällä sähköpostilla on jo tili.");
+				setError(t("register.errorAlreadyExists"));
 			} else {
-				setError("Rekisteröityminen epäonnistui. Yritä uudelleen.");
+				setError(t("register.errorGeneric"));
 			}
 			return;
 		}
@@ -77,13 +85,13 @@ function RegisterPage() {
 			<div className="w-full max-w-sm space-y-6">
 				<div className="text-center">
 					<h1 className="text-2xl font-bold text-primary">Vuokramoto</h1>
-					<p className="mt-1 text-sm text-muted">Luo tili</p>
+					<p className="mt-1 text-sm text-muted">{t("register.tagline")}</p>
 				</div>
 
 				<form onSubmit={handleSubmit} data-testid="register-form" className="space-y-4">
 					<div className="space-y-2">
 						<label htmlFor="name" className="text-sm font-medium text-foreground">
-							Nimi
+							{t("register.nameLabel")}
 						</label>
 						<Input
 							id="name"
@@ -98,7 +106,7 @@ function RegisterPage() {
 
 					<div className="space-y-2">
 						<label htmlFor="email" className="text-sm font-medium text-foreground">
-							Sähköposti
+							{t("register.emailLabel")}
 						</label>
 						<Input
 							id="email"
@@ -113,7 +121,7 @@ function RegisterPage() {
 
 					<div className="space-y-2">
 						<label htmlFor="password" className="text-sm font-medium text-foreground">
-							Salasana
+							{t("register.passwordLabel")}
 						</label>
 						<Input
 							id="password"
@@ -128,7 +136,7 @@ function RegisterPage() {
 						{password.length > 0 && (
 							<div
 								data-testid="password-strength"
-								data-strength={strength.label}
+								data-strength={t(`register.${strength.labelKey}`)}
 								className="space-y-1"
 							>
 								<div className="flex gap-1">
@@ -142,7 +150,7 @@ function RegisterPage() {
 									))}
 								</div>
 								<p data-testid="password-strength-label" className="text-xs text-muted">
-									{strength.label}
+									{t(`register.${strength.labelKey}`)}
 								</p>
 							</div>
 						)}
@@ -160,23 +168,23 @@ function RegisterPage() {
 						className="w-full bg-accent text-white hover:bg-accent-hover"
 						disabled={loading}
 					>
-						{loading ? "Luodaan tiliä..." : "Luo tili"}
+						{loading ? t("register.submitLoading") : t("register.submitIdle")}
 					</Button>
 				</form>
 
 				<p className="text-center text-sm text-muted">
-					Onko sinulla jo tili?{" "}
+					{t("register.hasAccount")}{" "}
 					<Link
 						data-testid="register-login-link"
 						to="/auth/login"
 						search={{ redirect: undefined }}
 						className="text-accent hover:underline"
 					>
-						Kirjaudu sisään
+						{t("register.loginLink")}
 					</Link>
 				</p>
 
-				<p className="text-center text-xs text-muted">Rekisteröitymällä hyväksyt käyttöehdot</p>
+				<p className="text-center text-xs text-muted">{t("register.termsNotice")}</p>
 			</div>
 		</div>
 	);
