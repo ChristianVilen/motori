@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { ListingCard } from "~/components/listings/listing-card";
+import { useTranslation } from "~/lib/i18n";
 import { getHomepageStats, getLatestListings } from "~/lib/listings-queries";
 
 export const Route = createFileRoute("/")({
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/")({
 function HomePage() {
 	const { latestListings, stats } = Route.useLoaderData();
 	const navigate = useNavigate();
+	const { t } = useTranslation("home");
 
 	const isRidingSeason = (() => {
 		const month = new Date().getMonth();
@@ -39,7 +41,7 @@ function HomePage() {
 					src="/images/kawasaki-ninja-rider-sunset-1200w.webp"
 					srcSet="/images/kawasaki-ninja-rider-sunset-400w.webp 400w, /images/kawasaki-ninja-rider-sunset-800w.webp 800w, /images/kawasaki-ninja-rider-sunset-1200w.webp 1200w, /images/kawasaki-ninja-rider-sunset-1920w.webp 1920w"
 					sizes="(min-width: 1024px) 50vw, 100vw"
-					alt="Motoristi Kawasaki Ninjalla auringonlaskussa"
+					alt={t("hero.imgAlt")}
 					className="absolute inset-0 h-full w-full object-cover lg:left-1/2 lg:w-1/2"
 				/>
 				{/* Mobile darken */}
@@ -57,7 +59,7 @@ function HomePage() {
 									<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
 									<span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
 								</span>
-								<span className="text-sm text-white/70">Kausi 2026 on käynnissä</span>
+								<span className="text-sm text-white/70">{t("hero.seasonTag")}</span>
 							</div>
 						)}
 
@@ -65,13 +67,10 @@ function HomePage() {
 							data-testid="home-hero-heading"
 							className="font-heading text-4xl leading-[1.1] font-bold tracking-tight text-white sm:text-5xl lg:text-6xl"
 						>
-							Vuokraa moottoripyörä <span className="text-accent">suoraan omistajalta</span>
+							{t("hero.heading")} <span className="text-accent">{t("hero.headingAccent")}</span>
 						</h1>
 
-						<p className="mt-4 max-w-md text-lg text-white/60">
-							Suomen suurin vertaisvuokrauspalvelu moottoripyörille. Löydä unelmiesi pyörä tai
-							tienaa omallasi.
-						</p>
+						<p className="mt-4 max-w-md text-lg text-white/60">{t("hero.subheading")}</p>
 
 						{/* Search bar */}
 						<form
@@ -83,7 +82,7 @@ function HomePage() {
 								data-testid="home-search-input"
 								name="q"
 								type="text"
-								placeholder="Hae merkkiä, mallia, kaupunkia..."
+								placeholder={t("hero.searchPlaceholder")}
 								className="h-12 flex-1 rounded-lg bg-white/10 px-4 text-white placeholder:text-white/40 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent"
 							/>
 							<button
@@ -91,27 +90,43 @@ function HomePage() {
 								type="submit"
 								className="h-12 rounded-lg bg-accent px-6 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
 							>
-								Hae
+								{t("hero.searchButton")}
 							</button>
 						</form>
 
 						{/* Quick filter chips */}
 						<div className="mt-4 flex flex-wrap gap-2">
 							{[
-								{ label: "Uusimaa", slug: "uusimaa", search: { region: "uusimaa" } },
-								{ label: "Pirkanmaa", slug: "pirkanmaa", search: { region: "pirkanmaa" } },
-								{ label: "Naked", slug: "naked", search: { type: ["naked"] } },
-								{ label: "A2-kortti", slug: "a2", search: { license: ["A2"] } },
-								{ label: "Touring", slug: "touring", search: { type: ["touring"] } },
+								{
+									labelKey: "hero.chips.uusimaa" as const,
+									slug: "uusimaa",
+									search: { region: "uusimaa" },
+								},
+								{
+									labelKey: "hero.chips.pirkanmaa" as const,
+									slug: "pirkanmaa",
+									search: { region: "pirkanmaa" },
+								},
+								{
+									labelKey: "hero.chips.naked" as const,
+									slug: "naked",
+									search: { type: ["naked"] },
+								},
+								{ labelKey: "hero.chips.a2" as const, slug: "a2", search: { license: ["A2"] } },
+								{
+									labelKey: "hero.chips.touring" as const,
+									slug: "touring",
+									search: { type: ["touring"] },
+								},
 							].map((chip) => (
 								<Link
-									key={chip.label}
+									key={chip.slug}
 									data-testid={`home-chip-${chip.slug}`}
 									to="/listings"
 									search={chip.search}
 									className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs text-white/60 transition-colors hover:bg-white/10 hover:text-white"
 								>
-									{chip.label}
+									{t(chip.labelKey)}
 								</Link>
 							))}
 						</div>
@@ -120,18 +135,24 @@ function HomePage() {
 						<div className="mt-10 flex gap-8">
 							<div>
 								<p className="font-heading text-2xl font-bold text-accent">{stats.totalListings}</p>
-								<p className="text-xs tracking-wide text-white/40 uppercase">ilmoitusta</p>
+								<p className="text-xs tracking-wide text-white/40 uppercase">
+									{t("hero.statsListings")}
+								</p>
 							</div>
 							<div>
 								<p className="font-heading text-2xl font-bold text-accent">{stats.regionCount}</p>
-								<p className="text-xs tracking-wide text-white/40 uppercase">aluetta</p>
+								<p className="text-xs tracking-wide text-white/40 uppercase">
+									{t("hero.statsRegions")}
+								</p>
 							</div>
 							{stats.minPricePerDay > 0 && (
 								<div>
 									<p className="font-heading text-2xl font-bold text-accent">
 										{stats.minPricePerDay} €
 									</p>
-									<p className="text-xs tracking-wide text-white/40 uppercase">alk. / päivä</p>
+									<p className="text-xs tracking-wide text-white/40 uppercase">
+										{t("hero.statsPrice")}
+									</p>
 								</div>
 							)}
 						</div>
@@ -142,8 +163,8 @@ function HomePage() {
 			{/* Seasonal strip */}
 			<div className="bg-gradient-to-r from-accent to-accent-hover px-4 py-3 text-center text-sm font-medium text-white">
 				{isRidingSeason
-					? `Kesäkausi on täällä — ${stats.totalListings} pyörää odottaa sinua ympäri Suomea`
-					: "Varaa ensi kaudelle — ilmoituksia lisätään jatkuvasti"}
+					? t("seasonalStrip.active", { total: stats.totalListings })
+					: t("seasonalStrip.inactive")}
 			</div>
 
 			{/* Latest listings */}
@@ -152,9 +173,9 @@ function HomePage() {
 					<div className="mb-8 flex items-end justify-between">
 						<div>
 							<h2 className="font-heading text-2xl font-bold text-foreground">
-								Uusimmat ilmoitukset
+								{t("latestListings.heading")}
 							</h2>
-							<p className="mt-1 text-sm text-muted">Tuoreimmat lisäykset</p>
+							<p className="mt-1 text-sm text-muted">{t("latestListings.subheading")}</p>
 						</div>
 						<Link
 							data-testid="home-browse-all"
@@ -162,7 +183,7 @@ function HomePage() {
 							search={{ sort: "newest" }}
 							className="flex items-center gap-1 text-sm font-medium text-accent hover:underline"
 						>
-							Selaa kaikkia
+							{t("latestListings.browseAll")}
 							<ArrowRight className="h-4 w-4" />
 						</Link>
 					</div>
@@ -179,25 +200,25 @@ function HomePage() {
 			<section className="bg-primary px-4 py-16">
 				<div className="mx-auto max-w-4xl">
 					<h2 className="mb-12 text-center font-heading text-2xl font-bold text-white">
-						Näin se toimii
+						{t("howItWorks.heading")}
 					</h2>
 
 					<div className="grid grid-cols-1 gap-10 md:grid-cols-3">
 						{[
 							{
 								num: "01",
-								title: "Löydä pyörä",
-								desc: "Selaa ilmoituksia alueittain, tyypeittäin tai hae vapaalla haulla.",
+								title: t("howItWorks.step1.title"),
+								desc: t("howItWorks.step1.desc"),
 							},
 							{
 								num: "02",
-								title: "Ota yhteyttä",
-								desc: "Sovi vuokrauksen yksityiskohdat suoraan omistajan kanssa.",
+								title: t("howItWorks.step2.title"),
+								desc: t("howItWorks.step2.desc"),
 							},
 							{
 								num: "03",
-								title: "Lähde ajamaan",
-								desc: "Nouda pyörä, nauti matkasta ja palauta sovitusti.",
+								title: t("howItWorks.step3.title"),
+								desc: t("howItWorks.step3.desc"),
 							},
 						].map((step) => (
 							<div key={step.num} className="relative pl-16">
@@ -215,34 +236,32 @@ function HomePage() {
 
 			{/* Lister CTA */}
 			<section className="px-4 py-16 text-center">
-				<h2 className="font-heading text-2xl font-bold text-foreground">
-					Pyöräsi seisoo tallissa?
-				</h2>
-				<p className="mt-2 text-muted">
-					Ilmoittaminen on ilmaista. Tavoita tuhansia moottoripyöräilystä kiinnostuneita.
-				</p>
+				<h2 className="font-heading text-2xl font-bold text-foreground">{t("cta.heading")}</h2>
+				<p className="mt-2 text-muted">{t("cta.body")}</p>
 				<Link
 					data-testid="home-add-listing-cta"
 					to="/listings/new"
 					className="mt-6 inline-block rounded-lg bg-accent px-8 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
 				>
-					Lisää ilmoitus
+					{t("cta.button")}
 				</Link>
 			</section>
 
 			{/* Footer */}
 			<footer className="border-t border-border px-4 py-8">
 				<div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-					<p className="font-heading text-sm font-semibold text-foreground">vuokramoto</p>
+					<p className="font-heading text-sm font-semibold text-foreground">{t("footer.brand")}</p>
 					<div className="flex gap-6 text-xs text-muted">
 						<Link to="/listings" className="hover:text-foreground">
-							Selaa ilmoituksia
+							{t("footer.browseListings")}
 						</Link>
 						<Link to="/listings/new" className="hover:text-foreground">
-							Ilmoita pyörä
+							{t("footer.addListing")}
 						</Link>
 					</div>
-					<p className="text-xs text-muted">© {new Date().getFullYear()} Vuokramoto</p>
+					<p className="text-xs text-muted">
+						{t("footer.copyright", { year: new Date().getFullYear() })}
+					</p>
 				</div>
 			</footer>
 		</div>
