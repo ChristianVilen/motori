@@ -7,6 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { LICENSE_CLASSES, type LicenseClass } from "~/lib/constants";
 import { db } from "~/lib/db/index";
+import { useTranslation } from "~/lib/i18n";
 import { getSession } from "~/lib/session";
 
 const LICENSE_CLASS_VALUES = LICENSE_CLASSES.map((c) => c.value) as LicenseClass[];
@@ -91,6 +92,7 @@ export const Route = createFileRoute("/profile/settings")({
 });
 
 function SettingsPage() {
+	const { t } = useTranslation("profile");
 	const { profile, session } = Route.useLoaderData();
 	const navigate = useNavigate();
 	const [displayName, setDisplayName] = useState(profile?.display_name ?? session.user.name ?? "");
@@ -113,7 +115,7 @@ function SettingsPage() {
 			});
 			setSaved(true);
 		} catch {
-			setError("Tallennus epäonnistui. Yritä uudelleen.");
+			setError(t("settings.saveError"));
 		} finally {
 			setLoading(false);
 		}
@@ -124,9 +126,9 @@ function SettingsPage() {
 			<div className="mx-auto max-w-lg px-4 py-8">
 				<div className="mb-6">
 					<Link to="/dashboard" className="text-sm text-muted hover:text-foreground">
-						← Omat ilmoitukset
+						{t("settings.backLink")}
 					</Link>
-					<h1 className="mt-2 text-2xl font-bold text-primary">Profiilin asetukset</h1>
+					<h1 className="mt-2 text-2xl font-bold text-primary">{t("settings.pageTitle")}</h1>
 					<p className="mt-1 text-sm text-muted">{session.user.email}</p>
 				</div>
 
@@ -136,7 +138,7 @@ function SettingsPage() {
 				>
 					<div className="space-y-2">
 						<label htmlFor="displayName" className="text-sm font-medium text-foreground">
-							Näyttönimi <span className="text-destructive">*</span>
+							{t("settings.displayNameLabel")} <span className="text-destructive">*</span>
 						</label>
 						<Input
 							id="displayName"
@@ -149,7 +151,7 @@ function SettingsPage() {
 
 					<div className="space-y-2">
 						<label htmlFor="city" className="text-sm font-medium text-foreground">
-							Kaupunki
+							{t("settings.cityLabel")}
 						</label>
 						<Input
 							id="city"
@@ -161,7 +163,7 @@ function SettingsPage() {
 
 					<div className="space-y-2">
 						<label htmlFor="phone" className="text-sm font-medium text-foreground">
-							Puhelinnumero
+							{t("settings.phoneLabel")}
 						</label>
 						<Input
 							id="phone"
@@ -177,12 +179,12 @@ function SettingsPage() {
 								onChange={(e) => setShowPhone(e.target.checked)}
 								className="h-4 w-4"
 							/>
-							Näytä puhelinnumero ilmoituksissa
+							{t("settings.showPhoneLabel")}
 						</label>
 					</div>
 
 					<div className="space-y-2">
-						<span className="text-sm font-medium text-foreground">Ajokorttilaji</span>
+						<span className="text-sm font-medium text-foreground">{t("settings.licenseClassLabel")}</span>
 						<div className="flex gap-2">
 							{LICENSE_CLASSES.map((cls) => (
 								<button
@@ -207,12 +209,12 @@ function SettingsPage() {
 							className="bg-accent text-white hover:bg-accent-hover"
 							disabled={loading || !displayName.trim()}
 						>
-							{loading ? "Tallennetaan..." : "Tallenna"}
+							{loading ? t("settings.saving") : t("settings.save")}
 						</Button>
 						<Button type="button" variant="outline" onClick={() => navigate({ to: "/dashboard" })}>
-							Peruuta
+							{t("settings.cancel")}
 						</Button>
-						{!!saved && <span className="text-sm text-success">Tallennettu</span>}
+						{!!saved && <span className="text-sm text-success">{t("settings.saved")}</span>}
 						{!!error && <span className="text-sm text-destructive">{error}</span>}
 					</div>
 				</form>

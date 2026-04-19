@@ -7,6 +7,7 @@ import { Button } from "~/components/ui/button";
 import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import type { Listing, ListingImage } from "~/lib/db/schema";
+import { formatEur, useTranslation } from "~/lib/i18n";
 import { getSession } from "~/lib/session";
 
 const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
@@ -92,11 +93,11 @@ interface ListingRowProps {
 }
 
 function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
+	const { t } = useTranslation("profile");
 	const typeLabel =
-		MOTORCYCLE_TYPES.find((t) => t.value === listing.motorcycle_type)?.label ??
+		MOTORCYCLE_TYPES.find((mt) => mt.value === listing.motorcycle_type)?.label ??
 		listing.motorcycle_type;
 	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
-	const priceEur = Math.round(listing.price_per_day / 100);
 	const statusLabel = LISTING_STATUSES[listing.status];
 	const statusStyle = STATUS_STYLES[listing.status] ?? "bg-muted-light text-muted";
 
@@ -107,7 +108,7 @@ function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 	}
 
 	async function handleDelete() {
-		if (!window.confirm("Poistetaanko ilmoitus? Tätä ei voi peruuttaa.")) {
+		if (!window.confirm(t("dashboard.row.confirmDelete"))) {
 			return;
 		}
 		await setListingStatus({ data: { id: listing.id, status: "removed" } });
@@ -169,17 +170,21 @@ function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 						{listing.city}, {regionLabel}
 					</span>
 					<span>·</span>
-					<span className="font-medium text-accent">{priceEur} €/pv</span>
+					<span className="font-medium text-accent">
+						{formatEur(listing.price_per_day)}{t("dashboard.row.pricePerDay")}
+					</span>
 				</div>
 
-				<div className="mt-1 text-xs text-muted">{listing.view_count} näyttökertaa</div>
+				<div className="mt-1 text-xs text-muted">
+					{t("dashboard.row.viewCount", { n: listing.view_count })}
+				</div>
 
 				{/* Actions */}
 				<div className="mt-3 flex flex-wrap gap-2">
 					<Link to="/listings/$listingId/edit" params={{ listingId: listing.id }}>
 						<Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs">
 							<Pencil className="h-3 w-3" />
-							Muokkaa
+							{t("dashboard.row.edit")}
 						</Button>
 					</Link>
 					<Button
@@ -188,7 +193,7 @@ function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 						className="h-7 px-2 text-xs"
 						onClick={handleTogglePause}
 					>
-						{listing.status === "active" ? "Aseta tauolle" : "Aktivoi"}
+						{listing.status === "active" ? t("dashboard.row.pause") : t("dashboard.row.activate")}
 					</Button>
 					<Button
 						variant="outline"
@@ -196,7 +201,7 @@ function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 						className="h-7 px-2 text-xs text-destructive hover:border-destructive hover:text-destructive"
 						onClick={handleDelete}
 					>
-						Poista
+						{t("dashboard.row.delete")}
 					</Button>
 				</div>
 			</div>
@@ -207,6 +212,7 @@ function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 function ProfilePage() {
 	const { listings, images, profile } = Route.useLoaderData();
 	const router = useRouter();
+	const { t } = useTranslation("profile");
 
 	function refresh() {
 		router.invalidate();
@@ -230,16 +236,16 @@ function ProfilePage() {
 				<div className="mb-8 flex items-center justify-between">
 					<div>
 						<h1 className="text-2xl font-bold text-primary">
-							{profile?.display_name ?? "Profiili"}
+							{profile?.display_name ?? t("dashboard.fallbackName")}
 						</h1>
 						<p className="mt-0.5 text-sm text-muted">
-							{active.length} aktiivista · {paused.length} tauolla · {rented.length} vuokrattu
+							{t("dashboard.stats", { active: active.length, paused: paused.length, rented: rented.length })}
 						</p>
 					</div>
 					<Link to="/listings/new">
 						<Button className="gap-2 bg-accent text-white hover:bg-accent-hover">
 							<Plus className="h-4 w-4" />
-							Uusi ilmoitus
+							{t("dashboard.newListing")}
 						</Button>
 					</Link>
 				</div>
@@ -247,10 +253,10 @@ function ProfilePage() {
 				{/* Listings */}
 				{listings.length === 0 ? (
 					<div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border py-16 text-center">
-						<p className="text-muted">Sinulla ei ole vielä ilmoituksia.</p>
+						<p className="text-muted">{t("dashboard.emptyState")}</p>
 						<Link to="/listings/new">
 							<Button className="bg-accent text-white hover:bg-accent-hover">
-								Luo ensimmäinen ilmoitus
+								{t("dashboard.createFirst")}
 							</Button>
 						</Link>
 					</div>
@@ -270,7 +276,7 @@ function ProfilePage() {
 				{/* Profile link */}
 				<div className="mt-8 text-center">
 					<Link to="/profile/settings" className="text-sm text-muted hover:text-foreground">
-						Muokkaa profiilia →
+						{t("dashboard.editProfile")}
 					</Link>
 				</div>
 			</div>

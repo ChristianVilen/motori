@@ -1,1 +1,41 @@
-export default {} as const;
+export default {
+	dashboard: {
+		fallbackName: "Profiili",
+		stats: "{{active}} aktiivista · {{paused}} tauolla · {{rented}} vuokrattu",
+		newListing: "Uusi ilmoitus",
+		emptyState: "Sinulla ei ole vielä ilmoituksia.",
+		createFirst: "Luo ensimmäinen ilmoitus",
+		editProfile: "Muokkaa profiilia →",
+		row: {
+			pricePerDay: "€/pv",
+			viewCount: "{{n}} näyttökertaa",
+			edit: "Muokkaa",
+			pause: "Aseta tauolle",
+			activate: "Aktivoi",
+			delete: "Poista",
+			confirmDelete: "Poistetaanko ilmoitus? Tätä ei voi peruuttaa.",
+		},
+	},
+	publicProfile: {
+		notFound: "Käyttäjää ei löydy.",
+		notFoundBack: "Etusivulle",
+		licenseBadge: "Kortti {{license}}",
+		memberSince: "Jäsen {{date}} alkaen",
+		listingsHeading: "Ilmoitukset ({{count}})",
+		noListings: "Ei aktiivisia ilmoituksia.",
+	},
+	settings: {
+		backLink: "← Omat ilmoitukset",
+		pageTitle: "Profiilin asetukset",
+		displayNameLabel: "Näyttönimi",
+		cityLabel: "Kaupunki",
+		phoneLabel: "Puhelinnumero",
+		showPhoneLabel: "Näytä puhelinnumero ilmoituksissa",
+		licenseClassLabel: "Ajokorttilaji",
+		saving: "Tallennetaan...",
+		save: "Tallenna",
+		cancel: "Peruuta",
+		saved: "Tallennettu",
+		saveError: "Tallennus epäonnistui. Yritä uudelleen.",
+	},
+} as const;
