@@ -1,9 +1,9 @@
-// src/routes/auth/login.tsx
+// src/routes/kirjaudu.tsx
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { LoginForm } from "~/components/auth/login-form";
 import { useTranslation } from "~/lib/i18n";
 
-export const Route = createFileRoute("/auth/login")({
+export const Route = createFileRoute("/kirjaudu")({
 	validateSearch: (search: Record<string, unknown>) => ({
 		redirect: typeof search.redirect === "string" ? search.redirect : undefined,
 	}),
@@ -11,7 +11,7 @@ export const Route = createFileRoute("/auth/login")({
 });
 
 function LoginPage() {
-	const { redirect } = useSearch({ from: "/auth/login" });
+	const { redirect } = useSearch({ from: "/kirjaudu" });
 	const { t } = useTranslation("auth");
 
 	return (
@@ -28,7 +28,7 @@ function LoginPage() {
 					{t("login.noAccount")}{" "}
 					<Link
 						data-testid="login-register-link"
-						to="/auth/register"
+						to="/rekisteroidy"
 						className="text-accent hover:underline"
 					>
 						{t("login.registerLink")}
@@ -36,5 +36,5 @@ function LoginPage() {
 				</p>
 			</div>
 		</div>
-	);
+	)
 }

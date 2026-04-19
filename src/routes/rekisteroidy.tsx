@@ -1,4 +1,4 @@
-// src/routes/auth/register.tsx
+// src/routes/rekisteroidy.tsx
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "~/components/ui/input";
 import { signUp } from "~/lib/auth-client";
 import { useTranslation } from "~/lib/i18n";
 
-export const Route = createFileRoute("/auth/register")({
+export const Route = createFileRoute("/rekisteroidy")({
 	component: RegisterPage,
 });
 
@@ -63,8 +63,8 @@ function RegisterPage() {
 			name,
 			email,
 			password,
-			callbackURL: "/auth/complete-profile",
-		});
+			callbackURL: "/taydenna-profiili",
+		})
 
 		setLoading(false);
 
@@ -74,10 +74,10 @@ function RegisterPage() {
 			} else {
 				setError(t("register.errorGeneric"));
 			}
-			return;
+			return
 		}
 
-		navigate({ to: "/auth/verify-email" });
+		navigate({ to: "/vahvista-sahkoposti" });
 	}
 
 	return (
@@ -176,7 +176,7 @@ function RegisterPage() {
 					{t("register.hasAccount")}{" "}
 					<Link
 						data-testid="register-login-link"
-						to="/auth/login"
+						to="/kirjaudu"
 						search={{ redirect: undefined }}
 						className="text-accent hover:underline"
 					>
@@ -187,5 +187,5 @@ function RegisterPage() {
 				<p className="text-center text-xs text-muted">{t("register.termsNotice")}</p>
 			</div>
 		</div>
-	);
+	)
 }

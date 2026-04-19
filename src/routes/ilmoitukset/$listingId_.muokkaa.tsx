@@ -127,7 +127,7 @@ export const Route = createFileRoute("/ilmoitukset/$listingId_/muokkaa")({
 	loader: async ({ params }) => {
 		const session = await getSession();
 		if (!session) {
-			throw redirect({ to: "/auth/login", search: { redirect: undefined } });
+			throw redirect({ to: "/kirjaudu", search: { redirect: undefined } });
 		}
 		const result = await getListingForEdit({ data: params.listingId });
 		if (!result) {

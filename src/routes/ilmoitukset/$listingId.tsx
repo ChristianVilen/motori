@@ -248,7 +248,7 @@ function PricingCard({
 			{!isSignedIn ? (
 				<Link
 					data-testid="owner-contact-login"
-					to="/auth/login"
+					to="/kirjaudu"
 					search={{ redirect: `/ilmoitukset/${listing.id}` }}
 					className="block w-full rounded-md bg-accent px-4 py-2 text-center text-sm font-medium text-white hover:bg-accent-hover"
 				>

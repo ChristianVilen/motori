@@ -9,6 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VahvistaSahkopostiRouteImport } from './routes/vahvista-sahkoposti'
+import { Route as TaydennaProfiiliRouteImport } from './routes/taydenna-profiili'
+import { Route as RekisteroidyRouteImport } from './routes/rekisteroidy'
+import { Route as KirjauduRouteImport } from './routes/kirjaudu'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as IlmoituksetIndexRouteImport } from './routes/ilmoitukset/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
@@ -16,13 +20,29 @@ import { Route as ProfileSettingsRouteImport } from './routes/profile/settings'
 import { Route as ProfileUserIdRouteImport } from './routes/profile/$userId'
 import { Route as IlmoituksetUusiRouteImport } from './routes/ilmoitukset/uusi'
 import { Route as IlmoituksetListingIdRouteImport } from './routes/ilmoitukset/$listingId'
-import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
-import { Route as AuthRegisterRouteImport } from './routes/auth/register'
-import { Route as AuthLoginRouteImport } from './routes/auth/login'
-import { Route as AuthCompleteProfileRouteImport } from './routes/auth/complete-profile'
 import { Route as IlmoituksetListingIdMuokkaaRouteImport } from './routes/ilmoitukset/$listingId_.muokkaa'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
+const VahvistaSahkopostiRoute = VahvistaSahkopostiRouteImport.update({
+  id: '/vahvista-sahkoposti',
+  path: '/vahvista-sahkoposti',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TaydennaProfiiliRoute = TaydennaProfiiliRouteImport.update({
+  id: '/taydenna-profiili',
+  path: '/taydenna-profiili',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RekisteroidyRoute = RekisteroidyRouteImport.update({
+  id: '/rekisteroidy',
+  path: '/rekisteroidy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KirjauduRoute = KirjauduRouteImport.update({
+  id: '/kirjaudu',
+  path: '/kirjaudu',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -58,26 +78,6 @@ const IlmoituksetListingIdRoute = IlmoituksetListingIdRouteImport.update({
   path: '/ilmoitukset/$listingId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
-  id: '/auth/verify-email',
-  path: '/auth/verify-email',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRegisterRoute = AuthRegisterRouteImport.update({
-  id: '/auth/register',
-  path: '/auth/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/auth/login',
-  path: '/auth/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthCompleteProfileRoute = AuthCompleteProfileRouteImport.update({
-  id: '/auth/complete-profile',
-  path: '/auth/complete-profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IlmoituksetListingIdMuokkaaRoute =
   IlmoituksetListingIdMuokkaaRouteImport.update({
     id: '/ilmoitukset/$listingId_/muokkaa',
@@ -92,10 +92,10 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth/complete-profile': typeof AuthCompleteProfileRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/register': typeof AuthRegisterRoute
-  '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/kirjaudu': typeof KirjauduRoute
+  '/rekisteroidy': typeof RekisteroidyRoute
+  '/taydenna-profiili': typeof TaydennaProfiiliRoute
+  '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profile/$userId': typeof ProfileUserIdRoute
@@ -107,10 +107,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth/complete-profile': typeof AuthCompleteProfileRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/register': typeof AuthRegisterRoute
-  '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/kirjaudu': typeof KirjauduRoute
+  '/rekisteroidy': typeof RekisteroidyRoute
+  '/taydenna-profiili': typeof TaydennaProfiiliRoute
+  '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profile/$userId': typeof ProfileUserIdRoute
@@ -123,10 +123,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/auth/complete-profile': typeof AuthCompleteProfileRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/register': typeof AuthRegisterRoute
-  '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/kirjaudu': typeof KirjauduRoute
+  '/rekisteroidy': typeof RekisteroidyRoute
+  '/taydenna-profiili': typeof TaydennaProfiiliRoute
+  '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profile/$userId': typeof ProfileUserIdRoute
@@ -140,10 +140,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/auth/complete-profile'
-    | '/auth/login'
-    | '/auth/register'
-    | '/auth/verify-email'
+    | '/kirjaudu'
+    | '/rekisteroidy'
+    | '/taydenna-profiili'
+    | '/vahvista-sahkoposti'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
     | '/profile/$userId'
@@ -155,10 +155,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/auth/complete-profile'
-    | '/auth/login'
-    | '/auth/register'
-    | '/auth/verify-email'
+    | '/kirjaudu'
+    | '/rekisteroidy'
+    | '/taydenna-profiili'
+    | '/vahvista-sahkoposti'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
     | '/profile/$userId'
@@ -170,10 +170,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/auth/complete-profile'
-    | '/auth/login'
-    | '/auth/register'
-    | '/auth/verify-email'
+    | '/kirjaudu'
+    | '/rekisteroidy'
+    | '/taydenna-profiili'
+    | '/vahvista-sahkoposti'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
     | '/profile/$userId'
@@ -186,10 +186,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthCompleteProfileRoute: typeof AuthCompleteProfileRoute
-  AuthLoginRoute: typeof AuthLoginRoute
-  AuthRegisterRoute: typeof AuthRegisterRoute
-  AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
+  KirjauduRoute: typeof KirjauduRoute
+  RekisteroidyRoute: typeof RekisteroidyRoute
+  TaydennaProfiiliRoute: typeof TaydennaProfiiliRoute
+  VahvistaSahkopostiRoute: typeof VahvistaSahkopostiRoute
   IlmoituksetListingIdRoute: typeof IlmoituksetListingIdRoute
   IlmoituksetUusiRoute: typeof IlmoituksetUusiRoute
   ProfileUserIdRoute: typeof ProfileUserIdRoute
@@ -202,6 +202,34 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/vahvista-sahkoposti': {
+      id: '/vahvista-sahkoposti'
+      path: '/vahvista-sahkoposti'
+      fullPath: '/vahvista-sahkoposti'
+      preLoaderRoute: typeof VahvistaSahkopostiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/taydenna-profiili': {
+      id: '/taydenna-profiili'
+      path: '/taydenna-profiili'
+      fullPath: '/taydenna-profiili'
+      preLoaderRoute: typeof TaydennaProfiiliRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rekisteroidy': {
+      id: '/rekisteroidy'
+      path: '/rekisteroidy'
+      fullPath: '/rekisteroidy'
+      preLoaderRoute: typeof RekisteroidyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kirjaudu': {
+      id: '/kirjaudu'
+      path: '/kirjaudu'
+      fullPath: '/kirjaudu'
+      preLoaderRoute: typeof KirjauduRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -251,34 +279,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IlmoituksetListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/verify-email': {
-      id: '/auth/verify-email'
-      path: '/auth/verify-email'
-      fullPath: '/auth/verify-email'
-      preLoaderRoute: typeof AuthVerifyEmailRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/register': {
-      id: '/auth/register'
-      path: '/auth/register'
-      fullPath: '/auth/register'
-      preLoaderRoute: typeof AuthRegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/login': {
-      id: '/auth/login'
-      path: '/auth/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/complete-profile': {
-      id: '/auth/complete-profile'
-      path: '/auth/complete-profile'
-      fullPath: '/auth/complete-profile'
-      preLoaderRoute: typeof AuthCompleteProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/ilmoitukset/$listingId_/muokkaa': {
       id: '/ilmoitukset/$listingId_/muokkaa'
       path: '/ilmoitukset/$listingId/muokkaa'
@@ -298,10 +298,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthCompleteProfileRoute: AuthCompleteProfileRoute,
-  AuthLoginRoute: AuthLoginRoute,
-  AuthRegisterRoute: AuthRegisterRoute,
-  AuthVerifyEmailRoute: AuthVerifyEmailRoute,
+  KirjauduRoute: KirjauduRoute,
+  RekisteroidyRoute: RekisteroidyRoute,
+  TaydennaProfiiliRoute: TaydennaProfiiliRoute,
+  VahvistaSahkopostiRoute: VahvistaSahkopostiRoute,
   IlmoituksetListingIdRoute: IlmoituksetListingIdRoute,
   IlmoituksetUusiRoute: IlmoituksetUusiRoute,
   ProfileUserIdRoute: ProfileUserIdRoute,

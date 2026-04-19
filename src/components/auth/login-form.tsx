@@ -1,5 +1,5 @@
 // src/components/auth/login-form.tsx
-// Shared email/password login form — used by /auth/login page and the nav login modal.
+// Shared email/password login form — used by /kirjaudu page and the nav login modal.
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -31,7 +31,7 @@ export function LoginForm({ onSuccess, redirect }: LoginFormProps) {
 
 		if (result.error) {
 			if (result.error.code === "EMAIL_NOT_VERIFIED") {
-				navigate({ to: "/auth/verify-email" });
+				navigate({ to: "/vahvista-sahkoposti" });
 				return;
 			}
 			setError(t("login.errorInvalidCredentials"));

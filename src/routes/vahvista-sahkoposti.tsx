@@ -1,9 +1,9 @@
-// src/routes/auth/verify-email.tsx
+// src/routes/vahvista-sahkoposti.tsx
 import { createFileRoute } from "@tanstack/react-router";
 import { Mail } from "lucide-react";
 import { useTranslation } from "~/lib/i18n";
 
-export const Route = createFileRoute("/auth/verify-email")({
+export const Route = createFileRoute("/vahvista-sahkoposti")({
 	component: VerifyEmailPage,
 });
 
@@ -25,5 +25,5 @@ function VerifyEmailPage() {
 				<p className="text-xs text-muted">{t("verifyEmail.noEmail")}</p>
 			</div>
 		</div>
-	);
+	)
 }
