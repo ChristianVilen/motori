@@ -20,7 +20,7 @@ const saveProfile = createServerFn({ method: "POST" })
 			}
 			const licenseClass = LICENSE_CLASS_VALUES.includes(data.licenseClass as LicenseClass)
 				? (data.licenseClass as LicenseClass)
-				: ""
+				: "";
 			return { displayName, city: data.city, phone: data.phone, licenseClass };
 		},
 	)
@@ -50,7 +50,7 @@ const saveProfile = createServerFn({ method: "POST" })
 				}),
 			)
 			.execute();
-	})
+	});
 
 export const Route = createFileRoute("/taydenna-profiili")({
 	loader: async () => {
@@ -87,7 +87,7 @@ function CompleteProfilePage() {
 					phone,
 					licenseClass,
 				},
-			})
+			});
 			navigate({ to: "/" });
 		} catch {
 			setError(t("completeProfile.errorGeneric"));
@@ -177,5 +177,5 @@ function CompleteProfilePage() {
 				</form>
 			</div>
 		</div>
-	)
+	);
 }

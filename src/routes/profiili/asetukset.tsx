@@ -40,14 +40,14 @@ const saveSettings = createServerFn({ method: "POST" })
 			}
 			const licenseClass = LICENSE_CLASS_VALUES.includes(data.licenseClass as LicenseClass)
 				? (data.licenseClass as LicenseClass)
-				: ""
+				: "";
 			return {
 				displayName,
 				city: data.city.trim(),
 				phone: data.phone.trim(),
 				showPhone: data.showPhone,
 				licenseClass,
-			}
+			};
 		},
 	)
 	.handler(async ({ data }) => {
@@ -78,7 +78,7 @@ const saveSettings = createServerFn({ method: "POST" })
 				}),
 			)
 			.execute();
-	})
+	});
 
 export const Route = createFileRoute("/profiili/asetukset")({
 	loader: async () => {
@@ -112,7 +112,7 @@ function SettingsPage() {
 		try {
 			await saveSettings({
 				data: { displayName, city, phone, showPhone, licenseClass },
-			})
+			});
 			setSaved(true);
 		} catch {
 			setError(t("settings.saveError"));
@@ -184,7 +184,9 @@ function SettingsPage() {
 					</div>
 
 					<div className="space-y-2">
-						<span className="text-sm font-medium text-foreground">{t("settings.licenseClassLabel")}</span>
+						<span className="text-sm font-medium text-foreground">
+							{t("settings.licenseClassLabel")}
+						</span>
 						<div className="flex gap-2">
 							{LICENSE_CLASSES.map((cls) => (
 								<button
@@ -220,5 +222,5 @@ function SettingsPage() {
 				</form>
 			</div>
 		</div>
-	)
+	);
 }

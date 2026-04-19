@@ -33,7 +33,7 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 					.where("listing_id", "in", listingIds)
 					.orderBy("order", "asc")
 					.execute()
-			: []
+			: [];
 
 	const profile = await db
 		.selectFrom("profile")
@@ -67,7 +67,7 @@ const setListingStatus = createServerFn({ method: "POST" })
 			.set({ status: data.status, updated_at: new Date() })
 			.where("id", "=", data.id)
 			.execute();
-	})
+	});
 
 export const Route = createFileRoute("/omat/")({
 	loader: async () => {
@@ -109,7 +109,7 @@ function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 
 	async function handleDelete() {
 		if (!window.confirm(t("dashboard.row.confirmDelete"))) {
-			return
+			return;
 		}
 		await setListingStatus({ data: { id: listing.id, status: "removed" } });
 		onStatusChange();
@@ -171,7 +171,8 @@ function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 					</span>
 					<span>·</span>
 					<span className="font-medium text-accent">
-						{formatEur(listing.price_per_day)}{t("dashboard.row.pricePerDay")}
+						{formatEur(listing.price_per_day)}
+						{t("dashboard.row.pricePerDay")}
 					</span>
 				</div>
 
@@ -206,7 +207,7 @@ function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }
 
 function ProfilePage() {
@@ -239,7 +240,11 @@ function ProfilePage() {
 							{profile?.display_name ?? t("dashboard.fallbackName")}
 						</h1>
 						<p className="mt-0.5 text-sm text-muted">
-							{t("dashboard.stats", { active: active.length, paused: paused.length, rented: rented.length })}
+							{t("dashboard.stats", {
+								active: active.length,
+								paused: paused.length,
+								rented: rented.length,
+							})}
 						</p>
 					</div>
 					<Link to="/ilmoitukset/uusi">
@@ -281,5 +286,5 @@ function ProfilePage() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

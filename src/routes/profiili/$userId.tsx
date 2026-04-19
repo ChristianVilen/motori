@@ -39,10 +39,10 @@ const getPublicProfile = createServerFn({ method: "GET" })
 						.where("listing_id", "in", listingIds)
 						.orderBy("order", "asc")
 						.execute()
-				: []
+				: [];
 
 		return { profile, listings, images };
-	})
+	});
 
 function NotFoundProfile() {
 	const { t } = useTranslation("profile");
@@ -53,7 +53,7 @@ function NotFoundProfile() {
 				{t("publicProfile.notFoundBack")}
 			</Link>
 		</div>
-	)
+	);
 }
 
 export const Route = createFileRoute("/profiili/$userId")({
@@ -124,5 +124,5 @@ function PublicProfilePage() {
 				)}
 			</div>
 		</div>
-	)
+	);
 }

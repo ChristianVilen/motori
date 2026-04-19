@@ -83,9 +83,7 @@ function NotFoundContent() {
 			<h1 className="mt-4 font-heading text-2xl font-bold text-foreground">
 				{t("notFound.heading")}
 			</h1>
-			<p className="mt-2 max-w-md text-sm text-muted">
-				{t("notFound.body")}
-			</p>
+			<p className="mt-2 max-w-md text-sm text-muted">{t("notFound.body")}</p>
 			<Link
 				to="/"
 				className="mt-8 rounded-lg bg-accent px-6 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"

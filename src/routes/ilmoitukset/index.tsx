@@ -53,7 +53,7 @@ function BrowsePage() {
 	const { allListings, totalCount, nextCursor, remaining } = useAccumulatedPages(
 		initialData,
 		search,
-	)
+	);
 
 	const hasQuery = !!search.q && search.q.trim().length > 0;
 	const regionLabel = search.region
@@ -67,13 +67,13 @@ function BrowsePage() {
 
 	function loadMore() {
 		if (!nextCursor) {
-			return
+			return;
 		}
 		navigate({
 			to: "/ilmoitukset",
 			search: (prev) => ({ ...prev, cursor: nextCursor }),
 			replace: true,
-		})
+		});
 	}
 
 	function handleSearch(e: React.FormEvent<HTMLFormElement>) {
@@ -84,7 +84,7 @@ function BrowsePage() {
 			to: "/ilmoitukset",
 			search: (prev) => ({ ...prev, q, cursor: undefined }),
 			replace: true,
-		})
+		});
 	}
 
 	return (
@@ -192,7 +192,7 @@ function BrowsePage() {
 				onClose={() => setDrawerOpen(false)}
 			/>
 		</div>
-	)
+	);
 }
 
 function countActiveFilters(search: BrowseSearchParams): number {
@@ -202,7 +202,7 @@ function countActiveFilters(search: BrowseSearchParams): number {
 		(search.license?.length ?? 0) +
 		(search.price_min != null ? 1 : 0) +
 		(search.price_max != null ? 1 : 0)
-	)
+	);
 }
 
 function searchKeyWithoutCursor(search: BrowseSearchParams): string {

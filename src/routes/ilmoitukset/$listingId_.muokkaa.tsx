@@ -41,7 +41,7 @@ const getListingForEdit = createServerFn({ method: "GET" })
 			.execute();
 
 		return { listing, images };
-	})
+	});
 
 const updateListing = createServerFn({ method: "POST" })
 	.inputValidator((data: { id: string; form: ListingFormData }) => ({
@@ -98,7 +98,7 @@ const updateListing = createServerFn({ method: "POST" })
 					updated_at: new Date(),
 				})
 				.where("id", "=", data.id)
-				.execute()
+				.execute();
 
 			await trx.deleteFrom("listing_image").where("listing_id", "=", data.id).execute();
 
@@ -113,15 +113,15 @@ const updateListing = createServerFn({ method: "POST" })
 							order: i,
 						})),
 					)
-					.execute()
+					.execute();
 			}
-		})
+		});
 
 		log.event(EVENTS.listing.updated, {
 			listingId: data.id,
 			fields: Object.keys(data.form).filter((k) => k !== "id"),
-		})
-	})
+		});
+	});
 
 export const Route = createFileRoute("/ilmoitukset/$listingId_/muokkaa")({
 	loader: async ({ params }) => {
@@ -145,7 +145,7 @@ export const Route = createFileRoute("/ilmoitukset/$listingId_/muokkaa")({
 					{t("edit.notFoundBack")}
 				</Link>
 			</div>
-		)
+		);
 	},
 });
 
@@ -177,7 +177,7 @@ function EditListingPage() {
 		includes_insurance: listing.includes_insurance,
 		insurance_info: listing.insurance_info ?? "",
 		mileage_limit: listing.mileage_limit,
-	}
+	};
 
 	async function handleSubmit(data: ListingFormData) {
 		await updateListing({ data: { id: listing.id, form: data } });
@@ -207,5 +207,5 @@ function EditListingPage() {
 				/>
 			</div>
 		</div>
-	)
+	);
 }

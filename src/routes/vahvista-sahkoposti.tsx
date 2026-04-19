@@ -25,5 +25,5 @@ function VerifyEmailPage() {
 				<p className="text-xs text-muted">{t("verifyEmail.noEmail")}</p>
 			</div>
 		</div>
-	)
+	);
 }

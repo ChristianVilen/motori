@@ -67,11 +67,11 @@ const createListing = createServerFn({ method: "POST" })
 						order: i,
 					})),
 				)
-				.execute()
+				.execute();
 		}
 
 		return { id };
-	})
+	});
 
 export const Route = createFileRoute("/ilmoitukset/uusi")({
 	loader: async () => {
@@ -103,5 +103,5 @@ function NewListingPage() {
 				<ListingForm onSubmit={handleSubmit} submitLabel={t("create.submitLabel")} />
 			</div>
 		</div>
-	)
+	);
 }

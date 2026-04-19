@@ -64,7 +64,7 @@ function RegisterPage() {
 			email,
 			password,
 			callbackURL: "/taydenna-profiili",
-		})
+		});
 
 		setLoading(false);
 
@@ -74,7 +74,7 @@ function RegisterPage() {
 			} else {
 				setError(t("register.errorGeneric"));
 			}
-			return
+			return;
 		}
 
 		navigate({ to: "/vahvista-sahkoposti" });
@@ -187,5 +187,5 @@ function RegisterPage() {
 				<p className="text-center text-xs text-muted">{t("register.termsNotice")}</p>
 			</div>
 		</div>
-	)
+	);
 }

@@ -80,6 +80,6 @@ test.describe("Listing detail", () => {
 	test("new listing page redirects unauthenticated users to login", async ({ page }) => {
 		await page.goto("/ilmoitukset/uusi");
 
-		await expect(page).toHaveURL(/\/auth\/login/);
+		await expect(page).toHaveURL(/\/kirjaudu/);
 	});
 });

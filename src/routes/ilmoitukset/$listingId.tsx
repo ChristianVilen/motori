@@ -54,7 +54,7 @@ const getListing = createServerFn({ method: "GET" })
 		const phone = ownerRow && isSignedIn && ownerRow.show_phone ? ownerRow.phone : null;
 		const owner = ownerRow
 			? { display_name: ownerRow.display_name, city: ownerRow.city, phone }
-			: null
+			: null;
 
 		let ownerEmail: string | null = null;
 		if (isOwner) {
@@ -67,14 +67,14 @@ const getListing = createServerFn({ method: "GET" })
 		}
 
 		return { listing, images, owner, ownerEmail };
-	})
+	});
 
 export const Route = createFileRoute("/ilmoitukset/$listingId")({
 	loader: async ({ params }) => {
 		const [result, session] = await Promise.all([
 			getListing({ data: params.listingId }),
 			getSession(),
-		])
+		]);
 		if (!result) {
 			throw notFound();
 		}
@@ -93,7 +93,7 @@ export const Route = createFileRoute("/ilmoitukset/$listingId")({
 					{t("detail.notFoundBack")}
 				</Link>
 			</div>
-		)
+		);
 	},
 });
 
@@ -118,7 +118,7 @@ function ListingGallery({ images, title }: { images: ListingImage[]; title: stri
 					/>
 				</svg>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -143,7 +143,7 @@ function ListingGallery({ images, title }: { images: ListingImage[]; title: stri
 				</div>
 			)}
 		</div>
-	)
+	);
 }
 
 function ListingSpecs({ listing }: { listing: Listing }) {
@@ -195,7 +195,7 @@ function ListingSpecs({ listing }: { listing: Listing }) {
 				)}
 			</dl>
 		</div>
-	)
+	);
 }
 
 interface PricingCardProps {
@@ -322,7 +322,7 @@ function PricingCard({
 				</div>
 			)}
 		</div>
-	)
+	);
 }
 
 function ListingDetailPage() {
@@ -450,5 +450,5 @@ function ListingDetailPage() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

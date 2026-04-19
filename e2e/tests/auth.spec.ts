@@ -28,7 +28,7 @@ test.describe("Login", () => {
 
 		await login.registerLink.click();
 
-		await expect(page).toHaveURL(/\/auth\/register/);
+		await expect(page).toHaveURL(/\/rekisteroidy/);
 	});
 });
 
@@ -61,7 +61,7 @@ test.describe("Register", () => {
 
 		await register.loginLink.click();
 
-		await expect(page).toHaveURL(/\/auth\/login/);
+		await expect(page).toHaveURL(/\/kirjaudu/);
 	});
 
 	test("shows error for duplicate email", async ({ page }) => {
@@ -72,7 +72,7 @@ test.describe("Register", () => {
 		// First registration succeeds
 		await register.goto();
 		await register.register(name, email, "Password123!");
-		await expect(page).not.toHaveURL(/\/auth\/register/);
+		await expect(page).not.toHaveURL(/\/rekisteroidy/);
 
 		// Second attempt with the same email surfaces the error
 		await register.goto();
@@ -87,6 +87,6 @@ test.describe("Register", () => {
 
 		await register.register(uniqueName(), uniqueEmail(), "Password123!");
 
-		await expect(page).not.toHaveURL(/\/auth\/register/);
+		await expect(page).not.toHaveURL(/\/rekisteroidy/);
 	});
 });
