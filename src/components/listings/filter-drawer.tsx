@@ -8,6 +8,7 @@ import {
 	SORT_OPTIONS,
 	TYPE_EMOJI,
 } from "~/lib/constants";
+import { useTranslation } from "~/lib/i18n";
 import type { BrowseSearchParams } from "~/lib/validators";
 
 interface FilterDrawerProps {
@@ -19,6 +20,7 @@ interface FilterDrawerProps {
 }
 
 export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: FilterDrawerProps) {
+	const { t } = useTranslation("listings");
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -34,7 +36,7 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 
 	function updateFilter(updates: Partial<BrowseSearchParams>) {
 		navigate({
-			to: "/listings",
+			to: "/ilmoitukset",
 			search: (prev) => ({
 				...prev,
 				...updates,
@@ -52,7 +54,7 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 
 	function clearAll() {
 		navigate({
-			to: "/listings",
+			to: "/ilmoitukset",
 			search: {},
 			replace: true,
 		});
@@ -70,7 +72,7 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 				className="absolute inset-0 bg-black/40"
 				onClick={onClose}
 				tabIndex={-1}
-				aria-label="Sulje suodattimet"
+				aria-label={t("filters.closeBackdropAriaLabel")}
 			/>
 
 			{/* Drawer */}
@@ -79,8 +81,10 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 				<div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
 
 				<div className="mb-4 flex items-center justify-between">
-					<h2 className="font-heading text-base font-semibold text-foreground">Suodattimet</h2>
-					<button type="button" onClick={onClose} aria-label="Sulje">
+					<h2 className="font-heading text-base font-semibold text-foreground">
+						{t("filters.heading")}
+					</h2>
+					<button type="button" onClick={onClose} aria-label={t("filters.closeAriaLabel")}>
 						<X className="h-5 w-5 text-muted" />
 					</button>
 				</div>
@@ -89,7 +93,7 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 					{/* Region */}
 					<div>
 						<label htmlFor="drawer-region" className="mb-1.5 block text-xs font-medium text-muted">
-							Alue
+							{t("filters.region")}
 						</label>
 						<select
 							id="drawer-region"
@@ -97,7 +101,7 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 							onChange={(e) => updateFilter({ region: e.target.value || undefined })}
 							className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
 						>
-							<option value="">Koko Suomi</option>
+							<option value="">{t("filters.regionAll")}</option>
 							{REGIONS.map((r) => (
 								<option key={r.value} value={r.value}>
 									{r.label}
@@ -108,7 +112,7 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 
 					{/* Motorcycle type */}
 					<div>
-						<p className="mb-1.5 text-xs font-medium text-muted">Tyyppi</p>
+						<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.type")}</p>
 						<div className="grid grid-cols-2 gap-1.5">
 							{MOTORCYCLE_TYPES.filter((t) => t.value !== "custom").map((t) => {
 								const isActive = search.type?.includes(t.value);
@@ -132,7 +136,7 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 
 					{/* License class */}
 					<div>
-						<p className="mb-1.5 text-xs font-medium text-muted">Ajokortti</p>
+						<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.license")}</p>
 						<div className="flex gap-1.5">
 							{LICENSE_CLASSES.map((l) => {
 								const isActive = search.license?.includes(l.value);
@@ -156,11 +160,11 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 
 					{/* Price range */}
 					<div>
-						<p className="mb-1.5 text-xs font-medium text-muted">Hinta / päivä</p>
+						<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.pricePerDay")}</p>
 						<div className="flex items-center gap-2">
 							<input
 								type="number"
-								placeholder="Min €"
+								placeholder={t("filters.priceMinPlaceholder")}
 								defaultValue={search.price_min ?? ""}
 								onBlur={(e) =>
 									updateFilter({
@@ -177,7 +181,7 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 							<span className="text-muted">–</span>
 							<input
 								type="number"
-								placeholder="Max €"
+								placeholder={t("filters.priceMaxPlaceholder")}
 								defaultValue={search.price_max ?? ""}
 								onBlur={(e) =>
 									updateFilter({
@@ -197,7 +201,7 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 					{/* Sort */}
 					<div>
 						<label htmlFor="drawer-sort" className="mb-1.5 block text-xs font-medium text-muted">
-							Järjestä
+							{t("filters.sort")}
 						</label>
 						<select
 							id="drawer-sort"
@@ -225,14 +229,14 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 						onClick={clearAll}
 						className="flex-1 rounded-lg border border-border py-3 text-sm font-medium text-foreground"
 					>
-						Tyhjennä
+						{t("filters.clearAll")}
 					</button>
 					<button
 						type="button"
 						onClick={onClose}
 						className="flex-1 rounded-lg bg-accent py-3 text-sm font-semibold text-white"
 					>
-						Näytä {totalCount} tulosta
+						{t("filters.showResults", { total: totalCount })}
 					</button>
 				</div>
 			</div>

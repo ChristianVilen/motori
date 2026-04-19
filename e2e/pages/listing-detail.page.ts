@@ -29,7 +29,7 @@ export class ListingDetailPage {
 	}
 
 	async goto(listingId: string) {
-		await this.page.goto(`/listings/${listingId}`);
+		await this.page.goto(`/ilmoitukset/${listingId}`);
 		await waitForHydration(this.page);
 	}
 

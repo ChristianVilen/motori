@@ -1,5 +1,5 @@
 // src/components/listings/listing-form.tsx
-// Shared between /listings/new and /listings/$listingId/edit
+// Shared between /ilmoitukset/uusi and /ilmoitukset/$listingId/muokkaa
 import { X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -19,6 +19,7 @@ import {
 	MOTORCYCLE_TYPES,
 	REGIONS,
 } from "~/lib/constants";
+import { useTranslation } from "~/lib/i18n";
 import { getImageUploadUrl } from "~/lib/storage";
 import type { ListingFormData } from "~/lib/validators";
 
@@ -68,8 +69,9 @@ export function ListingForm({
 	initialValues,
 	initialImageUrls = [],
 	onSubmit,
-	submitLabel = "Julkaise ilmoitus",
+	submitLabel,
 }: ListingFormProps) {
+	const { t } = useTranslation("listings");
 	const [title, setTitle] = useState(initialValues?.title ?? "");
 	const [brand, setBrand] = useState(initialValues?.brand ?? "");
 	const [model, setModel] = useState(initialValues?.model ?? "");
@@ -115,11 +117,11 @@ export function ListingForm({
 				break;
 			}
 			if (!ALLOWED_TYPES.includes(file.type)) {
-				setImageError("Vain JPEG, PNG ja WebP tiedostot ovat sallittuja");
+				setImageError(t("form.images.errorInvalidType"));
 				continue;
 			}
 			if (file.size > MAX_FILE_SIZE) {
-				setImageError("Kuvan maksimikoko on 5 MB");
+				setImageError(t("form.images.errorFileTooLarge"));
 				continue;
 			}
 			valid.push(file);
@@ -200,7 +202,7 @@ export function ListingForm({
 				image_urls: allImageUrls,
 			});
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Jokin meni pieleen. Yritä uudelleen.");
+			setError(err instanceof Error ? err.message : t("form.submit.genericError"));
 		} finally {
 			setLoading(false);
 		}
@@ -214,33 +216,31 @@ export function ListingForm({
 			{/* ── Moottoripyörä ─────────────────────────────────────────────── */}
 			<section className="rounded-lg border border-border bg-card p-6">
 				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-					Moottoripyörä
+					{t("form.sections.motorcycle")}
 				</h2>
 				<div className="space-y-4">
 					<div>
 						<label htmlFor="title" className="mb-1 block text-sm font-medium text-foreground">
-							Otsikko <span className="text-destructive">*</span>
+							{t("form.fields.title")} <span className="text-destructive">*</span>
 						</label>
 						<Input
 							id="title"
 							required
 							value={title}
 							onChange={(e) => setTitle(e.target.value)}
-							placeholder="Honda CB500F 2020 — siisti vuosimalli"
+							placeholder={t("form.fields.titlePlaceholder")}
 						/>
-						<p className="mt-1 text-xs text-muted">
-							Kuvaava otsikko houkuttelee enemmän yhteydenottoja
-						</p>
+						<p className="mt-1 text-xs text-muted">{t("form.fields.titleHint")}</p>
 					</div>
 
 					<div className="grid grid-cols-2 gap-4">
 						<div>
 							<label htmlFor="brand" className="mb-1 block text-sm font-medium text-foreground">
-								Merkki <span className="text-destructive">*</span>
+								{t("form.fields.brand")} <span className="text-destructive">*</span>
 							</label>
 							<Select value={brand} onValueChange={setBrand} required>
 								<SelectTrigger id="brand">
-									<SelectValue placeholder="Valitse merkki" />
+									<SelectValue placeholder={t("form.fields.brandPlaceholder")} />
 								</SelectTrigger>
 								<SelectContent>
 									{MOTORCYCLE_BRANDS.map((b) => (
@@ -253,14 +253,14 @@ export function ListingForm({
 						</div>
 						<div>
 							<label htmlFor="model" className="mb-1 block text-sm font-medium text-foreground">
-								Malli <span className="text-destructive">*</span>
+								{t("form.fields.model")} <span className="text-destructive">*</span>
 							</label>
 							<Input
 								id="model"
 								required
 								value={model}
 								onChange={(e) => setModel(e.target.value)}
-								placeholder="CB500F"
+								placeholder={t("form.fields.modelPlaceholder")}
 							/>
 						</div>
 					</div>
@@ -268,7 +268,7 @@ export function ListingForm({
 					<div className="grid grid-cols-2 gap-4">
 						<div>
 							<label htmlFor="year" className="mb-1 block text-sm font-medium text-foreground">
-								Vuosimalli <span className="text-destructive">*</span>
+								{t("form.fields.year")} <span className="text-destructive">*</span>
 							</label>
 							<Input
 								id="year"
@@ -282,7 +282,7 @@ export function ListingForm({
 						</div>
 						<div>
 							<label htmlFor="engine_cc" className="mb-1 block text-sm font-medium text-foreground">
-								Moottorin tilavuus (cc)
+								{t("form.fields.engineCc")}
 							</label>
 							<Input
 								id="engine_cc"
@@ -291,7 +291,7 @@ export function ListingForm({
 								max={3000}
 								value={engineCc}
 								onChange={(e) => setEngineCc(e.target.value)}
-								placeholder="500"
+								placeholder={t("form.fields.engineCcPlaceholder")}
 							/>
 						</div>
 					</div>
@@ -302,16 +302,16 @@ export function ListingForm({
 								htmlFor="motorcycle_type"
 								className="mb-1 block text-sm font-medium text-foreground"
 							>
-								Tyyppi <span className="text-destructive">*</span>
+								{t("form.fields.type")} <span className="text-destructive">*</span>
 							</label>
 							<Select value={motorcycleType} onValueChange={setMotorcycleType} required>
 								<SelectTrigger id="motorcycle_type">
-									<SelectValue placeholder="Valitse tyyppi" />
+									<SelectValue placeholder={t("form.fields.typePlaceholder")} />
 								</SelectTrigger>
 								<SelectContent>
-									{MOTORCYCLE_TYPES.map((t) => (
-										<SelectItem key={t.value} value={t.value}>
-											{t.label}
+									{MOTORCYCLE_TYPES.map((mt) => (
+										<SelectItem key={mt.value} value={mt.value}>
+											{mt.label}
 										</SelectItem>
 									))}
 								</SelectContent>
@@ -319,7 +319,7 @@ export function ListingForm({
 						</div>
 						<div>
 							<span className="mb-1 block text-sm font-medium text-foreground">
-								Vaadittu ajokortti
+								{t("form.fields.requiredLicense")}
 							</span>
 							<div className="flex gap-2">
 								{LICENSE_CLASSES.map((cls) => (
@@ -347,7 +347,9 @@ export function ListingForm({
 
 			{/* ── Hinta ─────────────────────────────────────────────────────── */}
 			<section className="rounded-lg border border-border bg-card p-6">
-				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Hinta</h2>
+				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+					{t("form.sections.price")}
+				</h2>
 				<div className="space-y-4">
 					<div className="grid grid-cols-2 gap-4">
 						<div>
@@ -355,7 +357,7 @@ export function ListingForm({
 								htmlFor="price_per_day"
 								className="mb-1 block text-sm font-medium text-foreground"
 							>
-								Päivähinta (€) <span className="text-destructive">*</span>
+								{t("form.fields.pricePerDay")} <span className="text-destructive">*</span>
 							</label>
 							<Input
 								id="price_per_day"
@@ -365,7 +367,7 @@ export function ListingForm({
 								max={10000}
 								value={pricePerDay}
 								onChange={(e) => setPricePerDay(e.target.value)}
-								placeholder="50"
+								placeholder={t("form.fields.pricePerDayPlaceholder")}
 							/>
 						</div>
 						<div>
@@ -373,7 +375,7 @@ export function ListingForm({
 								htmlFor="price_per_week"
 								className="mb-1 block text-sm font-medium text-foreground"
 							>
-								Viikkohinta (€)
+								{t("form.fields.pricePerWeek")}
 							</label>
 							<Input
 								id="price_per_week"
@@ -382,7 +384,7 @@ export function ListingForm({
 								max={50000}
 								value={pricePerWeek}
 								onChange={(e) => setPricePerWeek(e.target.value)}
-								placeholder="280"
+								placeholder={t("form.fields.pricePerWeekPlaceholder")}
 							/>
 						</div>
 					</div>
@@ -393,7 +395,7 @@ export function ListingForm({
 								htmlFor="deposit_amount"
 								className="mb-1 block text-sm font-medium text-foreground"
 							>
-								Vakuus (€)
+								{t("form.fields.deposit")}
 							</label>
 							<Input
 								id="deposit_amount"
@@ -402,7 +404,7 @@ export function ListingForm({
 								max={100000}
 								value={depositAmount}
 								onChange={(e) => setDepositAmount(e.target.value)}
-								placeholder="500"
+								placeholder={t("form.fields.depositPlaceholder")}
 							/>
 						</div>
 						<div>
@@ -410,13 +412,13 @@ export function ListingForm({
 								htmlFor="price_description"
 								className="mb-1 block text-sm font-medium text-foreground"
 							>
-								Lisätietoja hinnasta
+								{t("form.fields.priceDescription")}
 							</label>
 							<Input
 								id="price_description"
 								value={priceDescription}
 								onChange={(e) => setPriceDescription(e.target.value)}
-								placeholder="Kausihinnoittelu mahdollinen"
+								placeholder={t("form.fields.priceDescriptionPlaceholder")}
 							/>
 						</div>
 					</div>
@@ -425,28 +427,30 @@ export function ListingForm({
 
 			{/* ── Sijainti ──────────────────────────────────────────────────── */}
 			<section className="rounded-lg border border-border bg-card p-6">
-				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Sijainti</h2>
+				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+					{t("form.sections.location")}
+				</h2>
 				<div className="space-y-4">
 					<div className="grid grid-cols-2 gap-4">
 						<div>
 							<label htmlFor="city" className="mb-1 block text-sm font-medium text-foreground">
-								Kaupunki <span className="text-destructive">*</span>
+								{t("form.fields.city")} <span className="text-destructive">*</span>
 							</label>
 							<Input
 								id="city"
 								required
 								value={city}
 								onChange={(e) => setCity(e.target.value)}
-								placeholder="Helsinki"
+								placeholder={t("form.fields.cityPlaceholder")}
 							/>
 						</div>
 						<div>
 							<label htmlFor="region" className="mb-1 block text-sm font-medium text-foreground">
-								Maakunta <span className="text-destructive">*</span>
+								{t("form.fields.region")} <span className="text-destructive">*</span>
 							</label>
 							<Select value={region} onValueChange={setRegion} required>
 								<SelectTrigger id="region">
-									<SelectValue placeholder="Valitse maakunta" />
+									<SelectValue placeholder={t("form.fields.regionPlaceholder")} />
 								</SelectTrigger>
 								<SelectContent>
 									{REGIONS.map((r) => (
@@ -460,13 +464,13 @@ export function ListingForm({
 					</div>
 					<div className="w-1/2 pr-2">
 						<label htmlFor="postal_code" className="mb-1 block text-sm font-medium text-foreground">
-							Postinumero
+							{t("form.fields.postalCode")}
 						</label>
 						<Input
 							id="postal_code"
 							value={postalCode}
 							onChange={(e) => setPostalCode(e.target.value)}
-							placeholder="00100"
+							placeholder={t("form.fields.postalCodePlaceholder")}
 							maxLength={10}
 						/>
 					</div>
@@ -475,7 +479,9 @@ export function ListingForm({
 
 			{/* ── Saatavuus ─────────────────────────────────────────────────── */}
 			<section className="rounded-lg border border-border bg-card p-6">
-				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Saatavuus</h2>
+				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+					{t("form.sections.availability")}
+				</h2>
 				<div className="space-y-4">
 					<div className="grid grid-cols-2 gap-4">
 						<div>
@@ -483,7 +489,7 @@ export function ListingForm({
 								htmlFor="available_from"
 								className="mb-1 block text-sm font-medium text-foreground"
 							>
-								Saatavilla alkaen
+								{t("form.fields.availableFrom")}
 							</label>
 							<Input
 								id="available_from"
@@ -497,7 +503,7 @@ export function ListingForm({
 								htmlFor="available_to"
 								className="mb-1 block text-sm font-medium text-foreground"
 							>
-								Saatavilla asti
+								{t("form.fields.availableTo")}
 							</label>
 							<Input
 								id="available_to"
@@ -514,17 +520,19 @@ export function ListingForm({
 							onChange={(e) => setSeasonOnly(e.target.checked)}
 							className="h-4 w-4 rounded border-border accent-accent"
 						/>
-						<span className="text-sm text-foreground">Vain ajokaudella (huhti–lokakuu)</span>
+						<span className="text-sm text-foreground">{t("form.fields.seasonOnly")}</span>
 					</label>
 				</div>
 			</section>
 
 			{/* ── Kuvaus ────────────────────────────────────────────────────── */}
 			<section className="rounded-lg border border-border bg-card p-6">
-				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Kuvaus</h2>
+				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+					{t("form.sections.description")}
+				</h2>
 				<div>
 					<label htmlFor="description" className="mb-1 block text-sm font-medium text-foreground">
-						Kuvaus <span className="text-destructive">*</span>
+						{t("form.fields.description")} <span className="text-destructive">*</span>
 					</label>
 					<Textarea
 						id="description"
@@ -532,17 +540,19 @@ export function ListingForm({
 						rows={6}
 						value={description}
 						onChange={(e) => setDescription(e.target.value)}
-						placeholder="Kerro pyörästä, sen kunnosta, varusteluista ja vuokrauskäytännöistäsi..."
+						placeholder={t("form.fields.descriptionPlaceholder")}
 						className="resize-y"
 					/>
-					<p className="mt-1 text-xs text-muted">{description.length}/5000 merkkiä</p>
+					<p className="mt-1 text-xs text-muted">
+						{t("form.fields.descriptionCharCount", { n: description.length })}
+					</p>
 				</div>
 			</section>
 
 			{/* ── Varusteet & vakuutus ──────────────────────────────────────── */}
 			<section className="rounded-lg border border-border bg-card p-6">
 				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-					Varusteet & vakuutus
+					{t("form.sections.equipmentInsurance")}
 				</h2>
 				<div className="space-y-3">
 					<label className="flex cursor-pointer items-center gap-3">
@@ -552,7 +562,7 @@ export function ListingForm({
 							onChange={(e) => setIncludesHelmet(e.target.checked)}
 							className="h-4 w-4 rounded border-border accent-accent"
 						/>
-						<span className="text-sm text-foreground">Kypärä sisältyy hintaan</span>
+						<span className="text-sm text-foreground">{t("form.fields.includesHelmet")}</span>
 					</label>
 					<label className="flex cursor-pointer items-center gap-3">
 						<input
@@ -561,14 +571,14 @@ export function ListingForm({
 							onChange={(e) => setIncludesInsurance(e.target.checked)}
 							className="h-4 w-4 rounded border-border accent-accent"
 						/>
-						<span className="text-sm text-foreground">Vakuutus sisältyy hintaan</span>
+						<span className="text-sm text-foreground">{t("form.fields.includesInsurance")}</span>
 					</label>
 					{!!includesInsurance && (
 						<div className="ml-7">
 							<Input
 								value={insuranceInfo}
 								onChange={(e) => setInsuranceInfo(e.target.value)}
-								placeholder="Vakuutusyhtiö ja vakuutuksen tiedot"
+								placeholder={t("form.fields.insuranceInfoPlaceholder")}
 							/>
 						</div>
 					)}
@@ -577,7 +587,7 @@ export function ListingForm({
 							htmlFor="mileage_limit"
 							className="mb-1 block text-sm font-medium text-foreground"
 						>
-							Kilometriraja (km/pv)
+							{t("form.fields.mileageLimit")}
 						</label>
 						<div className="w-1/3">
 							<Input
@@ -587,10 +597,10 @@ export function ListingForm({
 								max={10000}
 								value={mileageLimit}
 								onChange={(e) => setMileageLimit(e.target.value)}
-								placeholder="200"
+								placeholder={t("form.fields.mileageLimitPlaceholder")}
 							/>
 						</div>
-						<p className="mt-1 text-xs text-muted">Jätä tyhjäksi jos ei kilometrirajoitusta</p>
+						<p className="mt-1 text-xs text-muted">{t("form.fields.mileageLimitHint")}</p>
 					</div>
 				</div>
 			</section>
@@ -598,7 +608,7 @@ export function ListingForm({
 			{/* ── Kuvat ─────────────────────────────────────────────────────── */}
 			<section className="rounded-lg border border-border bg-card p-6">
 				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-					Kuvat{" "}
+					{t("form.sections.images")}{" "}
 					<span className="font-normal text-muted">
 						({totalImages}/{MAX_IMAGES})
 					</span>
@@ -617,7 +627,7 @@ export function ListingForm({
 									type="button"
 									onClick={() => removeExistingImage(url)}
 									className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
-									aria-label="Poista kuva"
+									aria-label={t("form.images.removeImageAriaLabel")}
 								>
 									<X className="h-3 w-3" />
 								</button>
@@ -636,7 +646,7 @@ export function ListingForm({
 									type="button"
 									onClick={() => removePendingImage(i)}
 									className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
-									aria-label="Poista kuva"
+									aria-label={t("form.images.removeImageAriaLabel")}
 								>
 									<X className="h-3 w-3" />
 								</button>
@@ -662,9 +672,10 @@ export function ListingForm({
 							/>
 						</svg>
 						<span className="text-sm text-muted">
-							Lisää kuvia <span className="text-accent">tai vedä tähän</span>
+							{t("form.images.addImages")}{" "}
+							<span className="text-accent">{t("form.images.dragHere")}</span>
 						</span>
-						<span className="text-xs text-muted">JPEG, PNG tai WebP · max 5 MB per kuva</span>
+						<span className="text-xs text-muted">{t("form.images.fileConstraints")}</span>
 						<input
 							type="file"
 							accept="image/jpeg,image/png,image/webp"
@@ -691,8 +702,7 @@ export function ListingForm({
 				className="w-full bg-accent text-white hover:bg-accent-hover"
 				size="lg"
 			>
-				{/* biome-ignore lint/nursery/noLeakedRender: safe string prop with default */}
-				{loading ? "Tallennetaan..." : submitLabel}
+				{loading ? t("form.submit.saving") : (submitLabel ?? t("create.submitLabel"))}
 			</Button>
 		</form>
 	);

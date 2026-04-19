@@ -16,7 +16,7 @@ test.describe("Home page", () => {
 
 		await home.search("Honda");
 
-		await expect(page).toHaveURL(/\/listings\?.*q=Honda/);
+		await expect(page).toHaveURL(/\/ilmoitukset\?.*q=Honda/);
 	});
 
 	test("region chip navigates to filtered listings", async ({ page }) => {
@@ -25,7 +25,7 @@ test.describe("Home page", () => {
 
 		await home.clickRegionChip("uusimaa");
 
-		await expect(page).toHaveURL(/\/listings\?.*region=uusimaa/);
+		await expect(page).toHaveURL(/\/ilmoitukset\?.*region=uusimaa/);
 	});
 
 	test("add listing CTA links to new listing page", async ({ page }) => {
@@ -35,6 +35,6 @@ test.describe("Home page", () => {
 		await home.addListingCta.click();
 
 		// Unauthenticated users get redirected to login
-		await expect(page).toHaveURL(/\/auth\/login|\/listings\/new/);
+		await expect(page).toHaveURL(/\/auth\/login|\/ilmoitukset\/uusi/);
 	});
 });

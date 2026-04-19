@@ -1,4 +1,4 @@
-// src/routes/listings/$listingId.tsx
+// src/routes/ilmoitukset/$listingId.tsx
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { sql } from "kysely";
@@ -8,6 +8,7 @@ import { Button } from "~/components/ui/button";
 import { LICENSE_CLASSES, LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import type { Listing, ListingImage } from "~/lib/db/schema";
+import { formatEur, useTranslation } from "~/lib/i18n";
 import { getSession } from "~/lib/session";
 
 const getListing = createServerFn({ method: "GET" })
@@ -68,7 +69,7 @@ const getListing = createServerFn({ method: "GET" })
 		return { listing, images, owner, ownerEmail };
 	});
 
-export const Route = createFileRoute("/listings/$listingId")({
+export const Route = createFileRoute("/ilmoitukset/$listingId")({
 	loader: async ({ params }) => {
 		const [result, session] = await Promise.all([
 			getListing({ data: params.listingId }),
@@ -80,17 +81,20 @@ export const Route = createFileRoute("/listings/$listingId")({
 		return { ...result, session };
 	},
 	component: ListingDetailPage,
-	notFoundComponent: () => (
-		<div
-			data-testid="listing-not-found"
-			className="flex min-h-screen flex-col items-center justify-center gap-4"
-		>
-			<p className="text-muted">Ilmoitusta ei löydy.</p>
-			<Link to="/" className="text-sm text-accent underline">
-				Etusivulle
-			</Link>
-		</div>
-	),
+	notFoundComponent: () => {
+		const { t } = useTranslation("listings");
+		return (
+			<div
+				data-testid="listing-not-found"
+				className="flex min-h-screen flex-col items-center justify-center gap-4"
+			>
+				<p className="text-muted">{t("detail.notFound")}</p>
+				<Link to="/" className="text-sm text-accent underline">
+					{t("detail.notFoundBack")}
+				</Link>
+			</div>
+		);
+	},
 });
 
 function ListingGallery({ images, title }: { images: ListingImage[]; title: string }) {
@@ -143,39 +147,45 @@ function ListingGallery({ images, title }: { images: ListingImage[]; title: stri
 }
 
 function ListingSpecs({ listing }: { listing: Listing }) {
+	const { t } = useTranslation("listings");
+
 	return (
 		<div className="rounded-xl border border-border bg-card p-5">
-			<h2 className="mb-3 text-sm font-semibold text-foreground">Tiedot</h2>
+			<h2 className="mb-3 text-sm font-semibold text-foreground">{t("detail.specs.heading")}</h2>
 			<dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
 				<div>
-					<dt className="text-muted">Merkki</dt>
+					<dt className="text-muted">{t("detail.specs.brand")}</dt>
 					<dd className="font-medium text-foreground">{listing.brand}</dd>
 				</div>
 				<div>
-					<dt className="text-muted">Malli</dt>
+					<dt className="text-muted">{t("detail.specs.model")}</dt>
 					<dd className="font-medium text-foreground">{listing.model}</dd>
 				</div>
 				<div>
-					<dt className="text-muted">Vuosimalli</dt>
+					<dt className="text-muted">{t("detail.specs.year")}</dt>
 					<dd className="font-medium text-foreground">{listing.year}</dd>
 				</div>
 				{!!listing.engine_cc && (
 					<div>
-						<dt className="text-muted">Moottori</dt>
-						<dd className="font-medium text-foreground">{listing.engine_cc} cc</dd>
+						<dt className="text-muted">{t("detail.specs.engine")}</dt>
+						<dd className="font-medium text-foreground">
+							{listing.engine_cc} {t("detail.specs.engineUnit")}
+						</dd>
 					</div>
 				)}
 				{!!listing.mileage_limit && (
 					<div>
-						<dt className="text-muted">Km-raja</dt>
-						<dd className="font-medium text-foreground">{listing.mileage_limit} km/pv</dd>
+						<dt className="text-muted">{t("detail.specs.mileageLimit")}</dt>
+						<dd className="font-medium text-foreground">
+							{listing.mileage_limit} {t("detail.specs.mileageLimitUnit")}
+						</dd>
 					</div>
 				)}
 				{!!listing.available_from && (
 					<div>
 						<dt className="flex items-center gap-1 text-muted">
 							<Calendar className="h-3 w-3" />
-							Saatavilla
+							{t("detail.specs.available")}
 						</dt>
 						<dd className="font-medium text-foreground">
 							{listing.available_from}
@@ -189,9 +199,9 @@ function ListingSpecs({ listing }: { listing: Listing }) {
 }
 
 interface PricingCardProps {
-	pricePerDay: number;
-	pricePerWeek: number | null;
-	deposit: number | null;
+	pricePerDayCents: number;
+	pricePerWeekCents: number | null;
+	depositCents: number | null;
 	listing: Listing;
 	owner: { display_name: string | null; city: string | null; phone: string | null } | null;
 	ownerEmail: string | null;
@@ -200,32 +210,33 @@ interface PricingCardProps {
 }
 
 function PricingCard({
-	pricePerDay,
-	pricePerWeek,
-	deposit,
+	pricePerDayCents,
+	pricePerWeekCents,
+	depositCents,
 	listing,
 	owner,
 	ownerEmail,
 	isOwner,
 	isSignedIn,
 }: PricingCardProps) {
+	const { t } = useTranslation("listings");
 	const [contactVisible, setContactVisible] = useState(false);
 
 	return (
 		<div className="rounded-xl border border-border bg-card p-5 shadow-sm">
 			<div data-testid="price-info" className="mb-4">
 				<span data-testid="price-per-day" className="text-3xl font-bold text-accent">
-					{pricePerDay} €
+					{formatEur(pricePerDayCents)}
 				</span>
-				<span className="ml-1 text-sm text-muted">/päivä</span>
-				{!!pricePerWeek && (
+				<span className="ml-1 text-sm text-muted">{t("detail.pricing.perDay")}</span>
+				{!!pricePerWeekCents && (
 					<div data-testid="price-per-week" className="mt-1 text-sm text-muted">
-						{pricePerWeek} € / viikko
+						{t("detail.pricing.perWeek", { price: formatEur(pricePerWeekCents) })}
 					</div>
 				)}
-				{!!deposit && (
+				{!!depositCents && (
 					<div data-testid="price-deposit" className="mt-1 text-sm text-muted">
-						Vakuus: {deposit} €
+						{t("detail.pricing.deposit", { price: formatEur(depositCents) })}
 					</div>
 				)}
 				{!!listing.price_description && (
@@ -237,11 +248,11 @@ function PricingCard({
 			{!isSignedIn ? (
 				<Link
 					data-testid="owner-contact-login"
-					to="/auth/login"
-					search={{ redirect: `/listings/${listing.id}` }}
+					to="/kirjaudu"
+					search={{ redirect: `/ilmoitukset/${listing.id}` }}
 					className="block w-full rounded-md bg-accent px-4 py-2 text-center text-sm font-medium text-white hover:bg-accent-hover"
 				>
-					Kirjaudu nähdäksesi yhteystiedot
+					{t("detail.contact.loginPrompt")}
 				</Link>
 			) : !contactVisible ? (
 				<Button
@@ -249,7 +260,7 @@ function PricingCard({
 					onClick={() => setContactVisible(true)}
 					className="w-full bg-accent text-white hover:bg-accent-hover"
 				>
-					Näytä yhteystiedot
+					{t("detail.contact.reveal")}
 				</Button>
 			) : (
 				<div
@@ -258,11 +269,11 @@ function PricingCard({
 				>
 					<Link
 						data-testid="owner-name"
-						to="/profile/$userId"
+						to="/profiili/$userId"
 						params={{ userId: listing.owner_id }}
 						className="block font-medium text-foreground hover:text-accent"
 					>
-						{owner?.display_name ?? "Ilmoittaja"}
+						{owner?.display_name ?? t("detail.contact.fallbackName")}
 					</Link>
 					{!!owner?.phone && (
 						<a
@@ -295,17 +306,17 @@ function PricingCard({
 				<div className="mt-3 flex gap-2">
 					<Link
 						data-testid="listing-edit-link"
-						to="/listings/$listingId/edit"
+						to="/ilmoitukset/$listingId/muokkaa"
 						params={{ listingId: listing.id }}
 						className="flex-1"
 					>
 						<Button variant="outline" className="w-full" size="sm">
-							Muokkaa
+							{t("detail.ownerActions.edit")}
 						</Button>
 					</Link>
-					<Link data-testid="listing-owner-profile-link" to="/dashboard" className="flex-1">
+					<Link data-testid="listing-owner-profile-link" to="/omat" className="flex-1">
 						<Button variant="outline" className="w-full" size="sm">
-							Omat ilmoitukset
+							{t("detail.ownerActions.myListings")}
 						</Button>
 					</Link>
 				</div>
@@ -315,18 +326,16 @@ function PricingCard({
 }
 
 function ListingDetailPage() {
+	const { t } = useTranslation("listings");
 	const { listing, images, owner, ownerEmail, session } = Route.useLoaderData();
 
 	const isOwner = session?.user.id === listing.owner_id;
 	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
 	const typeLabel =
-		MOTORCYCLE_TYPES.find((t) => t.value === listing.motorcycle_type)?.label ??
+		MOTORCYCLE_TYPES.find((mt) => mt.value === listing.motorcycle_type)?.label ??
 		listing.motorcycle_type;
 	const licenseLabel =
 		LICENSE_CLASSES.find((l) => l.value === listing.required_license)?.label ?? null;
-	const pricePerDay = Math.round(listing.price_per_day / 100);
-	const pricePerWeek = listing.price_per_week ? Math.round(listing.price_per_week / 100) : null;
-	const deposit = listing.deposit_amount ? Math.round(listing.deposit_amount / 100) : null;
 	const statusLabel = LISTING_STATUSES[listing.status];
 
 	return (
@@ -339,7 +348,7 @@ function ListingDetailPage() {
 					className="mb-6 flex items-center gap-1 text-sm text-muted hover:text-foreground"
 				>
 					<ArrowLeft className="h-4 w-4" />
-					Takaisin
+					{t("detail.back")}
 				</Link>
 
 				<div className="grid gap-8 lg:grid-cols-[1fr_320px]">
@@ -379,18 +388,18 @@ function ListingDetailPage() {
 								</span>
 								{!!licenseLabel && (
 									<span className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
-										Kortti {licenseLabel}
+										{t("detail.licenseBadge", { license: licenseLabel })}
 									</span>
 								)}
 								{!!listing.includes_helmet && (
 									<span className="rounded-full bg-success/10 px-3 py-1 text-xs text-success">
-										Kypärä mukana
+										{t("detail.helmetBadge")}
 									</span>
 								)}
 								{!!listing.includes_insurance && (
 									<span className="flex items-center gap-1 rounded-full bg-success/10 px-3 py-1 text-xs text-success">
 										<Shield className="h-3 w-3" />
-										Vakuutus mukana
+										{t("detail.insuranceBadge")}
 									</span>
 								)}
 							</div>
@@ -400,7 +409,9 @@ function ListingDetailPage() {
 
 						{/* Description */}
 						<div>
-							<h2 className="mb-2 text-sm font-semibold text-foreground">Kuvaus</h2>
+							<h2 className="mb-2 text-sm font-semibold text-foreground">
+								{t("detail.description")}
+							</h2>
 							<p className="whitespace-pre-line text-sm leading-relaxed text-foreground">
 								{listing.description}
 							</p>
@@ -410,9 +421,9 @@ function ListingDetailPage() {
 					{/* Right column — sticky sidebar */}
 					<div className="space-y-4 lg:sticky lg:top-8 lg:self-start">
 						<PricingCard
-							pricePerDay={pricePerDay}
-							pricePerWeek={pricePerWeek}
-							deposit={deposit}
+							pricePerDayCents={listing.price_per_day}
+							pricePerWeekCents={listing.price_per_week ?? null}
+							depositCents={listing.deposit_amount ?? null}
 							listing={listing}
 							owner={owner}
 							ownerEmail={ownerEmail}
@@ -425,14 +436,16 @@ function ListingDetailPage() {
 							<div className="rounded-xl border border-border bg-card p-4 text-sm">
 								<p className="mb-1 flex items-center gap-1 font-medium text-foreground">
 									<Shield className="h-4 w-4 text-success" />
-									Vakuutustiedot
+									{t("detail.insuranceInfo")}
 								</p>
 								<p className="text-muted">{listing.insurance_info}</p>
 							</div>
 						)}
 
 						{/* Listing meta */}
-						<p className="text-center text-xs text-muted">{listing.view_count} näyttökertaa</p>
+						<p className="text-center text-xs text-muted">
+							{t("detail.viewCount", { n: listing.view_count })}
+						</p>
 					</div>
 				</div>
 			</div>

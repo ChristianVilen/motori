@@ -1,10 +1,11 @@
-// src/routes/listings/$listingId_.edit.tsx
+// src/routes/ilmoitukset/$listingId_.muokkaa.tsx
 // Trailing underscore on $listingId_ opts out of $listingId.tsx as parent layout.
 import { createFileRoute, Link, notFound, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ArrowLeft } from "lucide-react";
 import { ListingForm } from "~/components/listings/listing-form";
 import { db } from "~/lib/db/index";
+import { useTranslation } from "~/lib/i18n";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { getSession } from "~/lib/session";
@@ -122,11 +123,11 @@ const updateListing = createServerFn({ method: "POST" })
 		});
 	});
 
-export const Route = createFileRoute("/listings/$listingId_/edit")({
+export const Route = createFileRoute("/ilmoitukset/$listingId_/muokkaa")({
 	loader: async ({ params }) => {
 		const session = await getSession();
 		if (!session) {
-			throw redirect({ to: "/auth/login", search: { redirect: undefined } });
+			throw redirect({ to: "/kirjaudu", search: { redirect: undefined } });
 		}
 		const result = await getListingForEdit({ data: params.listingId });
 		if (!result) {
@@ -135,17 +136,21 @@ export const Route = createFileRoute("/listings/$listingId_/edit")({
 		return result;
 	},
 	component: EditListingPage,
-	notFoundComponent: () => (
-		<div className="flex min-h-screen flex-col items-center justify-center gap-4">
-			<p className="text-muted">Ilmoitusta ei löydy.</p>
-			<Link to="/dashboard" className="text-sm text-accent underline">
-				Omat ilmoitukset
-			</Link>
-		</div>
-	),
+	notFoundComponent: () => {
+		const { t } = useTranslation("listings");
+		return (
+			<div className="flex min-h-screen flex-col items-center justify-center gap-4">
+				<p className="text-muted">{t("edit.notFound")}</p>
+				<Link to="/omat" className="text-sm text-accent underline">
+					{t("edit.notFoundBack")}
+				</Link>
+			</div>
+		);
+	},
 });
 
 function EditListingPage() {
+	const { t } = useTranslation("listings");
 	const { listing, images } = Route.useLoaderData();
 	const navigate = useNavigate();
 
@@ -176,7 +181,7 @@ function EditListingPage() {
 
 	async function handleSubmit(data: ListingFormData) {
 		await updateListing({ data: { id: listing.id, form: data } });
-		navigate({ to: "/listings/$listingId", params: { listingId: listing.id } });
+		navigate({ to: "/ilmoitukset/$listingId", params: { listingId: listing.id } });
 	}
 
 	return (
@@ -184,21 +189,21 @@ function EditListingPage() {
 			<div className="mx-auto max-w-2xl px-4 py-8">
 				<div className="mb-8">
 					<Link
-						to="/listings/$listingId"
+						to="/ilmoitukset/$listingId"
 						params={{ listingId: listing.id }}
 						className="mb-4 flex items-center gap-1 text-sm text-muted hover:text-foreground"
 					>
 						<ArrowLeft className="h-4 w-4" />
-						Takaisin ilmoitukseen
+						{t("edit.back")}
 					</Link>
-					<h1 className="text-2xl font-bold text-primary">Muokkaa ilmoitusta</h1>
+					<h1 className="text-2xl font-bold text-primary">{t("edit.pageTitle")}</h1>
 					<p className="mt-1 text-sm text-muted">{listing.title}</p>
 				</div>
 				<ListingForm
 					initialValues={initialValues}
 					initialImageUrls={images.map((img) => img.url)}
 					onSubmit={handleSubmit}
-					submitLabel="Tallenna muutokset"
+					submitLabel={t("edit.submitLabel")}
 				/>
 			</div>
 		</div>

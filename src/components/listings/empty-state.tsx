@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "~/lib/i18n";
 import { getNeighborRegionCount } from "~/lib/listings-queries";
 import type { BrowseSearchParams } from "~/lib/validators";
 
@@ -9,6 +10,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ search }: EmptyStateProps) {
+	const { t } = useTranslation("listings");
 	const navigate = useNavigate();
 	const [neighborCount, setNeighborCount] = useState<number | null>(null);
 
@@ -22,7 +24,7 @@ export function EmptyState({ search }: EmptyStateProps) {
 
 	function clearRegion() {
 		navigate({
-			to: "/listings",
+			to: "/ilmoitukset",
 			search: (prev) => ({ ...prev, region: undefined, cursor: undefined }),
 			replace: true,
 		});
@@ -30,7 +32,7 @@ export function EmptyState({ search }: EmptyStateProps) {
 
 	function clearAll() {
 		navigate({
-			to: "/listings",
+			to: "/ilmoitukset",
 			search: {},
 			replace: true,
 		});
@@ -42,15 +44,15 @@ export function EmptyState({ search }: EmptyStateProps) {
 			className="flex flex-col items-center py-16 text-center"
 		>
 			<Search className="mb-4 h-12 w-12 text-border" />
-			<h3 className="font-heading text-lg font-semibold text-foreground">
-				Ei tuloksia näillä hakuehdoilla
-			</h3>
-			<p className="mt-1 text-sm text-muted">Kokeile laajentaa hakua tai poistaa suodattimia</p>
+			<h3 className="font-heading text-lg font-semibold text-foreground">{t("empty.heading")}</h3>
+			<p className="mt-1 text-sm text-muted">{t("empty.body")}</p>
 
 			{!!search.region && neighborCount != null && neighborCount > 0 && (
 				<p className="mt-4 text-sm text-foreground">
-					<span className="font-semibold text-accent">{neighborCount} pyörää</span> löytyi
-					naapurimaakunnista
+					<span className="font-semibold text-accent">
+						{t("empty.neighborRegionsCount", { n: neighborCount })}
+					</span>{" "}
+					{t("empty.neighborRegionsSuffix")}
 				</p>
 			)}
 
@@ -61,7 +63,7 @@ export function EmptyState({ search }: EmptyStateProps) {
 						onClick={clearRegion}
 						className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted-light"
 					>
-						Laajenna hakua
+						{t("empty.expandSearch")}
 					</button>
 				)}
 				<button
@@ -69,7 +71,7 @@ export function EmptyState({ search }: EmptyStateProps) {
 					onClick={clearAll}
 					className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-hover"
 				>
-					Tyhjennä suodattimet
+					{t("empty.clearFilters")}
 				</button>
 			</div>
 		</div>
@@ -77,11 +79,12 @@ export function EmptyState({ search }: EmptyStateProps) {
 }
 
 export function LowResultNudge() {
+	const { t } = useTranslation("listings");
 	return (
 		<div className="mt-6 rounded-lg border border-border bg-muted-light px-4 py-3 text-center text-sm text-muted">
-			Vähän tuloksia? Kokeile laajentaa hakua tai{" "}
-			<Link to="/listings/new" className="font-medium text-accent hover:underline">
-				lisää oma ilmoituksesi
+			{t("empty.lowResults")}{" "}
+			<Link to="/ilmoitukset/uusi" className="font-medium text-accent hover:underline">
+				{t("empty.lowResultsLink")}
 			</Link>
 			.
 		</div>

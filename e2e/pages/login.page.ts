@@ -21,7 +21,7 @@ export class LoginPage {
 	}
 
 	async goto() {
-		await this.page.goto("/auth/login");
+		await this.page.goto("/kirjaudu");
 		await this.form.waitFor();
 		await waitForHydration(this.page);
 	}

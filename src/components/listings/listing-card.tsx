@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 import { MOTORCYCLE_TYPES, REGIONS, TYPE_EMOJI } from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";
+import { formatEur, useTranslation } from "~/lib/i18n";
 
 interface ListingCardProps {
 	listing: Listing;
@@ -9,13 +10,13 @@ interface ListingCardProps {
 }
 
 export function ListingCard({ listing, images }: ListingCardProps) {
+	const { t } = useTranslation("listings");
 	const firstImage = images[0];
 	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
 	const typeLabel =
-		MOTORCYCLE_TYPES.find((t) => t.value === listing.motorcycle_type)?.label ??
+		MOTORCYCLE_TYPES.find((mt) => mt.value === listing.motorcycle_type)?.label ??
 		listing.motorcycle_type;
 	const typeEmoji = TYPE_EMOJI[listing.motorcycle_type] ?? "";
-	const priceEur = Math.round(listing.price_per_day / 100);
 
 	const isNew = Date.now() - new Date(listing.created_at).getTime() < 48 * 60 * 60 * 1000;
 
@@ -25,7 +26,7 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 		<Link
 			data-testid="listing-card"
 			data-listing-id={listing.id}
-			to="/listings/$listingId"
+			to="/ilmoitukset/$listingId"
 			params={{ listingId: listing.id }}
 			className="group block overflow-hidden rounded-xl border border-border bg-card card-hover hover:card-hover-active"
 		>
@@ -59,7 +60,7 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 				{/* Badges overlay */}
 				{isNew && (
 					<span className="absolute top-2.5 left-2.5 rounded-md bg-accent px-2 py-0.5 text-xs font-semibold text-white">
-						Uusi
+						{t("card.newBadge")}
 					</span>
 				)}
 
@@ -71,7 +72,7 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 						e.preventDefault();
 						e.stopPropagation();
 					}}
-					aria-label="Lisää suosikkeihin"
+					aria-label={t("card.addToFavoritesAriaLabel")}
 				>
 					<Heart className="h-4 w-4" />
 				</button>
@@ -80,12 +81,12 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 				<div className="absolute right-0 bottom-0 left-0 flex items-center gap-1.5 bg-gradient-to-t from-black/50 to-transparent px-3 pt-6 pb-2.5">
 					{!!listing.includes_helmet && (
 						<span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm">
-							Kypärä
+							{t("card.helmet")}
 						</span>
 					)}
 					{!!listing.includes_insurance && (
 						<span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm">
-							Vakuutus
+							{t("card.insurance")}
 						</span>
 					)}
 					{imageCount > 1 && (
@@ -127,9 +128,9 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 							data-testid="listing-card-price"
 							className="font-heading text-lg font-bold text-accent"
 						>
-							{priceEur} €
+							{formatEur(listing.price_per_day)}
 						</span>
-						<span className="text-xs text-muted">/pv</span>
+						<span className="text-xs text-muted">{t("card.perDay")}</span>
 					</div>
 				</div>
 			</div>

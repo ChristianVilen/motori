@@ -4,6 +4,7 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import { useEffect } from "react";
 import { LoginForm } from "~/components/auth/login-form";
+import { useTranslation } from "~/lib/i18n";
 
 interface LoginModalProps {
 	open: boolean;
@@ -12,6 +13,7 @@ interface LoginModalProps {
 
 export function LoginModal({ open, onClose }: LoginModalProps) {
 	const router = useRouter();
+	const { t } = useTranslation("auth");
 
 	useEffect(() => {
 		if (!open) {
@@ -58,14 +60,14 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 				<div className="mb-5 flex items-start justify-between">
 					<div>
 						<h2 id="login-modal-title" className="text-lg font-bold text-primary">
-							Kirjaudu sisään
+							{t("modal.heading")}
 						</h2>
 						<p className="mt-0.5 text-xs text-muted">Vuokramoto</p>
 					</div>
 					<button
 						type="button"
 						onClick={onClose}
-						aria-label="Sulje"
+						aria-label={t("modal.closeLabel")}
 						className="rounded p-1 text-muted hover:bg-muted-light hover:text-foreground"
 					>
 						<X className="h-4 w-4" />
@@ -75,9 +77,9 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 				<LoginForm onSuccess={handleSuccess} />
 
 				<p className="mt-4 text-center text-sm text-muted">
-					Ei tiliä?{" "}
-					<Link to="/auth/register" onClick={onClose} className="text-accent hover:underline">
-						Rekisteröidy
+					{t("modal.noAccount")}{" "}
+					<Link to="/rekisteroidy" onClick={onClose} className="text-accent hover:underline">
+						{t("modal.registerLink")}
 					</Link>
 				</p>
 			</div>

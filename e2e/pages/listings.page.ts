@@ -30,7 +30,7 @@ export class ListingsPage {
 
 	async goto(params?: Record<string, string>) {
 		const query = params ? `?${new URLSearchParams(params).toString()}` : "";
-		await this.page.goto(`/listings${query}`);
+		await this.page.goto(`/ilmoitukset${query}`);
 		await this.resultCount.waitFor();
 		await waitForHydration(this.page);
 	}

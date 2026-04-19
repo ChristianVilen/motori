@@ -27,7 +27,7 @@ export class RegisterPage {
 	}
 
 	async goto() {
-		await this.page.goto("/auth/register");
+		await this.page.goto("/rekisteroidy");
 		await this.form.waitFor();
 		await waitForHydration(this.page);
 	}

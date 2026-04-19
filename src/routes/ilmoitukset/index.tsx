@@ -7,10 +7,11 @@ import { FilterSidebar } from "~/components/listings/filter-sidebar";
 import { ListingCard } from "~/components/listings/listing-card";
 import { ListingCardSkeleton } from "~/components/listings/listing-card-skeleton";
 import { REGIONS } from "~/lib/constants";
+import { useTranslation } from "~/lib/i18n";
 import { type SearchResult, searchListings } from "~/lib/listings-queries";
 import { type BrowseSearchParams, browseSearchSchema } from "~/lib/validators";
 
-export const Route = createFileRoute("/listings/")({
+export const Route = createFileRoute("/ilmoitukset/")({
 	validateSearch: (search) => browseSearchSchema.parse(search),
 	loaderDeps: ({ search }) => search,
 	loader: ({ deps }) => searchListings({ data: deps }),
@@ -44,6 +45,7 @@ function useAccumulatedPages(initialData: SearchResult, search: BrowseSearchPara
 }
 
 function BrowsePage() {
+	const { t } = useTranslation("listings");
 	const search = Route.useSearch();
 	const initialData = Route.useLoaderData();
 	const navigate = useNavigate();
@@ -56,7 +58,7 @@ function BrowsePage() {
 	const hasQuery = !!search.q && search.q.trim().length > 0;
 	const regionLabel = search.region
 		? (REGIONS.find((r) => r.value === search.region)?.label ?? search.region)
-		: "Koko Suomi";
+		: t("browse.regionAll");
 
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const isLoading = useRouterState({ select: (s) => s.isLoading });
@@ -68,7 +70,7 @@ function BrowsePage() {
 			return;
 		}
 		navigate({
-			to: "/listings",
+			to: "/ilmoitukset",
 			search: (prev) => ({ ...prev, cursor: nextCursor }),
 			replace: true,
 		});
@@ -79,7 +81,7 @@ function BrowsePage() {
 		const formData = new FormData(e.currentTarget);
 		const q = (formData.get("q") as string)?.trim() || undefined;
 		navigate({
-			to: "/listings",
+			to: "/ilmoitukset",
 			search: (prev) => ({ ...prev, q, cursor: undefined }),
 			replace: true,
 		});
@@ -96,7 +98,7 @@ function BrowsePage() {
 							name="q"
 							type="text"
 							defaultValue={search.q ?? ""}
-							placeholder="Hae merkkiä, mallia, kaupunkia..."
+							placeholder={t("browse.searchPlaceholder")}
 							className="h-11 flex-1 rounded-lg bg-white/10 px-4 text-sm text-white placeholder:text-white/50 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent"
 						/>
 						<button
@@ -104,7 +106,7 @@ function BrowsePage() {
 							type="submit"
 							className="h-11 rounded-lg bg-accent px-6 text-sm font-semibold text-white hover:bg-accent-hover"
 						>
-							Hae
+							{t("browse.searchButton")}
 						</button>
 						{/* Mobile filter button */}
 						<button
@@ -112,7 +114,7 @@ function BrowsePage() {
 							type="button"
 							onClick={() => setDrawerOpen(true)}
 							className="relative h-11 rounded-lg bg-white/10 px-3 text-white lg:hidden"
-							aria-label="Suodattimet"
+							aria-label={t("browse.filterButtonAriaLabel")}
 						>
 							<SlidersHorizontal className="h-5 w-5" />
 							{activeFilterCount > 0 && (
@@ -126,8 +128,8 @@ function BrowsePage() {
 						<span data-testid="listings-total-count" className="font-semibold text-white">
 							{totalCount}
 						</span>{" "}
-						ilmoitusta
-						{hasQuery ? <> haulle &lsquo;{search.q}&rsquo;</> : null}
+						{t("browse.resultCountWord")}
+						{hasQuery ? <> {t("browse.resultCountQuery", { query: search.q ?? "" })}</> : null}
 						{" — "}
 						<span data-testid="listings-region-label">{regionLabel}</span>
 					</p>
@@ -172,7 +174,7 @@ function BrowsePage() {
 										disabled={isLoading}
 										className="rounded-lg border border-border px-6 py-3 text-sm font-medium text-foreground transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
 									>
-										Näytä lisää · {remaining} jäljellä
+										{t("browse.loadMore", { remaining })}
 									</button>
 								</div>
 							)}

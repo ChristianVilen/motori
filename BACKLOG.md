@@ -259,6 +259,10 @@ Design spec: `docs/superpowers/specs/2026-04-18-localization-design.md`. Initial
 - [ ] Translation management tooling (Lokalise / Crowdin)
 - [ ] Server-side redirects from legacy English route paths (only if needed pre-launch)
 
+### i18n follow-ups
+
+- i18n email templates: currently hardcoded Finnish in `src/lib/auth.ts` and `src/lib/email.ts`. Route through i18n resources when multi-locale emails are needed.
+
 ### P2 — Nice to haves
 
 - [ ] Map-based browsing (Leaflet + OpenStreetMap)
@@ -309,3 +313,7 @@ Internet -> Caddy (HTTPS) -> TanStack Start (Node.js :3000) -> PostgreSQL 17
 - Search "Honda Helsinki" -> verify FTS returns relevant results
 - Open on mobile -> verify responsive layout, PWA install prompt
 - Run Lighthouse audit -> check performance, accessibility, SEO scores
+
+## Findings
+- From selaa page going to a listing then clicking the back button takes to the frontpage not back to the selaa page.
+- After logging in the topbar doesnt update to have link to profile page and to log out. But shows log in and no profile page link until refresh.

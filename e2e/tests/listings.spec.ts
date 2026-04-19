@@ -46,7 +46,7 @@ test.describe("Listings browse", () => {
 		await expect(seeded).toContainText(SEEDED_LISTING_TITLE);
 
 		await seeded.click();
-		await expect(page).toHaveURL(new RegExp(`/listings/${SEEDED_LISTING_ID}$`));
+		await expect(page).toHaveURL(new RegExp(`/ilmoitukset/${SEEDED_LISTING_ID}$`));
 	});
 });
 
@@ -57,7 +57,7 @@ test.describe("Listing detail", () => {
 
 		await expect(detail.title).toHaveText(SEEDED_LISTING_TITLE);
 		await expect(detail.priceInfo).toBeVisible();
-		await expect(detail.pricePerDay).toContainText("55 €");
+		await expect(detail.pricePerDay).toContainText("55,00 €");
 		await expect(detail.locationInfo).toContainText("Helsinki");
 	});
 
@@ -78,8 +78,8 @@ test.describe("Listing detail", () => {
 	});
 
 	test("new listing page redirects unauthenticated users to login", async ({ page }) => {
-		await page.goto("/listings/new");
+		await page.goto("/ilmoitukset/uusi");
 
-		await expect(page).toHaveURL(/\/auth\/login/);
+		await expect(page).toHaveURL(/\/kirjaudu/);
 	});
 });

@@ -9,12 +9,21 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useState } from "react";
+import { I18nextProvider, useTranslation } from "react-i18next";
 import { LoginModal } from "~/components/auth/login-modal";
 import { signOut } from "~/lib/auth-client";
+import { i18n as clientI18n, ensureClientI18n } from "~/lib/i18n/client";
+import type { SupportedLocale } from "~/lib/i18n/resources";
+import { createI18nSync } from "~/lib/i18n/server";
 import { getSession } from "~/lib/session";
 import appCss from "~/styles/app.css?url";
 
 export const Route = createRootRoute({
+	beforeLoad: () => {
+		// Future: check location.pathname.startsWith("/en/") → "en"
+		const locale: SupportedLocale = "fi";
+		return { locale };
+	},
 	loader: async () => {
 		const session = await getSession();
 		return { session };
@@ -45,6 +54,8 @@ export const Route = createRootRoute({
 			{ rel: "manifest", href: "/manifest.webmanifest" },
 			{ rel: "icon", href: "/favicon.ico", sizes: "any" },
 			{ rel: "apple-touch-icon", href: "/icon-192.png" },
+			{ rel: "alternate", hrefLang: "fi", href: "/" },
+			{ rel: "alternate", hrefLang: "x-default", href: "/" },
 			{
 				rel: "preconnect",
 				href: "https://fonts.googleapis.com",
@@ -64,23 +75,41 @@ export const Route = createRootRoute({
 	notFoundComponent: NotFound,
 });
 
-function NotFound() {
+function NotFoundContent() {
+	const { t } = useTranslation("common");
 	return (
-		<RootDocument>
-			<div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
-				<p className="font-heading text-7xl font-bold text-accent">404</p>
-				<h1 className="mt-4 font-heading text-2xl font-bold text-foreground">Sivua ei löytynyt</h1>
-				<p className="mt-2 max-w-md text-sm text-muted">
-					Etsimääsi sivua ei ole olemassa tai se on poistettu.
-				</p>
-				<Link
-					to="/"
-					className="mt-8 rounded-lg bg-accent px-6 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
-				>
-					Takaisin etusivulle
-				</Link>
-			</div>
-		</RootDocument>
+		<div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
+			<p className="font-heading text-7xl font-bold text-accent">404</p>
+			<h1 className="mt-4 font-heading text-2xl font-bold text-foreground">
+				{t("notFound.heading")}
+			</h1>
+			<p className="mt-2 max-w-md text-sm text-muted">{t("notFound.body")}</p>
+			<Link
+				to="/"
+				className="mt-8 rounded-lg bg-accent px-6 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
+			>
+				{t("notFound.back")}
+			</Link>
+		</div>
+	);
+}
+
+function NotFound() {
+	// NotFound can render without a loader having run, so nav `t()` calls have no
+	// provider otherwise. Mount a fresh Finnish i18n instance for the shell.
+	const [i18nInstance] = useState(() => {
+		if (typeof window === "undefined") {
+			return createI18nSync("fi");
+		}
+		ensureClientI18n();
+		return clientI18n;
+	});
+	return (
+		<I18nextProvider i18n={i18nInstance}>
+			<RootDocument locale="fi">
+				<NotFoundContent />
+			</RootDocument>
+		</I18nextProvider>
 	);
 }
 
@@ -90,22 +119,37 @@ function RootComponent() {
 	useEffect(() => {
 		document.documentElement.setAttribute("data-hydrated", "true");
 	}, []);
+
 	const { session } = Route.useLoaderData();
+	const { locale } = Route.useRouteContext();
+
+	const [i18nInstance] = useState(() => {
+		if (typeof window === "undefined") {
+			return createI18nSync(locale);
+		}
+		ensureClientI18n();
+		return clientI18n;
+	});
+
 	return (
-		<RootDocument session={session}>
-			<Outlet />
-		</RootDocument>
+		<I18nextProvider i18n={i18nInstance}>
+			<RootDocument session={session} locale={locale}>
+				<Outlet />
+			</RootDocument>
+		</I18nextProvider>
 	);
 }
 
 interface RootDocumentProps {
 	children: ReactNode;
 	session?: Awaited<ReturnType<typeof getSession>>;
+	locale?: SupportedLocale;
 }
 
-function RootDocument({ children, session }: RootDocumentProps) {
+function RootDocument({ children, session, locale = "fi" }: RootDocumentProps) {
 	const router = useRouter();
 	const [loginOpen, setLoginOpen] = useState(false);
+	const { t } = useTranslation("common");
 
 	async function handleSignOut() {
 		await signOut();
@@ -114,7 +158,7 @@ function RootDocument({ children, session }: RootDocumentProps) {
 	}
 
 	return (
-		<html lang="fi">
+		<html lang={locale}>
 			<head>
 				<HeadContent />
 			</head>
@@ -125,23 +169,23 @@ function RootDocument({ children, session }: RootDocumentProps) {
 							vuokramoto
 						</Link>
 						<div className="flex items-center gap-4 sm:gap-6">
-							<Link to="/listings" className="text-sm text-white/70 hover:text-white">
-								Selaa
+							<Link to="/ilmoitukset" className="text-sm text-white/70 hover:text-white">
+								{t("nav.browse")}
 							</Link>
 							<Link
-								to="/listings/new"
+								to="/ilmoitukset/uusi"
 								className="rounded-md bg-accent px-3.5 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
 							>
-								Ilmoita pyörä
+								{t("nav.listMotorcycle")}
 							</Link>
 							{session ? (
 								<>
 									<Link
 										data-testid="nav-dashboard"
-										to="/dashboard"
+										to="/omat"
 										className="text-sm text-white/70 hover:text-white"
 									>
-										Omat
+										{t("nav.myListings")}
 									</Link>
 									<button
 										type="button"
@@ -149,7 +193,7 @@ function RootDocument({ children, session }: RootDocumentProps) {
 										onClick={handleSignOut}
 										className="text-sm text-white/70 hover:text-white"
 									>
-										Kirjaudu ulos
+										{t("nav.signOut")}
 									</button>
 								</>
 							) : (
@@ -159,7 +203,7 @@ function RootDocument({ children, session }: RootDocumentProps) {
 									onClick={() => setLoginOpen(true)}
 									className="text-sm text-white/70 hover:text-white"
 								>
-									Kirjaudu
+									{t("nav.signIn")}
 								</button>
 							)}
 						</div>
@@ -168,6 +212,12 @@ function RootDocument({ children, session }: RootDocumentProps) {
 				{children}
 				<LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
 				<Scripts />
+				<script
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: inline locale for hydration
+					dangerouslySetInnerHTML={{
+						__html: `window.__I18N__=${JSON.stringify({ locale })};`,
+					}}
+				/>
 			</body>
 		</html>
 	);
