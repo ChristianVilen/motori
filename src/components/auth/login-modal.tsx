@@ -4,7 +4,6 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import { useEffect } from "react";
 import { LoginForm } from "~/components/auth/login-form";
-import { authClient } from "~/lib/auth-client";
 import { useTranslation } from "~/lib/i18n";
 
 interface LoginModalProps {
@@ -38,11 +37,9 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 	}
 
 	async function handleSuccess() {
-		await authClient.invalidateUser();
 		router.invalidate();
 		onClose();
 	}
-
 	return (
 		<div
 			data-testid="login-modal"

@@ -90,4 +90,3 @@ test.describe("Listing detail (unauthenticated)", () => {
 		await expect(page).toHaveURL(/\/kirjaudu/);
 	});
 });
-

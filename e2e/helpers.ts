@@ -21,4 +21,5 @@ export async function loginAs(page: Page, email: string) {
 	await login.goto();
 	await login.login(email, TEST_PASSWORD);
 	await page.waitForURL("/");
+	await waitForHydration(page);
 }

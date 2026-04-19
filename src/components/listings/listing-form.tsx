@@ -1,5 +1,6 @@
 // src/components/listings/listing-form.tsx
 // Shared between /ilmoitukset/uusi and /ilmoitukset/$listingId/muokkaa
+import { useForm } from "@tanstack/react-form";
 import { X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -21,29 +22,9 @@ import {
 } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { getImageUploadUrl } from "~/lib/storage";
-import type { ListingFormData } from "~/lib/validators";
+import { type ListingFormData, listingFormSchema } from "~/lib/validators";
 
-export interface ListingFormValues {
-	title: string;
-	brand: string;
-	model: string;
-	year: number;
-	engine_cc: number | null;
-	motorcycle_type: string;
-	required_license: "A1" | "A2" | "A" | null;
-	price_per_day: number;
-	price_per_week: number | null;
-	deposit_amount: number | null;
-	price_description: string;
-	city: string;
-	region: string;
-	postal_code: string;
-	available_from: string;
-	available_to: string;
-	season_only: boolean;
-	description: string;
-	mileage_limit: number | null;
-}
+export interface ListingFormValues extends ListingFormData {}
 
 interface ListingFormProps {
 	initialValues?: Partial<ListingFormValues>;
@@ -52,14 +33,18 @@ interface ListingFormProps {
 	submitLabel?: string;
 }
 
-function toNum(s: string): number | null {
-	const n = Number(s);
-	return s === "" || Number.isNaN(n) ? null : n;
-}
-
 const MAX_IMAGES = 8;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+function FieldError({ errors }: { errors: unknown[] }) {
+	const first = errors.find((e) => e != null);
+	if (first == null) {
+		return null;
+	}
+	const msg = typeof first === "string" ? first : String(first);
+	return <p className="mt-1 text-sm text-destructive">{msg}</p>;
+}
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: large form with many fields
 export function ListingForm({
@@ -69,40 +54,67 @@ export function ListingForm({
 	submitLabel,
 }: ListingFormProps) {
 	const { t } = useTranslation("listings");
-	const [title, setTitle] = useState(initialValues?.title ?? "");
-	const [brand, setBrand] = useState(initialValues?.brand ?? "");
-	const [model, setModel] = useState(initialValues?.model ?? "");
-	const [year, setYear] = useState(String(initialValues?.year ?? CURRENT_YEAR));
-	const [engineCc, setEngineCc] = useState(String(initialValues?.engine_cc ?? ""));
-	const [motorcycleType, setMotorcycleType] = useState(initialValues?.motorcycle_type ?? "");
-	const [requiredLicense, setRequiredLicense] = useState<"A1" | "A2" | "A" | null>(
-		initialValues?.required_license ?? null,
-	);
-	const [pricePerDay, setPricePerDay] = useState(String(initialValues?.price_per_day ?? ""));
-	const [pricePerWeek, setPricePerWeek] = useState(String(initialValues?.price_per_week ?? ""));
-	const [depositAmount, setDepositAmount] = useState(String(initialValues?.deposit_amount ?? ""));
-	const [priceDescription, setPriceDescription] = useState(initialValues?.price_description ?? "");
-	const [city, setCity] = useState(initialValues?.city ?? "");
-	const [region, setRegion] = useState(initialValues?.region ?? "");
-	const [postalCode, setPostalCode] = useState(initialValues?.postal_code ?? "");
-	const [availableFrom, setAvailableFrom] = useState(initialValues?.available_from ?? "");
-	const [availableTo, setAvailableTo] = useState(initialValues?.available_to ?? "");
-	const [seasonOnly, setSeasonOnly] = useState(initialValues?.season_only ?? false);
-	const [description, setDescription] = useState(initialValues?.description ?? "");
-	const [mileageLimit, setMileageLimit] = useState(String(initialValues?.mileage_limit ?? ""));
 
 	const [imageUrls, setImageUrls] = useState<string[]>(initialImageUrls);
 	const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 	const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 	const [imageError, setImageError] = useState<string | null>(null);
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+	const [submitError, setSubmitError] = useState<string | null>(null);
+
+	const form = useForm({
+		defaultValues: {
+			title: initialValues?.title ?? "",
+			brand: initialValues?.brand ?? "",
+			model: initialValues?.model ?? "",
+			year: initialValues?.year ?? CURRENT_YEAR,
+			engine_cc: initialValues?.engine_cc ?? null,
+			motorcycle_type: initialValues?.motorcycle_type ?? "",
+			required_license: initialValues?.required_license ?? null,
+			price_per_day: initialValues?.price_per_day ?? (0 as number),
+			price_per_week: initialValues?.price_per_week ?? null,
+			deposit_amount: initialValues?.deposit_amount ?? null,
+			price_description: initialValues?.price_description ?? "",
+			city: initialValues?.city ?? "",
+			region: initialValues?.region ?? "",
+			postal_code: initialValues?.postal_code ?? "",
+			available_from: initialValues?.available_from ?? "",
+			available_to: initialValues?.available_to ?? "",
+			season_only: initialValues?.season_only ?? false,
+			description: initialValues?.description ?? "",
+			mileage_limit: initialValues?.mileage_limit ?? null,
+		},
+		onSubmit: async ({ value }) => {
+			setSubmitError(null);
+			try {
+				const newImageUrls: string[] = [];
+				for (const file of pendingFiles) {
+					const { uploadUrl, publicUrl } = await getImageUploadUrl({
+						data: { filename: file.name, contentType: file.type },
+					});
+					await fetch(uploadUrl, {
+						method: "PUT",
+						body: file,
+						headers: { "Content-Type": file.type },
+					});
+					newImageUrls.push(publicUrl);
+				}
+				const allImageUrls = [...imageUrls, ...newImageUrls];
+				const parsed = listingFormSchema.safeParse({ ...value, image_urls: allImageUrls });
+				if (!parsed.success) {
+					setSubmitError(parsed.error.issues[0]?.message ?? t("form.submit.genericError"));
+					return;
+				}
+				await onSubmit(parsed.data);
+			} catch (err) {
+				setSubmitError(err instanceof Error ? err.message : t("form.submit.genericError"));
+			}
+		},
+	});
 
 	function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
 		setImageError(null);
 		const files = Array.from(e.target.files ?? []);
 		const remaining = MAX_IMAGES - imageUrls.length;
-
 		const valid: File[] = [];
 		for (const file of files) {
 			if (valid.length >= remaining) {
@@ -118,7 +130,6 @@ export function ListingForm({
 			}
 			valid.push(file);
 		}
-
 		setPendingFiles((prev) => [...prev, ...valid]);
 		for (const file of valid) {
 			const reader = new FileReader();
@@ -139,197 +150,186 @@ export function ListingForm({
 		setImagePreviews((prev) => prev.filter((_, i) => i !== index));
 	}
 
-	async function uploadPendingFiles(): Promise<string[]> {
-		const uploaded: string[] = [];
-		for (const file of pendingFiles) {
-			const { uploadUrl, publicUrl } = await getImageUploadUrl({
-				data: { filename: file.name, contentType: file.type },
-			});
-			await fetch(uploadUrl, {
-				method: "PUT",
-				body: file,
-				headers: { "Content-Type": file.type },
-			});
-			uploaded.push(publicUrl);
-		}
-		return uploaded;
-	}
-
-	async function handleSubmit(e: React.FormEvent) {
-		e.preventDefault();
-		setError(null);
-		setLoading(true);
-
-		try {
-			let newImageUrls: string[] = [];
-			if (pendingFiles.length > 0) {
-				newImageUrls = await uploadPendingFiles();
-			}
-
-			const allImageUrls = [...imageUrls, ...newImageUrls];
-
-			await onSubmit({
-				title: title.trim(),
-				brand,
-				model: model.trim(),
-				year: Number(year),
-				engine_cc: toNum(engineCc),
-				motorcycle_type: motorcycleType,
-				required_license: requiredLicense,
-				price_per_day: Number(pricePerDay),
-				price_per_week: toNum(pricePerWeek),
-				deposit_amount: toNum(depositAmount),
-				price_description: priceDescription.trim() || null,
-				city: city.trim(),
-				region,
-				postal_code: postalCode.trim() || null,
-				available_from: availableFrom || null,
-				available_to: availableTo || null,
-				season_only: seasonOnly,
-				description: description.trim(),
-				mileage_limit: toNum(mileageLimit),
-				image_urls: allImageUrls,
-			});
-		} catch (err) {
-			setError(err instanceof Error ? err.message : t("form.submit.genericError"));
-		} finally {
-			setLoading(false);
-		}
-	}
-
 	const totalImages = imageUrls.length + pendingFiles.length;
 	const canAddMore = totalImages < MAX_IMAGES;
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-8">
+		<form
+			onSubmit={(e) => {
+				e.preventDefault();
+				form.handleSubmit();
+			}}
+			className="space-y-8"
+		>
 			{/* ── Moottoripyörä ─────────────────────────────────────────────── */}
 			<section className="rounded-lg border border-border bg-card p-6">
 				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
 					{t("form.sections.motorcycle")}
 				</h2>
 				<div className="space-y-4">
-					<div>
-						<label htmlFor="title" className="mb-1 block text-sm font-medium text-foreground">
-							{t("form.fields.title")} <span className="text-destructive">*</span>
-						</label>
-						<Input
-							id="title"
-							required
-							value={title}
-							onChange={(e) => setTitle(e.target.value)}
-							placeholder={t("form.fields.titlePlaceholder")}
-						/>
-						<p className="mt-1 text-xs text-muted">{t("form.fields.titleHint")}</p>
-					</div>
-
-					<div className="grid grid-cols-2 gap-4">
-						<div>
-							<label htmlFor="brand" className="mb-1 block text-sm font-medium text-foreground">
-								{t("form.fields.brand")} <span className="text-destructive">*</span>
-							</label>
-							<Select value={brand} onValueChange={setBrand} required>
-								<SelectTrigger id="brand">
-									<SelectValue placeholder={t("form.fields.brandPlaceholder")} />
-								</SelectTrigger>
-								<SelectContent>
-									{MOTORCYCLE_BRANDS.map((b) => (
-										<SelectItem key={b} value={b}>
-											{b}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
-						<div>
-							<label htmlFor="model" className="mb-1 block text-sm font-medium text-foreground">
-								{t("form.fields.model")} <span className="text-destructive">*</span>
-							</label>
-							<Input
-								id="model"
-								required
-								value={model}
-								onChange={(e) => setModel(e.target.value)}
-								placeholder={t("form.fields.modelPlaceholder")}
-							/>
-						</div>
-					</div>
-
-					<div className="grid grid-cols-2 gap-4">
-						<div>
-							<label htmlFor="year" className="mb-1 block text-sm font-medium text-foreground">
-								{t("form.fields.year")} <span className="text-destructive">*</span>
-							</label>
-							<Input
-								id="year"
-								type="number"
-								required
-								min={1970}
-								max={CURRENT_YEAR + 1}
-								value={year}
-								onChange={(e) => setYear(e.target.value)}
-							/>
-						</div>
-						<div>
-							<label htmlFor="engine_cc" className="mb-1 block text-sm font-medium text-foreground">
-								{t("form.fields.engineCc")}
-							</label>
-							<Input
-								id="engine_cc"
-								type="number"
-								min={50}
-								max={3000}
-								value={engineCc}
-								onChange={(e) => setEngineCc(e.target.value)}
-								placeholder={t("form.fields.engineCcPlaceholder")}
-							/>
-						</div>
-					</div>
-
-					<div className="grid grid-cols-2 gap-4">
-						<div>
-							<label
-								htmlFor="motorcycle_type"
-								className="mb-1 block text-sm font-medium text-foreground"
-							>
-								{t("form.fields.type")} <span className="text-destructive">*</span>
-							</label>
-							<Select value={motorcycleType} onValueChange={setMotorcycleType} required>
-								<SelectTrigger id="motorcycle_type">
-									<SelectValue placeholder={t("form.fields.typePlaceholder")} />
-								</SelectTrigger>
-								<SelectContent>
-									{MOTORCYCLE_TYPES.map((mt) => (
-										<SelectItem key={mt.value} value={mt.value}>
-											{mt.label}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
-						<div>
-							<span className="mb-1 block text-sm font-medium text-foreground">
-								{t("form.fields.requiredLicense")}
-							</span>
-							<div className="flex gap-2">
-								{LICENSE_CLASSES.map((cls) => (
-									<button
-										key={cls.value}
-										type="button"
-										title={cls.description}
-										onClick={() =>
-											setRequiredLicense(requiredLicense === cls.value ? null : cls.value)
-										}
-										className={`flex-1 rounded-md border py-2 text-sm font-medium transition-colors ${
-											requiredLicense === cls.value
-												? "border-accent bg-accent text-white"
-												: "border-border bg-background text-foreground hover:bg-muted-light"
-										}`}
-									>
-										{cls.label}
-									</button>
-								))}
+					<form.Field name="title">
+						{(field) => (
+							<div>
+								<label htmlFor="title" className="mb-1 block text-sm font-medium text-foreground">
+									{t("form.fields.title")} <span className="text-destructive">*</span>
+								</label>
+								<Input
+									id="title"
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onChange={(e) => field.handleChange(e.target.value)}
+									placeholder={t("form.fields.titlePlaceholder")}
+								/>
+								<p className="mt-1 text-xs text-muted">{t("form.fields.titleHint")}</p>
+								<FieldError errors={field.state.meta.errors} />
 							</div>
-						</div>
+						)}
+					</form.Field>
+
+					<div className="grid grid-cols-2 gap-4">
+						<form.Field name="brand">
+							{(field) => (
+								<div>
+									<label htmlFor="brand" className="mb-1 block text-sm font-medium text-foreground">
+										{t("form.fields.brand")} <span className="text-destructive">*</span>
+									</label>
+									<Select value={field.state.value} onValueChange={(v) => field.handleChange(v)}>
+										<SelectTrigger id="brand">
+											<SelectValue placeholder={t("form.fields.brandPlaceholder")} />
+										</SelectTrigger>
+										<SelectContent>
+											{MOTORCYCLE_BRANDS.map((b) => (
+												<SelectItem key={b} value={b}>
+													{b}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+						<form.Field name="model">
+							{(field) => (
+								<div>
+									<label htmlFor="model" className="mb-1 block text-sm font-medium text-foreground">
+										{t("form.fields.model")} <span className="text-destructive">*</span>
+									</label>
+									<Input
+										id="model"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+										placeholder={t("form.fields.modelPlaceholder")}
+									/>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+					</div>
+
+					<div className="grid grid-cols-2 gap-4">
+						<form.Field name="year">
+							{(field) => (
+								<div>
+									<label htmlFor="year" className="mb-1 block text-sm font-medium text-foreground">
+										{t("form.fields.year")} <span className="text-destructive">*</span>
+									</label>
+									<Input
+										id="year"
+										type="number"
+										min={1970}
+										max={CURRENT_YEAR + 1}
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.valueAsNumber)}
+									/>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+						<form.Field name="engine_cc">
+							{(field) => (
+								<div>
+									<label
+										htmlFor="engine_cc"
+										className="mb-1 block text-sm font-medium text-foreground"
+									>
+										{t("form.fields.engineCc")}
+									</label>
+									<Input
+										id="engine_cc"
+										type="number"
+										min={50}
+										max={3000}
+										value={field.state.value ?? ""}
+										onBlur={field.handleBlur}
+										onChange={(e) =>
+											field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
+										}
+										placeholder={t("form.fields.engineCcPlaceholder")}
+									/>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+					</div>
+
+					<div className="grid grid-cols-2 gap-4">
+						<form.Field name="motorcycle_type">
+							{(field) => (
+								<div>
+									<label
+										htmlFor="motorcycle_type"
+										className="mb-1 block text-sm font-medium text-foreground"
+									>
+										{t("form.fields.type")} <span className="text-destructive">*</span>
+									</label>
+									<Select value={field.state.value} onValueChange={(v) => field.handleChange(v)}>
+										<SelectTrigger id="motorcycle_type">
+											<SelectValue placeholder={t("form.fields.typePlaceholder")} />
+										</SelectTrigger>
+										<SelectContent>
+											{MOTORCYCLE_TYPES.map((mt) => (
+												<SelectItem key={mt.value} value={mt.value}>
+													{mt.label}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+						<form.Field name="required_license">
+							{(field) => (
+								<div>
+									<span className="mb-1 block text-sm font-medium text-foreground">
+										{t("form.fields.requiredLicense")}
+									</span>
+									<div className="flex gap-2">
+										{LICENSE_CLASSES.map((cls) => (
+											<button
+												key={cls.value}
+												type="button"
+												title={cls.description}
+												onClick={() =>
+													field.handleChange(field.state.value === cls.value ? null : cls.value)
+												}
+												className={`flex-1 rounded-md border py-2 text-sm font-medium transition-colors ${
+													field.state.value === cls.value
+														? "border-accent bg-accent text-white"
+														: "border-border bg-background text-foreground hover:bg-muted-light"
+												}`}
+											>
+												{cls.label}
+											</button>
+										))}
+									</div>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
 					</div>
 				</div>
 			</section>
@@ -341,94 +341,129 @@ export function ListingForm({
 				</h2>
 				<div className="space-y-4">
 					<div className="grid grid-cols-2 gap-4">
-						<div>
-							<label
-								htmlFor="price_per_day"
-								className="mb-1 block text-sm font-medium text-foreground"
-							>
-								{t("form.fields.pricePerDay")} <span className="text-destructive">*</span>
-							</label>
-							<Input
-								id="price_per_day"
-								type="number"
-								required
-								min={1}
-								max={10000}
-								value={pricePerDay}
-								onChange={(e) => setPricePerDay(e.target.value)}
-								placeholder={t("form.fields.pricePerDayPlaceholder")}
-							/>
-						</div>
-						<div>
-							<label
-								htmlFor="price_per_week"
-								className="mb-1 block text-sm font-medium text-foreground"
-							>
-								{t("form.fields.pricePerWeek")}
-							</label>
-							<Input
-								id="price_per_week"
-								type="number"
-								min={1}
-								max={50000}
-								value={pricePerWeek}
-								onChange={(e) => setPricePerWeek(e.target.value)}
-								placeholder={t("form.fields.pricePerWeekPlaceholder")}
-							/>
-						</div>
+						<form.Field name="price_per_day">
+							{(field) => (
+								<div>
+									<label
+										htmlFor="price_per_day"
+										className="mb-1 block text-sm font-medium text-foreground"
+									>
+										{t("form.fields.pricePerDay")} <span className="text-destructive">*</span>
+									</label>
+									<Input
+										id="price_per_day"
+										type="number"
+										min={1}
+										max={10000}
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.valueAsNumber)}
+										placeholder={t("form.fields.pricePerDayPlaceholder")}
+									/>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+						<form.Field name="price_per_week">
+							{(field) => (
+								<div>
+									<label
+										htmlFor="price_per_week"
+										className="mb-1 block text-sm font-medium text-foreground"
+									>
+										{t("form.fields.pricePerWeek")}
+									</label>
+									<Input
+										id="price_per_week"
+										type="number"
+										min={1}
+										max={50000}
+										value={field.state.value ?? ""}
+										onBlur={field.handleBlur}
+										onChange={(e) =>
+											field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
+										}
+										placeholder={t("form.fields.pricePerWeekPlaceholder")}
+									/>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
 					</div>
 
 					<div className="grid grid-cols-2 gap-4">
-						<div>
-							<label
-								htmlFor="deposit_amount"
-								className="mb-1 block text-sm font-medium text-foreground"
-							>
-								{t("form.fields.deposit")}
-							</label>
-							<Input
-								id="deposit_amount"
-								type="number"
-								min={0}
-								max={100000}
-								value={depositAmount}
-								onChange={(e) => setDepositAmount(e.target.value)}
-								placeholder={t("form.fields.depositPlaceholder")}
-							/>
-						</div>
-						<div>
-							<label
-								htmlFor="price_description"
-								className="mb-1 block text-sm font-medium text-foreground"
-							>
-								{t("form.fields.priceDescription")}
-							</label>
-							<Input
-								id="price_description"
-								value={priceDescription}
-								onChange={(e) => setPriceDescription(e.target.value)}
-								placeholder={t("form.fields.priceDescriptionPlaceholder")}
-							/>
-						</div>
+						<form.Field name="deposit_amount">
+							{(field) => (
+								<div>
+									<label
+										htmlFor="deposit_amount"
+										className="mb-1 block text-sm font-medium text-foreground"
+									>
+										{t("form.fields.deposit")}
+									</label>
+									<Input
+										id="deposit_amount"
+										type="number"
+										min={0}
+										max={100000}
+										value={field.state.value ?? ""}
+										onBlur={field.handleBlur}
+										onChange={(e) =>
+											field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
+										}
+										placeholder={t("form.fields.depositPlaceholder")}
+									/>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+						<form.Field name="price_description">
+							{(field) => (
+								<div>
+									<label
+										htmlFor="price_description"
+										className="mb-1 block text-sm font-medium text-foreground"
+									>
+										{t("form.fields.priceDescription")}
+									</label>
+									<Input
+										id="price_description"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+										placeholder={t("form.fields.priceDescriptionPlaceholder")}
+									/>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
 					</div>
-					<div className="w-1/3">
-						<label
-							htmlFor="mileage_limit"
-							className="mb-1 block text-sm font-medium text-foreground"
-						>
-							{t("form.fields.mileageLimit")}
-						</label>
-						<Input
-							id="mileage_limit"
-							type="number"
-							min={0}
-							max={10000}
-							value={mileageLimit}
-							onChange={(e) => setMileageLimit(e.target.value)}
-							placeholder={t("form.fields.mileageLimitPlaceholder")}
-						/>
-						<p className="mt-1 text-xs text-muted">{t("form.fields.mileageLimitHint")}</p>
-					</div>
+					<form.Field name="mileage_limit">
+						{(field) => (
+							<div className="w-1/3">
+								<label
+									htmlFor="mileage_limit"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
+									{t("form.fields.mileageLimit")}
+								</label>
+								<Input
+									id="mileage_limit"
+									type="number"
+									min={0}
+									max={10000}
+									value={field.state.value ?? ""}
+									onBlur={field.handleBlur}
+									onChange={(e) =>
+										field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
+									}
+									placeholder={t("form.fields.mileageLimitPlaceholder")}
+								/>
+								<p className="mt-1 text-xs text-muted">{t("form.fields.mileageLimitHint")}</p>
+								<FieldError errors={field.state.meta.errors} />
+							</div>
+						)}
+					</form.Field>
 				</div>
 			</section>
 
@@ -439,48 +474,70 @@ export function ListingForm({
 				</h2>
 				<div className="space-y-4">
 					<div className="grid grid-cols-2 gap-4">
-						<div>
-							<label htmlFor="city" className="mb-1 block text-sm font-medium text-foreground">
-								{t("form.fields.city")} <span className="text-destructive">*</span>
-							</label>
-							<Input
-								id="city"
-								required
-								value={city}
-								onChange={(e) => setCity(e.target.value)}
-								placeholder={t("form.fields.cityPlaceholder")}
-							/>
-						</div>
-						<div>
-							<label htmlFor="region" className="mb-1 block text-sm font-medium text-foreground">
-								{t("form.fields.region")} <span className="text-destructive">*</span>
-							</label>
-							<Select value={region} onValueChange={setRegion} required>
-								<SelectTrigger id="region">
-									<SelectValue placeholder={t("form.fields.regionPlaceholder")} />
-								</SelectTrigger>
-								<SelectContent>
-									{REGIONS.map((r) => (
-										<SelectItem key={r.value} value={r.value}>
-											{r.label}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
+						<form.Field name="city">
+							{(field) => (
+								<div>
+									<label htmlFor="city" className="mb-1 block text-sm font-medium text-foreground">
+										{t("form.fields.city")} <span className="text-destructive">*</span>
+									</label>
+									<Input
+										id="city"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+										placeholder={t("form.fields.cityPlaceholder")}
+									/>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+						<form.Field name="region">
+							{(field) => (
+								<div>
+									<label
+										htmlFor="region"
+										className="mb-1 block text-sm font-medium text-foreground"
+									>
+										{t("form.fields.region")} <span className="text-destructive">*</span>
+									</label>
+									<Select value={field.state.value} onValueChange={(v) => field.handleChange(v)}>
+										<SelectTrigger id="region">
+											<SelectValue placeholder={t("form.fields.regionPlaceholder")} />
+										</SelectTrigger>
+										<SelectContent>
+											{REGIONS.map((r) => (
+												<SelectItem key={r.value} value={r.value}>
+													{r.label}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
 					</div>
-					<div className="w-1/2 pr-2">
-						<label htmlFor="postal_code" className="mb-1 block text-sm font-medium text-foreground">
-							{t("form.fields.postalCode")}
-						</label>
-						<Input
-							id="postal_code"
-							value={postalCode}
-							onChange={(e) => setPostalCode(e.target.value)}
-							placeholder={t("form.fields.postalCodePlaceholder")}
-							maxLength={10}
-						/>
-					</div>
+					<form.Field name="postal_code">
+						{(field) => (
+							<div className="w-1/2 pr-2">
+								<label
+									htmlFor="postal_code"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
+									{t("form.fields.postalCode")}
+								</label>
+								<Input
+									id="postal_code"
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onChange={(e) => field.handleChange(e.target.value)}
+									placeholder={t("form.fields.postalCodePlaceholder")}
+									maxLength={10}
+								/>
+								<FieldError errors={field.state.meta.errors} />
+							</div>
+						)}
+					</form.Field>
 				</div>
 			</section>
 
@@ -491,44 +548,60 @@ export function ListingForm({
 				</h2>
 				<div className="space-y-4">
 					<div className="grid grid-cols-2 gap-4">
-						<div>
-							<label
-								htmlFor="available_from"
-								className="mb-1 block text-sm font-medium text-foreground"
-							>
-								{t("form.fields.availableFrom")}
-							</label>
-							<Input
-								id="available_from"
-								type="date"
-								value={availableFrom}
-								onChange={(e) => setAvailableFrom(e.target.value)}
-							/>
-						</div>
-						<div>
-							<label
-								htmlFor="available_to"
-								className="mb-1 block text-sm font-medium text-foreground"
-							>
-								{t("form.fields.availableTo")}
-							</label>
-							<Input
-								id="available_to"
-								type="date"
-								value={availableTo}
-								onChange={(e) => setAvailableTo(e.target.value)}
-							/>
-						</div>
+						<form.Field name="available_from">
+							{(field) => (
+								<div>
+									<label
+										htmlFor="available_from"
+										className="mb-1 block text-sm font-medium text-foreground"
+									>
+										{t("form.fields.availableFrom")}
+									</label>
+									<Input
+										id="available_from"
+										type="date"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+						<form.Field name="available_to">
+							{(field) => (
+								<div>
+									<label
+										htmlFor="available_to"
+										className="mb-1 block text-sm font-medium text-foreground"
+									>
+										{t("form.fields.availableTo")}
+									</label>
+									<Input
+										id="available_to"
+										type="date"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
 					</div>
-					<label className="flex cursor-pointer items-center gap-3">
-						<input
-							type="checkbox"
-							checked={seasonOnly}
-							onChange={(e) => setSeasonOnly(e.target.checked)}
-							className="h-4 w-4 rounded border-border accent-accent"
-						/>
-						<span className="text-sm text-foreground">{t("form.fields.seasonOnly")}</span>
-					</label>
+					<form.Field name="season_only">
+						{(field) => (
+							<label className="flex cursor-pointer items-center gap-3">
+								<input
+									type="checkbox"
+									checked={field.state.value}
+									onChange={(e) => field.handleChange(e.target.checked)}
+									className="h-4 w-4 rounded border-border accent-accent"
+								/>
+								<span className="text-sm text-foreground">{t("form.fields.seasonOnly")}</span>
+							</label>
+						)}
+					</form.Field>
 				</div>
 			</section>
 
@@ -537,23 +610,31 @@ export function ListingForm({
 				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
 					{t("form.sections.description")}
 				</h2>
-				<div>
-					<label htmlFor="description" className="mb-1 block text-sm font-medium text-foreground">
-						{t("form.fields.description")} <span className="text-destructive">*</span>
-					</label>
-					<Textarea
-						id="description"
-						required
-						rows={6}
-						value={description}
-						onChange={(e) => setDescription(e.target.value)}
-						placeholder={t("form.fields.descriptionPlaceholder")}
-						className="resize-y"
-					/>
-					<p className="mt-1 text-xs text-muted">
-						{t("form.fields.descriptionCharCount", { n: description.length })}
-					</p>
-				</div>
+				<form.Field name="description">
+					{(field) => (
+						<div>
+							<label
+								htmlFor="description"
+								className="mb-1 block text-sm font-medium text-foreground"
+							>
+								{t("form.fields.description")} <span className="text-destructive">*</span>
+							</label>
+							<Textarea
+								id="description"
+								rows={6}
+								value={field.state.value}
+								onBlur={field.handleBlur}
+								onChange={(e) => field.handleChange(e.target.value)}
+								placeholder={t("form.fields.descriptionPlaceholder")}
+								className="resize-y"
+							/>
+							<p className="mt-1 text-xs text-muted">
+								{t("form.fields.descriptionCharCount", { n: field.state.value.length })}
+							</p>
+							<FieldError errors={field.state.meta.errors} />
+						</div>
+					)}
+				</form.Field>
 			</section>
 
 			{/* ── Kuvat ─────────────────────────────────────────────────────── */}
@@ -565,7 +646,6 @@ export function ListingForm({
 					</span>
 				</h2>
 
-				{/* Existing uploaded images */}
 				{(imageUrls.length > 0 || imagePreviews.length > 0) && (
 					<div className="mb-4 grid grid-cols-4 gap-2">
 						{imageUrls.map((url) => (
@@ -641,20 +721,24 @@ export function ListingForm({
 			</section>
 
 			{/* ── Submit ────────────────────────────────────────────────────── */}
-			{!!error && (
+			{!!submitError && (
 				<div className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">
-					{error}
+					{submitError}
 				</div>
 			)}
 
-			<Button
-				type="submit"
-				disabled={loading}
-				className="w-full bg-accent text-white hover:bg-accent-hover"
-				size="lg"
-			>
-				{loading ? t("form.submit.saving") : (submitLabel ?? t("create.submitLabel"))}
-			</Button>
+			<form.Subscribe selector={(s) => s.isSubmitting}>
+				{(isSubmitting) => (
+					<Button
+						type="submit"
+						disabled={isSubmitting}
+						className="w-full bg-accent text-white hover:bg-accent-hover"
+						size="lg"
+					>
+						{isSubmitting ? t("form.submit.saving") : (submitLabel ?? t("create.submitLabel"))}
+					</Button>
+				)}
+			</form.Subscribe>
 		</form>
 	);
 }

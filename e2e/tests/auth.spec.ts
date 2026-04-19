@@ -73,7 +73,7 @@ test.describe("Register", () => {
 		// First registration succeeds
 		await register.goto();
 		await register.register(name, email, "Password123!");
-		await expect(page).not.toHaveURL(/\/rekisteroidy/);
+		await page.waitForURL((url) => url.pathname !== "/rekisteroidy");
 
 		// Second attempt with the same email surfaces the error
 		await register.goto();
