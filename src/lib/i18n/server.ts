@@ -1,0 +1,18 @@
+import i18next, { type i18n } from "i18next";
+import { initReactI18next } from "react-i18next";
+import { defaultNS, resources, type SupportedLocale, supportedLngs } from "./resources";
+
+export async function createI18n(locale: SupportedLocale): Promise<i18n> {
+	const instance = i18next.createInstance();
+	await instance.use(initReactI18next).init({
+		lng: locale,
+		fallbackLng: "fi",
+		supportedLngs: [...supportedLngs],
+		defaultNS,
+		ns: Object.keys(resources.fi),
+		resources,
+		interpolation: { escapeValue: false },
+		react: { useSuspense: false },
+	});
+	return instance;
+}
