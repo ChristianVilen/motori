@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { SEEDED_LISTING_ID, SEEDED_LISTING_TITLE } from "../global-setup";
+import { SEEDED_LISTING_ID, SEEDED_LISTING_TITLE, TEST_EMAIL } from "../global-setup";
+import { loginAs } from "../helpers";
 import { ListingDetailPage } from "../pages/listing-detail.page";
 import { ListingsPage } from "../pages/listings.page";
 
@@ -51,6 +52,10 @@ test.describe("Listings browse", () => {
 });
 
 test.describe("Listing detail", () => {
+	test.beforeEach(async ({ page }) => {
+		await loginAs(page, TEST_EMAIL);
+	});
+
 	test("renders seeded listing details", async ({ page }) => {
 		const detail = new ListingDetailPage(page);
 		await detail.goto(SEEDED_LISTING_ID);
@@ -76,10 +81,13 @@ test.describe("Listing detail", () => {
 
 		await expect(detail.notFound).toBeVisible();
 	});
+});
 
+test.describe("Listing detail (unauthenticated)", () => {
 	test("new listing page redirects unauthenticated users to login", async ({ page }) => {
 		await page.goto("/ilmoitukset/uusi");
 
 		await expect(page).toHaveURL(/\/kirjaudu/);
 	});
 });
+

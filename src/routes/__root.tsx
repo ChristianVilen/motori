@@ -11,11 +11,10 @@ import {
 import { type ReactNode, useEffect, useState } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { LoginModal } from "~/components/auth/login-modal";
-import { signOut } from "~/lib/auth-client";
-import { i18n as clientI18n, ensureClientI18n } from "~/lib/i18n/client";
+import { signOut, useSession } from "~/lib/auth-client";
 import type { SupportedLocale } from "~/lib/i18n/resources";
 import { createI18nSync } from "~/lib/i18n/server";
-import { getSession } from "~/lib/session";
+import { ensureClientI18n, i18n as clientI18n } from "~/lib/i18n/client";
 import appCss from "~/styles/app.css?url";
 
 export const Route = createRootRoute({
@@ -25,8 +24,7 @@ export const Route = createRootRoute({
 		return { locale };
 	},
 	loader: async () => {
-		const session = await getSession();
-		return { session };
+		return {};
 	},
 	head: () => ({
 		meta: [
@@ -120,7 +118,6 @@ function RootComponent() {
 		document.documentElement.setAttribute("data-hydrated", "true");
 	}, []);
 
-	const { session } = Route.useLoaderData();
 	const { locale } = Route.useRouteContext();
 
 	const [i18nInstance] = useState(() => {
@@ -133,7 +130,7 @@ function RootComponent() {
 
 	return (
 		<I18nextProvider i18n={i18nInstance}>
-			<RootDocument session={session} locale={locale}>
+			<RootDocument locale={locale}>
 				<Outlet />
 			</RootDocument>
 		</I18nextProvider>
@@ -142,14 +139,13 @@ function RootComponent() {
 
 interface RootDocumentProps {
 	children: ReactNode;
-	session?: Awaited<ReturnType<typeof getSession>>;
 	locale?: SupportedLocale;
 }
-
-function RootDocument({ children, session, locale = "fi" }: RootDocumentProps) {
+function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 	const router = useRouter();
 	const [loginOpen, setLoginOpen] = useState(false);
 	const { t } = useTranslation("common");
+	const { data: session } = useSession();
 
 	async function handleSignOut() {
 		await signOut();

@@ -5,7 +5,7 @@ export default defineConfig({
 	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
-	reporter: "html",
+	reporter: [["html", { open: "never" }]],
 	outputDir: "e2e/.test-results",
 	globalSetup: "./e2e/global-setup.ts",
 	use: {

@@ -8,6 +8,10 @@ export class HomePage {
 	readonly searchSubmit: Locator;
 	readonly browseAllLink: Locator;
 	readonly addListingCta: Locator;
+	readonly navLoginLink: Locator;
+	readonly navDashboardLink: Locator;
+	readonly navSignOutLink: Locator;
+	readonly loginModal: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
@@ -16,6 +20,10 @@ export class HomePage {
 		this.searchSubmit = page.getByTestId("home-search-submit");
 		this.browseAllLink = page.getByTestId("home-browse-all");
 		this.addListingCta = page.getByTestId("home-add-listing-cta");
+		this.navLoginLink = page.getByTestId("nav-login");
+		this.navDashboardLink = page.getByTestId("nav-dashboard");
+		this.navSignOutLink = page.getByTestId("nav-signout");
+		this.loginModal = page.getByTestId("login-modal");
 	}
 
 	async goto() {
