@@ -57,7 +57,7 @@ test.describe("Listing detail", () => {
 
 		await expect(detail.title).toHaveText(SEEDED_LISTING_TITLE);
 		await expect(detail.priceInfo).toBeVisible();
-		await expect(detail.pricePerDay).toContainText("55 €");
+		await expect(detail.pricePerDay).toContainText("55,00 €");
 		await expect(detail.locationInfo).toContainText("Helsinki");
 	});
 

@@ -5,6 +5,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { ArrowLeft } from "lucide-react";
 import { ListingForm } from "~/components/listings/listing-form";
 import { db } from "~/lib/db/index";
+import { useTranslation } from "~/lib/i18n";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { getSession } from "~/lib/session";
@@ -135,17 +136,21 @@ export const Route = createFileRoute("/listings/$listingId_/edit")({
 		return result;
 	},
 	component: EditListingPage,
-	notFoundComponent: () => (
-		<div className="flex min-h-screen flex-col items-center justify-center gap-4">
-			<p className="text-muted">Ilmoitusta ei löydy.</p>
-			<Link to="/dashboard" className="text-sm text-accent underline">
-				Omat ilmoitukset
-			</Link>
-		</div>
-	),
+	notFoundComponent: () => {
+		const { t } = useTranslation("listings");
+		return (
+			<div className="flex min-h-screen flex-col items-center justify-center gap-4">
+				<p className="text-muted">{t("edit.notFound")}</p>
+				<Link to="/dashboard" className="text-sm text-accent underline">
+					{t("edit.notFoundBack")}
+				</Link>
+			</div>
+		);
+	},
 });
 
 function EditListingPage() {
+	const { t } = useTranslation("listings");
 	const { listing, images } = Route.useLoaderData();
 	const navigate = useNavigate();
 
@@ -189,16 +194,16 @@ function EditListingPage() {
 						className="mb-4 flex items-center gap-1 text-sm text-muted hover:text-foreground"
 					>
 						<ArrowLeft className="h-4 w-4" />
-						Takaisin ilmoitukseen
+						{t("edit.back")}
 					</Link>
-					<h1 className="text-2xl font-bold text-primary">Muokkaa ilmoitusta</h1>
+					<h1 className="text-2xl font-bold text-primary">{t("edit.pageTitle")}</h1>
 					<p className="mt-1 text-sm text-muted">{listing.title}</p>
 				</div>
 				<ListingForm
 					initialValues={initialValues}
 					initialImageUrls={images.map((img) => img.url)}
 					onSubmit={handleSubmit}
-					submitLabel="Tallenna muutokset"
+					submitLabel={t("edit.submitLabel")}
 				/>
 			</div>
 		</div>

@@ -7,6 +7,7 @@ import {
 	SORT_OPTIONS,
 	TYPE_EMOJI,
 } from "~/lib/constants";
+import { useTranslation } from "~/lib/i18n";
 import type { BrowseSearchParams } from "~/lib/validators";
 
 interface FilterSidebarProps {
@@ -15,6 +16,7 @@ interface FilterSidebarProps {
 }
 
 export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
+	const { t } = useTranslation("listings");
 	const navigate = useNavigate();
 
 	function updateFilter(updates: Partial<BrowseSearchParams>) {
@@ -54,10 +56,12 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 		<aside className="w-[260px] shrink-0 space-y-6">
 			{/* Header */}
 			<div className="flex items-center justify-between">
-				<h2 className="font-heading text-sm font-semibold text-foreground">Suodattimet</h2>
+				<h2 className="font-heading text-sm font-semibold text-foreground">
+					{t("filters.heading")}
+				</h2>
 				{activeFilterCount > 0 && (
 					<button type="button" onClick={clearAll} className="text-xs text-accent hover:underline">
-						Tyhjennä
+						{t("filters.clear")}
 					</button>
 				)}
 			</div>
@@ -65,7 +69,7 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 			{/* Region */}
 			<div>
 				<label htmlFor="filter-region" className="mb-1.5 block text-xs font-medium text-muted">
-					Alue
+					{t("filters.region")}
 				</label>
 				<select
 					id="filter-region"
@@ -73,7 +77,7 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 					onChange={(e) => updateFilter({ region: e.target.value || undefined })}
 					className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
 				>
-					<option value="">Koko Suomi</option>
+					<option value="">{t("filters.regionAll")}</option>
 					{REGIONS.map((r) => (
 						<option key={r.value} value={r.value}>
 							{r.label}
@@ -84,7 +88,7 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 
 			{/* Motorcycle type */}
 			<div>
-				<p className="mb-1.5 text-xs font-medium text-muted">Tyyppi</p>
+				<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.type")}</p>
 				<div className="grid grid-cols-2 gap-1.5">
 					{MOTORCYCLE_TYPES.filter((t) => t.value !== "custom").map((t) => {
 						const isActive = search.type?.includes(t.value);
@@ -108,7 +112,7 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 
 			{/* License class */}
 			<div>
-				<p className="mb-1.5 text-xs font-medium text-muted">Ajokortti</p>
+				<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.license")}</p>
 				<div className="flex gap-1.5">
 					{LICENSE_CLASSES.map((l) => {
 						const isActive = search.license?.includes(l.value);
@@ -132,11 +136,11 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 
 			{/* Price range */}
 			<div>
-				<p className="mb-1.5 text-xs font-medium text-muted">Hinta / päivä</p>
+				<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.pricePerDay")}</p>
 				<div className="flex items-center gap-2">
 					<input
 						type="number"
-						placeholder="Min €"
+						placeholder={t("filters.priceMinPlaceholder")}
 						defaultValue={search.price_min ?? ""}
 						onBlur={(e) =>
 							updateFilter({
@@ -153,7 +157,7 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 					<span className="text-muted">–</span>
 					<input
 						type="number"
-						placeholder="Max €"
+						placeholder={t("filters.priceMaxPlaceholder")}
 						defaultValue={search.price_max ?? ""}
 						onBlur={(e) =>
 							updateFilter({
@@ -173,7 +177,7 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 			{/* Sort */}
 			<div>
 				<label htmlFor="filter-sort" className="mb-1.5 block text-xs font-medium text-muted">
-					Järjestä
+					{t("filters.sort")}
 				</label>
 				<select
 					id="filter-sort"
@@ -222,11 +226,11 @@ function ActiveFilterChips({
 					onRemove={() => onUpdateFilter({ region: undefined })}
 				/>
 			)}
-			{search.type?.map((t) => (
+			{search.type?.map((typeVal) => (
 				<FilterChip
-					key={t}
-					label={MOTORCYCLE_TYPES.find((mt) => mt.value === t)?.label ?? t}
-					onRemove={() => onToggleArrayFilter("type", t)}
+					key={typeVal}
+					label={MOTORCYCLE_TYPES.find((mt) => mt.value === typeVal)?.label ?? typeVal}
+					onRemove={() => onToggleArrayFilter("type", typeVal)}
 				/>
 			))}
 			{search.license?.map((l) => (
@@ -249,6 +253,7 @@ function ActiveFilterChips({
 }
 
 function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+	const { t } = useTranslation("listings");
 	return (
 		<span className="inline-flex items-center gap-1 rounded-full bg-muted-light px-2.5 py-1 text-xs text-foreground">
 			{label}
@@ -256,7 +261,7 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
 				type="button"
 				onClick={onRemove}
 				className="text-muted hover:text-foreground"
-				aria-label={`Poista ${label}`}
+				aria-label={t("filters.removeChipAriaLabel", { label })}
 			>
 				<X className="h-3 w-3" />
 			</button>

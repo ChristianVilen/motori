@@ -3,6 +3,7 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ListingForm } from "~/components/listings/listing-form";
 import { db } from "~/lib/db/index";
+import { useTranslation } from "~/lib/i18n";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { getSession } from "~/lib/session";
@@ -84,6 +85,7 @@ export const Route = createFileRoute("/listings/new")({
 });
 
 function NewListingPage() {
+	const { t } = useTranslation("listings");
 	const navigate = useNavigate();
 
 	async function handleSubmit(data: ListingFormData) {
@@ -95,10 +97,10 @@ function NewListingPage() {
 		<div className="min-h-screen bg-background">
 			<div className="mx-auto max-w-2xl px-4 py-8">
 				<div className="mb-8">
-					<h1 className="text-2xl font-bold text-primary">Uusi ilmoitus</h1>
-					<p className="mt-1 text-sm text-muted">Täytä tiedot ja julkaise ilmoituksesi vuokralle</p>
+					<h1 className="text-2xl font-bold text-primary">{t("create.pageTitle")}</h1>
+					<p className="mt-1 text-sm text-muted">{t("create.pageSubtitle")}</p>
 				</div>
-				<ListingForm onSubmit={handleSubmit} submitLabel="Julkaise ilmoitus" />
+				<ListingForm onSubmit={handleSubmit} submitLabel={t("create.submitLabel")} />
 			</div>
 		</div>
 	);
