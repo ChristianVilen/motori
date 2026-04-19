@@ -20,4 +20,17 @@ export default {
 	errors: {
 		generic: "Jotain meni pieleen. Yritä uudelleen.",
 	},
+	validation: {
+		titleTooShort: "Otsikko on liian lyhyt (min 5 merkkiä)",
+		titleTooLong: "Otsikko on liian pitkä",
+		brandRequired: "Valitse merkki",
+		modelRequired: "Malli on pakollinen",
+		yearTooOld: "Vuosimalli liian vanha",
+		yearInFuture: "Vuosimalli ei voi olla tulevaisuudessa",
+		typeRequired: "Valitse tyyppi",
+		pricePerDayRequired: "Päivähinta on pakollinen",
+		cityRequired: "Kaupunki on pakollinen",
+		regionRequired: "Valitse alue",
+		descriptionTooShort: "Kuvaus on liian lyhyt (min 20 merkkiä)",
+	},
 } as const;

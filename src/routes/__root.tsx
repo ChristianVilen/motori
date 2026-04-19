@@ -75,6 +75,27 @@ export const Route = createRootRoute({
 	notFoundComponent: NotFound,
 });
 
+function NotFoundContent() {
+	const { t } = useTranslation("common");
+	return (
+		<div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
+			<p className="font-heading text-7xl font-bold text-accent">404</p>
+			<h1 className="mt-4 font-heading text-2xl font-bold text-foreground">
+				{t("notFound.heading")}
+			</h1>
+			<p className="mt-2 max-w-md text-sm text-muted">
+				{t("notFound.body")}
+			</p>
+			<Link
+				to="/"
+				className="mt-8 rounded-lg bg-accent px-6 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
+			>
+				{t("notFound.back")}
+			</Link>
+		</div>
+	);
+}
+
 function NotFound() {
 	// NotFound can render without a loader having run, so nav `t()` calls have no
 	// provider otherwise. Mount a fresh Finnish i18n instance for the shell.
@@ -88,21 +109,7 @@ function NotFound() {
 	return (
 		<I18nextProvider i18n={i18nInstance}>
 			<RootDocument locale="fi">
-				<div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
-					<p className="font-heading text-7xl font-bold text-accent">404</p>
-					<h1 className="mt-4 font-heading text-2xl font-bold text-foreground">
-						Sivua ei löytynyt
-					</h1>
-					<p className="mt-2 max-w-md text-sm text-muted">
-						Etsimääsi sivua ei ole olemassa tai se on poistettu.
-					</p>
-					<Link
-						to="/"
-						className="mt-8 rounded-lg bg-accent px-6 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
-					>
-						Takaisin etusivulle
-					</Link>
-				</div>
+				<NotFoundContent />
 			</RootDocument>
 		</I18nextProvider>
 	);
