@@ -269,7 +269,7 @@ function PricingCard({
 				>
 					<Link
 						data-testid="owner-name"
-						to="/profile/$userId"
+						to="/profiili/$userId"
 						params={{ userId: listing.owner_id }}
 						className="block font-medium text-foreground hover:text-accent"
 					>
@@ -314,7 +314,7 @@ function PricingCard({
 							{t("detail.ownerActions.edit")}
 						</Button>
 					</Link>
-					<Link data-testid="listing-owner-profile-link" to="/dashboard" className="flex-1">
+					<Link data-testid="listing-owner-profile-link" to="/omat" className="flex-1">
 						<Button variant="outline" className="w-full" size="sm">
 							{t("detail.ownerActions.myListings")}
 						</Button>

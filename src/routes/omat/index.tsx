@@ -1,4 +1,4 @@
-// src/routes/dashboard/index.tsx
+// src/routes/omat/index.tsx
 // User dashboard — my listings, with quick actions
 import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
@@ -33,7 +33,7 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 					.where("listing_id", "in", listingIds)
 					.orderBy("order", "asc")
 					.execute()
-			: [];
+			: []
 
 	const profile = await db
 		.selectFrom("profile")
@@ -67,9 +67,9 @@ const setListingStatus = createServerFn({ method: "POST" })
 			.set({ status: data.status, updated_at: new Date() })
 			.where("id", "=", data.id)
 			.execute();
-	});
+	})
 
-export const Route = createFileRoute("/dashboard/")({
+export const Route = createFileRoute("/omat/")({
 	loader: async () => {
 		const session = await getSession();
 		if (!session) {
@@ -109,7 +109,7 @@ function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 
 	async function handleDelete() {
 		if (!window.confirm(t("dashboard.row.confirmDelete"))) {
-			return;
+			return
 		}
 		await setListingStatus({ data: { id: listing.id, status: "removed" } });
 		onStatusChange();
@@ -206,7 +206,7 @@ function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 				</div>
 			</div>
 		</div>
-	);
+	)
 }
 
 function ProfilePage() {
@@ -275,11 +275,11 @@ function ProfilePage() {
 
 				{/* Profile link */}
 				<div className="mt-8 text-center">
-					<Link to="/profile/settings" className="text-sm text-muted hover:text-foreground">
+					<Link to="/profiili/asetukset" className="text-sm text-muted hover:text-foreground">
 						{t("dashboard.editProfile")}
 					</Link>
 				</div>
 			</div>
 		</div>
-	);
+	)
 }

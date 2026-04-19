@@ -1,4 +1,4 @@
-// src/routes/profile/$userId.tsx
+// src/routes/profiili/$userId.tsx
 // Public user profile — display name, location, license, and their active listings.
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
@@ -39,10 +39,10 @@ const getPublicProfile = createServerFn({ method: "GET" })
 						.where("listing_id", "in", listingIds)
 						.orderBy("order", "asc")
 						.execute()
-				: [];
+				: []
 
 		return { profile, listings, images };
-	});
+	})
 
 function NotFoundProfile() {
 	const { t } = useTranslation("profile");
@@ -53,10 +53,10 @@ function NotFoundProfile() {
 				{t("publicProfile.notFoundBack")}
 			</Link>
 		</div>
-	);
+	)
 }
 
-export const Route = createFileRoute("/profile/$userId")({
+export const Route = createFileRoute("/profiili/$userId")({
 	loader: async ({ params }) => {
 		const result = await getPublicProfile({ data: params.userId });
 		if (!result) {
@@ -124,5 +124,5 @@ function PublicProfilePage() {
 				)}
 			</div>
 		</div>
-	);
+	)
 }

@@ -14,10 +14,10 @@ import { Route as TaydennaProfiiliRouteImport } from './routes/taydenna-profiili
 import { Route as RekisteroidyRouteImport } from './routes/rekisteroidy'
 import { Route as KirjauduRouteImport } from './routes/kirjaudu'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OmatIndexRouteImport } from './routes/omat/index'
 import { Route as IlmoituksetIndexRouteImport } from './routes/ilmoitukset/index'
-import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
-import { Route as ProfileSettingsRouteImport } from './routes/profile/settings'
-import { Route as ProfileUserIdRouteImport } from './routes/profile/$userId'
+import { Route as ProfiiliAsetuksetRouteImport } from './routes/profiili/asetukset'
+import { Route as ProfiiliUserIdRouteImport } from './routes/profiili/$userId'
 import { Route as IlmoituksetUusiRouteImport } from './routes/ilmoitukset/uusi'
 import { Route as IlmoituksetListingIdRouteImport } from './routes/ilmoitukset/$listingId'
 import { Route as IlmoituksetListingIdMuokkaaRouteImport } from './routes/ilmoitukset/$listingId_.muokkaa'
@@ -48,24 +48,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OmatIndexRoute = OmatIndexRouteImport.update({
+  id: '/omat/',
+  path: '/omat/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IlmoituksetIndexRoute = IlmoituksetIndexRouteImport.update({
   id: '/ilmoitukset/',
   path: '/ilmoitukset/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardIndexRoute = DashboardIndexRouteImport.update({
-  id: '/dashboard/',
-  path: '/dashboard/',
+const ProfiiliAsetuksetRoute = ProfiiliAsetuksetRouteImport.update({
+  id: '/profiili/asetukset',
+  path: '/profiili/asetukset',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfileSettingsRoute = ProfileSettingsRouteImport.update({
-  id: '/profile/settings',
-  path: '/profile/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileUserIdRoute = ProfileUserIdRouteImport.update({
-  id: '/profile/$userId',
-  path: '/profile/$userId',
+const ProfiiliUserIdRoute = ProfiiliUserIdRouteImport.update({
+  id: '/profiili/$userId',
+  path: '/profiili/$userId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IlmoituksetUusiRoute = IlmoituksetUusiRouteImport.update({
@@ -98,10 +98,10 @@ export interface FileRoutesByFullPath {
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
-  '/profile/$userId': typeof ProfileUserIdRoute
-  '/profile/settings': typeof ProfileSettingsRoute
-  '/dashboard/': typeof DashboardIndexRoute
+  '/profiili/$userId': typeof ProfiiliUserIdRoute
+  '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
   '/ilmoitukset/': typeof IlmoituksetIndexRoute
+  '/omat/': typeof OmatIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/ilmoitukset/$listingId/muokkaa': typeof IlmoituksetListingIdMuokkaaRoute
 }
@@ -113,10 +113,10 @@ export interface FileRoutesByTo {
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
-  '/profile/$userId': typeof ProfileUserIdRoute
-  '/profile/settings': typeof ProfileSettingsRoute
-  '/dashboard': typeof DashboardIndexRoute
+  '/profiili/$userId': typeof ProfiiliUserIdRoute
+  '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
   '/ilmoitukset': typeof IlmoituksetIndexRoute
+  '/omat': typeof OmatIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/ilmoitukset/$listingId/muokkaa': typeof IlmoituksetListingIdMuokkaaRoute
 }
@@ -129,10 +129,10 @@ export interface FileRoutesById {
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
-  '/profile/$userId': typeof ProfileUserIdRoute
-  '/profile/settings': typeof ProfileSettingsRoute
-  '/dashboard/': typeof DashboardIndexRoute
+  '/profiili/$userId': typeof ProfiiliUserIdRoute
+  '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
   '/ilmoitukset/': typeof IlmoituksetIndexRoute
+  '/omat/': typeof OmatIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/ilmoitukset/$listingId_/muokkaa': typeof IlmoituksetListingIdMuokkaaRoute
 }
@@ -146,10 +146,10 @@ export interface FileRouteTypes {
     | '/vahvista-sahkoposti'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
-    | '/profile/$userId'
-    | '/profile/settings'
-    | '/dashboard/'
+    | '/profiili/$userId'
+    | '/profiili/asetukset'
     | '/ilmoitukset/'
+    | '/omat/'
     | '/api/auth/$'
     | '/ilmoitukset/$listingId/muokkaa'
   fileRoutesByTo: FileRoutesByTo
@@ -161,10 +161,10 @@ export interface FileRouteTypes {
     | '/vahvista-sahkoposti'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
-    | '/profile/$userId'
-    | '/profile/settings'
-    | '/dashboard'
+    | '/profiili/$userId'
+    | '/profiili/asetukset'
     | '/ilmoitukset'
+    | '/omat'
     | '/api/auth/$'
     | '/ilmoitukset/$listingId/muokkaa'
   id:
@@ -176,10 +176,10 @@ export interface FileRouteTypes {
     | '/vahvista-sahkoposti'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
-    | '/profile/$userId'
-    | '/profile/settings'
-    | '/dashboard/'
+    | '/profiili/$userId'
+    | '/profiili/asetukset'
     | '/ilmoitukset/'
+    | '/omat/'
     | '/api/auth/$'
     | '/ilmoitukset/$listingId_/muokkaa'
   fileRoutesById: FileRoutesById
@@ -192,10 +192,10 @@ export interface RootRouteChildren {
   VahvistaSahkopostiRoute: typeof VahvistaSahkopostiRoute
   IlmoituksetListingIdRoute: typeof IlmoituksetListingIdRoute
   IlmoituksetUusiRoute: typeof IlmoituksetUusiRoute
-  ProfileUserIdRoute: typeof ProfileUserIdRoute
-  ProfileSettingsRoute: typeof ProfileSettingsRoute
-  DashboardIndexRoute: typeof DashboardIndexRoute
+  ProfiiliUserIdRoute: typeof ProfiiliUserIdRoute
+  ProfiiliAsetuksetRoute: typeof ProfiiliAsetuksetRoute
   IlmoituksetIndexRoute: typeof IlmoituksetIndexRoute
+  OmatIndexRoute: typeof OmatIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   IlmoituksetListingIdMuokkaaRoute: typeof IlmoituksetListingIdMuokkaaRoute
 }
@@ -237,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/omat/': {
+      id: '/omat/'
+      path: '/omat'
+      fullPath: '/omat/'
+      preLoaderRoute: typeof OmatIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ilmoitukset/': {
       id: '/ilmoitukset/'
       path: '/ilmoitukset'
@@ -244,25 +251,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IlmoituksetIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/': {
-      id: '/dashboard/'
-      path: '/dashboard'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof DashboardIndexRouteImport
+    '/profiili/asetukset': {
+      id: '/profiili/asetukset'
+      path: '/profiili/asetukset'
+      fullPath: '/profiili/asetukset'
+      preLoaderRoute: typeof ProfiiliAsetuksetRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/profile/settings': {
-      id: '/profile/settings'
-      path: '/profile/settings'
-      fullPath: '/profile/settings'
-      preLoaderRoute: typeof ProfileSettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile/$userId': {
-      id: '/profile/$userId'
-      path: '/profile/$userId'
-      fullPath: '/profile/$userId'
-      preLoaderRoute: typeof ProfileUserIdRouteImport
+    '/profiili/$userId': {
+      id: '/profiili/$userId'
+      path: '/profiili/$userId'
+      fullPath: '/profiili/$userId'
+      preLoaderRoute: typeof ProfiiliUserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ilmoitukset/uusi': {
@@ -304,10 +304,10 @@ const rootRouteChildren: RootRouteChildren = {
   VahvistaSahkopostiRoute: VahvistaSahkopostiRoute,
   IlmoituksetListingIdRoute: IlmoituksetListingIdRoute,
   IlmoituksetUusiRoute: IlmoituksetUusiRoute,
-  ProfileUserIdRoute: ProfileUserIdRoute,
-  ProfileSettingsRoute: ProfileSettingsRoute,
-  DashboardIndexRoute: DashboardIndexRoute,
+  ProfiiliUserIdRoute: ProfiiliUserIdRoute,
+  ProfiiliAsetuksetRoute: ProfiiliAsetuksetRoute,
   IlmoituksetIndexRoute: IlmoituksetIndexRoute,
+  OmatIndexRoute: OmatIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   IlmoituksetListingIdMuokkaaRoute: IlmoituksetListingIdMuokkaaRoute,
 }

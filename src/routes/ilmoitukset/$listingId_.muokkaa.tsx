@@ -141,7 +141,7 @@ export const Route = createFileRoute("/ilmoitukset/$listingId_/muokkaa")({
 		return (
 			<div className="flex min-h-screen flex-col items-center justify-center gap-4">
 				<p className="text-muted">{t("edit.notFound")}</p>
-				<Link to="/dashboard" className="text-sm text-accent underline">
+				<Link to="/omat" className="text-sm text-accent underline">
 					{t("edit.notFoundBack")}
 				</Link>
 			</div>

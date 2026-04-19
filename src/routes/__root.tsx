@@ -184,7 +184,7 @@ function RootDocument({ children, session, locale = "fi" }: RootDocumentProps) {
 								<>
 									<Link
 										data-testid="nav-dashboard"
-										to="/dashboard"
+										to="/omat"
 										className="text-sm text-white/70 hover:text-white"
 									>
 										{t("nav.myListings")}

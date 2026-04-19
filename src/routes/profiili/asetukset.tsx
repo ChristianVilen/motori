@@ -1,4 +1,4 @@
-// src/routes/profile/settings.tsx
+// src/routes/profiili/asetukset.tsx
 // Profile settings — edit name, city, phone visibility, license class.
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
@@ -40,14 +40,14 @@ const saveSettings = createServerFn({ method: "POST" })
 			}
 			const licenseClass = LICENSE_CLASS_VALUES.includes(data.licenseClass as LicenseClass)
 				? (data.licenseClass as LicenseClass)
-				: "";
+				: ""
 			return {
 				displayName,
 				city: data.city.trim(),
 				phone: data.phone.trim(),
 				showPhone: data.showPhone,
 				licenseClass,
-			};
+			}
 		},
 	)
 	.handler(async ({ data }) => {
@@ -78,9 +78,9 @@ const saveSettings = createServerFn({ method: "POST" })
 				}),
 			)
 			.execute();
-	});
+	})
 
-export const Route = createFileRoute("/profile/settings")({
+export const Route = createFileRoute("/profiili/asetukset")({
 	loader: async () => {
 		const session = await getSession();
 		if (!session) {
@@ -112,7 +112,7 @@ function SettingsPage() {
 		try {
 			await saveSettings({
 				data: { displayName, city, phone, showPhone, licenseClass },
-			});
+			})
 			setSaved(true);
 		} catch {
 			setError(t("settings.saveError"));
@@ -125,7 +125,7 @@ function SettingsPage() {
 		<div className="min-h-screen bg-background">
 			<div className="mx-auto max-w-lg px-4 py-8">
 				<div className="mb-6">
-					<Link to="/dashboard" className="text-sm text-muted hover:text-foreground">
+					<Link to="/omat" className="text-sm text-muted hover:text-foreground">
 						{t("settings.backLink")}
 					</Link>
 					<h1 className="mt-2 text-2xl font-bold text-primary">{t("settings.pageTitle")}</h1>
@@ -211,7 +211,7 @@ function SettingsPage() {
 						>
 							{loading ? t("settings.saving") : t("settings.save")}
 						</Button>
-						<Button type="button" variant="outline" onClick={() => navigate({ to: "/dashboard" })}>
+						<Button type="button" variant="outline" onClick={() => navigate({ to: "/omat" })}>
 							{t("settings.cancel")}
 						</Button>
 						{!!saved && <span className="text-sm text-success">{t("settings.saved")}</span>}
@@ -220,5 +220,5 @@ function SettingsPage() {
 				</form>
 			</div>
 		</div>
-	);
+	)
 }
