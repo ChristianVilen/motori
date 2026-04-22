@@ -19,10 +19,15 @@ export const EVENTS = {
 		sent: "email.sent",
 		failed: "email.failed",
 	},
+	notification: {
+		expiry_warning_sent: "notification.expiry_warning.sent",
+		expiry_warning_skipped: "notification.expiry_warning.skipped",
+	},
 } as const;
 
 export type EventName =
 	| (typeof EVENTS.auth)[keyof typeof EVENTS.auth]
 	| (typeof EVENTS.listing)[keyof typeof EVENTS.listing]
 	| (typeof EVENTS.image)[keyof typeof EVENTS.image]
-	| (typeof EVENTS.email)[keyof typeof EVENTS.email];
+	| (typeof EVENTS.email)[keyof typeof EVENTS.email]
+	| (typeof EVENTS.notification)[keyof typeof EVENTS.notification];
