@@ -4,10 +4,7 @@ import { kyselyAdapter } from "@better-auth/kysely-adapter";
 import { betterAuth } from "better-auth";
 import { db } from "~/lib/db/index";
 import { sendEmail } from "~/lib/email";
-import { createI18nSync } from "~/lib/i18n/server";
-
-const i18n = createI18nSync("fi");
-const t = i18n.getFixedT("fi", "email");
+import { emailT as t } from "~/lib/i18n/email";
 
 export const auth = betterAuth({
 	database: kyselyAdapter(db, {

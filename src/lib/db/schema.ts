@@ -102,6 +102,7 @@ export interface ListingTable {
 	status: Generated<"active" | "paused" | "rented" | "removed">;
 	view_count: Generated<number>;
 	expires_at: ColumnType<Date, Date | undefined, Date> | null;
+	expiry_notified_at: ColumnType<Date, Date | undefined, Date> | null;
 	search_vector: Generated<string>; // tsvector, maintained by trigger
 	created_at: ColumnType<Date, Date | undefined, Date>;
 	updated_at: ColumnType<Date, Date | undefined, Date>;
