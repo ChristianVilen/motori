@@ -208,10 +208,10 @@ async function main() {
 	});
 	const userId = result.user.id;
 
-	// Force email verified so login works without going through the verification email flow
+	// Force email verified + admin role so login and admin dashboard work without extra steps
 	await db
 		.updateTable("user")
-		.set({ emailVerified: true, updatedAt: new Date() })
+		.set({ emailVerified: true, role: "admin", updatedAt: new Date() })
 		.where("id", "=", userId)
 		.execute();
 

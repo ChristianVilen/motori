@@ -2,6 +2,7 @@
 
 import { kyselyAdapter } from "@better-auth/kysely-adapter";
 import { betterAuth } from "better-auth";
+import { admin } from "better-auth/plugins";
 import { db } from "~/lib/db/index";
 import { sendEmail } from "~/lib/email";
 import { emailT as t } from "~/lib/i18n/email";
@@ -15,7 +16,17 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		requireEmailVerification: process.env.DISABLE_EMAIL_VERIFICATION !== "true",
+		customSyntheticUser: ({ coreFields, additionalFields, id }) => ({
+			...coreFields,
+			role: "user",
+			banned: false,
+			banReason: null,
+			banExpires: null,
+			...additionalFields,
+			id,
+		}),
 	},
+	plugins: [admin()],
 	rateLimit: {
 		enabled: process.env.NODE_ENV === "production",
 		window: 60,

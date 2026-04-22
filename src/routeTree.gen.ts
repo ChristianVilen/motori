@@ -15,13 +15,17 @@ import { Route as TaydennaProfiiliRouteImport } from './routes/taydenna-profiili
 import { Route as RekisteroidyRouteImport } from './routes/rekisteroidy'
 import { Route as KirjauduRouteImport } from './routes/kirjaudu'
 import { Route as KayttoehdotRouteImport } from './routes/kayttoehdot'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OmatIndexRouteImport } from './routes/omat/index'
 import { Route as IlmoituksetIndexRouteImport } from './routes/ilmoitukset/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ProfiiliAsetuksetRouteImport } from './routes/profiili/asetukset'
 import { Route as ProfiiliUserIdRouteImport } from './routes/profiili/$userId'
 import { Route as IlmoituksetUusiRouteImport } from './routes/ilmoitukset/uusi'
 import { Route as IlmoituksetListingIdRouteImport } from './routes/ilmoitukset/$listingId'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AdminListingsRouteImport } from './routes/admin/listings'
 import { Route as IlmoituksetListingIdMuokkaaRouteImport } from './routes/ilmoitukset/$listingId_.muokkaa'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
@@ -55,6 +59,11 @@ const KayttoehdotRoute = KayttoehdotRouteImport.update({
   path: '/kayttoehdot',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -69,6 +78,11 @@ const IlmoituksetIndexRoute = IlmoituksetIndexRouteImport.update({
   id: '/ilmoitukset/',
   path: '/ilmoitukset/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const ProfiiliAsetuksetRoute = ProfiiliAsetuksetRouteImport.update({
   id: '/profiili/asetukset',
@@ -90,6 +104,16 @@ const IlmoituksetListingIdRoute = IlmoituksetListingIdRouteImport.update({
   path: '/ilmoitukset/$listingId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminListingsRoute = AdminListingsRouteImport.update({
+  id: '/listings',
+  path: '/listings',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const IlmoituksetListingIdMuokkaaRoute =
   IlmoituksetListingIdMuokkaaRouteImport.update({
     id: '/ilmoitukset/$listingId_/muokkaa',
@@ -104,16 +128,20 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/kayttoehdot': typeof KayttoehdotRoute
   '/kirjaudu': typeof KirjauduRoute
   '/rekisteroidy': typeof RekisteroidyRoute
   '/taydenna-profiili': typeof TaydennaProfiiliRoute
   '/tietosuoja': typeof TietosuojaRoute
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
+  '/admin/listings': typeof AdminListingsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
+  '/admin/': typeof AdminIndexRoute
   '/ilmoitukset/': typeof IlmoituksetIndexRoute
   '/omat/': typeof OmatIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -127,10 +155,13 @@ export interface FileRoutesByTo {
   '/taydenna-profiili': typeof TaydennaProfiiliRoute
   '/tietosuoja': typeof TietosuojaRoute
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
+  '/admin/listings': typeof AdminListingsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
+  '/admin': typeof AdminIndexRoute
   '/ilmoitukset': typeof IlmoituksetIndexRoute
   '/omat': typeof OmatIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -139,16 +170,20 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/kayttoehdot': typeof KayttoehdotRoute
   '/kirjaudu': typeof KirjauduRoute
   '/rekisteroidy': typeof RekisteroidyRoute
   '/taydenna-profiili': typeof TaydennaProfiiliRoute
   '/tietosuoja': typeof TietosuojaRoute
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
+  '/admin/listings': typeof AdminListingsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
+  '/admin/': typeof AdminIndexRoute
   '/ilmoitukset/': typeof IlmoituksetIndexRoute
   '/omat/': typeof OmatIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -158,16 +193,20 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/kayttoehdot'
     | '/kirjaudu'
     | '/rekisteroidy'
     | '/taydenna-profiili'
     | '/tietosuoja'
     | '/vahvista-sahkoposti'
+    | '/admin/listings'
+    | '/admin/users'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
     | '/profiili/$userId'
     | '/profiili/asetukset'
+    | '/admin/'
     | '/ilmoitukset/'
     | '/omat/'
     | '/api/auth/$'
@@ -181,10 +220,13 @@ export interface FileRouteTypes {
     | '/taydenna-profiili'
     | '/tietosuoja'
     | '/vahvista-sahkoposti'
+    | '/admin/listings'
+    | '/admin/users'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
     | '/profiili/$userId'
     | '/profiili/asetukset'
+    | '/admin'
     | '/ilmoitukset'
     | '/omat'
     | '/api/auth/$'
@@ -192,16 +234,20 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/kayttoehdot'
     | '/kirjaudu'
     | '/rekisteroidy'
     | '/taydenna-profiili'
     | '/tietosuoja'
     | '/vahvista-sahkoposti'
+    | '/admin/listings'
+    | '/admin/users'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
     | '/profiili/$userId'
     | '/profiili/asetukset'
+    | '/admin/'
     | '/ilmoitukset/'
     | '/omat/'
     | '/api/auth/$'
@@ -210,6 +256,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   KayttoehdotRoute: typeof KayttoehdotRoute
   KirjauduRoute: typeof KirjauduRoute
   RekisteroidyRoute: typeof RekisteroidyRoute
@@ -270,6 +317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KayttoehdotRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -290,6 +344,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/ilmoitukset/'
       preLoaderRoute: typeof IlmoituksetIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/profiili/asetukset': {
       id: '/profiili/asetukset'
@@ -319,6 +380,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IlmoituksetListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/listings': {
+      id: '/admin/listings'
+      path: '/listings'
+      fullPath: '/admin/listings'
+      preLoaderRoute: typeof AdminListingsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/ilmoitukset/$listingId_/muokkaa': {
       id: '/ilmoitukset/$listingId_/muokkaa'
       path: '/ilmoitukset/$listingId/muokkaa'
@@ -336,8 +411,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteRouteChildren {
+  AdminListingsRoute: typeof AdminListingsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminListingsRoute: AdminListingsRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
   KayttoehdotRoute: KayttoehdotRoute,
   KirjauduRoute: KirjauduRoute,
   RekisteroidyRoute: RekisteroidyRoute,
