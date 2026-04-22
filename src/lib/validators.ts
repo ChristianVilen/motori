@@ -39,19 +39,19 @@ export const listingFormSchema = z.object({
 export type ListingFormData = z.infer<typeof listingFormSchema>;
 
 export const browseSearchSchema = z.object({
-	q: z.string().optional(),
-	region: z.string().optional(),
-	type: z.array(z.string()).optional(),
-	license: z.array(z.string()).optional(),
+	q: z.string().trim().max(200).optional(),
+	region: z.string().trim().max(100).optional(),
+	type: z.array(z.string().trim().max(50)).optional(),
+	license: z.array(z.string().trim().max(10)).optional(),
 	price_min: z.number().optional(),
 	price_max: z.number().optional(),
 	sort: z.enum(["newest", "price_asc", "price_desc", "relevance"]).optional(),
-	cursor: z.string().optional(),
+	cursor: z.string().max(200).optional(),
 });
 
 export type BrowseSearchParams = z.infer<typeof browseSearchSchema>;
 
-const FINNISH_PHONE_RE = /^(\+358|0)\d{6,12}$/;
+const FINNISH_PHONE_RE = /^(\+358|0)\d{6,9}$/;
 
 export function validateFinnishPhone(raw: string): string {
 	const phone = raw.trim();

@@ -8,6 +8,8 @@ const connectSrc = storageEndpoint ? `'self' ${storageEndpoint}` : "'self'";
 
 const csp = [
 	"default-src 'self'",
+	// unsafe-inline required for TanStack Start SSR hydration inline scripts.
+	// TODO: switch to nonce-based CSP when framework supports it.
 	"script-src 'self' 'unsafe-inline'",
 	"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 	"font-src 'self' https://fonts.gstatic.com",

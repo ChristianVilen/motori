@@ -17,11 +17,11 @@ export const auth = betterAuth({
 		requireEmailVerification: process.env.DISABLE_EMAIL_VERIFICATION !== "true",
 	},
 	rateLimit: {
-		enabled: true,
+		enabled: process.env.NODE_ENV === "production",
 		window: 60,
 		max: 100,
 		customRules: {
-			"/sign-in/email": { window: 10, max: 3 },
+			"/sign-in/email": { window: 60, max: 5 },
 			"/sign-up/email": { window: 60, max: 5 },
 		},
 	},

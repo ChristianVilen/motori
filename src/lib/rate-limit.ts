@@ -1,5 +1,9 @@
 // Fixed-window rate limiter. A user can burst up to `max` requests at the
 // boundary of two windows. Acceptable for MVP; switch to sliding window if needed.
+//
+// NOTE: State is per-process (in-memory Map). When running multiple instances
+// (cluster mode, multiple containers), each process tracks limits independently.
+// Replace with a Redis-backed limiter before horizontal scaling.
 import { createMiddleware } from "@tanstack/react-start";
 import { getRequest, setResponseHeader, setResponseStatus } from "@tanstack/react-start/server";
 
@@ -11,20 +15,29 @@ interface Entry {
 const buckets = new Map<string, Entry>();
 
 // Purge expired entries every 60s to prevent memory leak.
-setInterval(() => {
-	const now = Date.now();
-	for (const [key, entry] of buckets) {
-		if (entry.resetAt <= now) {
-			buckets.delete(key);
-		}
+// Lazily started on first rate-limit check to avoid side effects at import time.
+let cleanupStarted = false;
+function ensureCleanup() {
+	if (cleanupStarted) {
+		return;
 	}
-}, 60_000).unref();
+	cleanupStarted = true;
+	setInterval(() => {
+		const now = Date.now();
+		for (const [key, entry] of buckets) {
+			if (entry.resetAt <= now) {
+				buckets.delete(key);
+			}
+		}
+	}, 60_000).unref();
+}
 
 function check(
 	key: string,
 	max: number,
 	windowMs: number,
 ): { allowed: boolean; retryAfter: number } {
+	ensureCleanup();
 	const now = Date.now();
 	const entry = buckets.get(key);
 
