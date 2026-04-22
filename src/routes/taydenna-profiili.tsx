@@ -8,6 +8,7 @@ import { LICENSE_CLASSES, type LicenseClass } from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import { useTranslation } from "~/lib/i18n";
 import { getSession } from "~/lib/session";
+import { validateFinnishPhone } from "~/lib/validators";
 
 const LICENSE_CLASS_VALUES = LICENSE_CLASSES.map((c) => c.value) as LicenseClass[];
 
@@ -18,10 +19,11 @@ const saveProfile = createServerFn({ method: "POST" })
 			if (!displayName) {
 				throw new Error("Näyttönimi on pakollinen");
 			}
+			const phone = validateFinnishPhone(data.phone);
 			const licenseClass = LICENSE_CLASS_VALUES.includes(data.licenseClass as LicenseClass)
 				? (data.licenseClass as LicenseClass)
 				: "";
-			return { displayName, city: data.city, phone: data.phone, licenseClass };
+			return { displayName, city: data.city.trim(), phone, licenseClass };
 		},
 	)
 	.handler(async ({ data }) => {

@@ -3,6 +3,7 @@ import { type SelectQueryBuilder, type SqlBool, sql } from "kysely";
 import { ADJACENT_REGIONS } from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import type { Database, Listing, ListingImage } from "~/lib/db/schema";
+import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { toTsQuery } from "~/lib/search";
 import type { BrowseSearchParams } from "~/lib/validators";
 
@@ -115,6 +116,7 @@ function buildNextCursor(listings: Listing[], sort: SortMode): string | null {
 }
 
 export const searchListings = createServerFn({ method: "GET" })
+	.middleware([rateLimitMiddleware(60, 60, "search")])
 	.inputValidator((input: BrowseSearchParams) => input)
 	.handler(async ({ data: params }): Promise<SearchResult> => {
 		const tsquery = params.q ? toTsQuery(params.q) : null;
