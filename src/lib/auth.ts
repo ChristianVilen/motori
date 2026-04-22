@@ -16,6 +16,20 @@ export const auth = betterAuth({
 		enabled: true,
 		requireEmailVerification: process.env.DISABLE_EMAIL_VERIFICATION !== "true",
 	},
+	rateLimit: {
+		enabled: process.env.NODE_ENV === "production",
+		window: 60,
+		max: 100,
+		customRules: {
+			"/sign-in/email": { window: 60, max: 5 },
+			"/sign-up/email": { window: 60, max: 5 },
+		},
+	},
+	advanced: {
+		ipAddress: {
+			ipAddressHeaders: ["x-forwarded-for"],
+		},
+	},
 	emailVerification: {
 		expiresIn: 86400, // 24 hours
 		sendVerificationEmail: async ({ user, url }) => {
