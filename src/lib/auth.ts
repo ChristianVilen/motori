@@ -4,6 +4,7 @@ import { kyselyAdapter } from "@better-auth/kysely-adapter";
 import { betterAuth } from "better-auth";
 import { db } from "~/lib/db/index";
 import { sendEmail } from "~/lib/email";
+import { emailT as t } from "~/lib/i18n/email";
 
 export const auth = betterAuth({
 	database: kyselyAdapter(db, {
@@ -16,19 +17,19 @@ export const auth = betterAuth({
 		requireEmailVerification: process.env.DISABLE_EMAIL_VERIFICATION !== "true",
 	},
 	emailVerification: {
-		expiresIn: 86400, // 24 hours — matches the Finnish email copy
+		expiresIn: 86400, // 24 hours
 		sendVerificationEmail: async ({ user, url }) => {
 			await sendEmail({
 				to: user.email,
-				subject: "Vahvista sähköpostiosoitteesi — Vuokramoto",
+				subject: t("verification.subject"),
 				html: `
-					<p>Hei,</p>
-					<p>Vahvista sähköpostiosoitteesi klikkaamalla alla olevaa linkkiä:</p>
+					<p>${t("verification.greeting")}</p>
+					<p>${t("verification.body")}</p>
 					<p><a href="${url}">${url}</a></p>
-					<p>Linkki vanhenee 24 tunnissa.</p>
-					<p>— Vuokramoto</p>
+					<p>${t("verification.expiry")}</p>
+					<p>${t("signature")}</p>
 				`,
-				text: `Vahvista sähköpostiosoitteesi:\n${url}\n\nLinkki vanhenee 24 tunnissa.`,
+				text: `${t("verification.body")}\n${url}\n\n${t("verification.expiry")}`,
 			});
 		},
 	},

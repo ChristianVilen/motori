@@ -9,6 +9,7 @@
 		"db:migrate": "tsx --env-file=.env src/lib/db/migrate.ts",
 		"db:seed": "tsx --env-file=.env src/lib/db/seed.ts",
 		"db:codegen": "tsx --env-file=.env src/lib/db/codegen.ts",
+		"notify:expiry": "tsx --env-file=.env src/lib/notify-expiry.ts",
 		"typecheck": "tsc --noEmit",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
