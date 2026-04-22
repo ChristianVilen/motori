@@ -16,9 +16,7 @@ function Tietosuoja() {
 			</p>
 
 			<section className="mt-8">
-				<h2 className="font-heading text-xl font-semibold text-foreground">
-					1. Rekisterinpitäjä
-				</h2>
+				<h2 className="font-heading text-xl font-semibold text-foreground">1. Rekisterinpitäjä</h2>
 				<p className="mt-3 text-sm text-foreground/80">
 					Christian Vilen
 					<br />
@@ -42,8 +40,8 @@ function Tietosuoja() {
 							kuvat, jotka näkyvät muille käyttäjille
 						</li>
 						<li>
-							<strong>Lokitiedot:</strong> IP-osoite ja palvelimen lokitiedot palvelun
-							teknistä ylläpitoa ja turvallisuutta varten
+							<strong>Lokitiedot:</strong> IP-osoite ja palvelimen lokitiedot palvelun teknistä
+							ylläpitoa ja turvallisuutta varten
 						</li>
 					</ul>
 				</div>
@@ -61,16 +59,16 @@ function Tietosuoja() {
 							(oikeusperusta: sopimuksen täytäntöönpano)
 						</li>
 						<li>
-							<strong>Käyttäjätunnistus</strong> – kirjautumisen varmentaminen
-							(oikeusperusta: sopimuksen täytäntöönpano)
+							<strong>Käyttäjätunnistus</strong> – kirjautumisen varmentaminen (oikeusperusta:
+							sopimuksen täytäntöönpano)
 						</li>
 						<li>
-							<strong>Turvallisuus ja väärinkäytösten esto</strong> – lokitiedot
-							(oikeusperusta: oikeutettu etu)
+							<strong>Turvallisuus ja väärinkäytösten esto</strong> – lokitiedot (oikeusperusta:
+							oikeutettu etu)
 						</li>
 						<li>
-							<strong>Palvelun kehittäminen</strong> – käyttötilastot
-							(oikeusperusta: oikeutettu etu)
+							<strong>Palvelun kehittäminen</strong> – käyttötilastot (oikeusperusta: oikeutettu
+							etu)
 						</li>
 					</ul>
 				</div>
@@ -88,9 +86,7 @@ function Tietosuoja() {
 						Ilmoituksessasi julkaisemasi tiedot (moottoripyörän tiedot, kuvat) ovat näkyvissä
 						kaikille palvelun käyttäjille.
 					</p>
-					<p>
-						Voimme luovuttaa tietoja viranomaisille, jos laki sitä edellyttää.
-					</p>
+					<p>Voimme luovuttaa tietoja viranomaisille, jos laki sitä edellyttää.</p>
 				</div>
 			</section>
 
@@ -98,8 +94,8 @@ function Tietosuoja() {
 				<h2 className="font-heading text-xl font-semibold text-foreground">5. Säilytysaika</h2>
 				<div className="mt-3 space-y-3 text-sm text-foreground/80">
 					<p>
-						Säilytämme henkilötietojasi niin kauan kuin tilisi on aktiivinen, sekä enintään 2
-						vuotta tilin sulkemisen jälkeen.
+						Säilytämme henkilötietojasi niin kauan kuin tilisi on aktiivinen, sekä enintään 2 vuotta
+						tilin sulkemisen jälkeen.
 					</p>
 					<p>
 						Kirjanpitovelvoitteiden edellyttämät tiedot säilytetään 7 vuotta voimassa olevan
@@ -121,9 +117,7 @@ function Tietosuoja() {
 						<li>siirtää tietosi toiselle rekisterinpitäjälle (tietojen siirrettävyys)</li>
 						<li>vastustaa tietojesi käsittelyä oikeutettuun etuun perustuvissa tilanteissa</li>
 					</ul>
-					<p>
-						Oikeuksien käyttämiseksi ota yhteyttä: [sähköposti]
-					</p>
+					<p>Oikeuksien käyttämiseksi ota yhteyttä: [sähköposti]</p>
 					<p>
 						Jos koet, että henkilötietojesi käsittely on lainvastaista, voit tehdä valituksen
 						tietosuojavaltuutetun toimistoon:{" "}
@@ -142,8 +136,8 @@ function Tietosuoja() {
 			<section className="mt-8">
 				<h2 className="font-heading text-xl font-semibold text-foreground">7. Evästeet</h2>
 				<p className="mt-3 text-sm text-foreground/80">
-					Käytämme ainoastaan teknisesti välttämättömiä evästeitä kirjautumisen ylläpitoon.
-					Emme käytä mainos- tai seurantaevästeitä.
+					Käytämme ainoastaan teknisesti välttämättömiä evästeitä kirjautumisen ylläpitoon. Emme
+					käytä mainos- tai seurantaevästeitä.
 				</p>
 			</section>
 
