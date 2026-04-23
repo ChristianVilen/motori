@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { authClient } from "~/lib/auth-client";
@@ -13,16 +13,47 @@ export const Route = createFileRoute("/vaihda-salasana")({
 	component: ResetPasswordPage,
 });
 
+function passwordStrength(pw: string) {
+	let score = 0;
+	if (pw.length >= 8) {
+		score++;
+	}
+	if (pw.length >= 12) {
+		score++;
+	}
+	if (/[A-Z]/.test(pw)) {
+		score++;
+	}
+	if (/[0-9]/.test(pw)) {
+		score++;
+	}
+	if (/[^A-Za-z0-9]/.test(pw)) {
+		score++;
+	}
+	if (score <= 1) {
+		return { score, labelKey: "strengthWeak" as const, color: "bg-destructive" };
+	}
+	if (score <= 3) {
+		return { score, labelKey: "strengthFair" as const, color: "bg-warning" };
+	}
+	return { score, labelKey: "strengthStrong" as const, color: "bg-success" };
+}
+
 function ResetPasswordPage() {
 	const { t } = useTranslation("auth");
 	const { token, error: urlError } = useSearch({ from: "/vaihda-salasana" });
 	const [password, setPassword] = useState("");
 	const [confirm, setConfirm] = useState("");
-	const [error, setError] = useState<string | null>(
-		urlError === "INVALID_TOKEN" ? t("resetPassword.errorInvalidToken") : null,
-	);
+	const strength = passwordStrength(password);
+	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
+
+	useEffect(() => {
+		if (urlError === "INVALID_TOKEN") {
+			setError(t("resetPassword.errorInvalidToken"));
+		}
+	}, [urlError, t]);
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
@@ -91,6 +122,21 @@ function ResetPasswordPage() {
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
 						/>
+						{password.length > 0 && (
+							<div className="space-y-1">
+								<div className="flex gap-1">
+									{[1, 2, 3, 4, 5].map((i) => (
+										<div
+											key={i}
+											className={`h-1 flex-1 rounded-full transition-colors ${
+												i <= strength.score ? strength.color : "bg-border"
+											}`}
+										/>
+									))}
+								</div>
+								<p className="text-xs text-muted">{t(`register.${strength.labelKey}`)}</p>
+							</div>
+						)}
 					</div>
 
 					<div className="space-y-2">
@@ -119,7 +165,7 @@ function ResetPasswordPage() {
 						data-testid="reset-password-submit"
 						type="submit"
 						className="w-full bg-accent text-white hover:bg-accent-hover"
-						disabled={loading || !token}
+						disabled={loading || !token || strength.score <= 1}
 					>
 						{loading ? t("resetPassword.submitLoading") : t("resetPassword.submitIdle")}
 					</Button>

@@ -18,12 +18,18 @@ function ForgotPasswordPage() {
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		setLoading(true);
-		await authClient.requestPasswordReset({
-			email,
-			redirectTo: "/vaihda-salasana",
-		});
-		setLoading(false);
-		setSent(true);
+		try {
+			await authClient.requestPasswordReset({
+				email,
+				redirectTo: "/vaihda-salasana",
+			});
+			setSent(true);
+		} catch {
+			// Always show success to avoid leaking whether the email exists
+			setSent(true);
+		} finally {
+			setLoading(false);
+		}
 	}
 
 	return (

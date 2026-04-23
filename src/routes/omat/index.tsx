@@ -93,7 +93,7 @@ interface ListingRowProps {
 	listing: Listing;
 	firstImage: ListingImage | undefined;
 	onStatusChange: () => void;
-	verified: boolean;
+	verified: boolean | null;
 }
 
 function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRowProps) {

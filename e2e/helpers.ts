@@ -23,10 +23,3 @@ export async function loginAs(page: Page, email: string) {
 	await page.waitForURL("/");
 	await waitForHydration(page);
 }
-
-/** Backdate a user's createdAt so the 24h grace period has expired. */
-export async function backdateUser(email: string, daysAgo: number) {
-	const { db } = await import("../src/lib/db/index");
-	const past = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
-	await db.updateTable("user").set({ createdAt: past }).where("email", "=", email).execute();
-}

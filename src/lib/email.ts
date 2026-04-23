@@ -1,4 +1,3 @@
-import { Resend } from "resend";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 
@@ -10,12 +9,17 @@ export interface EmailPayload {
 	idempotencyKey?: string;
 }
 
-const FROM = "Vuokramoto <onboarding@resend.dev>";
+const FROM = "Vuokramoto <noreply@vuokramoto.fi>";
 
-let _resend: Resend | null | undefined;
-function getResend() {
+let _resend: import("resend").Resend | null | undefined;
+async function getResend() {
 	if (_resend === undefined) {
-		_resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+		if (process.env.RESEND_API_KEY) {
+			const { Resend } = await import("resend");
+			_resend = new Resend(process.env.RESEND_API_KEY);
+		} else {
+			_resend = null;
+		}
 	}
 	return _resend;
 }
@@ -46,7 +50,7 @@ function logMockEmail(payload: EmailPayload): void {
 export async function sendEmail(payload: EmailPayload): Promise<void> {
 	const toHash = hashRecipient(payload.to);
 
-	const resend = getResend();
+	const resend = await getResend();
 	if (resend) {
 		const { data, error } = await resend.emails.send({
 			from: FROM,
@@ -59,7 +63,7 @@ export async function sendEmail(payload: EmailPayload): Promise<void> {
 
 		if (error) {
 			log.event(EVENTS.email.failed, { template: payload.subject, reason: error.message });
-			return;
+			throw new Error(error.message);
 		}
 
 		log.event(EVENTS.email.sent, { template: payload.subject, toHash, resendId: data?.id });

@@ -154,13 +154,17 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 	const showVerifyBanner = session?.user && !session.user.emailVerified;
 
 	async function handleResendVerification() {
-		if (!session?.user?.email) {
+		if (!session?.user?.email || resent) {
 			return;
 		}
-		await authClient.sendVerificationEmail({
-			email: session.user.email,
-			callbackURL: "/",
-		});
+		try {
+			await authClient.sendVerificationEmail({
+				email: session.user.email,
+				callbackURL: "/",
+			});
+		} catch {
+			// Silently fail — user can retry
+		}
 		setResent(true);
 	}
 

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSession } from "~/lib/auth-client";
 
-/** Returns true if the user can perform verified-only actions (create listing, message, etc.). */
-export function useEmailVerified(): boolean {
+/** Returns whether the user can perform verified-only actions, or null during SSR/hydration. */
+export function useEmailVerified(): boolean | null {
 	const { data: session } = useSession();
 	const [mounted, setMounted] = useState(false);
 
@@ -10,8 +10,10 @@ export function useEmailVerified(): boolean {
 		setMounted(true);
 	}, []);
 
-	// Before mount, return true to match SSR output (no session available on server)
-	if (!mounted || !session?.user) {
+	if (!mounted) {
+		return null;
+	}
+	if (!session?.user) {
 		return true;
 	}
 	return session.user.emailVerified;

@@ -28,7 +28,7 @@ export const auth = betterAuth({
 					<p>${t("signature")}</p>
 				`,
 				text: `${t("passwordReset.body")}\n${url}\n\n${t("passwordReset.expiry")}`,
-			});
+			}).catch(() => {});
 		},
 		customSyntheticUser: ({ coreFields, additionalFields, id }) => ({
 			...coreFields,
@@ -69,7 +69,7 @@ export const auth = betterAuth({
 					<p>${t("signature")}</p>
 				`,
 				text: `${t("verification.body")}\n${url}\n\n${t("verification.expiry")}`,
-			});
+			}).catch(() => {});
 		},
 	},
 });
