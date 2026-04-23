@@ -15,6 +15,7 @@ import { authClient, signOut, useSession } from "~/lib/auth-client";
 import { i18n as clientI18n, ensureClientI18n } from "~/lib/i18n/client";
 import type { SupportedLocale } from "~/lib/i18n/resources";
 import { createI18nSync } from "~/lib/i18n/server";
+import { useEmailVerified } from "~/lib/use-email-verified";
 import appCss from "~/styles/app.css?url";
 
 export const Route = createRootRoute({
@@ -147,6 +148,8 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 	const { data: session } = useSession();
 	const isAdmin = router.state.location.pathname.startsWith("/admin");
 	const [resent, setResent] = useState(false);
+	const [checkedSpam, setCheckedSpam] = useState(false);
+	const verified = useEmailVerified();
 
 	const showVerifyBanner = session?.user && !session.user.emailVerified;
 
@@ -183,12 +186,23 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 								<Link to="/ilmoitukset" className="text-sm text-white/70 hover:text-white">
 									{t("nav.browse")}
 								</Link>
-								<Link
-									to="/ilmoitukset/uusi"
-									className="rounded-md bg-accent px-3.5 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
-								>
-									{t("nav.listMotorcycle")}
-								</Link>
+								{verified ? (
+									<Link
+										data-testid="nav-add-listing"
+										to="/ilmoitukset/uusi"
+										className="rounded-md bg-accent px-3.5 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
+									>
+										{t("nav.listMotorcycle")}
+									</Link>
+								) : (
+									<span
+										data-testid="nav-add-listing"
+										title={tAuth("unverifiedTooltip")}
+										className="cursor-not-allowed rounded-md bg-white/20 px-3.5 py-1.5 text-sm font-medium text-white/40"
+									>
+										{t("nav.listMotorcycle")}
+									</span>
+								)}
 								{session ? (
 									<>
 										<Link
@@ -224,13 +238,25 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 				{!isAdmin && showVerifyBanner && (
 					<div className="bg-warning/10 border-b border-warning/30 px-4 py-2 text-center text-sm">
 						<span className="text-foreground">{tAuth("verifyBanner.text")}</span>{" "}
-						<button
-							type="button"
-							onClick={handleResendVerification}
-							className="font-medium text-accent hover:underline"
-						>
-							{resent ? tAuth("verifyBanner.sent") : tAuth("verifyBanner.resend")}
-						</button>
+						{resent ? (
+							<span className="font-medium text-accent">{tAuth("verifyBanner.sent")}</span>
+						) : checkedSpam ? (
+							<button
+								type="button"
+								onClick={handleResendVerification}
+								className="font-medium text-accent hover:underline"
+							>
+								{tAuth("verifyBanner.resend")}
+							</button>
+						) : (
+							<button
+								type="button"
+								onClick={() => setCheckedSpam(true)}
+								className="font-medium text-accent hover:underline"
+							>
+								{tAuth("verifyBanner.checkSpam")}
+							</button>
+						)}
 					</div>
 				)}
 				{children}

@@ -2,8 +2,6 @@ import { createMiddleware } from "@tanstack/react-start";
 import { setResponseStatus } from "@tanstack/react-start/server";
 import { getSession } from "~/lib/session";
 
-const GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
-
 export function requireVerifiedEmail() {
 	return createMiddleware({ type: "function" }).server(async ({ next }) => {
 		const session = await getSession();
@@ -11,13 +9,7 @@ export function requireVerifiedEmail() {
 			return next();
 		}
 
-		const { emailVerified, createdAt } = session.user;
-		if (emailVerified) {
-			return next();
-		}
-
-		const accountAge = Date.now() - new Date(createdAt).getTime();
-		if (accountAge <= GRACE_PERIOD_MS) {
+		if (session.user.emailVerified) {
 			return next();
 		}
 

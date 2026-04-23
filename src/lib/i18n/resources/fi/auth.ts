@@ -33,9 +33,11 @@ export default {
 	},
 	verifyBanner: {
 		text: "Vahvista sähköpostiosoitteesi jatkaaksesi palvelun käyttöä.",
+		checkSpam: "Etkö saanut viestiä? Tarkista roskaposti.",
 		resend: "Lähetä uudelleen",
 		sent: "Vahvistuslinkki lähetetty!",
 	},
+	unverifiedTooltip: "Vahvista sähköpostisi käyttääksesi tätä toimintoa",
 	completeProfile: {
 		heading: "Viimeistele profiilisi",
 		tagline: "Kertoo muille käyttäjille kuka olet",

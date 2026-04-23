@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "~/lib/i18n";
 import { getNeighborRegionCount } from "~/lib/listings-queries";
+import { useEmailVerified } from "~/lib/use-email-verified";
 import type { BrowseSearchParams } from "~/lib/validators";
 
 interface EmptyStateProps {
@@ -80,12 +81,23 @@ export function EmptyState({ search }: EmptyStateProps) {
 
 export function LowResultNudge() {
 	const { t } = useTranslation("listings");
+	const { t: tAuth } = useTranslation("auth");
+	const verified = useEmailVerified();
 	return (
 		<div className="mt-6 rounded-lg border border-border bg-muted-light px-4 py-3 text-center text-sm text-muted">
 			{t("empty.lowResults")}{" "}
-			<Link to="/ilmoitukset/uusi" className="font-medium text-accent hover:underline">
-				{t("empty.lowResultsLink")}
-			</Link>
+			{verified ? (
+				<Link to="/ilmoitukset/uusi" className="font-medium text-accent hover:underline">
+					{t("empty.lowResultsLink")}
+				</Link>
+			) : (
+				<span
+					title={tAuth("unverifiedTooltip")}
+					className="cursor-not-allowed font-medium text-muted/50"
+				>
+					{t("empty.lowResultsLink")}
+				</span>
+			)}
 			.
 		</div>
 	);

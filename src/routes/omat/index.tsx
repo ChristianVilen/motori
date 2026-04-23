@@ -10,6 +10,7 @@ import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { requireVerifiedEmail } from "~/lib/require-verified-email";
 import { getSession } from "~/lib/session";
+import { useEmailVerified } from "~/lib/use-email-verified";
 
 const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 	const session = await getSession();
@@ -92,10 +93,12 @@ interface ListingRowProps {
 	listing: Listing;
 	firstImage: ListingImage | undefined;
 	onStatusChange: () => void;
+	verified: boolean;
 }
 
-function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
+function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRowProps) {
 	const { t } = useTranslation("profile");
+	const { t: tAuth } = useTranslation("auth");
 	const typeLabel =
 		MOTORCYCLE_TYPES.find((mt) => mt.value === listing.motorcycle_type)?.label ??
 		listing.motorcycle_type;
@@ -184,17 +187,32 @@ function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 
 				{/* Actions */}
 				<div className="mt-3 flex flex-wrap gap-2">
-					<Link to="/ilmoitukset/$listingId/muokkaa" params={{ listingId: listing.id }}>
-						<Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs">
+					{verified ? (
+						<Link to="/ilmoitukset/$listingId/muokkaa" params={{ listingId: listing.id }}>
+							<Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs">
+								<Pencil className="h-3 w-3" />
+								{t("dashboard.row.edit")}
+							</Button>
+						</Link>
+					) : (
+						<Button
+							variant="outline"
+							size="sm"
+							className="h-7 gap-1 px-2 text-xs"
+							disabled
+							title={tAuth("unverifiedTooltip")}
+						>
 							<Pencil className="h-3 w-3" />
 							{t("dashboard.row.edit")}
 						</Button>
-					</Link>
+					)}
 					<Button
 						variant="outline"
 						size="sm"
 						className="h-7 px-2 text-xs"
 						onClick={handleTogglePause}
+						disabled={!verified}
+						title={!verified ? tAuth("unverifiedTooltip") : undefined}
 					>
 						{listing.status === "active" ? t("dashboard.row.pause") : t("dashboard.row.activate")}
 					</Button>
@@ -203,6 +221,8 @@ function ListingRow({ listing, firstImage, onStatusChange }: ListingRowProps) {
 						size="sm"
 						className="h-7 px-2 text-xs text-destructive hover:border-destructive hover:text-destructive"
 						onClick={handleDelete}
+						disabled={!verified}
+						title={!verified ? tAuth("unverifiedTooltip") : undefined}
 					>
 						{t("dashboard.row.delete")}
 					</Button>
@@ -216,6 +236,8 @@ function ProfilePage() {
 	const { listings, images, profile } = Route.useLoaderData();
 	const router = useRouter();
 	const { t } = useTranslation("profile");
+	const { t: tAuth } = useTranslation("auth");
+	const verified = useEmailVerified();
 
 	function refresh() {
 		router.invalidate();
@@ -249,23 +271,44 @@ function ProfilePage() {
 							})}
 						</p>
 					</div>
-					<Link to="/ilmoitukset/uusi">
-						<Button className="gap-2 bg-accent text-white hover:bg-accent-hover">
+					{verified ? (
+						<Link to="/ilmoitukset/uusi">
+							<Button
+								data-testid="dashboard-new-listing"
+								className="gap-2 bg-accent text-white hover:bg-accent-hover"
+							>
+								<Plus className="h-4 w-4" />
+								{t("dashboard.newListing")}
+							</Button>
+						</Link>
+					) : (
+						<Button
+							data-testid="dashboard-new-listing"
+							className="gap-2"
+							disabled
+							title={tAuth("unverifiedTooltip")}
+						>
 							<Plus className="h-4 w-4" />
 							{t("dashboard.newListing")}
 						</Button>
-					</Link>
+					)}
 				</div>
 
 				{/* Listings */}
 				{listings.length === 0 ? (
 					<div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border py-16 text-center">
 						<p className="text-muted">{t("dashboard.emptyState")}</p>
-						<Link to="/ilmoitukset/uusi">
-							<Button className="bg-accent text-white hover:bg-accent-hover">
+						{verified ? (
+							<Link to="/ilmoitukset/uusi">
+								<Button className="bg-accent text-white hover:bg-accent-hover">
+									{t("dashboard.createFirst")}
+								</Button>
+							</Link>
+						) : (
+							<Button disabled title={tAuth("unverifiedTooltip")}>
 								{t("dashboard.createFirst")}
 							</Button>
-						</Link>
+						)}
 					</div>
 				) : (
 					<div className="space-y-3">
@@ -275,6 +318,7 @@ function ProfilePage() {
 								listing={listing}
 								firstImage={firstImageByListing.get(listing.id)}
 								onStatusChange={refresh}
+								verified={verified}
 							/>
 						))}
 					</div>
