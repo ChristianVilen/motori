@@ -44,6 +44,7 @@ export interface Listing {
 	description: string;
 	engine_cc: number | null;
 	expires_at: Timestamp | null;
+	expiry_notified_at: Timestamp | null;
 	id: string;
 	mileage_limit: number | null;
 	model: string;
@@ -88,6 +89,7 @@ export interface Session {
 	createdAt: Timestamp;
 	expiresAt: Timestamp;
 	id: string;
+	impersonatedBy: string | null;
 	ipAddress: string | null;
 	token: string;
 	updatedAt: Timestamp;
@@ -96,12 +98,16 @@ export interface Session {
 }
 
 export interface User {
+	banExpires: Timestamp | null;
+	banned: Generated<boolean>;
+	banReason: string | null;
 	createdAt: Timestamp;
 	email: string;
 	emailVerified: Generated<boolean>;
 	id: string;
 	image: string | null;
 	name: string;
+	role: Generated<string>;
 	updatedAt: Timestamp;
 }
 

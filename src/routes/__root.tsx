@@ -144,6 +144,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 	const [loginOpen, setLoginOpen] = useState(false);
 	const { t } = useTranslation("common");
 	const { data: session } = useSession();
+	const isAdmin = router.state.location.pathname.startsWith("/admin");
 
 	async function handleSignOut() {
 		await signOut();
@@ -157,65 +158,69 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 				<HeadContent />
 			</head>
 			<body className="min-h-screen bg-background font-sans text-foreground antialiased">
-				<nav className="border-b border-border bg-primary px-4 py-3">
-					<div className="mx-auto flex max-w-6xl items-center justify-between">
-						<Link to="/" className="font-heading text-lg font-bold text-white">
-							vuokramoto
-						</Link>
-						<div className="flex items-center gap-4 sm:gap-6">
-							<Link to="/ilmoitukset" className="text-sm text-white/70 hover:text-white">
-								{t("nav.browse")}
+				{!isAdmin && (
+					<nav className="border-b border-border bg-primary px-4 py-3">
+						<div className="mx-auto flex max-w-6xl items-center justify-between">
+							<Link to="/" className="font-heading text-lg font-bold text-white">
+								vuokramoto
 							</Link>
-							<Link
-								to="/ilmoitukset/uusi"
-								className="rounded-md bg-accent px-3.5 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
-							>
-								{t("nav.listMotorcycle")}
-							</Link>
-							{session ? (
-								<>
-									<Link
-										data-testid="nav-dashboard"
-										to="/omat"
-										className="text-sm text-white/70 hover:text-white"
-									>
-										{t("nav.myListings")}
-									</Link>
+							<div className="flex items-center gap-4 sm:gap-6">
+								<Link to="/ilmoitukset" className="text-sm text-white/70 hover:text-white">
+									{t("nav.browse")}
+								</Link>
+								<Link
+									to="/ilmoitukset/uusi"
+									className="rounded-md bg-accent px-3.5 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
+								>
+									{t("nav.listMotorcycle")}
+								</Link>
+								{session ? (
+									<>
+										<Link
+											data-testid="nav-dashboard"
+											to="/omat"
+											className="text-sm text-white/70 hover:text-white"
+										>
+											{t("nav.myListings")}
+										</Link>
+										<button
+											type="button"
+											data-testid="nav-signout"
+											onClick={handleSignOut}
+											className="text-sm text-white/70 hover:text-white"
+										>
+											{t("nav.signOut")}
+										</button>
+									</>
+								) : (
 									<button
 										type="button"
-										data-testid="nav-signout"
-										onClick={handleSignOut}
+										data-testid="nav-login"
+										onClick={() => setLoginOpen(true)}
 										className="text-sm text-white/70 hover:text-white"
 									>
-										{t("nav.signOut")}
+										{t("nav.signIn")}
 									</button>
-								</>
-							) : (
-								<button
-									type="button"
-									data-testid="nav-login"
-									onClick={() => setLoginOpen(true)}
-									className="text-sm text-white/70 hover:text-white"
-								>
-									{t("nav.signIn")}
-								</button>
-							)}
+								)}
+							</div>
 						</div>
-					</div>
-				</nav>
+					</nav>
+				)}
 				{children}
-				<footer className="border-t border-border px-4 py-6 text-center text-xs text-muted">
-					<span>© {new Date().getFullYear()} Christian Vilen</span>
-					<span className="mx-2">·</span>
-					<Link to="/kayttoehdot" className="hover:text-foreground">
-						Käyttöehdot
-					</Link>
-					<span className="mx-2">·</span>
-					<Link to="/tietosuoja" className="hover:text-foreground">
-						Tietosuoja
-					</Link>
-				</footer>
-				<LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+				{!isAdmin && (
+					<footer className="border-t border-border px-4 py-6 text-center text-xs text-muted">
+						<span>© {new Date().getFullYear()} Christian Vilen</span>
+						<span className="mx-2">·</span>
+						<Link to="/kayttoehdot" className="hover:text-foreground">
+							Käyttöehdot
+						</Link>
+						<span className="mx-2">·</span>
+						<Link to="/tietosuoja" className="hover:text-foreground">
+							Tietosuoja
+						</Link>
+					</footer>
+				)}
+				{!isAdmin && <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />}
 				<Scripts />
 				<script
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: inline locale for hydration

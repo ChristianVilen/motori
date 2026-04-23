@@ -11,6 +11,10 @@ export interface UserTable {
 	email: string;
 	emailVerified: boolean;
 	image: string | null;
+	role: Generated<string>;
+	banned: Generated<boolean>;
+	banReason: string | null;
+	banExpires: ColumnType<Date, Date, Date> | null;
 	createdAt: ColumnType<Date, Date, Date>;
 	updatedAt: ColumnType<Date, Date, Date>;
 }
@@ -24,6 +28,7 @@ export interface SessionTable {
 	ipAddress: string | null;
 	userAgent: string | null;
 	userId: string;
+	impersonatedBy: string | null;
 }
 
 export interface AccountTable {
