@@ -15,6 +15,7 @@ import { z } from "zod";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
+import { requireVerifiedEmail } from "~/lib/require-verified-email";
 import { getSession } from "~/lib/session";
 
 function getStorageClient() {
@@ -62,7 +63,7 @@ const uploadInputSchema = z.object({
 });
 
 export const getImageUploadUrl = createServerFn({ method: "POST" })
-	.middleware([rateLimitMiddleware(20, 60, "image-upload")])
+	.middleware([rateLimitMiddleware(20, 60, "image-upload"), requireVerifiedEmail()])
 	.inputValidator((data: unknown) => uploadInputSchema.parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();

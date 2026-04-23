@@ -77,7 +77,7 @@ function RegisterPage() {
 			return;
 		}
 
-		navigate({ to: "/vahvista-sahkoposti" });
+		navigate({ to: "/taydenna-profiili" });
 	}
 
 	return (

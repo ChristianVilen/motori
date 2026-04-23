@@ -8,6 +8,7 @@ export default {
 		submitIdle: "Kirjaudu",
 		submitLoading: "Kirjaudutaan...",
 		errorInvalidCredentials: "Väärä sähköposti tai salasana.",
+		forgotPassword: "Unohditko salasanan?",
 	},
 	register: {
 		tagline: "Luo tili",
@@ -30,6 +31,11 @@ export default {
 		body: "Lähetimme vahvistuslinkin sähköpostiisi. Klikkaa linkkiä jatkaaksesi.",
 		noEmail: "Eikö viesti tullut? Ota yhteyttä tukeen jos viesti ei saavu.",
 	},
+	verifyBanner: {
+		text: "Vahvista sähköpostiosoitteesi jatkaaksesi palvelun käyttöä.",
+		resend: "Lähetä uudelleen",
+		sent: "Vahvistuslinkki lähetetty!",
+	},
 	completeProfile: {
 		heading: "Viimeistele profiilisi",
 		tagline: "Kertoo muille käyttäjille kuka olet",
@@ -46,5 +52,26 @@ export default {
 		closeLabel: "Sulje",
 		noAccount: "Ei tiliä?",
 		registerLink: "Rekisteröidy",
+	},
+	forgotPassword: {
+		heading: "Unohditko salasanan?",
+		body: "Syötä sähköpostiosoitteesi niin lähetämme sinulle linkin salasanan vaihtamiseen.",
+		emailLabel: "Sähköposti",
+		submitIdle: "Lähetä linkki",
+		submitLoading: "Lähetetään...",
+		success: "Jos tili löytyy, lähetimme salasanan vaihtolinkin sähköpostiisi.",
+		backToLogin: "Takaisin kirjautumiseen",
+	},
+	resetPassword: {
+		heading: "Vaihda salasana",
+		newPasswordLabel: "Uusi salasana",
+		confirmPasswordLabel: "Vahvista salasana",
+		submitIdle: "Vaihda salasana",
+		submitLoading: "Vaihdetaan...",
+		success: "Salasana vaihdettu! Voit nyt kirjautua sisään.",
+		errorMismatch: "Salasanat eivät täsmää.",
+		errorInvalidToken: "Linkki on vanhentunut tai virheellinen. Pyydä uusi linkki.",
+		errorGeneric: "Salasanan vaihto epäonnistui. Yritä uudelleen.",
+		backToLogin: "Kirjaudu sisään",
 	},
 } as const;

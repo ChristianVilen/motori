@@ -15,7 +15,21 @@ export const auth = betterAuth({
 	secret: process.env.BETTER_AUTH_SECRET,
 	emailAndPassword: {
 		enabled: true,
-		requireEmailVerification: process.env.DISABLE_EMAIL_VERIFICATION !== "true",
+		requireEmailVerification: false,
+		sendResetPassword: async ({ user, url }) => {
+			void sendEmail({
+				to: user.email,
+				subject: t("passwordReset.subject"),
+				html: `
+					<p>${t("passwordReset.greeting")}</p>
+					<p>${t("passwordReset.body")}</p>
+					<p><a href="${url}">${url}</a></p>
+					<p>${t("passwordReset.expiry")}</p>
+					<p>${t("signature")}</p>
+				`,
+				text: `${t("passwordReset.body")}\n${url}\n\n${t("passwordReset.expiry")}`,
+			});
+		},
 		customSyntheticUser: ({ coreFields, additionalFields, id }) => ({
 			...coreFields,
 			role: "user",
@@ -44,7 +58,7 @@ export const auth = betterAuth({
 	emailVerification: {
 		expiresIn: 86400, // 24 hours
 		sendVerificationEmail: async ({ user, url }) => {
-			await sendEmail({
+			void sendEmail({
 				to: user.email,
 				subject: t("verification.subject"),
 				html: `

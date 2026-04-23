@@ -8,6 +8,7 @@ import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
+import { requireVerifiedEmail } from "~/lib/require-verified-email";
 import { getSession } from "~/lib/session";
 
 const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
@@ -45,6 +46,7 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 const setListingStatus = createServerFn({ method: "POST" })
+	.middleware([requireVerifiedEmail()])
 	.inputValidator((data: { id: string; status: "active" | "paused" | "removed" }) => data)
 	.handler(async ({ data }) => {
 		const session = await getSession();

@@ -11,7 +11,7 @@ import {
 import { type ReactNode, useEffect, useState } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { LoginModal } from "~/components/auth/login-modal";
-import { signOut, useSession } from "~/lib/auth-client";
+import { authClient, signOut, useSession } from "~/lib/auth-client";
 import { i18n as clientI18n, ensureClientI18n } from "~/lib/i18n/client";
 import type { SupportedLocale } from "~/lib/i18n/resources";
 import { createI18nSync } from "~/lib/i18n/server";
@@ -143,8 +143,23 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 	const router = useRouter();
 	const [loginOpen, setLoginOpen] = useState(false);
 	const { t } = useTranslation("common");
+	const { t: tAuth } = useTranslation("auth");
 	const { data: session } = useSession();
 	const isAdmin = router.state.location.pathname.startsWith("/admin");
+	const [resent, setResent] = useState(false);
+
+	const showVerifyBanner = session?.user && !session.user.emailVerified;
+
+	async function handleResendVerification() {
+		if (!session?.user?.email) {
+			return;
+		}
+		await authClient.sendVerificationEmail({
+			email: session.user.email,
+			callbackURL: "/",
+		});
+		setResent(true);
+	}
 
 	async function handleSignOut() {
 		await signOut();
@@ -205,6 +220,18 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 							</div>
 						</div>
 					</nav>
+				)}
+				{!isAdmin && showVerifyBanner && (
+					<div className="bg-warning/10 border-b border-warning/30 px-4 py-2 text-center text-sm">
+						<span className="text-foreground">{tAuth("verifyBanner.text")}</span>{" "}
+						<button
+							type="button"
+							onClick={handleResendVerification}
+							className="font-medium text-accent hover:underline"
+						>
+							{resent ? tAuth("verifyBanner.sent") : tAuth("verifyBanner.resend")}
+						</button>
+					</div>
 				)}
 				{children}
 				{!isAdmin && (
