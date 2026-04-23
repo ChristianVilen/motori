@@ -6,7 +6,8 @@ export function requireVerifiedEmail() {
 	return createMiddleware({ type: "function" }).server(async ({ next }) => {
 		const session = await getSession();
 		if (!session) {
-			return next();
+			setResponseStatus(401);
+			throw new Error("UNAUTHORIZED");
 		}
 
 		if (session.user.emailVerified) {

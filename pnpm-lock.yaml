@@ -69,7 +69,7 @@ importers:
         specifier: ^16.6.6
         version: 16.6.6(i18next@25.10.10(typescript@6.0.3))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3)
       resend:
-        specifier: ^6.12.2
+        specifier: 6.12.2
         version: 6.12.2
       tailwind-merge:
         specifier: ^3.5.0

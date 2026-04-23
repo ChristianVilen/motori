@@ -33,6 +33,8 @@ function hashRecipient(to: string): string {
 }
 
 function logMockEmail(payload: EmailPayload): void {
+	// Full address logged intentionally in dev — mock path only runs when RESEND_API_KEY is absent.
+	// Production sends use hashRecipient() via the Resend path above.
 	const urls = [...payload.html.matchAll(/https?:\/\/[^\s"'<>]+/g)].map((m) => m[0]);
 	const lines = [
 		"┌─── 📧 MOCK EMAIL ───────────────────────────",

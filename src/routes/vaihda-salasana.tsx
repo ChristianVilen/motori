@@ -4,6 +4,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { authClient } from "~/lib/auth-client";
 import { useTranslation } from "~/lib/i18n";
+import { passwordStrength } from "~/lib/password-strength";
 
 export const Route = createFileRoute("/vaihda-salasana")({
 	validateSearch: (search: Record<string, unknown>) => ({
@@ -12,32 +13,6 @@ export const Route = createFileRoute("/vaihda-salasana")({
 	}),
 	component: ResetPasswordPage,
 });
-
-function passwordStrength(pw: string) {
-	let score = 0;
-	if (pw.length >= 8) {
-		score++;
-	}
-	if (pw.length >= 12) {
-		score++;
-	}
-	if (/[A-Z]/.test(pw)) {
-		score++;
-	}
-	if (/[0-9]/.test(pw)) {
-		score++;
-	}
-	if (/[^A-Za-z0-9]/.test(pw)) {
-		score++;
-	}
-	if (score <= 1) {
-		return { score, labelKey: "strengthWeak" as const, color: "bg-destructive" };
-	}
-	if (score <= 3) {
-		return { score, labelKey: "strengthFair" as const, color: "bg-warning" };
-	}
-	return { score, labelKey: "strengthStrong" as const, color: "bg-success" };
-}
 
 function ResetPasswordPage() {
 	const { t } = useTranslation("auth");
@@ -70,15 +45,18 @@ function ResetPasswordPage() {
 		}
 
 		setLoading(true);
-		const result = await authClient.resetPassword({ newPassword: password, token });
-		setLoading(false);
-
-		if (result.error) {
+		try {
+			const result = await authClient.resetPassword({ newPassword: password, token });
+			if (result.error) {
+				setError(t("resetPassword.errorGeneric"));
+				return;
+			}
+			setSuccess(true);
+		} catch {
 			setError(t("resetPassword.errorGeneric"));
-			return;
+		} finally {
+			setLoading(false);
 		}
-
-		setSuccess(true);
 	}
 
 	if (success) {
