@@ -10,14 +10,15 @@ export class LoginPage {
 	readonly errorMessage: Locator;
 	readonly registerLink: Locator;
 
-	constructor(page: Page) {
+	constructor(page: Page, root?: Locator) {
 		this.page = page;
-		this.form = page.getByTestId("login-form");
-		this.emailInput = page.getByTestId("login-email");
-		this.passwordInput = page.getByTestId("login-password");
-		this.submitButton = page.getByTestId("login-submit");
-		this.errorMessage = page.getByTestId("login-error");
-		this.registerLink = page.getByTestId("login-register-link");
+		const scope = root ?? page;
+		this.form = scope.getByTestId("login-form");
+		this.emailInput = this.form.getByTestId("login-email");
+		this.passwordInput = this.form.getByTestId("login-password");
+		this.submitButton = this.form.getByTestId("login-submit");
+		this.errorMessage = this.form.getByTestId("login-error");
+		this.registerLink = scope.getByTestId("login-register-link");
 	}
 
 	async goto() {

@@ -5,43 +5,11 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { signUp } from "~/lib/auth-client";
 import { useTranslation } from "~/lib/i18n";
+import { passwordStrength } from "~/lib/password-strength";
 
 export const Route = createFileRoute("/rekisteroidy")({
 	component: RegisterPage,
 });
-
-type StrengthKey = "strengthWeak" | "strengthFair" | "strengthStrong";
-
-function passwordStrength(password: string): {
-	score: number;
-	labelKey: StrengthKey;
-	color: string;
-} {
-	let score = 0;
-	if (password.length >= 8) {
-		score++;
-	}
-	if (password.length >= 12) {
-		score++;
-	}
-	if (/[A-Z]/.test(password)) {
-		score++;
-	}
-	if (/[0-9]/.test(password)) {
-		score++;
-	}
-	if (/[^A-Za-z0-9]/.test(password)) {
-		score++;
-	}
-
-	if (score <= 1) {
-		return { score, labelKey: "strengthWeak", color: "bg-destructive" };
-	}
-	if (score <= 3) {
-		return { score, labelKey: "strengthFair", color: "bg-warning" };
-	}
-	return { score, labelKey: "strengthStrong", color: "bg-success" };
-}
 
 function RegisterPage() {
 	const navigate = useNavigate();
@@ -77,7 +45,7 @@ function RegisterPage() {
 			return;
 		}
 
-		navigate({ to: "/vahvista-sahkoposti" });
+		navigate({ to: "/taydenna-profiili" });
 	}
 
 	return (

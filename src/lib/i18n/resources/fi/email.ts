@@ -11,5 +11,11 @@ export default {
 		body: 'Ilmoituksesi "{{title}}" vanhenee {{days}} päivän kuluttua.',
 		cta: "Voit uusia ilmoituksen kirjautumalla sisään.",
 	},
+	passwordReset: {
+		subject: "Vaihda salasanasi — Vuokramoto",
+		greeting: "Hei,",
+		body: "Vaihda salasanasi klikkaamalla alla olevaa linkkiä:",
+		expiry: "Linkki vanhenee tunnin kuluttua.",
+	},
 	signature: "— Vuokramoto",
 } as const;

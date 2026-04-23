@@ -1,6 +1,6 @@
 // src/components/auth/login-form.tsx
 // Shared email/password login form — used by /kirjaudu page and the nav login modal.
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -75,6 +75,11 @@ export function LoginForm({ onSuccess, redirect }: LoginFormProps) {
 					value={password}
 					onChange={(e) => setPassword(e.target.value)}
 				/>
+				<div className="text-right">
+					<Link to="/unohdin-salasanan" className="text-xs text-accent hover:underline">
+						{t("login.forgotPassword")}
+					</Link>
+				</div>
 			</div>
 
 			{!!error && (

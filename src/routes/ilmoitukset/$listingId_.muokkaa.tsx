@@ -9,6 +9,7 @@ import { useTranslation } from "~/lib/i18n";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
+import { requireVerifiedEmail } from "~/lib/require-verified-email";
 import { getSession } from "~/lib/session";
 import type { ListingFormData } from "~/lib/validators";
 import { listingFormSchema } from "~/lib/validators";
@@ -45,7 +46,7 @@ const getListingForEdit = createServerFn({ method: "GET" })
 	});
 
 const updateListing = createServerFn({ method: "POST" })
-	.middleware([rateLimitMiddleware(5, 60, "update-listing")])
+	.middleware([rateLimitMiddleware(5, 60, "update-listing"), requireVerifiedEmail()])
 	.inputValidator((data: { id: string; form: ListingFormData }) => ({
 		id: data.id,
 		form: listingFormSchema.parse(data.form),

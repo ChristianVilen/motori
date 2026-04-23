@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { ListingCard } from "~/components/listings/listing-card";
 import { useTranslation } from "~/lib/i18n";
 import { getHomepageStats, getLatestListings } from "~/lib/listings-queries";
+import { useEmailVerified } from "~/lib/use-email-verified";
 
 export const Route = createFileRoute("/")({
 	loader: async () => {
@@ -16,6 +17,8 @@ function HomePage() {
 	const { latestListings, stats } = Route.useLoaderData();
 	const navigate = useNavigate();
 	const { t } = useTranslation("home");
+	const { t: tAuth } = useTranslation("auth");
+	const verified = useEmailVerified();
 
 	const isRidingSeason = (() => {
 		const month = new Date().getMonth();
@@ -238,13 +241,23 @@ function HomePage() {
 			<section className="px-4 py-16 text-center">
 				<h2 className="font-heading text-2xl font-bold text-foreground">{t("cta.heading")}</h2>
 				<p className="mt-2 text-muted">{t("cta.body")}</p>
-				<Link
-					data-testid="home-add-listing-cta"
-					to="/ilmoitukset/uusi"
-					className="mt-6 inline-block rounded-lg bg-accent px-8 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
-				>
-					{t("cta.button")}
-				</Link>
+				{verified ? (
+					<Link
+						data-testid="home-add-listing-cta"
+						to="/ilmoitukset/uusi"
+						className="mt-6 inline-block rounded-lg bg-accent px-8 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
+					>
+						{t("cta.button")}
+					</Link>
+				) : (
+					<span
+						data-testid="home-add-listing-cta"
+						title={tAuth("unverifiedTooltip")}
+						className="mt-6 inline-block cursor-not-allowed rounded-lg bg-muted-light px-8 py-3 font-heading text-sm font-semibold text-muted"
+					>
+						{t("cta.button")}
+					</span>
+				)}
 			</section>
 
 			{/* Footer */}
@@ -255,9 +268,15 @@ function HomePage() {
 						<Link to="/ilmoitukset" className="hover:text-foreground">
 							{t("footer.browseListings")}
 						</Link>
-						<Link to="/ilmoitukset/uusi" className="hover:text-foreground">
-							{t("footer.addListing")}
-						</Link>
+						{verified ? (
+							<Link to="/ilmoitukset/uusi" className="hover:text-foreground">
+								{t("footer.addListing")}
+							</Link>
+						) : (
+							<span title={tAuth("unverifiedTooltip")} className="cursor-not-allowed text-muted/50">
+								{t("footer.addListing")}
+							</span>
+						)}
 					</div>
 					<p className="text-xs text-muted">
 						{t("footer.copyright", { year: new Date().getFullYear() })}

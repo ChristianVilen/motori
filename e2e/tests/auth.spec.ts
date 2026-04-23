@@ -96,7 +96,6 @@ test.describe("Navbar", () => {
 	test("reflects auth state correctly", async ({ page }) => {
 		const home = new HomePage(page);
 		const register = new RegisterPage(page);
-		const login = new LoginPage(page);
 		const email = uniqueEmail();
 		const name = uniqueName();
 		const password = "Password123!";
@@ -114,7 +113,8 @@ test.describe("Navbar", () => {
 		// 3. Log back in from the modal
 		await home.navLoginLink.click();
 		await expect(home.loginModal).toBeVisible();
-		await login.login(email, password);
+		const modalLogin = new LoginPage(page, home.loginModal);
+		await modalLogin.login(email, password);
 		await expect(home.loginModal).not.toBeVisible();
 		await expect(home.navDashboardLink).toBeVisible();
 	});

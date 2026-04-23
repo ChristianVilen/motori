@@ -9,8 +9,9 @@ const connectSrc = storageEndpoint ? `'self' ${storageEndpoint}` : "'self'";
 const csp = [
 	"default-src 'self'",
 	// unsafe-inline required for TanStack Start SSR hydration inline scripts.
+	// unsafe-eval required in dev because Zod v4 uses new Function() at runtime.
 	// TODO: switch to nonce-based CSP when framework supports it.
-	"script-src 'self' 'unsafe-inline'",
+	`script-src 'self' 'unsafe-inline'${process.env.NODE_ENV !== "production" ? " 'unsafe-eval'" : ""}`,
 	"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 	"font-src 'self' https://fonts.gstatic.com",
 	`img-src ${imgSrc}`,

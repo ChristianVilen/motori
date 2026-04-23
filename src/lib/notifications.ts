@@ -48,6 +48,7 @@ export async function sendListingExpiryWarnings(daysAhead = 7): Promise<number> 
 							<p>${t("signature")}</p>
 						`,
 						text: `${t("listingExpiry.body", { title: row.title, days: daysLeft })}\n\n${t("listingExpiry.cta")}`,
+						idempotencyKey: `expiry-warning/${row.id}`,
 					});
 					await db
 						.updateTable("listing")

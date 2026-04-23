@@ -9,7 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VaihdaSalasanaRouteImport } from './routes/vaihda-salasana'
 import { Route as VahvistaSahkopostiRouteImport } from './routes/vahvista-sahkoposti'
+import { Route as UnohdinSalasananRouteImport } from './routes/unohdin-salasanan'
 import { Route as TietosuojaRouteImport } from './routes/tietosuoja'
 import { Route as TaydennaProfiiliRouteImport } from './routes/taydenna-profiili'
 import { Route as RekisteroidyRouteImport } from './routes/rekisteroidy'
@@ -29,9 +31,19 @@ import { Route as AdminListingsRouteImport } from './routes/admin/listings'
 import { Route as IlmoituksetListingIdMuokkaaRouteImport } from './routes/ilmoitukset/$listingId_.muokkaa'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
+const VaihdaSalasanaRoute = VaihdaSalasanaRouteImport.update({
+  id: '/vaihda-salasana',
+  path: '/vaihda-salasana',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VahvistaSahkopostiRoute = VahvistaSahkopostiRouteImport.update({
   id: '/vahvista-sahkoposti',
   path: '/vahvista-sahkoposti',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnohdinSalasananRoute = UnohdinSalasananRouteImport.update({
+  id: '/unohdin-salasanan',
+  path: '/unohdin-salasanan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TietosuojaRoute = TietosuojaRouteImport.update({
@@ -134,7 +146,9 @@ export interface FileRoutesByFullPath {
   '/rekisteroidy': typeof RekisteroidyRoute
   '/taydenna-profiili': typeof TaydennaProfiiliRoute
   '/tietosuoja': typeof TietosuojaRoute
+  '/unohdin-salasanan': typeof UnohdinSalasananRoute
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
+  '/vaihda-salasana': typeof VaihdaSalasanaRoute
   '/admin/listings': typeof AdminListingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
@@ -154,7 +168,9 @@ export interface FileRoutesByTo {
   '/rekisteroidy': typeof RekisteroidyRoute
   '/taydenna-profiili': typeof TaydennaProfiiliRoute
   '/tietosuoja': typeof TietosuojaRoute
+  '/unohdin-salasanan': typeof UnohdinSalasananRoute
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
+  '/vaihda-salasana': typeof VaihdaSalasanaRoute
   '/admin/listings': typeof AdminListingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
@@ -176,7 +192,9 @@ export interface FileRoutesById {
   '/rekisteroidy': typeof RekisteroidyRoute
   '/taydenna-profiili': typeof TaydennaProfiiliRoute
   '/tietosuoja': typeof TietosuojaRoute
+  '/unohdin-salasanan': typeof UnohdinSalasananRoute
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
+  '/vaihda-salasana': typeof VaihdaSalasanaRoute
   '/admin/listings': typeof AdminListingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
@@ -199,7 +217,9 @@ export interface FileRouteTypes {
     | '/rekisteroidy'
     | '/taydenna-profiili'
     | '/tietosuoja'
+    | '/unohdin-salasanan'
     | '/vahvista-sahkoposti'
+    | '/vaihda-salasana'
     | '/admin/listings'
     | '/admin/users'
     | '/ilmoitukset/$listingId'
@@ -219,7 +239,9 @@ export interface FileRouteTypes {
     | '/rekisteroidy'
     | '/taydenna-profiili'
     | '/tietosuoja'
+    | '/unohdin-salasanan'
     | '/vahvista-sahkoposti'
+    | '/vaihda-salasana'
     | '/admin/listings'
     | '/admin/users'
     | '/ilmoitukset/$listingId'
@@ -240,7 +262,9 @@ export interface FileRouteTypes {
     | '/rekisteroidy'
     | '/taydenna-profiili'
     | '/tietosuoja'
+    | '/unohdin-salasanan'
     | '/vahvista-sahkoposti'
+    | '/vaihda-salasana'
     | '/admin/listings'
     | '/admin/users'
     | '/ilmoitukset/$listingId'
@@ -262,7 +286,9 @@ export interface RootRouteChildren {
   RekisteroidyRoute: typeof RekisteroidyRoute
   TaydennaProfiiliRoute: typeof TaydennaProfiiliRoute
   TietosuojaRoute: typeof TietosuojaRoute
+  UnohdinSalasananRoute: typeof UnohdinSalasananRoute
   VahvistaSahkopostiRoute: typeof VahvistaSahkopostiRoute
+  VaihdaSalasanaRoute: typeof VaihdaSalasanaRoute
   IlmoituksetListingIdRoute: typeof IlmoituksetListingIdRoute
   IlmoituksetUusiRoute: typeof IlmoituksetUusiRoute
   ProfiiliUserIdRoute: typeof ProfiiliUserIdRoute
@@ -275,11 +301,25 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/vaihda-salasana': {
+      id: '/vaihda-salasana'
+      path: '/vaihda-salasana'
+      fullPath: '/vaihda-salasana'
+      preLoaderRoute: typeof VaihdaSalasanaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vahvista-sahkoposti': {
       id: '/vahvista-sahkoposti'
       path: '/vahvista-sahkoposti'
       fullPath: '/vahvista-sahkoposti'
       preLoaderRoute: typeof VahvistaSahkopostiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/unohdin-salasanan': {
+      id: '/unohdin-salasanan'
+      path: '/unohdin-salasanan'
+      fullPath: '/unohdin-salasanan'
+      preLoaderRoute: typeof UnohdinSalasananRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tietosuoja': {
@@ -435,7 +475,9 @@ const rootRouteChildren: RootRouteChildren = {
   RekisteroidyRoute: RekisteroidyRoute,
   TaydennaProfiiliRoute: TaydennaProfiiliRoute,
   TietosuojaRoute: TietosuojaRoute,
+  UnohdinSalasananRoute: UnohdinSalasananRoute,
   VahvistaSahkopostiRoute: VahvistaSahkopostiRoute,
+  VaihdaSalasanaRoute: VaihdaSalasanaRoute,
   IlmoituksetListingIdRoute: IlmoituksetListingIdRoute,
   IlmoituksetUusiRoute: IlmoituksetUusiRoute,
   ProfiiliUserIdRoute: ProfiiliUserIdRoute,

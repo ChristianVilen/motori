@@ -7,12 +7,13 @@ import { useTranslation } from "~/lib/i18n";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
+import { requireVerifiedEmail } from "~/lib/require-verified-email";
 import { getSession } from "~/lib/session";
 import type { ListingFormData } from "~/lib/validators";
 import { listingFormSchema } from "~/lib/validators";
 
 const createListing = createServerFn({ method: "POST" })
-	.middleware([rateLimitMiddleware(5, 60, "create-listing")])
+	.middleware([rateLimitMiddleware(5, 60, "create-listing"), requireVerifiedEmail()])
 	.inputValidator((data: ListingFormData) => listingFormSchema.parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();
