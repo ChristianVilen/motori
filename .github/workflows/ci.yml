@@ -77,11 +77,6 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 5
-    env:
-      DATABASE_URL: postgresql://vuokramoto:vuokramoto@localhost:5433/vuokramoto
-      DISABLE_EMAIL_VERIFICATION: true
-      BETTER_AUTH_SECRET: ci-test-secret-not-for-production
-      BETTER_AUTH_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -90,6 +85,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: cp .env.ci .env
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v4
