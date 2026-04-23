@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: 22
+  NODE_VERSION: 24
 
 jobs:
   install:
@@ -96,6 +96,8 @@ jobs:
     env:
       DATABASE_URL: postgresql://vuokramoto:vuokramoto@localhost:5433/vuokramoto
       DISABLE_EMAIL_VERIFICATION: true
+      BETTER_AUTH_SECRET: ci-test-secret-not-for-production
+      BETTER_AUTH_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
