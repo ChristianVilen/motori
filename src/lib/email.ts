@@ -10,9 +10,15 @@ export interface EmailPayload {
 	idempotencyKey?: string;
 }
 
-const FROM = "Vuokramoto <noreply@vuokramoto.fi>";
+const FROM = "Vuokramoto <onboarding@resend.dev>";
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+let _resend: Resend | null | undefined;
+function getResend() {
+	if (_resend === undefined) {
+		_resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+	}
+	return _resend;
+}
 
 function hashRecipient(to: string): string {
 	const [local, domain] = to.split("@");
@@ -40,6 +46,7 @@ function logMockEmail(payload: EmailPayload): void {
 export async function sendEmail(payload: EmailPayload): Promise<void> {
 	const toHash = hashRecipient(payload.to);
 
+	const resend = getResend();
 	if (resend) {
 		const { data, error } = await resend.emails.send({
 			from: FROM,
@@ -52,7 +59,7 @@ export async function sendEmail(payload: EmailPayload): Promise<void> {
 
 		if (error) {
 			log.event(EVENTS.email.failed, { template: payload.subject, reason: error.message });
-			throw new Error(error.message);
+			return;
 		}
 
 		log.event(EVENTS.email.sent, { template: payload.subject, toHash, resendId: data?.id });
