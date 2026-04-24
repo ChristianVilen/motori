@@ -6,7 +6,7 @@ import { FilterDrawer } from "~/components/listings/filter-drawer";
 import { FilterSidebar } from "~/components/listings/filter-sidebar";
 import { ListingCard } from "~/components/listings/listing-card";
 import { ListingCardSkeleton } from "~/components/listings/listing-card-skeleton";
-import { REGIONS } from "~/lib/constants";
+import { REGIONS, SITE_URL } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { type SearchResult, searchListings } from "~/lib/listings-queries";
 import { type BrowseSearchParams, browseSearchSchema } from "~/lib/validators";
@@ -23,9 +23,9 @@ export const Route = createFileRoute("/ilmoitukset/")({
 				content:
 					"Selaa moottoripyörien vuokrausilmoituksia. Suodata alueen, tyypin ja hinnan mukaan.",
 			},
-			{ property: "og:url", content: "https://vuokramoto.fi/ilmoitukset" },
+			{ property: "og:url", content: `${SITE_URL}/ilmoitukset` },
 		],
-		links: [{ rel: "canonical", href: "https://vuokramoto.fi/ilmoitukset" }],
+		links: [{ rel: "canonical", href: `${SITE_URL}/ilmoitukset` }],
 	}),
 	component: BrowsePage,
 });

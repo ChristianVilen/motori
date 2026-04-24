@@ -6,6 +6,12 @@ import { getRequest, setResponseStatus } from "@tanstack/react-start/server";
 // We reject POST requests where Origin doesn't match the expected base URL.
 // This blocks cross-site form submissions and cross-origin fetch (CORS already
 // blocks the latter, but defense-in-depth is cheap).
+//
+// NOTE: SSR server-function-to-server-function calls (e.g. a loader calling a
+// POST server function) may not send an Origin header. Currently safe because
+// all POST server functions are only called from client-side event handlers,
+// never from loaders or other server functions. If that changes, this middleware
+// must allowlist missing Origin for same-process calls.
 
 export function csrfMiddleware() {
 	return createMiddleware({ type: "function" }).server(async ({ next }) => {

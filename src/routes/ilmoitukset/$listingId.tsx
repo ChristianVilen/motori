@@ -1,11 +1,18 @@
 // src/routes/ilmoitukset/$listingId.tsx
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { sql } from "kysely";
 import { ArrowLeft, Calendar, MapPin, Tag } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
-import { LICENSE_CLASSES, LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
+import {
+	LICENSE_CLASSES,
+	LISTING_STATUSES,
+	MOTORCYCLE_TYPES,
+	REGIONS,
+	SITE_URL,
+} from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
@@ -33,7 +40,7 @@ const getListing = createServerFn({ method: "GET" })
 		// Fire-and-forget — sql expression avoids RMW race on concurrent views.
 		// Deduplicate: only count once per session per listing.
 		const viewKey = `view:${id}:${session?.user.id ?? "anon"}`;
-		const request = await import("@tanstack/react-start/server").then((m) => m.getRequest());
+		const request = getRequest();
 		const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
 		const dedupKey = session?.user.id ? viewKey : `view:${id}:${ip}`;
 		if (!viewedRecently.has(dedupKey)) {
@@ -99,7 +106,7 @@ export const Route = createFileRoute("/ilmoitukset/$listingId")({
 		}
 		const title = `${l.title} — Vuokramoto`;
 		const desc = `Vuokraa ${l.brand} ${l.model} (${l.year}) — ${l.city}. Alkaen ${(l.price_per_day / 100).toFixed(0)} €/pv.`;
-		const url = `https://vuokramoto.fi/ilmoitukset/${l.id}`;
+		const url = `${SITE_URL}/ilmoitukset/${l.id}`;
 		return {
 			meta: [
 				{ title },

@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { SITE_URL } from "~/lib/constants";
 import { db } from "~/lib/db/index";
-
-const BASE = "https://vuokramoto.fi";
 
 const STATIC_PATHS = [
 	{ path: "/", priority: "1.0", changefreq: "daily" },
@@ -24,11 +23,11 @@ export const Route = createFileRoute("/sitemap.xml")({
 				const urls = [
 					...STATIC_PATHS.map(
 						(p) =>
-							`<url><loc>${BASE}${p.path}</loc><changefreq>${p.changefreq}</changefreq><priority>${p.priority}</priority></url>`,
+							`<url><loc>${SITE_URL}${p.path}</loc><changefreq>${p.changefreq}</changefreq><priority>${p.priority}</priority></url>`,
 					),
 					...listings.map(
 						(l) =>
-							`<url><loc>${BASE}/ilmoitukset/${l.id}</loc><lastmod>${new Date(l.updated_at).toISOString().split("T")[0]}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`,
+							`<url><loc>${SITE_URL}/ilmoitukset/${l.id}</loc><lastmod>${new Date(l.updated_at).toISOString().split("T")[0]}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`,
 					),
 				];
 

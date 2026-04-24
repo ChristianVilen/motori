@@ -12,6 +12,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { LoginModal } from "~/components/auth/login-modal";
 import { authClient, signOut, useSession } from "~/lib/auth-client";
+import { SITE_URL } from "~/lib/constants";
 import { i18n as clientI18n, ensureClientI18n } from "~/lib/i18n/client";
 import type { SupportedLocale } from "~/lib/i18n/resources";
 import { createI18nSync } from "~/lib/i18n/server";
@@ -44,11 +45,11 @@ export const Route = createRootRoute({
 				content: "Suomalainen moottoripyörien vuokrausilmoitukset.",
 			},
 			{ property: "og:locale", content: "fi_FI" },
-			{ property: "og:url", content: "https://vuokramoto.fi" },
+			{ property: "og:url", content: SITE_URL },
 			{ name: "twitter:card", content: "summary_large_image" },
 		],
 		links: [
-			{ rel: "canonical", href: "https://vuokramoto.fi" },
+			{ rel: "canonical", href: SITE_URL },
 			{ rel: "stylesheet", href: appCss },
 			{ rel: "manifest", href: "/manifest.webmanifest" },
 			{ rel: "icon", href: "/favicon.ico", sizes: "any" },

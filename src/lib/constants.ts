@@ -1,3 +1,4 @@
+export const SITE_URL = process.env.SITE_URL ?? "https://vuokramoto.fi";
 // src/lib/constants.ts
 // Finnish market constants for vuokramoto
 
