@@ -76,7 +76,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 					</button>
 				</div>
 
-				<LoginForm onSuccess={handleSuccess} autoFocusEmail />
+				<LoginForm onSuccess={handleSuccess} />
 
 				<p className="mt-4 text-center text-sm text-muted">
 					{t("modal.noAccount")}{" "}

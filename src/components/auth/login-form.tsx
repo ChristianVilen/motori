@@ -10,10 +10,9 @@ import { useTranslation } from "~/lib/i18n";
 interface LoginFormProps {
 	onSuccess?: () => void;
 	redirect?: string;
-	autoFocusEmail?: boolean;
 }
 
-export function LoginForm({ onSuccess, redirect, autoFocusEmail }: LoginFormProps) {
+export function LoginForm({ onSuccess, redirect }: LoginFormProps) {
 	const navigate = useNavigate();
 	const { t } = useTranslation("auth");
 	const [email, setEmail] = useState("");
@@ -57,7 +56,6 @@ export function LoginForm({ onSuccess, redirect, autoFocusEmail }: LoginFormProp
 					data-testid="login-email"
 					type="email"
 					autoComplete="email"
-					autoFocus={autoFocusEmail}
 					required
 					value={email}
 					onChange={(e) => setEmail(e.target.value)}

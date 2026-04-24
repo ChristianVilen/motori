@@ -4,9 +4,9 @@
 // Tradeoff: safety over partial-word matching. For prefix search, consider
 // adding a separate pg_trgm index or client-side autocomplete.
 export function toTsQuery(query: string): string | null {
-	const cleaned = query.replace(/[^\w\s\u00C0-\u024F]/g, "").trim();
-	if (cleaned.length === 0) {
+	const trimmed = query.trim();
+	if (trimmed.length === 0) {
 		return null;
 	}
-	return cleaned;
+	return trimmed;
 }

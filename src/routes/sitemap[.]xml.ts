@@ -18,6 +18,7 @@ export const Route = createFileRoute("/sitemap.xml")({
 					.select(["id", "updated_at"])
 					.where("status", "=", "active")
 					.orderBy("updated_at", "desc")
+					.limit(50_000)
 					.execute();
 
 				const urls = [

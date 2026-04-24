@@ -18,7 +18,8 @@ import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { getSession } from "~/lib/session";
 
-// In-memory dedup for view count increments (per-process, 60s TTL)
+// In-memory dedup for view count increments (per-process, 60s TTL, 10k cap)
+const VIEW_DEDUP_MAX = 10_000;
 const viewedRecently = new Set<string>();
 
 const getListing = createServerFn({ method: "GET" })
@@ -43,11 +44,14 @@ const getListing = createServerFn({ method: "GET" })
 		const request = getRequest();
 		const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
 		const dedupKey = session?.user.id ? viewKey : `view:${id}:${ip}`;
-		if (!viewedRecently.has(dedupKey)) {
-			viewedRecently.add(dedupKey);
-			setTimeout(() => viewedRecently.delete(dedupKey), 60_000);
+		const shouldCount = viewedRecently.size >= VIEW_DEDUP_MAX || !viewedRecently.has(dedupKey);
+		if (shouldCount) {
+			if (viewedRecently.size < VIEW_DEDUP_MAX) {
+				viewedRecently.add(dedupKey);
+				setTimeout(() => viewedRecently.delete(dedupKey), 60_000);
+			}
 			db.updateTable("listing")
-				.set({ view_count: sql`view_count + 1`, updated_at: new Date() })
+				.set({ view_count: sql`view_count + 1` })
 				.where("id", "=", id)
 				.execute()
 				.catch(() => {});

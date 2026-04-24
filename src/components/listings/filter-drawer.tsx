@@ -28,13 +28,19 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 	useEffect(() => {
 		if (open) {
 			document.body.style.overflow = "hidden";
-		} else {
-			document.body.style.overflow = "";
+			const onKey = (e: KeyboardEvent) => {
+				if (e.key === "Escape") {
+					onClose();
+				}
+			};
+			window.addEventListener("keydown", onKey);
+			return () => {
+				window.removeEventListener("keydown", onKey);
+				document.body.style.overflow = "";
+			};
 		}
-		return () => {
-			document.body.style.overflow = "";
-		};
-	}, [open]);
+		document.body.style.overflow = "";
+	}, [open, onClose]);
 
 	function updateFilter(updates: Partial<BrowseSearchParams>) {
 		navigate({
