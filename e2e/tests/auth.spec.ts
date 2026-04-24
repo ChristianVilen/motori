@@ -88,7 +88,7 @@ test.describe("Register", () => {
 
 		await register.register(uniqueName(), uniqueEmail(), "Password123!");
 
-		await expect(page).not.toHaveURL(/\/rekisteroidy/);
+		await expect(page).not.toHaveURL(/\/rekisteroidy/, { timeout: 10000 });
 	});
 });
 

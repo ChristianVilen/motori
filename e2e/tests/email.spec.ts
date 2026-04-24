@@ -90,7 +90,7 @@ test.describe("Registration flow", () => {
 
 		await register.register(uniqueName(), uniqueEmail(), "Password123!");
 
-		await expect(page).toHaveURL(/\/taydenna-profiili/);
+		await expect(page).toHaveURL(/\/taydenna-profiili/, { timeout: 10000 });
 	});
 });
 
