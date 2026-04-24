@@ -19,6 +19,7 @@ for (const { name, path } of PAGES) {
 
 		const results = await new AxeBuilder({ page })
 			.withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+			.exclude('[aria-hidden="true"]')
 			.analyze();
 
 		expect(

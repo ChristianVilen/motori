@@ -71,7 +71,7 @@ function ResetPasswordPage() {
 					<Link
 						to="/kirjaudu"
 						search={{ redirect: undefined }}
-						className="text-sm text-accent hover:underline"
+						className="text-sm text-accent underline"
 					>
 						{t("resetPassword.backToLogin")}
 					</Link>

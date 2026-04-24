@@ -32,7 +32,7 @@ function LoginPage() {
 					<Link
 						data-testid="login-register-link"
 						to="/rekisteroidy"
-						className="text-accent hover:underline"
+						className="text-accent underline"
 					>
 						{t("login.registerLink")}
 					</Link>

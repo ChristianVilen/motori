@@ -49,7 +49,7 @@ function ForgotPasswordPage() {
 						<Link
 							to="/kirjaudu"
 							search={{ redirect: undefined }}
-							className="text-sm text-accent hover:underline"
+							className="text-sm text-accent underline"
 						>
 							{t("forgotPassword.backToLogin")}
 						</Link>
@@ -85,7 +85,7 @@ function ForgotPasswordPage() {
 							<Link
 								to="/kirjaudu"
 								search={{ redirect: undefined }}
-								className="text-accent hover:underline"
+								className="text-accent underline"
 							>
 								{t("forgotPassword.backToLogin")}
 							</Link>

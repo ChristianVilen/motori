@@ -149,7 +149,7 @@ function RegisterPage() {
 						data-testid="register-login-link"
 						to="/kirjaudu"
 						search={{ redirect: undefined }}
-						className="text-accent hover:underline"
+						className="text-accent underline hover:no-underline"
 					>
 						{t("register.loginLink")}
 					</Link>

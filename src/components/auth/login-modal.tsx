@@ -80,7 +80,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 
 				<p className="mt-4 text-center text-sm text-muted">
 					{t("modal.noAccount")}{" "}
-					<Link to="/rekisteroidy" onClick={onClose} className="text-accent hover:underline">
+					<Link to="/rekisteroidy" onClick={onClose} className="text-accent underline">
 						{t("modal.registerLink")}
 					</Link>
 				</p>

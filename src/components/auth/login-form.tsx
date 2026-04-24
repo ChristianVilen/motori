@@ -76,7 +76,7 @@ export function LoginForm({ onSuccess, redirect }: LoginFormProps) {
 					onChange={(e) => setPassword(e.target.value)}
 				/>
 				<div className="text-right">
-					<Link to="/unohdin-salasanan" className="text-xs text-accent hover:underline">
+					<Link to="/unohdin-salasanan" className="text-xs text-accent underline">
 						{t("login.forgotPassword")}
 					</Link>
 				</div>

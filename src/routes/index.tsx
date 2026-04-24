@@ -225,7 +225,10 @@ function HomePage() {
 							},
 						].map((step) => (
 							<div key={step.num} className="relative pl-16">
-								<span className="absolute top-0 left-0 font-heading text-5xl font-bold text-white/5">
+								<span
+									aria-hidden="true"
+									className="absolute top-0 left-0 font-heading text-5xl font-bold text-white/5"
+								>
 									{step.num}
 								</span>
 								<div className="mb-2 h-1 w-8 rounded-full bg-accent" />
