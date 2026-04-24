@@ -50,13 +50,15 @@
 	box-shadow: 0 12px 32px -8px rgba(26, 26, 46, 0.18);
 }
 
-/* biome-ignore lint/complexity/noImportantStyles: required to override component-level animations for a11y */
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,
 	*::after {
+		/* biome-ignore lint/complexity/noImportantStyles: must override component animations for a11y */
 		animation-duration: 0.01ms !important;
+		/* biome-ignore lint/complexity/noImportantStyles: must override component animations for a11y */
 		animation-iteration-count: 1 !important;
+		/* biome-ignore lint/complexity/noImportantStyles: must override component animations for a11y */
 		transition-duration: 0.01ms !important;
 	}
 }
