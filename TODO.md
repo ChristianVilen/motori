@@ -16,30 +16,30 @@ Audit date: 2026-04-24
 
 - [x] **No per-page `<title>` or `<meta description>`** — Listing detail, browse, auth, profile pages all inherit the generic root title. Add `head()` to each route.
 - [x] **No `robots.txt`** — Add to `public/` with disallow for `/admin`, `/omat`, `/profiili/asetukset`.
-- [ ] **No `sitemap.xml`** — Generate dynamic sitemap of active listings for search engine discovery.
-- [ ] **No `<link rel="canonical">` or `og:url`** — Missing on all pages. Causes duplicate content indexing and broken social sharing.
+- [x] **No `sitemap.xml`** — Generate dynamic sitemap of active listings for search engine discovery.
+- [x] **No `<link rel="canonical">` or `og:url`** — Missing on all pages. Causes duplicate content indexing and broken social sharing.
 
 ## High — Accessibility
 
-- [ ] **Login modal lacks focus trapping** — `aria-modal="true"` is set but Tab escapes the modal. (`src/components/auth/login-modal.tsx`)
-- [ ] **Filter drawer lacks focus trapping** — Same issue. (`src/components/listings/filter-drawer.tsx`)
-- [ ] **No `aria-live` regions for dynamic content** — Form errors, search results, load-more updates are not announced to screen readers.
-- [ ] **No skip navigation link** — Keyboard users must tab through entire nav on every page. WCAG 2.4.1. (`src/routes/__root.tsx`)
-- [ ] **Color contrast failures** — `text-white/40` on `#1a1a2e` ≈ 3.2:1, fails WCAG AA (4.5:1 required). Hero stats labels, search placeholder, filter chips.
+- [x] **Login modal lacks focus trapping** — `aria-modal="true"` is set but Tab escapes the modal. (`src/components/auth/login-modal.tsx`)
+- [x] **Filter drawer lacks focus trapping** — Same issue. (`src/components/listings/filter-drawer.tsx`)
+- [x] **No `aria-live` regions for dynamic content** — Form errors, search results, load-more updates are not announced to screen readers.
+- [x] **No skip navigation link** — Keyboard users must tab through entire nav on every page. WCAG 2.4.1. (`src/routes/__root.tsx`)
+- [x] **Color contrast failures** — `text-white/40` on `#1a1a2e` ≈ 3.2:1, fails WCAG AA (4.5:1 required). Hero stats labels, search placeholder, filter chips.
 
 ## Medium
 
-- [ ] **View count increment is unauthenticated/unbounded** — No dedup or rate limit on `view_count` bump. (`src/routes/ilmoitukset/$listingId.tsx`)
-- [ ] **Harden `dangerouslySetInnerHTML` locale injection** — Add `.replace(/</g, '\\u003c')` as defense-in-depth. (`src/routes/__root.tsx`)
-- [ ] **No `prefers-reduced-motion` handling** — Card hover, image zoom, hero ping animation ignore motion preferences.
-- [ ] **Filter toggle buttons lack `aria-pressed`** — Type/license toggles don't communicate state to assistive tech. (`src/components/listings/filter-sidebar.tsx`, `filter-drawer.tsx`)
-- [ ] **Image upload input needs explicit `aria-label`** — Implicit label wrapping works but is fragile. (`src/components/listings/listing-form.tsx`)
+- [x] **View count increment is unauthenticated/unbounded** — No dedup or rate limit on `view_count` bump. (`src/routes/ilmoitukset/$listingId.tsx`)
+- [x] **Harden `dangerouslySetInnerHTML` locale injection** — Add `.replace(/</g, '\\u003c')` as defense-in-depth. (`src/routes/__root.tsx`)
+- [x] **No `prefers-reduced-motion` handling** — Card hover, image zoom, hero ping animation ignore motion preferences.
+- [x] **Filter toggle buttons lack `aria-pressed`** — Type/license toggles don't communicate state to assistive tech. (`src/components/listings/filter-sidebar.tsx`, `filter-drawer.tsx`)
+- [x] **Image upload input needs explicit `aria-label`** — Implicit label wrapping works but is fragile. (`src/components/listings/listing-form.tsx`)
 
 ## Low
 
-- [ ] **Admin pages use hardcoded English** — Intentional for now, track for future i18n.
-- [ ] **`getNeighborRegionCount` accepts any string** — Validate against known regions. (`src/lib/listings-queries.ts`)
-- [ ] **Add `loading="lazy"` to listing card images** — Below-fold grid images should lazy load. (`src/components/listings/listing-card.tsx`)
-- [ ] **Gallery thumbnail buttons lack `aria-label`** — Screen readers can't distinguish thumbnails. (`src/routes/ilmoitukset/$listingId.tsx`)
-- [ ] **Add `dir="ltr"` to `<html>`** — Explicit direction for i18n readiness. (`src/routes/__root.tsx`)
-- [ ] **Homepage renders duplicate footer** — Both `index.tsx` and `__root.tsx` render footers.
+- [x] **Admin pages use hardcoded English** — Intentional for now, track for future i18n.
+- [x] **`getNeighborRegionCount` accepts any string** — Validate against known regions. (`src/lib/listings-queries.ts`)
+- [x] **Add `loading="lazy"` to listing card images** — Below-fold grid images should lazy load. (`src/components/listings/listing-card.tsx`)
+- [x] **Gallery thumbnail buttons lack `aria-label`** — Screen readers can't distinguish thumbnails. (`src/routes/ilmoitukset/$listingId.tsx`)
+- [x] **Add `dir="ltr"` to `<html>`** — Explicit direction for i18n readiness. (`src/routes/__root.tsx`)
+- [x] **Homepage renders duplicate footer** — Both `index.tsx` and `__root.tsx` render footers.

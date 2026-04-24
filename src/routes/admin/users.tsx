@@ -4,8 +4,8 @@ import { getRequest } from "@tanstack/react-start/server";
 import { ShieldBan, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { requireAdmin } from "~/lib/admin";
-import { csrfMiddleware } from "~/lib/csrf";
 import { auth } from "~/lib/auth";
+import { csrfMiddleware } from "~/lib/csrf";
 
 const PAGE_SIZE = 25;
 

@@ -47,7 +47,11 @@ const getListingForEdit = createServerFn({ method: "GET" })
 	});
 
 const updateListing = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware(), rateLimitMiddleware(5, 60, "update-listing"), requireVerifiedEmail()])
+	.middleware([
+		csrfMiddleware(),
+		rateLimitMiddleware(5, 60, "update-listing"),
+		requireVerifiedEmail(),
+	])
 	.inputValidator((data: { id: string; form: ListingFormData }) => ({
 		id: data.id,
 		form: listingFormSchema.parse(data.form),

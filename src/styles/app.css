@@ -49,3 +49,14 @@
 	transform: translateY(-4px);
 	box-shadow: 0 12px 32px -8px rgba(26, 26, 46, 0.18);
 }
+
+/* biome-ignore lint/complexity/noImportantStyles: required to override component-level animations for a11y */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}

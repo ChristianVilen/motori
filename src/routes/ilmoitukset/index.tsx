@@ -20,9 +20,12 @@ export const Route = createFileRoute("/ilmoitukset/")({
 			{ title: "Selaa ilmoituksia — Vuokramoto" },
 			{
 				name: "description",
-				content: "Selaa moottoripyörien vuokrausilmoituksia. Suodata alueen, tyypin ja hinnan mukaan.",
+				content:
+					"Selaa moottoripyörien vuokrausilmoituksia. Suodata alueen, tyypin ja hinnan mukaan.",
 			},
+			{ property: "og:url", content: "https://vuokramoto.fi/ilmoitukset" },
 		],
+		links: [{ rel: "canonical", href: "https://vuokramoto.fi/ilmoitukset" }],
 	}),
 	component: BrowsePage,
 });
@@ -108,7 +111,7 @@ function BrowsePage() {
 							type="text"
 							defaultValue={search.q ?? ""}
 							placeholder={t("browse.searchPlaceholder")}
-							className="h-11 flex-1 rounded-lg bg-white/10 px-4 text-sm text-white placeholder:text-white/50 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent"
+							className="h-11 flex-1 rounded-lg bg-white/10 px-4 text-sm text-white placeholder:text-white/70 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent"
 						/>
 						<button
 							data-testid="listings-search-submit"
@@ -133,7 +136,11 @@ function BrowsePage() {
 							)}
 						</button>
 					</form>
-					<p data-testid="listings-result-count" className="mt-2 text-sm text-white/60">
+					<p
+						data-testid="listings-result-count"
+						aria-live="polite"
+						className="mt-2 text-sm text-white/70"
+					>
 						<span data-testid="listings-total-count" className="font-semibold text-white">
 							{totalCount}
 						</span>{" "}

@@ -137,7 +137,7 @@ function ResetPasswordPage() {
 					</div>
 
 					{!!error && (
-						<p data-testid="reset-password-error" className="text-sm text-destructive">
+						<p data-testid="reset-password-error" role="alert" className="text-sm text-destructive">
 							{error}
 						</p>
 					)}

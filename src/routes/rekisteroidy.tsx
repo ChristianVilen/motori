@@ -128,7 +128,7 @@ function RegisterPage() {
 					</div>
 
 					{!!error && (
-						<p data-testid="register-error" className="text-sm text-destructive">
+						<p data-testid="register-error" role="alert" className="text-sm text-destructive">
 							{error}
 						</p>
 					)}

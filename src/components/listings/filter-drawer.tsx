@@ -9,6 +9,7 @@ import {
 	TYPE_EMOJI,
 } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
+import { useFocusTrap } from "~/lib/use-focus-trap";
 import type { BrowseSearchParams } from "~/lib/validators";
 
 interface FilterDrawerProps {
@@ -22,6 +23,7 @@ interface FilterDrawerProps {
 export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: FilterDrawerProps) {
 	const { t } = useTranslation("listings");
 	const navigate = useNavigate();
+	const trapRef = useFocusTrap(open);
 
 	useEffect(() => {
 		if (open) {
@@ -76,7 +78,10 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 			/>
 
 			{/* Drawer */}
-			<div className="relative z-10 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-background px-5 pt-4 pb-6">
+			<div
+				ref={trapRef}
+				className="relative z-10 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-background px-5 pt-4 pb-6"
+			>
 				{/* Handle */}
 				<div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
 
@@ -121,6 +126,7 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 										key={t.value}
 										type="button"
 										onClick={() => toggleArrayFilter("type", t.value)}
+										aria-pressed={isActive}
 										className={`rounded-md px-2 py-2 text-sm font-medium transition-colors ${
 											isActive
 												? "bg-primary text-primary-foreground"
@@ -145,6 +151,7 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 										key={l.value}
 										type="button"
 										onClick={() => toggleArrayFilter("license", l.value)}
+										aria-pressed={isActive}
 										className={`flex-1 rounded-md py-2.5 text-sm font-semibold transition-colors ${
 											isActive
 												? "bg-primary text-primary-foreground"

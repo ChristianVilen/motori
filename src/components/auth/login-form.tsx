@@ -83,7 +83,7 @@ export function LoginForm({ onSuccess, redirect }: LoginFormProps) {
 			</div>
 
 			{!!error && (
-				<p data-testid="login-error" className="text-sm text-destructive">
+				<p data-testid="login-error" role="alert" className="text-sm text-destructive">
 					{error}
 				</p>
 			)}

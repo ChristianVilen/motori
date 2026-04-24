@@ -215,7 +215,12 @@ export const getHomepageStats = createServerFn({ method: "GET" }).handler(async 
 });
 
 export const getNeighborRegionCount = createServerFn({ method: "GET" })
-	.inputValidator((region: string) => region)
+	.inputValidator((region: string) => {
+		if (!(region in ADJACENT_REGIONS)) {
+			throw new Error("Unknown region");
+		}
+		return region;
+	})
 	.handler(async ({ data: region }) => {
 		const neighbors = ADJACENT_REGIONS[region];
 		if (!neighbors || neighbors.length === 0) {

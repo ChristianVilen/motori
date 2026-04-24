@@ -14,7 +14,11 @@ import type { ListingFormData } from "~/lib/validators";
 import { listingFormSchema } from "~/lib/validators";
 
 const createListing = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware(), rateLimitMiddleware(5, 60, "create-listing"), requireVerifiedEmail()])
+	.middleware([
+		csrfMiddleware(),
+		rateLimitMiddleware(5, 60, "create-listing"),
+		requireVerifiedEmail(),
+	])
 	.inputValidator((data: ListingFormData) => listingFormSchema.parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();

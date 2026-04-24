@@ -11,6 +11,9 @@ import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { getSession } from "~/lib/session";
 
+// In-memory dedup for view count increments (per-process, 60s TTL)
+const viewedRecently = new Set<string>();
+
 const getListing = createServerFn({ method: "GET" })
 	.inputValidator((id: string) => id)
 	.handler(async ({ data: id }) => {
@@ -28,11 +31,20 @@ const getListing = createServerFn({ method: "GET" })
 		}
 
 		// Fire-and-forget — sql expression avoids RMW race on concurrent views.
-		db.updateTable("listing")
-			.set({ view_count: sql`view_count + 1`, updated_at: new Date() })
-			.where("id", "=", id)
-			.execute()
-			.catch(() => {});
+		// Deduplicate: only count once per session per listing.
+		const viewKey = `view:${id}:${session?.user.id ?? "anon"}`;
+		const request = await import("@tanstack/react-start/server").then((m) => m.getRequest());
+		const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+		const dedupKey = session?.user.id ? viewKey : `view:${id}:${ip}`;
+		if (!viewedRecently.has(dedupKey)) {
+			viewedRecently.add(dedupKey);
+			setTimeout(() => viewedRecently.delete(dedupKey), 60_000);
+			db.updateTable("listing")
+				.set({ view_count: sql`view_count + 1`, updated_at: new Date() })
+				.where("id", "=", id)
+				.execute()
+				.catch(() => {});
+		}
 
 		const images = await db
 			.selectFrom("listing_image")
@@ -82,16 +94,21 @@ export const Route = createFileRoute("/ilmoitukset/$listingId")({
 	},
 	head: ({ loaderData }) => {
 		const l = loaderData?.listing;
-		if (!l) return {};
+		if (!l) {
+			return {};
+		}
 		const title = `${l.title} — Vuokramoto`;
 		const desc = `Vuokraa ${l.brand} ${l.model} (${l.year}) — ${l.city}. Alkaen ${(l.price_per_day / 100).toFixed(0)} €/pv.`;
+		const url = `https://vuokramoto.fi/ilmoitukset/${l.id}`;
 		return {
 			meta: [
 				{ title },
 				{ name: "description", content: desc },
 				{ property: "og:title", content: title },
 				{ property: "og:description", content: desc },
+				{ property: "og:url", content: url },
 			],
+			links: [{ rel: "canonical", href: url }],
 		};
 	},
 	component: ListingDetailPage,
@@ -147,6 +164,7 @@ function ListingGallery({ images, title }: { images: ListingImage[]; title: stri
 							key={img.id}
 							type="button"
 							onClick={() => setActiveImage(i)}
+							aria-label={`Kuva ${i + 1}`}
 							className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition-colors ${
 								i === activeImage ? "border-accent" : "border-transparent"
 							}`}

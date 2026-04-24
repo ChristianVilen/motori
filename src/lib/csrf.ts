@@ -15,9 +15,7 @@ export function csrfMiddleware() {
 		}
 
 		const origin = request.headers.get("origin");
-		const expected = new URL(
-			process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-		).origin;
+		const expected = new URL(process.env.BETTER_AUTH_URL ?? "http://localhost:3000").origin;
 
 		if (!origin || origin !== expected) {
 			setResponseStatus(403);
