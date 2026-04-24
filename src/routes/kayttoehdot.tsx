@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/kayttoehdot")({
+	head: () => ({
+		meta: [{ title: "Käyttöehdot — Vuokramoto" }],
+	}),
 	component: Kayttoehdot,
 });
 

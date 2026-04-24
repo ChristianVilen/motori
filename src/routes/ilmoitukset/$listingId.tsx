@@ -80,6 +80,20 @@ export const Route = createFileRoute("/ilmoitukset/$listingId")({
 		}
 		return { ...result, session };
 	},
+	head: ({ loaderData }) => {
+		const l = loaderData?.listing;
+		if (!l) return {};
+		const title = `${l.title} — Vuokramoto`;
+		const desc = `Vuokraa ${l.brand} ${l.model} (${l.year}) — ${l.city}. Alkaen ${(l.price_per_day / 100).toFixed(0)} €/pv.`;
+		return {
+			meta: [
+				{ title },
+				{ name: "description", content: desc },
+				{ property: "og:title", content: title },
+				{ property: "og:description", content: desc },
+			],
+		};
+	},
 	component: ListingDetailPage,
 	notFoundComponent: () => {
 		const { t } = useTranslation("listings");

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { LICENSE_CLASSES, type LicenseClass } from "~/lib/constants";
+import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import { deleteAccount } from "~/lib/delete-account";
 import { useTranslation } from "~/lib/i18n";
@@ -28,6 +29,7 @@ const loadSettings = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 const saveSettings = createServerFn({ method: "POST" })
+	.middleware([csrfMiddleware()])
 	.inputValidator(
 		(data: {
 			displayName: string;
@@ -91,6 +93,9 @@ export const Route = createFileRoute("/profiili/asetukset")({
 		}
 		return loadSettings();
 	},
+	head: () => ({
+		meta: [{ title: "Asetukset — Vuokramoto" }],
+	}),
 	component: SettingsPage,
 });
 

@@ -15,6 +15,15 @@ export const Route = createFileRoute("/ilmoitukset/")({
 	validateSearch: (search) => browseSearchSchema.parse(search),
 	loaderDeps: ({ search }) => search,
 	loader: ({ deps }) => searchListings({ data: deps }),
+	head: () => ({
+		meta: [
+			{ title: "Selaa ilmoituksia — Vuokramoto" },
+			{
+				name: "description",
+				content: "Selaa moottoripyörien vuokrausilmoituksia. Suodata alueen, tyypin ja hinnan mukaan.",
+			},
+		],
+	}),
 	component: BrowsePage,
 });
 

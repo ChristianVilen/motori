@@ -1,0 +1,32 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /omat
+Disallow: /profiili/asetukset
+Disallow: /taydenna-profiili
+Disallow: /vahvista-sahkoposti
+Disallow: /api/
+
+# AI crawlers — allow indexing of public listings, block private paths (inherited above)
+User-agent: GPTBot
+Allow: /ilmoitukset
+Allow: /profiili
+Disallow: /admin
+Disallow: /omat
+Disallow: /profiili/asetukset
+Disallow: /taydenna-profiili
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /ilmoitukset
+Allow: /profiili
+Disallow: /admin
+Disallow: /omat
+Disallow: /profiili/asetukset
+Disallow: /taydenna-profiili
+Disallow: /api/
+
+User-agent: CCBot
+Disallow: /
+
+Sitemap: https://vuokramoto.fi/sitemap.xml

@@ -12,6 +12,7 @@ import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { csrfMiddleware } from "~/lib/csrf";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
@@ -63,7 +64,7 @@ const uploadInputSchema = z.object({
 });
 
 export const getImageUploadUrl = createServerFn({ method: "POST" })
-	.middleware([rateLimitMiddleware(20, 60, "image-upload"), requireVerifiedEmail()])
+	.middleware([csrfMiddleware(), rateLimitMiddleware(20, 60, "image-upload"), requireVerifiedEmail()])
 	.inputValidator((data: unknown) => uploadInputSchema.parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();

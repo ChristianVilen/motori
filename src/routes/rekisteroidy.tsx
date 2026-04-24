@@ -8,6 +8,9 @@ import { useTranslation } from "~/lib/i18n";
 import { passwordStrength } from "~/lib/password-strength";
 
 export const Route = createFileRoute("/rekisteroidy")({
+	head: () => ({
+		meta: [{ title: "Rekisteröidy — Vuokramoto" }],
+	}),
 	component: RegisterPage,
 });
 

@@ -6,6 +6,9 @@ import { authClient } from "~/lib/auth-client";
 import { useTranslation } from "~/lib/i18n";
 
 export const Route = createFileRoute("/unohdin-salasanan")({
+	head: () => ({
+		meta: [{ title: "Unohdin salasanan — Vuokramoto" }],
+	}),
 	component: ForgotPasswordPage,
 });
 

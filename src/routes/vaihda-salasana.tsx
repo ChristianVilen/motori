@@ -11,6 +11,9 @@ export const Route = createFileRoute("/vaihda-salasana")({
 		token: typeof search.token === "string" ? search.token : undefined,
 		error: typeof search.error === "string" ? search.error : undefined,
 	}),
+	head: () => ({
+		meta: [{ title: "Vaihda salasana — Vuokramoto" }],
+	}),
 	component: ResetPasswordPage,
 });
 

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { LICENSE_CLASSES, type LicenseClass } from "~/lib/constants";
+import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import { useTranslation } from "~/lib/i18n";
 import { getSession } from "~/lib/session";
@@ -13,6 +14,7 @@ import { validateFinnishPhone } from "~/lib/validators";
 const LICENSE_CLASS_VALUES = LICENSE_CLASSES.map((c) => c.value) as LicenseClass[];
 
 const saveProfile = createServerFn({ method: "POST" })
+	.middleware([csrfMiddleware()])
 	.inputValidator(
 		(data: { displayName: string; city: string; phone: string; licenseClass: string }) => {
 			const displayName = data.displayName.trim();

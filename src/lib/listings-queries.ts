@@ -65,7 +65,7 @@ function applySort<O>(
 	if (sort === "relevance" && tsquery) {
 		return query
 			.orderBy(
-				sql`ts_rank_cd(listing.search_vector, to_tsquery('finnish_unaccent', ${tsquery}))`,
+				sql`ts_rank_cd(listing.search_vector, websearch_to_tsquery('finnish_unaccent', ${tsquery}))`,
 				"desc",
 			)
 			.orderBy("listing.created_at", "desc");
@@ -127,7 +127,7 @@ export const searchListings = createServerFn({ method: "GET" })
 
 		if (tsquery) {
 			baseQuery = baseQuery.where(
-				sql<SqlBool>`listing.search_vector @@ to_tsquery('finnish_unaccent', ${tsquery})`,
+				sql<SqlBool>`listing.search_vector @@ websearch_to_tsquery('finnish_unaccent', ${tsquery})`,
 			);
 		}
 		if (params.region) {

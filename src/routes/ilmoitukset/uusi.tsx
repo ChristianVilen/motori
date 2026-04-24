@@ -2,6 +2,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ListingForm } from "~/components/listings/listing-form";
+import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import { useTranslation } from "~/lib/i18n";
 import { log } from "~/lib/log";
@@ -13,7 +14,7 @@ import type { ListingFormData } from "~/lib/validators";
 import { listingFormSchema } from "~/lib/validators";
 
 const createListing = createServerFn({ method: "POST" })
-	.middleware([rateLimitMiddleware(5, 60, "create-listing"), requireVerifiedEmail()])
+	.middleware([csrfMiddleware(), rateLimitMiddleware(5, 60, "create-listing"), requireVerifiedEmail()])
 	.inputValidator((data: ListingFormData) => listingFormSchema.parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();
@@ -81,6 +82,9 @@ export const Route = createFileRoute("/ilmoitukset/uusi")({
 		}
 		return { session };
 	},
+	head: () => ({
+		meta: [{ title: "Uusi ilmoitus — Vuokramoto" }],
+	}),
 	component: NewListingPage,
 });
 
