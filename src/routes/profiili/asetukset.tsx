@@ -7,6 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { LICENSE_CLASSES, type LicenseClass } from "~/lib/constants";
 import { db } from "~/lib/db/index";
+import { deleteAccount } from "~/lib/delete-account";
 import { useTranslation } from "~/lib/i18n";
 import { getSession } from "~/lib/session";
 import { validateFinnishPhone } from "~/lib/validators";
@@ -222,7 +223,93 @@ function SettingsPage() {
 						{!!error && <span className="text-sm text-destructive">{error}</span>}
 					</div>
 				</form>
+
+				<DeleteAccountSection />
 			</div>
+		</div>
+	);
+}
+
+function DeleteAccountSection() {
+	const { t } = useTranslation("profile");
+	const [open, setOpen] = useState(false);
+	const [confirmation, setConfirmation] = useState("");
+	const [deleting, setDeleting] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+
+	async function handleDelete() {
+		setError(null);
+		setDeleting(true);
+		try {
+			await deleteAccount();
+			window.location.href = "/";
+		} catch {
+			setError(t("settings.deleteAccountError"));
+			setDeleting(false);
+		}
+	}
+
+	return (
+		<div
+			data-testid="delete-account-section"
+			className="mt-8 rounded-xl border border-destructive/30 bg-card p-5"
+		>
+			<h2 className="text-lg font-bold text-destructive">{t("settings.deleteAccount")}</h2>
+			<p className="mt-1 text-sm text-muted">{t("settings.deleteAccountDescription")}</p>
+
+			{!open ? (
+				<Button
+					data-testid="delete-account-trigger"
+					type="button"
+					variant="outline"
+					className="mt-4 border-destructive/50 text-destructive hover:bg-destructive/10"
+					onClick={() => setOpen(true)}
+				>
+					{t("settings.deleteAccount")}
+				</Button>
+			) : (
+				<div className="mt-4 space-y-3">
+					<label htmlFor="deleteConfirm" className="text-sm font-medium text-foreground">
+						{t("settings.deleteAccountConfirm")}
+					</label>
+					<Input
+						data-testid="delete-account-confirm-input"
+						id="deleteConfirm"
+						value={confirmation}
+						onChange={(e) => setConfirmation(e.target.value)}
+						placeholder="POISTA"
+						autoComplete="off"
+					/>
+					<div className="flex gap-3">
+						<Button
+							data-testid="delete-account-submit"
+							type="button"
+							className="bg-destructive text-white hover:bg-destructive/90"
+							disabled={confirmation !== "POISTA" || deleting}
+							onClick={handleDelete}
+						>
+							{deleting ? t("settings.deleteAccountDeleting") : t("settings.deleteAccountButton")}
+						</Button>
+						<Button
+							data-testid="delete-account-cancel"
+							type="button"
+							variant="outline"
+							onClick={() => {
+								setOpen(false);
+								setConfirmation("");
+								setError(null);
+							}}
+						>
+							{t("settings.cancel")}
+						</Button>
+					</div>
+					{!!error && (
+						<p data-testid="delete-account-error" className="text-sm text-destructive">
+							{error}
+						</p>
+					)}
+				</div>
+			)}
 		</div>
 	);
 }

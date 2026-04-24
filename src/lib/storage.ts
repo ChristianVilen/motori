@@ -18,7 +18,7 @@ import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { requireVerifiedEmail } from "~/lib/require-verified-email";
 import { getSession } from "~/lib/session";
 
-function getStorageClient() {
+export function getStorageClient() {
 	return new S3Client({
 		region: "hel1",
 		endpoint: process.env.STORAGE_ENDPOINT,

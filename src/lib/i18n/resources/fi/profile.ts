@@ -37,5 +37,12 @@ export default {
 		cancel: "Peruuta",
 		saved: "Tallennettu",
 		saveError: "Tallennus epäonnistui. Yritä uudelleen.",
+		deleteAccount: "Poista tili",
+		deleteAccountDescription:
+			"Tilisi ja kaikki siihen liittyvät tiedot (ilmoitukset, kuvat, suosikit) poistetaan pysyvästi. Tätä ei voi peruuttaa.",
+		deleteAccountConfirm: 'Kirjoita "POISTA" vahvistaaksesi',
+		deleteAccountButton: "Poista tili pysyvästi",
+		deleteAccountDeleting: "Poistetaan...",
+		deleteAccountError: "Tilin poisto epäonnistui. Yritä uudelleen.",
 	},
 } as const;
