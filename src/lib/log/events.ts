@@ -1,4 +1,7 @@
 export const EVENTS = {
+	account: {
+		deleted: "account.deleted",
+	},
 	auth: {
 		login_success: "auth.login.success",
 		login_failure: "auth.login.failure",
@@ -26,6 +29,7 @@ export const EVENTS = {
 } as const;
 
 export type EventName =
+	| (typeof EVENTS.account)[keyof typeof EVENTS.account]
 	| (typeof EVENTS.auth)[keyof typeof EVENTS.auth]
 	| (typeof EVENTS.listing)[keyof typeof EVENTS.listing]
 	| (typeof EVENTS.image)[keyof typeof EVENTS.image]
