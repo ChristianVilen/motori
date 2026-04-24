@@ -104,7 +104,7 @@ jobs:
         run: pnpm exec playwright install-deps chromium webkit
       - run: pnpm db:migrate
       - run: pnpm build
-      - run: pnpm test:e2e -- --shard=${{ matrix.shard }}
+      - run: pnpm test:e2e --shard=${{ matrix.shard }}
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
