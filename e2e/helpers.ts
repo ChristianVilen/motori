@@ -20,6 +20,6 @@ export async function loginAs(page: Page, email: string) {
 	const login = new LoginPage(page);
 	await login.goto();
 	await login.login(email, TEST_PASSWORD);
-	await page.waitForURL("/");
+	await page.waitForURL((url) => url.pathname !== "/kirjaudu");
 	await waitForHydration(page);
 }

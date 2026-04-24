@@ -32,8 +32,10 @@ export default async function globalSetup() {
 
 	// Sign up. 422/409-style "already exists" errors are expected on reruns — anything
 	// else means the server is misconfigured and we want the run to fail loudly.
+	const headers = { Origin: BASE_URL };
 	const signUpRes = await context.request.post(`${BASE_URL}/api/auth/sign-up/email`, {
 		data: { name: "E2E Test User", email: TEST_EMAIL, password: TEST_PASSWORD },
+		headers,
 		failOnStatusCode: false,
 	});
 	if (!signUpRes.ok()) {
@@ -51,6 +53,7 @@ export default async function globalSetup() {
 
 	const signInRes = await context.request.post(`${BASE_URL}/api/auth/sign-in/email`, {
 		data: { email: TEST_EMAIL, password: TEST_PASSWORD },
+		headers,
 		failOnStatusCode: false,
 	});
 

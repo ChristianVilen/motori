@@ -4,7 +4,7 @@ export default defineConfig({
 	testDir: "./e2e/tests",
 	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
-	retries: process.env.CI ? 2 : 0,
+	retries: process.env.CI ? 1 : 0,
 	reporter: [["html", { open: "never" }]],
 	outputDir: "e2e/.test-results",
 	globalSetup: "./e2e/global-setup.ts",
@@ -23,7 +23,9 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: "DISABLE_EMAIL_VERIFICATION=true pnpm dev",
+		command: process.env.CI
+			? "DISABLE_EMAIL_VERIFICATION=true pnpm start"
+			: "DISABLE_EMAIL_VERIFICATION=true pnpm dev",
 		url: "http://localhost:3000",
 		reuseExistingServer: !process.env.CI,
 	},
