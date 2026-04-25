@@ -22,6 +22,27 @@ import { getSession } from "~/lib/session";
 const VIEW_DEDUP_MAX = 10_000;
 const viewedRecently = new Set<string>();
 
+function maybeIncrementViewCount(listingId: string, userId: string | undefined) {
+	const request = getRequest();
+	const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+	// When the set is full, dedup stops and every view is counted (fail-open).
+	const dedupKey = userId ? `view:${listingId}:${userId}` : `view:${listingId}:${ip}`;
+	if (viewedRecently.size < VIEW_DEDUP_MAX && viewedRecently.has(dedupKey)) {
+		return;
+	}
+	if (viewedRecently.size < VIEW_DEDUP_MAX) {
+		viewedRecently.add(dedupKey);
+		setTimeout(() => viewedRecently.delete(dedupKey), 60_000);
+	}
+	// updated_at intentionally omitted — view bumps should not surface listings
+	// as "recently updated" in sorting or the sitemap lastmod.
+	db.updateTable("listing")
+		.set({ view_count: sql`view_count + 1` })
+		.where("id", "=", listingId)
+		.execute()
+		.catch(() => {});
+}
+
 const getListing = createServerFn({ method: "GET" })
 	.inputValidator((id: string) => id)
 	.handler(async ({ data: id }) => {
@@ -38,27 +59,7 @@ const getListing = createServerFn({ method: "GET" })
 			return null;
 		}
 
-		// Fire-and-forget — sql expression avoids RMW race on concurrent views.
-		// Deduplicate: only count once per session per listing.
-		const viewKey = `view:${id}:${session?.user.id ?? "anon"}`;
-		const request = getRequest();
-		const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-		const dedupKey = session?.user.id ? viewKey : `view:${id}:${ip}`;
-		// When the set is full, dedup stops and every view is counted (fail-open).
-		const shouldCount = viewedRecently.size >= VIEW_DEDUP_MAX || !viewedRecently.has(dedupKey);
-		if (shouldCount) {
-			if (viewedRecently.size < VIEW_DEDUP_MAX) {
-				viewedRecently.add(dedupKey);
-				setTimeout(() => viewedRecently.delete(dedupKey), 60_000);
-			}
-			// updated_at intentionally omitted — view bumps should not surface listings
-			// as "recently updated" in sorting or the sitemap lastmod.
-			db.updateTable("listing")
-				.set({ view_count: sql`view_count + 1` })
-				.where("id", "=", id)
-				.execute()
-				.catch(() => {});
-		}
+		maybeIncrementViewCount(id, session?.user.id);
 
 		const [images, make, model] = await Promise.all([
 			db
@@ -134,8 +135,10 @@ export const Route = createFileRoute("/ilmoitukset/$listingId")({
 		if (!l) {
 			return {};
 		}
+		const make = loaderData?.makeName ?? "";
+		const model = loaderData?.modelName ?? "";
 		const title = `${l.title} — Vuokramoto`;
-		const desc = `Vuokraa ${l.brand} ${l.model} (${l.year}) — ${l.city}. Alkaen ${(l.price_per_day / 100).toFixed(0)} €/pv.`;
+		const desc = `Vuokraa ${make} ${model} (${l.year}) — ${l.city}. Alkaen ${(l.price_per_day / 100).toFixed(0)} €/pv.`;
 		const url = `${SITE_URL}/ilmoitukset/${l.id}`;
 		return {
 			meta: [
