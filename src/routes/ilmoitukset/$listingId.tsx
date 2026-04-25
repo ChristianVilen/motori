@@ -60,12 +60,28 @@ const getListing = createServerFn({ method: "GET" })
 				.catch(() => {});
 		}
 
-		const images = await db
-			.selectFrom("listing_image")
-			.selectAll()
-			.where("listing_id", "=", id)
-			.orderBy("order", "asc")
-			.execute();
+		const [images, make, model] = await Promise.all([
+			db
+				.selectFrom("listing_image")
+				.selectAll()
+				.where("listing_id", "=", id)
+				.orderBy("order", "asc")
+				.execute(),
+			listing.make_id
+				? db
+						.selectFrom("motorcycle_make")
+						.select("name")
+						.where("id", "=", listing.make_id)
+						.executeTakeFirst()
+				: Promise.resolve(null),
+			listing.model_id
+				? db
+						.selectFrom("motorcycle_model")
+						.select("name")
+						.where("id", "=", listing.model_id)
+						.executeTakeFirst()
+				: Promise.resolve(null),
+		]);
 
 		const ownerRow = await db
 			.selectFrom("profile")
@@ -92,7 +108,7 @@ const getListing = createServerFn({ method: "GET" })
 			ownerEmail = ownerUser?.email ?? null;
 		}
 
-		return { listing, images, owner, ownerEmail };
+		return { listing, images, owner, ownerEmail, makeName: make?.name ?? null, modelName: model?.name ?? null };
 	});
 
 export const Route = createFileRoute("/ilmoitukset/$listingId")({
@@ -192,13 +208,33 @@ function ListingGallery({ images, title }: { images: ListingImage[]; title: stri
 	);
 }
 
-function ListingSpecs({ listing }: { listing: Listing }) {
+function ListingSpecs({
+	listing,
+	makeName,
+	modelName,
+}: {
+	listing: Listing;
+	makeName: string | null;
+	modelName: string | null;
+}) {
 	const { t } = useTranslation("listings");
 
 	return (
 		<div className="rounded-xl border border-border bg-card p-5">
 			<h2 className="mb-3 text-sm font-semibold text-foreground">{t("detail.specs.heading")}</h2>
 			<dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+				{!!makeName && (
+					<div>
+						<dt className="text-muted">{t("detail.specs.brand")}</dt>
+						<dd className="font-medium text-foreground">{makeName}</dd>
+					</div>
+				)}
+				{!!modelName && (
+					<div>
+						<dt className="text-muted">{t("detail.specs.model")}</dt>
+						<dd className="font-medium text-foreground">{modelName}</dd>
+					</div>
+				)}
 				<div>
 					<dt className="text-muted">{t("detail.specs.year")}</dt>
 					<dd className="font-medium text-foreground">{listing.year}</dd>
@@ -346,7 +382,7 @@ function PricingCard({
 
 function ListingDetailPage() {
 	const { t } = useTranslation("listings");
-	const { listing, images, owner, ownerEmail, session } = Route.useLoaderData();
+	const { listing, images, owner, ownerEmail, session, makeName, modelName } = Route.useLoaderData();
 
 	const isOwner = session?.user.id === listing.owner_id;
 	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
@@ -413,7 +449,7 @@ function ListingDetailPage() {
 							</div>
 						</div>
 
-						<ListingSpecs listing={listing} />
+						<ListingSpecs listing={listing} makeName={makeName} modelName={modelName} />
 
 						{/* Description */}
 						<div>
