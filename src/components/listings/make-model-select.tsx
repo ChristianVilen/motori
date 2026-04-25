@@ -42,6 +42,8 @@ export function MakeModelSelect({
 	const [newModelName, setNewModelName] = useState("");
 	const [makeLoading, setMakeLoading] = useState(false);
 	const [modelLoading, setModelLoading] = useState(false);
+	const [makeAddError, setMakeAddError] = useState<string | null>(null);
+	const [modelAddError, setModelAddError] = useState<string | null>(null);
 
 	const makeRef = useRef<HTMLDivElement>(null);
 	const modelRef = useRef<HTMLDivElement>(null);
@@ -140,10 +142,13 @@ export function MakeModelSelect({
 			return;
 		}
 		setMakeLoading(true);
+		setMakeAddError(null);
 		try {
 			const newMake = await createMake({ data: newMakeName.trim() });
 			setMakes((prev) => [...prev, newMake].sort((a, b) => a.name.localeCompare(b.name)));
 			handleMakeSelect(newMake);
+		} catch (err) {
+			setMakeAddError(err instanceof Error ? err.message : "Virhe lisättäessä merkkiä");
 		} finally {
 			setMakeLoading(false);
 		}
@@ -154,12 +159,15 @@ export function MakeModelSelect({
 			return;
 		}
 		setModelLoading(true);
+		setModelAddError(null);
 		try {
 			const newModel = await createModel({
 				data: { makeId: selectedMake.id, name: newModelName.trim() },
 			});
 			setModels((prev) => [...prev, newModel].sort((a, b) => a.name.localeCompare(b.name)));
 			handleModelSelect(newModel);
+		} catch (err) {
+			setModelAddError(err instanceof Error ? err.message : "Virhe lisättäessä mallia");
 		} finally {
 			setModelLoading(false);
 		}
@@ -230,41 +238,47 @@ export function MakeModelSelect({
 						</ul>
 						<div className="border-t border-border p-2">
 							{makeAddingNew ? (
-								<div className="flex items-center gap-2">
-									<input
-										type="text"
-										// biome-ignore lint/a11y/noAutofocus: intentional — focus add input
-										autoFocus
-										value={newMakeName}
-										onChange={(e) => setNewMakeName(e.target.value)}
-										onKeyDown={(e) => {
-											if (e.key === "Enter") {
-												e.preventDefault();
-												handleAddMake();
-											}
-										}}
-										placeholder="Merkin nimi..."
-										className={addInputClass}
-									/>
-									<button
-										type="button"
-										onClick={handleAddMake}
-										disabled={makeLoading || !newMakeName.trim()}
-										className="rounded bg-accent px-3 py-1 text-sm text-white disabled:opacity-50"
-									>
-										Lisää
-									</button>
-									<button
-										type="button"
-										onClick={() => {
-											setMakeAddingNew(false);
-											setNewMakeName("");
-										}}
-										className="text-sm text-muted hover:text-foreground"
-									>
-										Peruuta
-									</button>
-								</div>
+								<>
+									<div className="flex items-center gap-2">
+										<input
+											type="text"
+											// biome-ignore lint/a11y/noAutofocus: intentional — focus add input
+											autoFocus
+											value={newMakeName}
+											onChange={(e) => setNewMakeName(e.target.value)}
+											onKeyDown={(e) => {
+												if (e.key === "Enter") {
+													e.preventDefault();
+													handleAddMake();
+												}
+											}}
+											placeholder="Merkin nimi..."
+											className={addInputClass}
+										/>
+										<button
+											type="button"
+											onClick={handleAddMake}
+											disabled={makeLoading || !newMakeName.trim()}
+											className="rounded bg-accent px-3 py-1 text-sm text-white disabled:opacity-50"
+										>
+											Lisää
+										</button>
+										<button
+											type="button"
+											onClick={() => {
+												setMakeAddingNew(false);
+												setNewMakeName("");
+												setMakeAddError(null);
+											}}
+											className="text-sm text-muted hover:text-foreground"
+										>
+											Peruuta
+										</button>
+									</div>
+									{makeAddError !== null ? (
+										<p className="mt-1 text-sm text-destructive">{makeAddError}</p>
+									) : null}
+								</>
 							) : (
 								<button
 									type="button"
@@ -357,41 +371,47 @@ export function MakeModelSelect({
 						</ul>
 						<div className="border-t border-border p-2">
 							{modelAddingNew ? (
-								<div className="flex items-center gap-2">
-									<input
-										type="text"
-										// biome-ignore lint/a11y/noAutofocus: intentional
-										autoFocus
-										value={newModelName}
-										onChange={(e) => setNewModelName(e.target.value)}
-										onKeyDown={(e) => {
-											if (e.key === "Enter") {
-												e.preventDefault();
-												handleAddModel();
-											}
-										}}
-										placeholder="Mallin nimi..."
-										className={addInputClass}
-									/>
-									<button
-										type="button"
-										onClick={handleAddModel}
-										disabled={modelLoading || !newModelName.trim()}
-										className="rounded bg-accent px-3 py-1 text-sm text-white disabled:opacity-50"
-									>
-										Lisää
-									</button>
-									<button
-										type="button"
-										onClick={() => {
-											setModelAddingNew(false);
-											setNewModelName("");
-										}}
-										className="text-sm text-muted hover:text-foreground"
-									>
-										Peruuta
-									</button>
-								</div>
+								<>
+									<div className="flex items-center gap-2">
+										<input
+											type="text"
+											// biome-ignore lint/a11y/noAutofocus: intentional
+											autoFocus
+											value={newModelName}
+											onChange={(e) => setNewModelName(e.target.value)}
+											onKeyDown={(e) => {
+												if (e.key === "Enter") {
+													e.preventDefault();
+													handleAddModel();
+												}
+											}}
+											placeholder="Mallin nimi..."
+											className={addInputClass}
+										/>
+										<button
+											type="button"
+											onClick={handleAddModel}
+											disabled={modelLoading || !newModelName.trim()}
+											className="rounded bg-accent px-3 py-1 text-sm text-white disabled:opacity-50"
+										>
+											Lisää
+										</button>
+										<button
+											type="button"
+											onClick={() => {
+												setModelAddingNew(false);
+												setNewModelName("");
+												setModelAddError(null);
+											}}
+											className="text-sm text-muted hover:text-foreground"
+										>
+											Peruuta
+										</button>
+									</div>
+									{modelAddError !== null ? (
+										<p className="mt-1 text-sm text-destructive">{modelAddError}</p>
+									) : null}
+								</>
 							) : (
 								<button
 									type="button"

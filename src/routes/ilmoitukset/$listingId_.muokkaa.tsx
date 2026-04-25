@@ -157,7 +157,7 @@ function EditListingPage() {
 
 	const initialValues = {
 		title: listing.title,
-		make_id: listing.make_id ?? undefined,
+		make_id: listing.make_id,
 		model_id: listing.model_id ?? null,
 		year: listing.year,
 		engine_cc: listing.engine_cc,

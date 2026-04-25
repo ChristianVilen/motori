@@ -29,6 +29,8 @@ export const getModels = createServerFn({ method: "GET" })
 			.execute();
 	});
 
+const MAX_NAME_LENGTH = 100;
+
 export const createMake = createServerFn({ method: "POST" })
 	.inputValidator((name: string) => name)
 	.handler(async ({ data: name }) => {
@@ -37,6 +39,9 @@ export const createMake = createServerFn({ method: "POST" })
 			throw new Error("Kirjaudu sisään");
 		}
 		const trimmedName = name.trim();
+		if (trimmedName.length === 0 || trimmedName.length > MAX_NAME_LENGTH) {
+			throw new Error("Merkin nimi on liian pitkä tai tyhjä");
+		}
 		return db
 			.insertInto("motorcycle_make")
 			.values({ id: crypto.randomUUID(), name: trimmedName, slug: toSlug(trimmedName) })
@@ -51,9 +56,13 @@ export const createModel = createServerFn({ method: "POST" })
 		if (!session) {
 			throw new Error("Kirjaudu sisään");
 		}
+		const trimmedName = data.name.trim();
+		if (trimmedName.length === 0 || trimmedName.length > MAX_NAME_LENGTH) {
+			throw new Error("Mallin nimi on liian pitkä tai tyhjä");
+		}
 		return db
 			.insertInto("motorcycle_model")
-			.values({ id: crypto.randomUUID(), make_id: data.makeId, name: data.name.trim() })
+			.values({ id: crypto.randomUUID(), make_id: data.makeId, name: trimmedName })
 			.returningAll()
 			.executeTakeFirstOrThrow();
 	});

@@ -48,41 +48,30 @@ const getListing = createServerFn({ method: "GET" })
 	.handler(async ({ data: id }) => {
 		const session = await getSession();
 
-		const listing = await db
+		const row = await db
 			.selectFrom("listing")
-			.selectAll()
+			.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
+			.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
+			.selectAll("listing")
+			.select(["motorcycle_make.name as makeName", "motorcycle_model.name as modelName"])
 			.where("listing.id", "=", id)
 			.where("listing.status", "!=", "removed")
 			.executeTakeFirst();
 
-		if (!listing) {
+		if (!row) {
 			return null;
 		}
 
+		const { makeName, modelName, ...listing } = row;
+
 		maybeIncrementViewCount(id, session?.user.id);
 
-		const [images, make, model] = await Promise.all([
-			db
-				.selectFrom("listing_image")
-				.selectAll()
-				.where("listing_id", "=", id)
-				.orderBy("order", "asc")
-				.execute(),
-			listing.make_id
-				? db
-						.selectFrom("motorcycle_make")
-						.select("name")
-						.where("id", "=", listing.make_id)
-						.executeTakeFirst()
-				: Promise.resolve(null),
-			listing.model_id
-				? db
-						.selectFrom("motorcycle_model")
-						.select("name")
-						.where("id", "=", listing.model_id)
-						.executeTakeFirst()
-				: Promise.resolve(null),
-		]);
+		const images = await db
+			.selectFrom("listing_image")
+			.selectAll()
+			.where("listing_id", "=", id)
+			.orderBy("order", "asc")
+			.execute();
 
 		const ownerRow = await db
 			.selectFrom("profile")
@@ -114,8 +103,8 @@ const getListing = createServerFn({ method: "GET" })
 			images,
 			owner,
 			ownerEmail,
-			makeName: make?.name ?? null,
-			modelName: model?.name ?? null,
+			makeName: makeName ?? null,
+			modelName: modelName ?? null,
 		};
 	});
 

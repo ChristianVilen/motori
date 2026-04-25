@@ -103,7 +103,7 @@ export interface ListingTable {
 	id: string;
 	owner_id: string;
 	title: string;
-	make_id: string | null; // nullable at DB level; app validator enforces required
+	make_id: string;
 	model_id: string | null;
 	year: number;
 	engine_cc: number | null;

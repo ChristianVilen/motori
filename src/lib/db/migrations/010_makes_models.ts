@@ -36,7 +36,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 	// Add FK columns before dropping text columns so PG doesn't reject the table state
 	await db.schema
 		.alterTable("listing")
-		.addColumn("make_id", "text", (col) => col.references("motorcycle_make.id"))
+		.addColumn("make_id", "text", (col) => col.notNull().references("motorcycle_make.id"))
 		.addColumn("model_id", "text", (col) => col.references("motorcycle_model.id"))
 		.execute();
 

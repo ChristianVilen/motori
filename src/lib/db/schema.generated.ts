@@ -42,7 +42,7 @@ export interface Listing {
 	expires_at: Timestamp | null;
 	expiry_notified_at: Timestamp | null;
 	id: string;
-	make_id: string | null;
+	make_id: string;
 	mileage_limit: number | null;
 	model_id: string | null;
 	motorcycle_type: string;

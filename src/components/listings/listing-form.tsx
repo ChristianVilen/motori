@@ -19,10 +19,8 @@ import { useTranslation } from "~/lib/i18n";
 import { getImageUploadUrl } from "~/lib/storage";
 import { type ListingFormData, listingFormSchema } from "~/lib/validators";
 
-export interface ListingFormValues extends ListingFormData {}
-
 interface ListingFormProps {
-	initialValues?: Partial<ListingFormValues>;
+	initialValues?: Partial<ListingFormData>;
 	initialImageUrls?: string[];
 	onSubmit: (data: ListingFormData) => Promise<void>;
 	submitLabel?: string;
