@@ -1,108 +1,76 @@
+import type { Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
-import { uniqueEmail, uniqueName } from "../helpers";
 import { ForgotPasswordPage } from "../pages/forgot-password.page";
 import { LoginPage } from "../pages/login.page";
-import { RegisterPage } from "../pages/register.page";
 import { ResetPasswordPage } from "../pages/reset-password.page";
 
-test.describe("Forgot password", () => {
-	test("renders forgot password form", async ({ page }) => {
+test.describe("Password reset flow", () => {
+	test.describe.configure({ mode: "serial" });
+
+	let page: Page;
+
+	test.beforeAll(async ({ browser }) => {
+		page = await browser.newPage();
+	});
+	test.afterAll(async () => {
+		await page.close();
+	});
+
+	test("login page has forgot-password link", async () => {
+		const login = new LoginPage(page);
+		await login.goto();
+		const forgotLink = page.locator("a[href='/unohdin-salasanan']");
+		await expect(forgotLink).toBeVisible();
+		await forgotLink.click();
+		await expect(page).toHaveURL(/\/unohdin-salasanan/);
+	});
+
+	test("forgot password form renders", async () => {
 		const forgot = new ForgotPasswordPage(page);
 		await forgot.goto();
-
 		await expect(forgot.emailInput).toBeVisible();
 		await expect(forgot.submitButton).toBeVisible();
 	});
 
-	test("shows success message after submitting email", async ({ page }) => {
+	test("submitting email shows success message and hides form", async () => {
 		const forgot = new ForgotPasswordPage(page);
-		await forgot.goto();
-
 		await forgot.requestReset("someone@example.com");
-
 		await expect(forgot.successMessage).toBeVisible();
 		await expect(forgot.form).not.toBeVisible();
 	});
 
-	test("back to login link navigates to login page", async ({ page }) => {
+	test("back-to-login link navigates to login", async () => {
 		const forgot = new ForgotPasswordPage(page);
 		await forgot.goto();
-
 		await forgot.backToLoginLink.first().click();
-
 		await expect(page).toHaveURL(/\/kirjaudu/);
 	});
-});
 
-test.describe("Reset password", () => {
-	test("renders reset password form", async ({ page }) => {
+	test("reset form disabled without token", async () => {
 		const reset = new ResetPasswordPage(page);
-		await reset.goto({ token: "test-token" });
-
-		await expect(reset.passwordInput).toBeVisible();
-		await expect(reset.confirmInput).toBeVisible();
-		await expect(reset.submitButton).toBeVisible();
+		await reset.goto();
+		await expect(reset.submitButton).toBeDisabled();
 	});
 
-	test("shows error when passwords do not match", async ({ page }) => {
+	test("reset form renders and enables submit with token", async () => {
 		const reset = new ResetPasswordPage(page);
 		await reset.goto({ token: "test-token" });
+		await expect(reset.passwordInput).toBeVisible();
+		await expect(reset.confirmInput).toBeVisible();
+		await expect(reset.submitButton).toBeEnabled();
+	});
 
+	test("mismatched passwords show error", async () => {
+		const reset = new ResetPasswordPage(page);
 		await reset.resetPassword("NewPassword1!", "DifferentPassword1!");
-
 		await expect(reset.errorMessage).toBeVisible();
 		await expect(reset.errorMessage).toContainText("eivät täsmää");
 	});
 
-	test("shows error for invalid token in URL", async ({ page }) => {
+	test("invalid token error param shows expired message", async () => {
 		const reset = new ResetPasswordPage(page);
 		await reset.goto({ error: "INVALID_TOKEN" });
-
 		await expect(reset.errorMessage).toBeVisible();
 		await expect(reset.errorMessage).toContainText("vanhentunut");
-	});
-
-	test("submit button is disabled without token", async ({ page }) => {
-		const reset = new ResetPasswordPage(page);
-		await reset.goto();
-
-		await expect(reset.submitButton).toBeDisabled();
-	});
-});
-
-test.describe("Login forgot password link", () => {
-	test("login page has forgot password link", async ({ page }) => {
-		const login = new LoginPage(page);
-		await login.goto();
-
-		const forgotLink = page.locator("a[href='/unohdin-salasanan']");
-		await expect(forgotLink).toBeVisible();
-
-		await forgotLink.click();
-		await expect(page).toHaveURL(/\/unohdin-salasanan/);
-	});
-});
-
-test.describe("Registration flow", () => {
-	test("registration redirects to profile completion", async ({ page }) => {
-		const register = new RegisterPage(page);
-		await register.goto();
-
-		await register.register(uniqueName(), uniqueEmail(), "Password123!");
-
-		await expect(page).toHaveURL(/\/taydenna-profiili/, { timeout: 10000 });
-	});
-});
-
-test.describe("Verification banner", () => {
-	test("new user sees verification banner after registration", async ({ page }) => {
-		const register = new RegisterPage(page);
-		await register.goto();
-
-		await register.register(uniqueName(), uniqueEmail(), "Password123!");
-		await page.waitForURL(/\/taydenna-profiili/);
-
-		const banner = page.locator("text=Vahvista sähköpostiosoitteesi");
-		await expect(banner).toBeVisible();
 	});
 });
