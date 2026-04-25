@@ -82,6 +82,8 @@ const updateListing = createServerFn({ method: "POST" })
 				.updateTable("listing")
 				.set({
 					title: form.title,
+					make_id: form.make_id,
+					model_id: form.model_id ?? null,
 					year: form.year,
 					engine_cc: form.engine_cc ?? null,
 					required_license: form.required_license ?? null,
@@ -155,6 +157,8 @@ function EditListingPage() {
 
 	const initialValues = {
 		title: listing.title,
+		make_id: listing.make_id ?? undefined,
+		model_id: listing.model_id ?? null,
 		year: listing.year,
 		engine_cc: listing.engine_cc,
 		motorcycle_type: listing.motorcycle_type,

@@ -13,10 +13,10 @@ import {
 	SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
+import { MakeModelSelect } from "~/components/listings/make-model-select";
 import {
 	CURRENT_YEAR,
 	LICENSE_CLASSES,
-	MOTORCYCLE_BRANDS,
 	MOTORCYCLE_TYPES,
 	REGIONS,
 } from "~/lib/constants";
@@ -64,8 +64,8 @@ export function ListingForm({
 	const form = useForm({
 		defaultValues: {
 			title: initialValues?.title ?? "",
-			brand: initialValues?.brand ?? "",
-			model: initialValues?.model ?? "",
+			make_id: initialValues?.make_id ?? "",
+			model_id: initialValues?.model_id ?? null,
 			year: initialValues?.year ?? CURRENT_YEAR,
 			engine_cc: initialValues?.engine_cc ?? null,
 			motorcycle_type: initialValues?.motorcycle_type ?? "",
@@ -181,46 +181,17 @@ export function ListingForm({
 						)}
 					</form.Field>
 
-					<div className="grid grid-cols-2 gap-4">
-						<form.Field name="brand">
-							{(field) => (
-								<div>
-									<label htmlFor="brand" className="mb-1 block text-sm font-medium text-foreground">
-										{t("form.fields.brand")} <span className="text-destructive">*</span>
-									</label>
-									<Select value={field.state.value} onValueChange={(v) => field.handleChange(v)}>
-										<SelectTrigger id="brand">
-											<SelectValue placeholder={t("form.fields.brandPlaceholder")} />
-										</SelectTrigger>
-										<SelectContent>
-											{MOTORCYCLE_BRANDS.map((b) => (
-												<SelectItem key={b} value={b}>
-													{b}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-									<FieldError errors={field.state.meta.errors} />
-								</div>
-							)}
-						</form.Field>
-						<form.Field name="model">
-							{(field) => (
-								<div>
-									<label htmlFor="model" className="mb-1 block text-sm font-medium text-foreground">
-										{t("form.fields.model")} <span className="text-destructive">*</span>
-									</label>
-									<Input
-										id="model"
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-									<FieldError errors={field.state.meta.errors} />
-								</div>
-							)}
-						</form.Field>
-					</div>
+					<form.Field name="make_id">
+						{(makeField) => (
+							<MakeModelSelect
+								initialMakeId={initialValues?.make_id ?? null}
+								initialModelId={initialValues?.model_id ?? null}
+								onMakeChange={(id) => makeField.handleChange(id)}
+								onModelChange={(id) => form.setFieldValue("model_id", id)}
+								makeError={makeField.state.meta.errors[0]}
+							/>
+						)}
+					</form.Field>
 
 					<div className="grid grid-cols-2 gap-4">
 						<form.Field name="year">
