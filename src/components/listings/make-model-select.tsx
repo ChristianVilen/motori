@@ -45,25 +45,38 @@ export function MakeModelSelect({
 
 	const makeRef = useRef<HTMLDivElement>(null);
 	const modelRef = useRef<HTMLDivElement>(null);
+	const initialMakeIdRef = useRef(initialMakeId);
+	const initialModelIdRef = useRef(initialModelId);
+	const onMakeChangeRef = useRef(onMakeChange);
+	const onModelChangeRef = useRef(onModelChange);
 
 	useEffect(() => {
 		getMakes().then((loadedMakes) => {
 			setMakes(loadedMakes);
-			if (!initialMakeId) return;
-			const initialMake = loadedMakes.find((m) => m.id === initialMakeId);
-			if (!initialMake) return;
+			const makeId = initialMakeIdRef.current;
+			if (!makeId) {
+				return;
+			}
+			const initialMake = loadedMakes.find((m) => m.id === makeId);
+			if (!initialMake) {
+				return;
+			}
 			setSelectedMake(initialMake);
-			onMakeChange(initialMake.id);
-			getModels({ data: initialMakeId }).then((loadedModels) => {
+			onMakeChangeRef.current(initialMake.id);
+			getModels({ data: makeId }).then((loadedModels) => {
 				setModels(loadedModels);
-				if (!initialModelId) return;
-				const initialModel = loadedModels.find((m) => m.id === initialModelId);
-				if (!initialModel) return;
+				const modelId = initialModelIdRef.current;
+				if (!modelId) {
+					return;
+				}
+				const initialModel = loadedModels.find((m) => m.id === modelId);
+				if (!initialModel) {
+					return;
+				}
 				setSelectedModel(initialModel);
-				onModelChange(initialModel.id);
+				onModelChangeRef.current(initialModel.id);
 			});
 		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	useEffect(() => {
@@ -123,7 +136,9 @@ export function MakeModelSelect({
 	}
 
 	async function handleAddMake() {
-		if (!newMakeName.trim()) return;
+		if (!newMakeName.trim()) {
+			return;
+		}
 		setMakeLoading(true);
 		try {
 			const newMake = await createMake({ data: newMakeName.trim() });
@@ -135,7 +150,9 @@ export function MakeModelSelect({
 	}
 
 	async function handleAddModel() {
-		if (!selectedMake || !newModelName.trim()) return;
+		if (!selectedMake || !newModelName.trim()) {
+			return;
+		}
 		setModelLoading(true);
 		try {
 			const newModel = await createModel({
@@ -164,10 +181,11 @@ export function MakeModelSelect({
 		<div className="grid grid-cols-2 gap-4">
 			{/* ── Make ────────────────────────────────────────────────────────── */}
 			<div ref={makeRef} className="relative">
-				<label className="mb-1 block text-sm font-medium text-foreground">
+				<label htmlFor="make-trigger" className="mb-1 block text-sm font-medium text-foreground">
 					Merkki <span className="text-destructive">*</span>
 				</label>
 				<button
+					id="make-trigger"
 					type="button"
 					onClick={() => {
 						setMakeOpen((prev) => !prev);
@@ -181,7 +199,7 @@ export function MakeModelSelect({
 					<ChevronDown className="h-4 w-4 shrink-0 text-muted" />
 				</button>
 
-				{makeOpen && (
+				{makeOpen ? (
 					<div className={dropdownClass}>
 						<div className="p-2">
 							<input
@@ -259,7 +277,7 @@ export function MakeModelSelect({
 							)}
 						</div>
 					</div>
-				)}
+				) : null}
 
 				{makeError != null && (
 					<p className="mt-1 text-sm text-destructive">
@@ -271,11 +289,13 @@ export function MakeModelSelect({
 			{/* ── Model ───────────────────────────────────────────────────────── */}
 			<div ref={modelRef} className="relative">
 				<label
+					htmlFor="model-trigger"
 					className={`mb-1 block text-sm font-medium ${selectedMake ? "text-foreground" : "text-muted"}`}
 				>
 					Malli
 				</label>
 				<button
+					id="model-trigger"
 					type="button"
 					disabled={!selectedMake}
 					onClick={() => {
@@ -291,7 +311,7 @@ export function MakeModelSelect({
 					<ChevronDown className="h-4 w-4 shrink-0 text-muted" />
 				</button>
 
-				{modelOpen && (
+				{modelOpen ? (
 					<div className={dropdownClass}>
 						<div className="p-2">
 							<input
@@ -305,7 +325,7 @@ export function MakeModelSelect({
 							/>
 						</div>
 						<ul className="max-h-52 overflow-y-auto">
-							{selectedModel && (
+							{selectedModel !== null ? (
 								<li>
 									<button
 										type="button"
@@ -319,7 +339,7 @@ export function MakeModelSelect({
 										(tyhjennä valinta)
 									</button>
 								</li>
-							)}
+							) : null}
 							{filteredModels.map((model) => (
 								<li key={model.id}>
 									<button
@@ -384,7 +404,7 @@ export function MakeModelSelect({
 							)}
 						</div>
 					</div>
-				)}
+				) : null}
 			</div>
 		</div>
 	);

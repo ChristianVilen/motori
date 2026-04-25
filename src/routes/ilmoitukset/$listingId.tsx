@@ -108,7 +108,14 @@ const getListing = createServerFn({ method: "GET" })
 			ownerEmail = ownerUser?.email ?? null;
 		}
 
-		return { listing, images, owner, ownerEmail, makeName: make?.name ?? null, modelName: model?.name ?? null };
+		return {
+			listing,
+			images,
+			owner,
+			ownerEmail,
+			makeName: make?.name ?? null,
+			modelName: model?.name ?? null,
+		};
 	});
 
 export const Route = createFileRoute("/ilmoitukset/$listingId")({
@@ -382,7 +389,8 @@ function PricingCard({
 
 function ListingDetailPage() {
 	const { t } = useTranslation("listings");
-	const { listing, images, owner, ownerEmail, session, makeName, modelName } = Route.useLoaderData();
+	const { listing, images, owner, ownerEmail, session, makeName, modelName } =
+		Route.useLoaderData();
 
 	const isOwner = session?.user.id === listing.owner_id;
 	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;

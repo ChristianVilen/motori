@@ -260,7 +260,9 @@ async function main() {
 
 	const modelValues = MODELS_SEED.flatMap(({ makeSlug, models }) => {
 		const make = makeBySlug[makeSlug];
-		if (!make) return [];
+		if (!make) {
+			return [];
+		}
 		return models.map((name) => ({
 			id: crypto.randomUUID(),
 			make_id: make.id,
@@ -305,7 +307,9 @@ async function main() {
 	for (const seed of listings) {
 		const id = crypto.randomUUID();
 		const make = makeBySlug[seed.makeSlug];
-		if (!make) throw new Error(`Unknown make slug: ${seed.makeSlug}`);
+		if (!make) {
+			throw new Error(`Unknown make slug: ${seed.makeSlug}`);
+		}
 
 		await db
 			.insertInto("listing")

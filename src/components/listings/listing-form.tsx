@@ -3,6 +3,7 @@
 import { useForm } from "@tanstack/react-form";
 import { X } from "lucide-react";
 import { useState } from "react";
+import { MakeModelSelect } from "~/components/listings/make-model-select";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -13,13 +14,7 @@ import {
 	SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
-import { MakeModelSelect } from "~/components/listings/make-model-select";
-import {
-	CURRENT_YEAR,
-	LICENSE_CLASSES,
-	MOTORCYCLE_TYPES,
-	REGIONS,
-} from "~/lib/constants";
+import { CURRENT_YEAR, LICENSE_CLASSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { getImageUploadUrl } from "~/lib/storage";
 import { type ListingFormData, listingFormSchema } from "~/lib/validators";

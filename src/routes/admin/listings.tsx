@@ -28,9 +28,7 @@ function applyListingFilters(
 	}
 	if (filters.search) {
 		const term = `%${escapeLike(filters.search)}%`;
-		conditions.push(
-			eb.or([eb("title", "ilike", term)]),
-		);
+		conditions.push(eb.or([eb("title", "ilike", term)]));
 	}
 	return conditions.length > 0 ? eb.and(conditions) : eb.val(true);
 }
