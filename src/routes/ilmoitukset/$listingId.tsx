@@ -44,12 +44,15 @@ const getListing = createServerFn({ method: "GET" })
 		const request = getRequest();
 		const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
 		const dedupKey = session?.user.id ? viewKey : `view:${id}:${ip}`;
+		// When the set is full, dedup stops and every view is counted (fail-open).
 		const shouldCount = viewedRecently.size >= VIEW_DEDUP_MAX || !viewedRecently.has(dedupKey);
 		if (shouldCount) {
 			if (viewedRecently.size < VIEW_DEDUP_MAX) {
 				viewedRecently.add(dedupKey);
 				setTimeout(() => viewedRecently.delete(dedupKey), 60_000);
 			}
+			// updated_at intentionally omitted — view bumps should not surface listings
+			// as "recently updated" in sorting or the sitemap lastmod.
 			db.updateTable("listing")
 				.set({ view_count: sql`view_count + 1` })
 				.where("id", "=", id)
