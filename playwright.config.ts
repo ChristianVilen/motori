@@ -20,6 +20,7 @@ export default defineConfig({
 		{
 			name: "mobile",
 			use: { ...devices["iPhone 15"] },
+			testMatch: ["**/a11y.spec.ts", "**/listings.spec.ts"],
 		},
 	],
 	webServer: {
