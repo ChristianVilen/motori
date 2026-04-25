@@ -594,6 +594,7 @@ export function ListingForm({
 						disabled={isSubmitting}
 						className="w-full bg-accent text-white hover:bg-accent-hover"
 						size="lg"
+						data-testid="listing-form-submit"
 					>
 						{isSubmitting ? t("form.submit.saving") : (submitLabel ?? t("create.submitLabel"))}
 					</Button>
