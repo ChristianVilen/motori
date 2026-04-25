@@ -64,6 +64,12 @@ export const Route = createFileRoute("/profiili/$userId")({
 		}
 		return result;
 	},
+	head: ({ loaderData }) => {
+		const name = loaderData?.profile?.display_name;
+		return {
+			meta: [{ title: name ? `${name} — Vuokramoto` : "Profiili — Vuokramoto" }],
+		};
+	},
 	component: PublicProfilePage,
 	notFoundComponent: NotFoundProfile,
 });

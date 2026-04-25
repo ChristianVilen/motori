@@ -6,7 +6,7 @@ import { FilterDrawer } from "~/components/listings/filter-drawer";
 import { FilterSidebar } from "~/components/listings/filter-sidebar";
 import { ListingCard } from "~/components/listings/listing-card";
 import { ListingCardSkeleton } from "~/components/listings/listing-card-skeleton";
-import { REGIONS } from "~/lib/constants";
+import { REGIONS, SITE_URL } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { type SearchResult, searchListings } from "~/lib/listings-queries";
 import { type BrowseSearchParams, browseSearchSchema } from "~/lib/validators";
@@ -15,6 +15,18 @@ export const Route = createFileRoute("/ilmoitukset/")({
 	validateSearch: (search) => browseSearchSchema.parse(search),
 	loaderDeps: ({ search }) => search,
 	loader: ({ deps }) => searchListings({ data: deps }),
+	head: () => ({
+		meta: [
+			{ title: "Selaa ilmoituksia — Vuokramoto" },
+			{
+				name: "description",
+				content:
+					"Selaa moottoripyörien vuokrausilmoituksia. Suodata alueen, tyypin ja hinnan mukaan.",
+			},
+			{ property: "og:url", content: `${SITE_URL}/ilmoitukset` },
+		],
+		links: [{ rel: "canonical", href: `${SITE_URL}/ilmoitukset` }],
+	}),
 	component: BrowsePage,
 });
 
@@ -99,7 +111,7 @@ function BrowsePage() {
 							type="text"
 							defaultValue={search.q ?? ""}
 							placeholder={t("browse.searchPlaceholder")}
-							className="h-11 flex-1 rounded-lg bg-white/10 px-4 text-sm text-white placeholder:text-white/50 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent"
+							className="h-11 flex-1 rounded-lg bg-white/10 px-4 text-sm text-white placeholder:text-white/70 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent"
 						/>
 						<button
 							data-testid="listings-search-submit"
@@ -124,7 +136,11 @@ function BrowsePage() {
 							)}
 						</button>
 					</form>
-					<p data-testid="listings-result-count" className="mt-2 text-sm text-white/60">
+					<p
+						data-testid="listings-result-count"
+						aria-live="polite"
+						className="mt-2 text-sm text-white/70"
+					>
 						<span data-testid="listings-total-count" className="font-semibold text-white">
 							{totalCount}
 						</span>{" "}

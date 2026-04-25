@@ -11,6 +11,9 @@ export const Route = createFileRoute("/vaihda-salasana")({
 		token: typeof search.token === "string" ? search.token : undefined,
 		error: typeof search.error === "string" ? search.error : undefined,
 	}),
+	head: () => ({
+		meta: [{ title: "Vaihda salasana — Vuokramoto" }],
+	}),
 	component: ResetPasswordPage,
 });
 
@@ -68,7 +71,7 @@ function ResetPasswordPage() {
 					<Link
 						to="/kirjaudu"
 						search={{ redirect: undefined }}
-						className="text-sm text-accent hover:underline"
+						className="text-sm text-accent underline"
 					>
 						{t("resetPassword.backToLogin")}
 					</Link>
@@ -134,7 +137,7 @@ function ResetPasswordPage() {
 					</div>
 
 					{!!error && (
-						<p data-testid="reset-password-error" className="text-sm text-destructive">
+						<p data-testid="reset-password-error" role="alert" className="text-sm text-destructive">
 							{error}
 						</p>
 					)}

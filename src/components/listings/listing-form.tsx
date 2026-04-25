@@ -713,6 +713,7 @@ export function ListingForm({
 							multiple
 							onChange={handleFileSelect}
 							className="sr-only"
+							aria-label={t("form.images.addImages")}
 						/>
 					</label>
 				)}

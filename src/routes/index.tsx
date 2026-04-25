@@ -73,7 +73,7 @@ function HomePage() {
 							{t("hero.heading")} <span className="text-accent">{t("hero.headingAccent")}</span>
 						</h1>
 
-						<p className="mt-4 max-w-md text-lg text-white/60">{t("hero.subheading")}</p>
+						<p className="mt-4 max-w-md text-lg text-white/70">{t("hero.subheading")}</p>
 
 						{/* Search bar */}
 						<form
@@ -86,7 +86,7 @@ function HomePage() {
 								name="q"
 								type="text"
 								placeholder={t("hero.searchPlaceholder")}
-								className="h-12 flex-1 rounded-lg bg-white/10 px-4 text-white placeholder:text-white/40 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent"
+								className="h-12 flex-1 rounded-lg bg-white/10 px-4 text-white placeholder:text-white/70 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent"
 							/>
 							<button
 								data-testid="home-search-submit"
@@ -127,7 +127,7 @@ function HomePage() {
 									data-testid={`home-chip-${chip.slug}`}
 									to="/ilmoitukset"
 									search={chip.search}
-									className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+									className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs text-white/70 transition-colors hover:bg-white/10 hover:text-white"
 								>
 									{t(chip.labelKey)}
 								</Link>
@@ -138,13 +138,13 @@ function HomePage() {
 						<div className="mt-10 flex gap-8">
 							<div>
 								<p className="font-heading text-2xl font-bold text-accent">{stats.totalListings}</p>
-								<p className="text-xs tracking-wide text-white/40 uppercase">
+								<p className="text-xs tracking-wide text-white/70 uppercase">
 									{t("hero.statsListings")}
 								</p>
 							</div>
 							<div>
 								<p className="font-heading text-2xl font-bold text-accent">{stats.regionCount}</p>
-								<p className="text-xs tracking-wide text-white/40 uppercase">
+								<p className="text-xs tracking-wide text-white/70 uppercase">
 									{t("hero.statsRegions")}
 								</p>
 							</div>
@@ -153,7 +153,7 @@ function HomePage() {
 									<p className="font-heading text-2xl font-bold text-accent">
 										{stats.minPricePerDay} €
 									</p>
-									<p className="text-xs tracking-wide text-white/40 uppercase">
+									<p className="text-xs tracking-wide text-white/70 uppercase">
 										{t("hero.statsPrice")}
 									</p>
 								</div>
@@ -225,7 +225,10 @@ function HomePage() {
 							},
 						].map((step) => (
 							<div key={step.num} className="relative pl-16">
-								<span className="absolute top-0 left-0 font-heading text-5xl font-bold text-white/5">
+								<span
+									aria-hidden="true"
+									className="absolute top-0 left-0 font-heading text-5xl font-bold text-white/5"
+								>
 									{step.num}
 								</span>
 								<div className="mb-2 h-1 w-8 rounded-full bg-accent" />
@@ -259,30 +262,6 @@ function HomePage() {
 					</span>
 				)}
 			</section>
-
-			{/* Footer */}
-			<footer className="border-t border-border px-4 py-8">
-				<div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-					<p className="font-heading text-sm font-semibold text-foreground">{t("footer.brand")}</p>
-					<div className="flex gap-6 text-xs text-muted">
-						<Link to="/ilmoitukset" className="hover:text-foreground">
-							{t("footer.browseListings")}
-						</Link>
-						{verified ? (
-							<Link to="/ilmoitukset/uusi" className="hover:text-foreground">
-								{t("footer.addListing")}
-							</Link>
-						) : (
-							<span title={tAuth("unverifiedTooltip")} className="cursor-not-allowed text-muted/50">
-								{t("footer.addListing")}
-							</span>
-						)}
-					</div>
-					<p className="text-xs text-muted">
-						{t("footer.copyright", { year: new Date().getFullYear() })}
-					</p>
-				</div>
-			</footer>
 		</div>
 	);
 }

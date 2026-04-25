@@ -175,11 +175,17 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 	}
 
 	return (
-		<html lang={locale}>
+		<html lang={locale} dir="ltr">
 			<head>
 				<HeadContent />
 			</head>
 			<body className="min-h-screen bg-background font-sans text-foreground antialiased">
+				<a
+					href="#main-content"
+					className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-white"
+				>
+					Siirry sisältöön
+				</a>
 				{!isAdmin && (
 					<nav className="border-b border-border bg-primary px-4 py-3">
 						<div className="mx-auto flex max-w-6xl items-center justify-between">
@@ -202,7 +208,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 									<span
 										data-testid="nav-add-listing"
 										title={tAuth("unverifiedTooltip")}
-										className="cursor-not-allowed rounded-md bg-white/20 px-3.5 py-1.5 text-sm font-medium text-white/40"
+										className="cursor-not-allowed rounded-md bg-white/20 px-3.5 py-1.5 text-sm font-medium text-white/70"
 									>
 										{t("nav.listMotorcycle")}
 									</span>
@@ -263,7 +269,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 						)}
 					</div>
 				)}
-				{children}
+				<main id="main-content">{children}</main>
 				{!isAdmin && (
 					<footer className="border-t border-border px-4 py-6 text-center text-xs text-muted">
 						<span>© {new Date().getFullYear()} Christian Vilen</span>
@@ -282,7 +288,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 				<script
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: inline locale for hydration
 					dangerouslySetInnerHTML={{
-						__html: `window.__I18N__=${JSON.stringify({ locale })};`,
+						__html: `window.__I18N__=${JSON.stringify({ locale }).replace(/</g, "\\u003c")};`,
 					}}
 				/>
 			</body>

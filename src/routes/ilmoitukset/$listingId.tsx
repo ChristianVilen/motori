@@ -1,15 +1,26 @@
 // src/routes/ilmoitukset/$listingId.tsx
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { sql } from "kysely";
 import { ArrowLeft, Calendar, MapPin, Tag } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
-import { LICENSE_CLASSES, LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
+import {
+	LICENSE_CLASSES,
+	LISTING_STATUSES,
+	MOTORCYCLE_TYPES,
+	REGIONS,
+	SITE_URL,
+} from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { getSession } from "~/lib/session";
+
+// In-memory dedup for view count increments (per-process, 60s TTL, 10k cap)
+const VIEW_DEDUP_MAX = 10_000;
+const viewedRecently = new Set<string>();
 
 const getListing = createServerFn({ method: "GET" })
 	.inputValidator((id: string) => id)
@@ -28,11 +39,26 @@ const getListing = createServerFn({ method: "GET" })
 		}
 
 		// Fire-and-forget — sql expression avoids RMW race on concurrent views.
-		db.updateTable("listing")
-			.set({ view_count: sql`view_count + 1`, updated_at: new Date() })
-			.where("id", "=", id)
-			.execute()
-			.catch(() => {});
+		// Deduplicate: only count once per session per listing.
+		const viewKey = `view:${id}:${session?.user.id ?? "anon"}`;
+		const request = getRequest();
+		const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+		const dedupKey = session?.user.id ? viewKey : `view:${id}:${ip}`;
+		// When the set is full, dedup stops and every view is counted (fail-open).
+		const shouldCount = viewedRecently.size >= VIEW_DEDUP_MAX || !viewedRecently.has(dedupKey);
+		if (shouldCount) {
+			if (viewedRecently.size < VIEW_DEDUP_MAX) {
+				viewedRecently.add(dedupKey);
+				setTimeout(() => viewedRecently.delete(dedupKey), 60_000);
+			}
+			// updated_at intentionally omitted — view bumps should not surface listings
+			// as "recently updated" in sorting or the sitemap lastmod.
+			db.updateTable("listing")
+				.set({ view_count: sql`view_count + 1` })
+				.where("id", "=", id)
+				.execute()
+				.catch(() => {});
+		}
 
 		const images = await db
 			.selectFrom("listing_image")
@@ -79,6 +105,25 @@ export const Route = createFileRoute("/ilmoitukset/$listingId")({
 			throw notFound();
 		}
 		return { ...result, session };
+	},
+	head: ({ loaderData }) => {
+		const l = loaderData?.listing;
+		if (!l) {
+			return {};
+		}
+		const title = `${l.title} — Vuokramoto`;
+		const desc = `Vuokraa ${l.brand} ${l.model} (${l.year}) — ${l.city}. Alkaen ${(l.price_per_day / 100).toFixed(0)} €/pv.`;
+		const url = `${SITE_URL}/ilmoitukset/${l.id}`;
+		return {
+			meta: [
+				{ title },
+				{ name: "description", content: desc },
+				{ property: "og:title", content: title },
+				{ property: "og:description", content: desc },
+				{ property: "og:url", content: url },
+			],
+			links: [{ rel: "canonical", href: url }],
+		};
 	},
 	component: ListingDetailPage,
 	notFoundComponent: () => {
@@ -133,6 +178,7 @@ function ListingGallery({ images, title }: { images: ListingImage[]; title: stri
 							key={img.id}
 							type="button"
 							onClick={() => setActiveImage(i)}
+							aria-label={`Kuva ${i + 1}`}
 							className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition-colors ${
 								i === activeImage ? "border-accent" : "border-transparent"
 							}`}

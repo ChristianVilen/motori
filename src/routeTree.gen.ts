@@ -14,6 +14,7 @@ import { Route as VahvistaSahkopostiRouteImport } from './routes/vahvista-sahkop
 import { Route as UnohdinSalasananRouteImport } from './routes/unohdin-salasanan'
 import { Route as TietosuojaRouteImport } from './routes/tietosuoja'
 import { Route as TaydennaProfiiliRouteImport } from './routes/taydenna-profiili'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RekisteroidyRouteImport } from './routes/rekisteroidy'
 import { Route as KirjauduRouteImport } from './routes/kirjaudu'
 import { Route as KayttoehdotRouteImport } from './routes/kayttoehdot'
@@ -54,6 +55,11 @@ const TietosuojaRoute = TietosuojaRouteImport.update({
 const TaydennaProfiiliRoute = TaydennaProfiiliRouteImport.update({
   id: '/taydenna-profiili',
   path: '/taydenna-profiili',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RekisteroidyRoute = RekisteroidyRouteImport.update({
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/kayttoehdot': typeof KayttoehdotRoute
   '/kirjaudu': typeof KirjauduRoute
   '/rekisteroidy': typeof RekisteroidyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/taydenna-profiili': typeof TaydennaProfiiliRoute
   '/tietosuoja': typeof TietosuojaRoute
   '/unohdin-salasanan': typeof UnohdinSalasananRoute
@@ -166,6 +173,7 @@ export interface FileRoutesByTo {
   '/kayttoehdot': typeof KayttoehdotRoute
   '/kirjaudu': typeof KirjauduRoute
   '/rekisteroidy': typeof RekisteroidyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/taydenna-profiili': typeof TaydennaProfiiliRoute
   '/tietosuoja': typeof TietosuojaRoute
   '/unohdin-salasanan': typeof UnohdinSalasananRoute
@@ -190,6 +198,7 @@ export interface FileRoutesById {
   '/kayttoehdot': typeof KayttoehdotRoute
   '/kirjaudu': typeof KirjauduRoute
   '/rekisteroidy': typeof RekisteroidyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/taydenna-profiili': typeof TaydennaProfiiliRoute
   '/tietosuoja': typeof TietosuojaRoute
   '/unohdin-salasanan': typeof UnohdinSalasananRoute
@@ -215,6 +224,7 @@ export interface FileRouteTypes {
     | '/kayttoehdot'
     | '/kirjaudu'
     | '/rekisteroidy'
+    | '/sitemap.xml'
     | '/taydenna-profiili'
     | '/tietosuoja'
     | '/unohdin-salasanan'
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/kayttoehdot'
     | '/kirjaudu'
     | '/rekisteroidy'
+    | '/sitemap.xml'
     | '/taydenna-profiili'
     | '/tietosuoja'
     | '/unohdin-salasanan'
@@ -260,6 +271,7 @@ export interface FileRouteTypes {
     | '/kayttoehdot'
     | '/kirjaudu'
     | '/rekisteroidy'
+    | '/sitemap.xml'
     | '/taydenna-profiili'
     | '/tietosuoja'
     | '/unohdin-salasanan'
@@ -284,6 +296,7 @@ export interface RootRouteChildren {
   KayttoehdotRoute: typeof KayttoehdotRoute
   KirjauduRoute: typeof KirjauduRoute
   RekisteroidyRoute: typeof RekisteroidyRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TaydennaProfiiliRoute: typeof TaydennaProfiiliRoute
   TietosuojaRoute: typeof TietosuojaRoute
   UnohdinSalasananRoute: typeof UnohdinSalasananRoute
@@ -334,6 +347,13 @@ declare module '@tanstack/react-router' {
       path: '/taydenna-profiili'
       fullPath: '/taydenna-profiili'
       preLoaderRoute: typeof TaydennaProfiiliRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rekisteroidy': {
@@ -473,6 +493,7 @@ const rootRouteChildren: RootRouteChildren = {
   KayttoehdotRoute: KayttoehdotRoute,
   KirjauduRoute: KirjauduRoute,
   RekisteroidyRoute: RekisteroidyRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TaydennaProfiiliRoute: TaydennaProfiiliRoute,
   TietosuojaRoute: TietosuojaRoute,
   UnohdinSalasananRoute: UnohdinSalasananRoute,

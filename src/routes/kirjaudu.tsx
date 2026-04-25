@@ -4,6 +4,9 @@ import { LoginForm } from "~/components/auth/login-form";
 import { useTranslation } from "~/lib/i18n";
 
 export const Route = createFileRoute("/kirjaudu")({
+	head: () => ({
+		meta: [{ title: "Kirjaudu sisään — Vuokramoto" }],
+	}),
 	validateSearch: (search: Record<string, unknown>) => ({
 		redirect: typeof search.redirect === "string" ? search.redirect : undefined,
 	}),
@@ -29,7 +32,7 @@ function LoginPage() {
 					<Link
 						data-testid="login-register-link"
 						to="/rekisteroidy"
-						className="text-accent hover:underline"
+						className="text-accent underline"
 					>
 						{t("login.registerLink")}
 					</Link>

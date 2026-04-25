@@ -1,0 +1,31 @@
+# Vuokramoto — Vuokraa moottoripyörä Suomessa
+
+> Finland's motorcycle rental marketplace. Rent a motorcycle from local owners across all Finnish regions, or list yours for rent.
+
+## What is Vuokramoto?
+
+Vuokramoto is the easiest way to rent a motorcycle in Finland. Private owners list their bikes — from nakeds and sport bikes to tourers and adventure bikes — and riders browse, compare, and contact owners directly. No middlemen, no rental agency markup.
+
+## Why use Vuokramoto?
+
+- **Nationwide coverage** — Listings across all Finnish regions: Uusimaa, Pirkanmaa, Varsinais-Suomi, Lapland, and more
+- **Every type of motorcycle** — Naked, sport, touring, adventure, enduro, custom, and scooters
+- **All license classes** — Filter by A1, A2, or full A license
+- **Affordable daily rates** — Prices set by owners, often significantly cheaper than traditional rental companies
+- **Free to list** — Motorcycle owners can create listings at no cost
+- **Seasonal and year-round rentals** — Try a bike before buying, rent for a road trip, or cover your riding season
+
+## Who is it for?
+
+- Riders visiting Finland who want to explore on two wheels
+- Finnish riders who want to try a different bike before buying
+- New riders looking for affordable short-term rentals
+- Motorcycle owners who want to earn from their bike when it's parked
+
+## Browse listings
+
+Visit [vuokramoto.fi/ilmoitukset](https://vuokramoto.fi/ilmoitukset) to search and filter available motorcycles.
+
+## Language
+
+The site is in Finnish (fi). Key terms: "moottoripyörä" = motorcycle, "vuokra" = rental, "ilmoitus" = listing.

@@ -97,6 +97,7 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 								key={t.value}
 								type="button"
 								onClick={() => toggleArrayFilter("type", t.value)}
+								aria-pressed={isActive}
 								className={`rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
 									isActive
 										? "bg-primary text-primary-foreground"
@@ -121,6 +122,7 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 								key={l.value}
 								type="button"
 								onClick={() => toggleArrayFilter("license", l.value)}
+								aria-pressed={isActive}
 								className={`flex-1 rounded-md py-2 text-sm font-semibold transition-colors ${
 									isActive
 										? "bg-primary text-primary-foreground"

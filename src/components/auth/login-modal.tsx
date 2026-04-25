@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { useEffect } from "react";
 import { LoginForm } from "~/components/auth/login-form";
 import { useTranslation } from "~/lib/i18n";
+import { useFocusTrap } from "~/lib/use-focus-trap";
 
 interface LoginModalProps {
 	open: boolean;
@@ -14,6 +15,7 @@ interface LoginModalProps {
 export function LoginModal({ open, onClose }: LoginModalProps) {
 	const router = useRouter();
 	const { t } = useTranslation("auth");
+	const trapRef = useFocusTrap(open);
 
 	useEffect(() => {
 		if (!open) {
@@ -51,6 +53,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 			aria-labelledby="login-modal-title"
 		>
 			<div
+				ref={trapRef}
 				className="w-full max-w-sm rounded-xl bg-card p-6 shadow-xl"
 				onClick={(e) => e.stopPropagation()}
 				onKeyDown={(e) => e.stopPropagation()}
@@ -77,7 +80,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 
 				<p className="mt-4 text-center text-sm text-muted">
 					{t("modal.noAccount")}{" "}
-					<Link to="/rekisteroidy" onClick={onClose} className="text-accent hover:underline">
+					<Link to="/rekisteroidy" onClick={onClose} className="text-accent underline">
 						{t("modal.registerLink")}
 					</Link>
 				</p>

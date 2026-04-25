@@ -3,6 +3,7 @@
 
 import { DeleteObjectsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { createServerFn } from "@tanstack/react-start";
+import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
@@ -41,7 +42,7 @@ async function deleteUserImages(userId: string) {
 }
 
 export const deleteAccount = createServerFn({ method: "POST" })
-	.middleware([rateLimitMiddleware(3, 60, "delete-account")])
+	.middleware([csrfMiddleware(), rateLimitMiddleware(3, 60, "delete-account")])
 	.handler(async () => {
 		const session = await getSession();
 		if (!session) {

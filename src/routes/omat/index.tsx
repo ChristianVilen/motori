@@ -5,6 +5,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { MapPin, Pencil, Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
+import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
@@ -47,7 +48,7 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 const setListingStatus = createServerFn({ method: "POST" })
-	.middleware([requireVerifiedEmail()])
+	.middleware([csrfMiddleware(), requireVerifiedEmail()])
 	.inputValidator((data: { id: string; status: "active" | "paused" | "removed" }) => data)
 	.handler(async ({ data }) => {
 		const session = await getSession();
@@ -80,6 +81,9 @@ export const Route = createFileRoute("/omat/")({
 		}
 		return getMyListings();
 	},
+	head: () => ({
+		meta: [{ title: "Omat ilmoitukset — Vuokramoto" }],
+	}),
 	component: ProfilePage,
 });
 

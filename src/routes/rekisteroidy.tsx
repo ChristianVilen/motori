@@ -8,6 +8,9 @@ import { useTranslation } from "~/lib/i18n";
 import { passwordStrength } from "~/lib/password-strength";
 
 export const Route = createFileRoute("/rekisteroidy")({
+	head: () => ({
+		meta: [{ title: "Rekisteröidy — Vuokramoto" }],
+	}),
 	component: RegisterPage,
 });
 
@@ -125,7 +128,7 @@ function RegisterPage() {
 					</div>
 
 					{!!error && (
-						<p data-testid="register-error" className="text-sm text-destructive">
+						<p data-testid="register-error" role="alert" className="text-sm text-destructive">
 							{error}
 						</p>
 					)}
@@ -146,7 +149,7 @@ function RegisterPage() {
 						data-testid="register-login-link"
 						to="/kirjaudu"
 						search={{ redirect: undefined }}
-						className="text-accent hover:underline"
+						className="text-accent underline"
 					>
 						{t("register.loginLink")}
 					</Link>

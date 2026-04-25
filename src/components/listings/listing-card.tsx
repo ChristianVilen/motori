@@ -36,6 +36,7 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 					<img
 						src={firstImage.url}
 						alt={listing.title}
+						loading="lazy"
 						className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
 					/>
 				) : (

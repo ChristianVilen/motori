@@ -6,6 +6,9 @@ import { authClient } from "~/lib/auth-client";
 import { useTranslation } from "~/lib/i18n";
 
 export const Route = createFileRoute("/unohdin-salasanan")({
+	head: () => ({
+		meta: [{ title: "Unohdin salasanan — Vuokramoto" }],
+	}),
 	component: ForgotPasswordPage,
 });
 
@@ -46,7 +49,7 @@ function ForgotPasswordPage() {
 						<Link
 							to="/kirjaudu"
 							search={{ redirect: undefined }}
-							className="text-sm text-accent hover:underline"
+							className="text-sm text-accent underline"
 						>
 							{t("forgotPassword.backToLogin")}
 						</Link>
@@ -82,7 +85,7 @@ function ForgotPasswordPage() {
 							<Link
 								to="/kirjaudu"
 								search={{ redirect: undefined }}
-								className="text-accent hover:underline"
+								className="text-accent underline"
 							>
 								{t("forgotPassword.backToLogin")}
 							</Link>

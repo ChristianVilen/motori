@@ -7,8 +7,8 @@
 	/* Core palette */
 	--color-primary: #1a1a2e;
 	--color-primary-foreground: #ffffff;
-	--color-accent: #e07a3a;
-	--color-accent-hover: #c96830;
+	--color-accent: #b85518;
+	--color-accent-hover: #a34b13;
 	--color-accent-foreground: #ffffff;
 	--color-background: #fafaf9;
 	--color-foreground: #1a1a2e;
@@ -48,4 +48,17 @@
 @utility card-hover-active {
 	transform: translateY(-4px);
 	box-shadow: 0 12px 32px -8px rgba(26, 26, 46, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		/* biome-ignore lint/complexity/noImportantStyles: must override component animations for a11y */
+		animation-duration: 0.01ms !important;
+		/* biome-ignore lint/complexity/noImportantStyles: must override component animations for a11y */
+		animation-iteration-count: 1 !important;
+		/* biome-ignore lint/complexity/noImportantStyles: must override component animations for a11y */
+		transition-duration: 0.01ms !important;
+	}
 }

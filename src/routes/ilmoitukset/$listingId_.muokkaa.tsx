@@ -4,6 +4,7 @@ import { createFileRoute, Link, notFound, redirect, useNavigate } from "@tanstac
 import { createServerFn } from "@tanstack/react-start";
 import { ArrowLeft } from "lucide-react";
 import { ListingForm } from "~/components/listings/listing-form";
+import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import { useTranslation } from "~/lib/i18n";
 import { log } from "~/lib/log";
@@ -46,7 +47,11 @@ const getListingForEdit = createServerFn({ method: "GET" })
 	});
 
 const updateListing = createServerFn({ method: "POST" })
-	.middleware([rateLimitMiddleware(5, 60, "update-listing"), requireVerifiedEmail()])
+	.middleware([
+		csrfMiddleware(),
+		rateLimitMiddleware(5, 60, "update-listing"),
+		requireVerifiedEmail(),
+	])
 	.inputValidator((data: { id: string; form: ListingFormData }) => ({
 		id: data.id,
 		form: listingFormSchema.parse(data.form),

@@ -5,6 +5,7 @@ import { sql } from "kysely";
 import { Pause, Play, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { requireAdmin } from "~/lib/admin";
+import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import type { Database } from "~/lib/db/schema";
 
@@ -75,6 +76,7 @@ const getAdminListings = createServerFn({ method: "GET" })
 	});
 
 const updateListingStatuses = createServerFn({ method: "POST" })
+	.middleware([csrfMiddleware()])
 	.inputValidator((input: { ids: string[]; status: ListingStatus }) => {
 		if (input.ids.length > MAX_BULK_IDS) {
 			throw new Error(`Cannot update more than ${MAX_BULK_IDS} listings at once`);
