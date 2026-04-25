@@ -82,12 +82,29 @@ export type Profile = Selectable<ProfileTable>;
 export type NewProfile = Insertable<ProfileTable>;
 export type ProfileUpdate = Updateable<ProfileTable>;
 
+export interface MotorcycleMakeTable {
+	id: string;
+	name: string;
+	slug: string;
+	approved: Generated<boolean>;
+}
+
+export interface MotorcycleModelTable {
+	id: string;
+	make_id: string;
+	name: string;
+	approved: Generated<boolean>;
+}
+
+export type MotorcycleMake = Selectable<MotorcycleMakeTable>;
+export type MotorcycleModel = Selectable<MotorcycleModelTable>;
+
 export interface ListingTable {
 	id: string;
 	owner_id: string;
 	title: string;
-	brand: string;
-	model: string;
+	make_id: string | null; // nullable at DB level; app validator enforces required
+	model_id: string | null;
 	year: number;
 	engine_cc: number | null;
 	required_license: "A1" | "A2" | "A" | null;
@@ -95,13 +112,9 @@ export interface ListingTable {
 	price_per_day: number; // EUR cents
 	price_per_week: number | null; // EUR cents
 	price_description: string | null;
-	deposit_amount: number | null; // EUR cents
 	city: string;
 	region: string;
 	postal_code: string | null;
-	available_from: string | null; // date "YYYY-MM-DD"
-	available_to: string | null; // date "YYYY-MM-DD"
-	season_only: Generated<boolean>;
 	description: string;
 	mileage_limit: number | null; // km/day
 	status: Generated<"active" | "paused" | "rented" | "removed">;
@@ -144,6 +157,8 @@ export interface Database {
 	account: AccountTable;
 	verification: VerificationTable;
 	profile: ProfileTable;
+	motorcycle_make: MotorcycleMakeTable;
+	motorcycle_model: MotorcycleModelTable;
 	listing: ListingTable;
 	listing_image: ListingImageTable;
 	favorite: FavoriteTable;

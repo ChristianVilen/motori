@@ -91,14 +91,22 @@ async function seedListings(ownerId: string) {
 	// Idempotent: delete any prior seed rows first so tests always see a known state.
 	await db.deleteFrom("listing").where("id", "=", SEEDED_LISTING_ID).execute();
 
+	// Clean up e2e make from previous run, then re-insert.
+	await db.deleteFrom("motorcycle_make").where("slug", "=", "honda-e2e").execute();
+	const e2eMake = await db
+		.insertInto("motorcycle_make")
+		.values({ id: crypto.randomUUID(), name: "Honda", slug: "honda-e2e" })
+		.returningAll()
+		.executeTakeFirstOrThrow();
+
 	await db
 		.insertInto("listing")
 		.values({
 			id: SEEDED_LISTING_ID,
 			owner_id: ownerId,
 			title: SEEDED_LISTING_TITLE,
-			brand: "Honda",
-			model: "CB500F",
+			make_id: e2eMake.id,
+			model_id: null,
 			year: 2022,
 			engine_cc: 471,
 			required_license: "A2",
@@ -106,12 +114,9 @@ async function seedListings(ownerId: string) {
 			price_per_day: 5500,
 			price_per_week: 30000,
 			price_description: null,
-			deposit_amount: 20000,
 			city: "Helsinki",
 			region: "uusimaa",
 			postal_code: null,
-			available_from: null,
-			available_to: null,
 			description:
 				"E2E seed listing. Do not edit manually — global-setup recreates this row on every run.",
 			mileage_limit: 200,

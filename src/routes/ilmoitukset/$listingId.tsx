@@ -3,7 +3,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { sql } from "kysely";
-import { ArrowLeft, Calendar, MapPin, Tag } from "lucide-react";
+import { ArrowLeft, MapPin, Tag } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
@@ -200,14 +200,6 @@ function ListingSpecs({ listing }: { listing: Listing }) {
 			<h2 className="mb-3 text-sm font-semibold text-foreground">{t("detail.specs.heading")}</h2>
 			<dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
 				<div>
-					<dt className="text-muted">{t("detail.specs.brand")}</dt>
-					<dd className="font-medium text-foreground">{listing.brand}</dd>
-				</div>
-				<div>
-					<dt className="text-muted">{t("detail.specs.model")}</dt>
-					<dd className="font-medium text-foreground">{listing.model}</dd>
-				</div>
-				<div>
 					<dt className="text-muted">{t("detail.specs.year")}</dt>
 					<dd className="font-medium text-foreground">{listing.year}</dd>
 				</div>
@@ -227,18 +219,6 @@ function ListingSpecs({ listing }: { listing: Listing }) {
 						</dd>
 					</div>
 				)}
-				{!!listing.available_from && (
-					<div>
-						<dt className="flex items-center gap-1 text-muted">
-							<Calendar className="h-3 w-3" />
-							{t("detail.specs.available")}
-						</dt>
-						<dd className="font-medium text-foreground">
-							{listing.available_from}
-							{listing.available_to ? ` – ${listing.available_to}` : ""}
-						</dd>
-					</div>
-				)}
 			</dl>
 		</div>
 	);
@@ -247,7 +227,6 @@ function ListingSpecs({ listing }: { listing: Listing }) {
 interface PricingCardProps {
 	pricePerDayCents: number;
 	pricePerWeekCents: number | null;
-	depositCents: number | null;
 	listing: Listing;
 	owner: { display_name: string | null; city: string | null; phone: string | null } | null;
 	ownerEmail: string | null;
@@ -258,7 +237,6 @@ interface PricingCardProps {
 function PricingCard({
 	pricePerDayCents,
 	pricePerWeekCents,
-	depositCents,
 	listing,
 	owner,
 	ownerEmail,
@@ -278,11 +256,6 @@ function PricingCard({
 				{!!pricePerWeekCents && (
 					<div data-testid="price-per-week" className="mt-1 text-sm text-muted">
 						{t("detail.pricing.perWeek", { price: formatEur(pricePerWeekCents) })}
-					</div>
-				)}
-				{!!depositCents && (
-					<div data-testid="price-deposit" className="mt-1 text-sm text-muted">
-						{t("detail.pricing.deposit", { price: formatEur(depositCents) })}
 					</div>
 				)}
 				{!!listing.price_description && (
@@ -458,7 +431,6 @@ function ListingDetailPage() {
 						<PricingCard
 							pricePerDayCents={listing.price_per_day}
 							pricePerWeekCents={listing.price_per_week ?? null}
-							depositCents={listing.deposit_amount ?? null}
 							listing={listing}
 							owner={owner}
 							ownerEmail={ownerEmail}

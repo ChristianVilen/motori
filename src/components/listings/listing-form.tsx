@@ -72,14 +72,10 @@ export function ListingForm({
 			required_license: initialValues?.required_license ?? null,
 			price_per_day: initialValues?.price_per_day ?? (0 as number),
 			price_per_week: initialValues?.price_per_week ?? null,
-			deposit_amount: initialValues?.deposit_amount ?? null,
 			price_description: initialValues?.price_description ?? "",
 			city: initialValues?.city ?? "",
 			region: initialValues?.region ?? "",
 			postal_code: initialValues?.postal_code ?? "",
-			available_from: initialValues?.available_from ?? "",
-			available_to: initialValues?.available_to ?? "",
-			season_only: initialValues?.season_only ?? false,
 			description: initialValues?.description ?? "",
 			mileage_limit: initialValues?.mileage_limit ?? null,
 		},
@@ -178,7 +174,6 @@ export function ListingForm({
 									value={field.state.value}
 									onBlur={field.handleBlur}
 									onChange={(e) => field.handleChange(e.target.value)}
-									placeholder={t("form.fields.titlePlaceholder")}
 								/>
 								<p className="mt-1 text-xs text-muted">{t("form.fields.titleHint")}</p>
 								<FieldError errors={field.state.meta.errors} />
@@ -220,7 +215,6 @@ export function ListingForm({
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onChange={(e) => field.handleChange(e.target.value)}
-										placeholder={t("form.fields.modelPlaceholder")}
 									/>
 									<FieldError errors={field.state.meta.errors} />
 								</div>
@@ -267,7 +261,6 @@ export function ListingForm({
 										onChange={(e) =>
 											field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
 										}
-										placeholder={t("form.fields.engineCcPlaceholder")}
 									/>
 									<FieldError errors={field.state.meta.errors} />
 								</div>
@@ -358,7 +351,6 @@ export function ListingForm({
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onChange={(e) => field.handleChange(e.target.valueAsNumber)}
-										placeholder={t("form.fields.pricePerDayPlaceholder")}
 									/>
 									<FieldError errors={field.state.meta.errors} />
 								</div>
@@ -383,7 +375,6 @@ export function ListingForm({
 										onChange={(e) =>
 											field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
 										}
-										placeholder={t("form.fields.pricePerWeekPlaceholder")}
 									/>
 									<FieldError errors={field.state.meta.errors} />
 								</div>
@@ -391,53 +382,25 @@ export function ListingForm({
 						</form.Field>
 					</div>
 
-					<div className="grid grid-cols-2 gap-4">
-						<form.Field name="deposit_amount">
-							{(field) => (
-								<div>
-									<label
-										htmlFor="deposit_amount"
-										className="mb-1 block text-sm font-medium text-foreground"
-									>
-										{t("form.fields.deposit")}
-									</label>
-									<Input
-										id="deposit_amount"
-										type="number"
-										min={0}
-										max={100000}
-										value={field.state.value ?? ""}
-										onBlur={field.handleBlur}
-										onChange={(e) =>
-											field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
-										}
-										placeholder={t("form.fields.depositPlaceholder")}
-									/>
-									<FieldError errors={field.state.meta.errors} />
-								</div>
-							)}
-						</form.Field>
-						<form.Field name="price_description">
-							{(field) => (
-								<div>
-									<label
-										htmlFor="price_description"
-										className="mb-1 block text-sm font-medium text-foreground"
-									>
-										{t("form.fields.priceDescription")}
-									</label>
-									<Input
-										id="price_description"
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-										placeholder={t("form.fields.priceDescriptionPlaceholder")}
-									/>
-									<FieldError errors={field.state.meta.errors} />
-								</div>
-							)}
-						</form.Field>
-					</div>
+					<form.Field name="price_description">
+						{(field) => (
+							<div>
+								<label
+									htmlFor="price_description"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
+									{t("form.fields.priceDescription")}
+								</label>
+								<Input
+									id="price_description"
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onChange={(e) => field.handleChange(e.target.value)}
+								/>
+								<FieldError errors={field.state.meta.errors} />
+							</div>
+						)}
+					</form.Field>
 					<form.Field name="mileage_limit">
 						{(field) => (
 							<div className="w-1/3">
@@ -457,7 +420,6 @@ export function ListingForm({
 									onChange={(e) =>
 										field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
 									}
-									placeholder={t("form.fields.mileageLimitPlaceholder")}
 								/>
 								<p className="mt-1 text-xs text-muted">{t("form.fields.mileageLimitHint")}</p>
 								<FieldError errors={field.state.meta.errors} />
@@ -485,7 +447,6 @@ export function ListingForm({
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onChange={(e) => field.handleChange(e.target.value)}
-										placeholder={t("form.fields.cityPlaceholder")}
 									/>
 									<FieldError errors={field.state.meta.errors} />
 								</div>
@@ -531,75 +492,10 @@ export function ListingForm({
 									value={field.state.value}
 									onBlur={field.handleBlur}
 									onChange={(e) => field.handleChange(e.target.value)}
-									placeholder={t("form.fields.postalCodePlaceholder")}
 									maxLength={10}
 								/>
 								<FieldError errors={field.state.meta.errors} />
 							</div>
-						)}
-					</form.Field>
-				</div>
-			</section>
-
-			{/* ── Saatavuus ─────────────────────────────────────────────────── */}
-			<section className="rounded-lg border border-border bg-card p-6">
-				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-					{t("form.sections.availability")}
-				</h2>
-				<div className="space-y-4">
-					<div className="grid grid-cols-2 gap-4">
-						<form.Field name="available_from">
-							{(field) => (
-								<div>
-									<label
-										htmlFor="available_from"
-										className="mb-1 block text-sm font-medium text-foreground"
-									>
-										{t("form.fields.availableFrom")}
-									</label>
-									<Input
-										id="available_from"
-										type="date"
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-									<FieldError errors={field.state.meta.errors} />
-								</div>
-							)}
-						</form.Field>
-						<form.Field name="available_to">
-							{(field) => (
-								<div>
-									<label
-										htmlFor="available_to"
-										className="mb-1 block text-sm font-medium text-foreground"
-									>
-										{t("form.fields.availableTo")}
-									</label>
-									<Input
-										id="available_to"
-										type="date"
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-									<FieldError errors={field.state.meta.errors} />
-								</div>
-							)}
-						</form.Field>
-					</div>
-					<form.Field name="season_only">
-						{(field) => (
-							<label className="flex cursor-pointer items-center gap-3">
-								<input
-									type="checkbox"
-									checked={field.state.value}
-									onChange={(e) => field.handleChange(e.target.checked)}
-									className="h-4 w-4 rounded border-border accent-accent"
-								/>
-								<span className="text-sm text-foreground">{t("form.fields.seasonOnly")}</span>
-							</label>
 						)}
 					</form.Field>
 				</div>
@@ -625,7 +521,6 @@ export function ListingForm({
 								value={field.state.value}
 								onBlur={field.handleBlur}
 								onChange={(e) => field.handleChange(e.target.value)}
-								placeholder={t("form.fields.descriptionPlaceholder")}
 								className="resize-y"
 							/>
 							<p className="mt-1 text-xs text-muted">
