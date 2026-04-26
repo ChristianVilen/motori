@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/kayttoehdot")({
 	head: () => ({
-		meta: [{ title: "Käyttöehdot — Vuokramoto" }],
+		meta: [{ title: "Käyttöehdot — Motori" }],
 	}),
 	component: Kayttoehdot,
 });
@@ -14,7 +14,7 @@ function Kayttoehdot() {
 			<p className="mt-2 text-sm text-muted">Päivitetty viimeksi: 19.4.2025</p>
 
 			<p className="mt-6 text-sm text-foreground/80">
-				Rekisteröitymällä Vuokramoto-palveluun tai julkaisemalla ilmoituksen hyväksyt nämä
+				Rekisteröitymällä Motori-palveluun tai julkaisemalla ilmoituksen hyväksyt nämä
 				käyttöehdot. Ehdot koskevat kaikkia palvelun käyttäjiä.
 			</p>
 
@@ -22,7 +22,7 @@ function Kayttoehdot() {
 				<h2 className="font-heading text-xl font-semibold text-foreground">1. Määritelmät</h2>
 				<ul className="mt-3 space-y-2 text-sm text-foreground/80">
 					<li>
-						<strong>Palvelu</strong> – Vuokramoto-verkkosivusto (vuokramoto.fi), joka toimii
+						<strong>Palvelu</strong> – Motori-verkkosivusto (motori.fi), joka toimii
 						moottoripyörien vuokrausilmoitusten alustana.
 					</li>
 					<li>
@@ -42,7 +42,7 @@ function Kayttoehdot() {
 					</li>
 					<li>
 						<strong>Sopimus</strong> – vuokralleantajan ja vuokraajan välinen vuokrasopimus, johon
-						Vuokramoto ei ole osapuolena.
+						Motori ei ole osapuolena.
 					</li>
 				</ul>
 			</section>
@@ -51,16 +51,16 @@ function Kayttoehdot() {
 				<h2 className="font-heading text-xl font-semibold text-foreground">2. Yleiset ehdot</h2>
 				<div className="mt-3 space-y-3 text-sm text-foreground/80">
 					<p>
-						Vuokramoto on ilmoitusalusta, joka mahdollistaa yksityishenkilöiden välisen
-						moottoripyörien vuokrauksen. Vuokramoto ei ole osapuolena käyttäjien välisissä
+						Motori on ilmoitusalusta, joka mahdollistaa yksityishenkilöiden välisen
+						moottoripyörien vuokrauksen. Motori ei ole osapuolena käyttäjien välisissä
 						sopimuksissa eikä vastaa niiden täytäntöönpanosta.
 					</p>
 					<p>
 						Käyttäjät julkaisevat ilmoituksia ja sopivat vuokrauksista keskenään omalla vastuullaan.
-						Vuokramoto toimii ainoastaan teknisenä alustana.
+						Motori toimii ainoastaan teknisenä alustana.
 					</p>
 					<p>
-						Vuokramoto pidättää oikeuden muuttaa näitä käyttöehtoja. Muutoksista ilmoitetaan
+						Motori pidättää oikeuden muuttaa näitä käyttöehtoja. Muutoksista ilmoitetaan
 						sähköpostitse.
 					</p>
 				</div>
@@ -94,16 +94,16 @@ function Kayttoehdot() {
 				<h2 className="font-heading text-xl font-semibold text-foreground">4. Vastuunrajoitus</h2>
 				<div className="mt-3 space-y-3 text-sm text-foreground/80">
 					<p>
-						Vuokramoto ei vastaa käyttäjien välisistä sopimuksista, ajoneuvojen kunnosta,
+						Motori ei vastaa käyttäjien välisistä sopimuksista, ajoneuvojen kunnosta,
 						vakuutusasioista eikä vuokrauksen aikana mahdollisesti aiheutuvista vahingoista.
 						Käyttäjät vastaavat näistä itse.
 					</p>
 					<p>
-						Vuokramoto ei takaa ilmoitusten oikeellisuutta tai täydellisyyttä. Käyttäjä vastaa itse
+						Motori ei takaa ilmoitusten oikeellisuutta tai täydellisyyttä. Käyttäjä vastaa itse
 						julkaisemansa sisällön lainmukaisuudesta.
 					</p>
 					<p>
-						Vuokramaton vastuu rajoittuu aina Suomen pakottavan lainsäädännön sallimaan minimiin.
+						Motorin vastuu rajoittuu aina Suomen pakottavan lainsäädännön sallimaan minimiin.
 					</p>
 				</div>
 			</section>
@@ -111,7 +111,7 @@ function Kayttoehdot() {
 			<section className="mt-8">
 				<h2 className="font-heading text-xl font-semibold text-foreground">5. Tilin sulkeminen</h2>
 				<p className="mt-3 text-sm text-foreground/80">
-					Vuokramoto voi sulkea käyttäjän tilin ilman ennakkoilmoitusta, jos käyttäjä rikkoo näitä
+					Motori voi sulkea käyttäjän tilin ilman ennakkoilmoitusta, jos käyttäjä rikkoo näitä
 					ehtoja, julkaisee harhaanjohtavaa sisältöä tai käyttää palvelua lain vastaisesti. Käyttäjä
 					voi itse sulkea tilinsä ottamalla yhteyttä ylläpitoon.
 				</p>
