@@ -1,16 +1,17 @@
+nerdfont: true
+
+merge_strategy: rebase
+agent: claude
+
 files:
-    copy:
-        - .env
-
-post_create:
-    - pnpm install
-
-pre_merge:
-    - pnpm lint
-    - pnpm build
+  copy:
+    - .env
+    - .env.prod
+    - certs/
+    - infra/terraform.tfvars
 
 panes:
-    - command: <agent>
-      focus: true
-    - split: horizontal
-      percentage: 50
+  - command: <agent>
+    focus: true
+  - command: pnpm install
+    split: horizontal
