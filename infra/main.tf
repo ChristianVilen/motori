@@ -55,6 +55,21 @@ resource "hcloud_primary_ip" "app" {
   labels            = local.labels
 }
 
+resource "hcloud_volume" "pgdata" {
+  name              = "pgdata"
+  size              = 10
+  location          = var.location
+  format            = "ext4"
+  delete_protection = true
+  labels            = local.labels
+}
+
+resource "hcloud_volume_attachment" "pgdata" {
+  volume_id = hcloud_volume.pgdata.id
+  server_id = hcloud_server.app.id
+  automount = false
+}
+
 resource "hcloud_server" "app" {
   name         = "app-server"
   labels       = local.labels
@@ -64,13 +79,17 @@ resource "hcloud_server" "app" {
   ssh_keys     = [hcloud_ssh_key.default.id]
   firewall_ids = [hcloud_firewall.web.id]
   user_data = templatefile("cloud-init.yaml", {
-    tailscale_auth_key = var.tailscale_auth_key
-    db_password        = var.db_password
-    domain             = var.domain
+    tailscale_auth_key   = var.tailscale_auth_key
+    db_password          = var.db_password
+    domain               = var.domain
+    backup_s3_endpoint   = var.backup_s3_endpoint
+    backup_s3_region     = var.backup_s3_region
+    backup_s3_bucket     = var.backup_s3_bucket
+    backup_s3_access_key = var.backup_s3_access_key
+    backup_s3_secret_key = var.backup_s3_secret_key
   })
-  backups            = true
-  delete_protection  = true
-  rebuild_protection = true
+  delete_protection  = false
+  rebuild_protection = false
 
   public_net {
     ipv4_enabled = true

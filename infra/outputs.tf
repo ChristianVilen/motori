@@ -4,11 +4,17 @@ output "server_ip" {
 }
 
 output "server_ipv6" {
-  value = hcloud_server.app.ipv6_address
+  value       = hcloud_server.app.ipv6_address
+  description = "IPv6 for the AAAA record."
 }
 
 output "domain" {
   value = var.domain
+}
+
+output "volume_id" {
+  value       = hcloud_volume.pgdata.id
+  description = "pgdata volume ID — needed when detaching/reattaching to a rebuilt server."
 }
 
 output "dns_records" {

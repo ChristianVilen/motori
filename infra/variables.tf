@@ -32,6 +32,32 @@ variable "location" {
   description = "Hetzner location. Server location must match the primary IP location."
 }
 
+variable "backup_s3_endpoint" {
+  type        = string
+  description = "S3-compatible endpoint for DB backup storage (e.g. https://fsn1.your-objectstorage.com)."
+}
+
+variable "backup_s3_region" {
+  type        = string
+  default     = "fsn1"
+  description = "Region for the S3 bucket (e.g. 'fsn1' for Hetzner)."
+}
+
+variable "backup_s3_bucket" {
+  type        = string
+  description = "Bucket name for DB backups."
+}
+
+variable "backup_s3_access_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "backup_s3_secret_key" {
+  type      = string
+  sensitive = true
+}
+
 variable "domain" {
   type        = string
   default     = "motori.fi"

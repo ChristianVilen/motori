@@ -10,7 +10,47 @@ Single Hetzner Cloud VPS running the app (served at **motori.fi**) and PostgreSQ
 | Type | CX33 (4 vCPU, 8 GB RAM, 80 GB NVMe) |
 | OS | Ubuntu 24.04 LTS |
 | Location | hel1 (Helsinki) |
-| Monthly cost | ~€8.29 (€6.49 server + €0.50 IPv4 + €1.30 backups) |
+| Monthly cost | ~€7.51 (€6.49 server + €0.50 IPv4 + €0.52 pgdata volume) + Object Storage for pg_dump backups (pennies) |
+
+## Volume
+
+A 10 GB `hcloud_volume` named `pgdata` is attached to the server. PostgreSQL's data directory (`/var/lib/postgresql`) lives on it. The volume has `delete_protection = true` and is **not** tied to the server lifecycle — it survives `terraform destroy` (you must disable delete protection first) and can be reattached to a replacement server.
+
+Device path inside the server: `/dev/disk/by-id/scsi-0HC_Volume_pgdata`  
+Mount point: `/var/lib/postgresql`  
+fstab entry: added by cloud-init with `nofail` so a missing volume doesn't brick boot.
+
+**Migrating an existing server** (if you provisioned before the volume existed):
+
+```bash
+# 1. Attach the new volume (already done by terraform apply)
+# 2. On the server — stop postgres, copy data, swap mount
+systemctl stop postgresql
+mkfs.ext4 /dev/disk/by-id/scsi-0HC_Volume_pgdata
+mount /dev/disk/by-id/scsi-0HC_Volume_pgdata /mnt/pgdata-new
+rsync -a /var/lib/postgresql/ /mnt/pgdata-new/
+umount /mnt/pgdata-new
+echo '/dev/disk/by-id/scsi-0HC_Volume_pgdata /var/lib/postgresql ext4 defaults,nofail 0 2' >> /etc/fstab
+mv /var/lib/postgresql /var/lib/postgresql.bak
+mkdir /var/lib/postgresql
+mount /var/lib/postgresql
+systemctl start postgresql
+# Verify, then: rm -rf /var/lib/postgresql.bak
+```
+
+**Resizing the volume** (online, no downtime):
+
+```bash
+# In Terraform: increase size, then terraform apply
+# On the server:
+resize2fs /dev/disk/by-id/scsi-0HC_Volume_pgdata
+```
+
+**Get the volume ID:**
+
+```bash
+terraform output volume_id
+```
 
 ## SSH access
 
@@ -18,7 +58,7 @@ Port 22 is not exposed publicly. SSH is only accessible over Tailscale.
 
 **Connect:**
 ```bash
-ssh root@app-server
+ssh root@app-server-1
 ```
 
 That's it — no SSH key, no password. Tailscale SSH authenticates you via your tailnet identity.
@@ -132,21 +172,41 @@ ssh root@app-server "certbot --nginx -d motori.fi -d www.motori.fi --agree-tos -
 
 ## Backups
 
-Hetzner automatic backups are enabled (`backups = true`). Hetzner keeps 7 daily snapshots and rotates them automatically. Backups add 20% to server cost (~€1.30/mo).
+Hetzner server backups are disabled — the DB lives on the separate `pgdata` volume (which doesn't get included in server snapshots anyway) and the OS/config layer is fully reproducible via Terraform + deployment.
 
-For database-level backups, set up a pg_dump cron job and copy dumps off-server (e.g. to Hetzner Storage Box or S3).
+Instead, a nightly `pg_dump` cron runs at 02:00 and uploads a gzipped dump to Hetzner Object Storage:
+
+- Script: `/usr/local/bin/db-backup`
+- Credentials: `/etc/db-backup.env` (written by cloud-init, mode 600)
+- Log: `/var/log/db-backup.log`
+- Retention: last 30 dumps (older ones are pruned after each run)
+
+**Restore a backup:**
+
+```bash
+# List available dumps
+aws s3 ls s3://<bucket>/db-backups/ --endpoint-url <endpoint>
+
+# Download and restore
+aws s3 cp s3://<bucket>/db-backups/pgdump-20260101-020000.sql.gz - \
+  --endpoint-url <endpoint> | gunzip | sudo -u postgres psql appdb
+```
+
+**Run a backup manually:**
+
+```bash
+ssh root@app-server /usr/local/bin/db-backup
+```
 
 ## Protections
 
-Both `delete_protection` and `rebuild_protection` are enabled on the server and primary IP. The Tailscale auth key is single-use and burned on first boot — combined with `rebuild_protection`, this means a botched cloud-init isn't recoverable via `terraform taint` + apply. Recovery is the Hetzner web console (VNC) or disabling protections and rebuilding with a fresh auth key.
+The **primary IP** has `delete_protection = true` — it survives `terraform destroy` and accidental deletion. The **server** has no delete/rebuild protection, so `terraform taint` + apply or a full destroy/recreate works without manual steps.
 
-To destroy or rebuild, you must first disable them:
+The **pgdata volume** has `delete_protection = true` — DB data survives server destruction. To drop the volume you must disable protection first:
 
 ```bash
-# In Hetzner console: Server > Actions > Disable delete protection
-# Or via hcloud CLI:
-hcloud server disable-protection app-server delete rebuild
-hcloud primary-ip disable-protection app-ip delete
+hcloud volume disable-protection pgdata delete
+hcloud primary-ip disable-protection app-ip delete  # if also removing the IP
 ```
 
 ## Terraform operations

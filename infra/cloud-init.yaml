@@ -10,6 +10,37 @@ packages:
   - python3-certbot-nginx
   - ufw
   - fail2ban
+  - awscli
+
+write_files:
+  - path: /etc/db-backup.env
+    permissions: '0600'
+    content: |
+      BACKUP_S3_ENDPOINT=${backup_s3_endpoint}
+      BACKUP_S3_BUCKET=${backup_s3_bucket}
+      AWS_ACCESS_KEY_ID=${backup_s3_access_key}
+      AWS_SECRET_ACCESS_KEY=${backup_s3_secret_key}
+      AWS_DEFAULT_REGION=${backup_s3_region}
+
+  - path: /usr/local/bin/db-backup
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+      . /etc/db-backup.env
+      TIMESTAMP=$$(date +%Y%m%d-%H%M%S)
+      sudo -u postgres pg_dump appdb | gzip | \
+        aws s3 cp - "s3://$$BACKUP_S3_BUCKET/db-backups/pgdump-$$TIMESTAMP.sql.gz" \
+        --endpoint-url "$$BACKUP_S3_ENDPOINT"
+      aws s3 ls "s3://$$BACKUP_S3_BUCKET/db-backups/" --endpoint-url "$$BACKUP_S3_ENDPOINT" \
+        | sort -k1,2 | head -n -30 | awk '{print $$4}' \
+        | xargs -r -I{} aws s3 rm "s3://$$BACKUP_S3_BUCKET/db-backups/{}" \
+          --endpoint-url "$$BACKUP_S3_ENDPOINT" || true
+
+  - path: /etc/cron.d/db-backup
+    permissions: '0644'
+    content: |
+      0 2 * * * root /usr/local/bin/db-backup >> /var/log/db-backup.log 2>&1
 
 runcmd:
   # Wait for time sync before any HTTPS — first boot clock can be 1970 and break TLS
@@ -19,16 +50,24 @@ runcmd:
 
   # Install Node.js 24 (remove any distro nodejs first to avoid version conflicts)
   - apt-get remove -y nodejs npm libnode-dev || true
-  - curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
+  - curl -fsSL https://deb.nodesource.com/setup_24.x -o /tmp/nodesource_setup.sh
+  - bash /tmp/nodesource_setup.sh
   - apt-get install -y nodejs
 
   # Install pnpm via corepack (ships with Node 24)
   - corepack enable
   - corepack prepare pnpm@latest --activate
 
+  # Mount the persistent pgdata volume before PostgreSQL installs so initdb writes directly onto it
+  - until [ -b /dev/disk/by-id/scsi-0HC_Volume_pgdata ]; do sleep 1; done
+  - blkid /dev/disk/by-id/scsi-0HC_Volume_pgdata | grep -q 'TYPE="ext4"' || mkfs.ext4 -F /dev/disk/by-id/scsi-0HC_Volume_pgdata
+  - mkdir -p /var/lib/postgresql
+  - echo '/dev/disk/by-id/scsi-0HC_Volume_pgdata /var/lib/postgresql ext4 defaults,nofail 0 2' >> /etc/fstab
+  - mount /var/lib/postgresql
+
   # Install PostgreSQL 17 from PGDG (Ubuntu 24.04 ships 16; we use 17 in dev)
   - install -d /usr/share/postgresql-common/pgdg
-  - curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+  - curl -fsSL --retry 3 https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
   - sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
   - apt-get update
   - apt-get install -y postgresql-17 postgresql-contrib-17
@@ -38,7 +77,6 @@ runcmd:
   - sudo -u postgres psql -c "CREATE DATABASE appdb OWNER appuser;"
 
   # Configure UFW (backup firewall)
-  - ufw allow OpenSSH
   - ufw allow 'Nginx Full'
   - ufw --force enable
 
@@ -49,11 +87,12 @@ runcmd:
 
   # Install and connect Tailscale
   - curl -fsSL https://tailscale.com/install.sh | sh
-  - tailscale up --authkey=${tailscale_auth_key} --ssh --advertise-tags=tag:server
+  - tailscale up --authkey='${tailscale_auth_key}' --ssh --advertise-tags=tag:server
 
   # Create app directory
+  - useradd -m -s /bin/bash app
   - mkdir -p /opt/app
-  - chown root:root /opt/app
+  - chown app:app /opt/app
 
   # Record the configured domain for later (Certbot, nginx site config, etc.)
   - echo "${domain}" > /etc/app-domain
