@@ -57,9 +57,14 @@ test.describe("Listing lifecycle", () => {
 			pricePerDay: 45,
 			city: "Helsinki",
 			region: "Uusimaa",
+			description: "E2E lifecycle test listing — luotu automaattisesti e2e-testillä.",
 		});
 		await form.submitButton.click();
-		await page.waitForURL(/\/ilmoitukset\/[^/]+$/, { timeout: 15000 });
+		await page.waitForURL(
+			(url) => /\/ilmoitukset\/[^/]+$/.test(url.pathname) && url.pathname !== "/ilmoitukset/uusi",
+			{ timeout: 15000 },
+		);
+		await waitForHydration(page);
 
 		const match = page.url().match(/\/ilmoitukset\/([^/]+)$/);
 		if (!match) throw new Error("Could not extract listing ID from URL");
@@ -87,6 +92,7 @@ test.describe("Listing lifecycle", () => {
 		await form.titleInput.fill(LISTING_TITLE_EDITED);
 		await form.submitButton.click();
 		await page.waitForURL(/\/ilmoitukset\/[^/]+$/, { timeout: 15000 });
+		await waitForHydration(page);
 
 		const detail = new ListingDetailPage(page);
 		await expect(detail.title).toHaveText(LISTING_TITLE_EDITED);

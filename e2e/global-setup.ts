@@ -92,7 +92,16 @@ async function seedListings(ownerId: string) {
 	await db.deleteFrom("listing").where("id", "=", SEEDED_LISTING_ID).execute();
 
 	// Clean up e2e make from previous run, then re-insert.
-	await db.deleteFrom("motorcycle_make").where("slug", "=", "honda-e2e").execute();
+	// listing.make_id has no ON DELETE CASCADE, so clean up dependent listings first.
+	const priorMake = await db
+		.selectFrom("motorcycle_make")
+		.select("id")
+		.where("slug", "=", "honda-e2e")
+		.executeTakeFirst();
+	if (priorMake) {
+		await db.deleteFrom("listing").where("make_id", "=", priorMake.id).execute();
+		await db.deleteFrom("motorcycle_make").where("id", "=", priorMake.id).execute();
+	}
 	const e2eMake = await db
 		.insertInto("motorcycle_make")
 		.values({ id: crypto.randomUUID(), name: "Honda", slug: "honda-e2e" })

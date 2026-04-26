@@ -10,6 +10,7 @@ export class ListingFormPage {
 	readonly pricePerDayInput: Locator;
 	readonly cityInput: Locator;
 	readonly regionSelect: Locator;
+	readonly descriptionInput: Locator;
 	readonly submitButton: Locator;
 
 	constructor(page: Page) {
@@ -21,6 +22,7 @@ export class ListingFormPage {
 		this.pricePerDayInput = page.locator("#price_per_day");
 		this.cityInput = page.locator("#city");
 		this.regionSelect = page.locator("#region");
+		this.descriptionInput = page.locator("#description");
 		this.submitButton = page.getByTestId("listing-form-submit");
 	}
 
@@ -33,7 +35,7 @@ export class ListingFormPage {
 	async selectMake(name: string) {
 		await this.makeTrigger.click();
 		await this.page.getByPlaceholder("Hae...").fill(name);
-		await this.page.getByRole("button", { name, exact: true }).click();
+		await this.page.getByRole("button", { name, exact: true }).first().click();
 	}
 
 	async selectMotorcycleType(label: string) {
@@ -54,6 +56,7 @@ export class ListingFormPage {
 		pricePerDay: number;
 		city: string;
 		region: string;
+		description: string;
 	}) {
 		await this.titleInput.fill(data.title);
 		await this.selectMake(data.make);
@@ -62,5 +65,6 @@ export class ListingFormPage {
 		await this.pricePerDayInput.fill(String(data.pricePerDay));
 		await this.cityInput.fill(data.city);
 		await this.selectRegion(data.region);
+		await this.descriptionInput.fill(data.description);
 	}
 }
