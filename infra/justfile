@@ -58,11 +58,12 @@ push-env:
     rsync ../.env.production root@app-server:/etc/motori.env
     @echo "Secrets pushed. Restart the app with: just restart"
 
-# Push TLS certificates to server (required after every server rebuild)
+# Push TLS certificates and nginx SSL config to server (required after every server rebuild)
 push-certs:
     scp certs/motori.com.pem root@app-server:/etc/ssl/motori.fi.pem
     scp certs/motori.com.key root@app-server:/etc/ssl/motori.fi.key
-    ssh root@app-server "chmod 600 /etc/ssl/motori.fi.key && systemctl reload nginx"
+    scp nginx/motori.conf root@app-server:/etc/nginx/sites-available/motori
+    ssh root@app-server "chmod 600 /etc/ssl/motori.fi.key && nginx -t && systemctl reload nginx"
 
 # --- Maintenance ---
 

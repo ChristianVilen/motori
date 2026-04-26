@@ -58,7 +58,7 @@ Port 22 is not exposed publicly. SSH is only accessible over Tailscale.
 
 **Connect:**
 ```bash
-ssh root@app-server-1
+ssh root@app-server
 ```
 
 That's it — no SSH key, no password. Tailscale SSH authenticates you via your tailnet identity.
@@ -162,11 +162,13 @@ Cloudflare DNS records (both proxied — orange cloud):
 | `www.motori.fi` | A | `terraform output server_ip` |
 | `www.motori.fi` | AAAA | `terraform output server_ipv6` |
 
-**TLS is handled by Cloudflare** — no certbot needed. Cloudflare terminates HTTPS at the edge and proxies HTTP to the server. SSL mode must be set to **Full** (not Flexible, not Full Strict) in the Cloudflare dashboard: motori.fi → SSL/TLS → Overview.
+**TLS is handled by Cloudflare** using a Cloudflare Origin Certificate (free, 15-year validity). Cloudflare terminates HTTPS at the edge and connects to the server over HTTPS using the origin cert. SSL mode in the Cloudflare dashboard must be **Full (strict)**: motori.fi → SSL/TLS → Overview.
 
-- Flexible: don't use — browsers get HTTPS but Cloudflare sends plaintext HTTP to the server with no validation.
-- **Full**: Cloudflare sends HTTP to the server. Correct for this setup.
-- Full (strict): requires a valid CA-signed cert on the server — skip unless adding certbot later.
+- Flexible: don't use — Cloudflare connects to origin over plain HTTP, no cert validation.
+- Full: Cloudflare connects over HTTPS but accepts any cert including self-signed. Avoid.
+- **Full (strict)**: Cloudflare verifies the origin cert. Correct for this setup.
+
+The origin cert and nginx SSL config both live in the repo under `infra/certs/` (gitignored) and `infra/nginx/motori.conf`. Deploy both with `just push-certs`.
 
 ## Backups
 
@@ -243,8 +245,7 @@ Runs once on first boot. Takes ~2-3 minutes.
 - Node.js 24 (via NodeSource)
 - pnpm — version pinned via `var.pnpm_version`, must match `package.json`'s `packageManager` field
 - PostgreSQL 17 (via PGDG apt repo — Ubuntu 24.04's default is 16; we pin 17 to match dev)
-- Nginx + an `/etc/nginx/sites-available/motori` site (HTTP only; certbot adds TLS on first run)
-- Certbot + python3-certbot-nginx (for Let's Encrypt SSL — run by hand once DNS resolves)
+- Nginx + an `/etc/nginx/sites-available/motori` site (HTTP bootstrap only — replaced by SSL config via `just push-certs`)
 - UFW (secondary firewall, mirrors Hetzner firewall rules)
 - AWS CLI (used by the backup cron)
 
@@ -276,15 +277,13 @@ Before the first deploy, edit `/etc/motori.env` on the server and add the remain
 
 ### TLS certificates (after server rebuild)
 
-The Cloudflare Origin Certificate lives in `infra/certs/` (gitignored). Push it to a fresh server before nginx can serve HTTPS:
+The Cloudflare Origin Certificate lives in `infra/certs/` (gitignored). The SSL nginx config is in `infra/nginx/motori.conf` (committed). Deploy both in one step:
 
 ```bash
-scp infra/certs/motori.com.pem root@app-server:/etc/ssl/motori.fi.pem
-scp infra/certs/motori.com.key root@app-server:/etc/ssl/motori.fi.key
-ssh root@app-server "chmod 600 /etc/ssl/motori.fi.key"
+just push-certs
 ```
 
-Then update the nginx site config to the SSL version (see current `/etc/nginx/sites-available/motori` on the server for the template) and reload nginx. Cloudflare SSL mode should be **Full (strict)**.
+This copies the certs, deploys the nginx SSL config, tests it, and reloads nginx. Cloudflare SSL mode must be **Full (strict)**.
 
 ## Installed services
 

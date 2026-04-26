@@ -51,13 +51,15 @@ variable "backup_s3_bucket" {
 }
 
 variable "backup_s3_access_key" {
-  type      = string
-  sensitive = true
+  type        = string
+  sensitive   = true
+  description = "Access key for the backup S3 bucket."
 }
 
 variable "backup_s3_secret_key" {
-  type      = string
-  sensitive = true
+  type        = string
+  sensitive   = true
+  description = "Secret key for the backup S3 bucket."
 }
 
 variable "domain" {

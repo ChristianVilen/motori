@@ -87,7 +87,7 @@ write_files:
         listen [::]:80;
         server_name ${domain} www.${domain};
 
-        # Certbot will inject TLS config here on first run.
+        # HTTP bootstrap only — replaced by SSL config via `just push-certs` after provisioning.
 
         client_max_body_size 25M;
 
@@ -164,7 +164,7 @@ runcmd:
   # Wire DATABASE_URL into the service env file (cloud-init knows the password)
   - echo "DATABASE_URL=postgresql://appuser:${db_password}@localhost:5432/appdb" >> /etc/motori.env
 
-  # Enable the nginx site (HTTP only — certbot adds TLS on first run, after DNS resolves)
+  # Enable the nginx site (HTTP bootstrap — SSL config deployed separately via `just push-certs`)
   - sed -i "s/server_name _;/server_name ${domain} www.${domain};/" /etc/nginx/sites-available/default || true
   - rm -f /etc/nginx/sites-enabled/default
   - ln -sf /etc/nginx/sites-available/motori /etc/nginx/sites-enabled/motori
