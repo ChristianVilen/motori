@@ -125,7 +125,11 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 	}
 
 	return (
-		<div className="flex gap-4 rounded-xl border border-border bg-card p-4" data-testid="dashboard-listing-row" data-listing-id={listing.id}>
+		<div
+			className="flex gap-4 rounded-xl border border-border bg-card p-4"
+			data-testid="dashboard-listing-row"
+			data-listing-id={listing.id}
+		>
 			{/* Thumbnail */}
 			<Link
 				to="/ilmoitukset/$listingId"
@@ -192,7 +196,11 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 				{/* Actions */}
 				<div className="mt-3 flex flex-wrap gap-2">
 					{verified ? (
-						<Link to="/ilmoitukset/$listingId/muokkaa" params={{ listingId: listing.id }} data-testid="dashboard-listing-edit">
+						<Link
+							to="/ilmoitukset/$listingId/muokkaa"
+							params={{ listingId: listing.id }}
+							data-testid="dashboard-listing-edit"
+						>
 							<Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs">
 								<Pencil className="h-3 w-3" />
 								{t("dashboard.row.edit")}

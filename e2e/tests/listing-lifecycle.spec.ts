@@ -67,7 +67,9 @@ test.describe("Listing lifecycle", () => {
 		await waitForHydration(page);
 
 		const match = page.url().match(/\/ilmoitukset\/([^/]+)$/);
-		if (!match) throw new Error("Could not extract listing ID from URL");
+		if (!match) {
+			throw new Error("Could not extract listing ID from URL");
+		}
 		listingId = match[1];
 
 		const detail = new ListingDetailPage(page);
