@@ -1,0 +1,59 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+packages:
+  - curl
+  - git
+  - nginx
+  - certbot
+  - python3-certbot-nginx
+  - ufw
+  - fail2ban
+
+runcmd:
+  # Wait for time sync before any HTTPS — first boot clock can be 1970 and break TLS
+  - systemctl start systemd-timesyncd
+  - timedatectl set-ntp true
+  - until timedatectl show -p NTPSynchronized --value | grep -q yes; do sleep 1; done
+
+  # Install Node.js 24 (remove any distro nodejs first to avoid version conflicts)
+  - apt-get remove -y nodejs npm libnode-dev || true
+  - curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
+  - apt-get install -y nodejs
+
+  # Install pnpm via corepack (ships with Node 24)
+  - corepack enable
+  - corepack prepare pnpm@latest --activate
+
+  # Install PostgreSQL 17 from PGDG (Ubuntu 24.04 ships 16; we use 17 in dev)
+  - install -d /usr/share/postgresql-common/pgdg
+  - curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+  - sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+  - apt-get update
+  - apt-get install -y postgresql-17 postgresql-contrib-17
+
+  # Configure PostgreSQL
+  - sudo -u postgres psql -c "CREATE USER appuser WITH PASSWORD '${db_password}';"
+  - sudo -u postgres psql -c "CREATE DATABASE appdb OWNER appuser;"
+
+  # Configure UFW (backup firewall)
+  - ufw allow OpenSSH
+  - ufw allow 'Nginx Full'
+  - ufw --force enable
+
+  # Harden SSH: disable password auth, root password login
+  - sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/^#*PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
+  - systemctl reload ssh
+
+  # Install and connect Tailscale
+  - curl -fsSL https://tailscale.com/install.sh | sh
+  - tailscale up --authkey=${tailscale_auth_key} --ssh --advertise-tags=tag:server
+
+  # Create app directory
+  - mkdir -p /opt/app
+  - chown root:root /opt/app
+
+  # Record the configured domain for later (Certbot, nginx site config, etc.)
+  - echo "${domain}" > /etc/app-domain
