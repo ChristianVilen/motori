@@ -71,13 +71,13 @@ jobs:
       postgres:
         image: postgres:17-alpine
         env:
-          POSTGRES_USER: vuokramoto
-          POSTGRES_PASSWORD: vuokramoto
-          POSTGRES_DB: vuokramoto
+          POSTGRES_USER: motori
+          POSTGRES_PASSWORD: motori
+          POSTGRES_DB: motori
         ports:
           - 5433:5432
         options: >-
-          --health-cmd "pg_isready -U vuokramoto"
+          --health-cmd "pg_isready -U motori"
           --health-interval 5s
           --health-timeout 3s
           --health-retries 5
