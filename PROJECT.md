@@ -1,10 +1,10 @@
-# Vuokramoto — P2P Motorcycle Rental Noticeboard for Finland
+# Motori — P2P Motorcycle Rental Noticeboard for Finland
 
 ## Context
 
 Build a Tori.fi/Craigslist-style noticeboard for peer-to-peer motorcycle rentals in the Finnish market. No payments processed — users list motorcycles, browse, and contact owners directly. The platform's value is structured search, trust signals, and a clean Finnish-language experience.
 
-**Name**: vuokramoto ("rental booth")
+**Name**: motori
 **Tagline**: "Vuokraa moottoripyörä — tai ilmoita omasi vuokralle"
 
 ---
@@ -32,7 +32,7 @@ Build a Tori.fi/Craigslist-style noticeboard for peer-to-peer motorcycle rentals
 ## Project Structure
 
 ```
-vuokramoto/
+motori/
   app.config.ts              # TanStack Start config
   package.json
   tsconfig.json
@@ -224,4 +224,4 @@ Internet -> Caddy (HTTPS) -> TanStack Start (Node.js :3000) -> PostgreSQL 17
 - **Backups**: Daily pg_dump to Object Storage via cron
 - **Object Storage**: Hetzner Object Storage in hel1 (Helsinki) — S3-compatible, create bucket via Hetzner Cloud Console
 - **CI/CD**: GitHub Actions -> build -> SSH deploy (or Docker registry + Watchtower)
-- **Domain**: vuokramoto.fi
+- **Domain**: motori.fi

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Vuokramoto is a P2P motorcycle rental noticeboard for Finland. Lean MVP — prefer minimal, direct solutions over abstractions and premature generalisation. UI copy is Finnish.
+Motori is a P2P motorcycle rental noticeboard for Finland. Lean MVP — prefer minimal, direct solutions over abstractions and premature generalisation. UI copy is Finnish.
 
 ## Commands
 
@@ -19,7 +19,7 @@ Always use `pnpm` (not npm/bun — lockfile is pnpm-lock.yaml).
 
 ### Database
 
-Postgres 17 via `docker-compose up -d db` (port 5433, user/pass/db = `vuokramoto`). Copy `.env.example` → `.env`.
+Postgres 17 via `docker-compose up -d db` (port 5433, user/pass/db = `motori`). Copy `.env.example` → `.env`.
 
 - `pnpm db:migrate` — runs migrations in `src/lib/db/migrations/` (numbered `NNN_*.ts`, Kysely migrator)
 - `pnpm db:seed` — dev seed (10 listings, single login user, wipe-and-reseed)

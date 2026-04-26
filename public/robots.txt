@@ -31,4 +31,4 @@ Disallow: /api/
 User-agent: CCBot
 Disallow: /
 
-Sitemap: https://vuokramoto.fi/sitemap.xml
+Sitemap: https://motori.fi/sitemap.xml

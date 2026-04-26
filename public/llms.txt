@@ -1,12 +1,12 @@
-# Vuokramoto — Vuokraa moottoripyörä Suomessa
+# Motori — Vuokraa moottoripyörä Suomessa
 
 > Finland's motorcycle rental marketplace. Rent a motorcycle from local owners across all Finnish regions, or list yours for rent.
 
-## What is Vuokramoto?
+## What is Motori?
 
-Vuokramoto is the easiest way to rent a motorcycle in Finland. Private owners list their bikes — from nakeds and sport bikes to tourers and adventure bikes — and riders browse, compare, and contact owners directly. No middlemen, no rental agency markup.
+Motori is the easiest way to rent a motorcycle in Finland. Private owners list their bikes — from nakeds and sport bikes to tourers and adventure bikes — and riders browse, compare, and contact owners directly. No middlemen, no rental agency markup.
 
-## Why use Vuokramoto?
+## Why use Motori?
 
 - **Nationwide coverage** — Listings across all Finnish regions: Uusimaa, Pirkanmaa, Varsinais-Suomi, Lapland, and more
 - **Every type of motorcycle** — Naked, sport, touring, adventure, enduro, custom, and scooters
@@ -24,7 +24,7 @@ Vuokramoto is the easiest way to rent a motorcycle in Finland. Private owners li
 
 ## Browse listings
 
-Visit [vuokramoto.fi/ilmoitukset](https://vuokramoto.fi/ilmoitukset) to search and filter available motorcycles.
+Visit [motori.fi/ilmoitukset](https://motori.fi/ilmoitukset) to search and filter available motorcycles.
 
 ## Language
 

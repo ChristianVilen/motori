@@ -1,6 +1,6 @@
 {
-	"name": "Vuokramoto",
-	"short_name": "Vuokramoto",
+	"name": "Motori",
+	"short_name": "Motori",
 	"description": "Vuokraa moottoripyörä — tai ilmoita omasi vuokralle.",
 	"start_url": "/",
 	"scope": "/",
