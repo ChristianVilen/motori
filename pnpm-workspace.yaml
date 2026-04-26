@@ -1,3 +1,5 @@
+allowBuilds:
+  esbuild: false
 enableScripts: true
 savePrefix: ''
 minimumReleaseAge: 1440

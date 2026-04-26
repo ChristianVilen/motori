@@ -1,0 +1,80 @@
+set shell := ["bash", "-c"]
+
+# List available commands
+default:
+    @just --list
+
+# --- Terraform ---
+
+# Initialize (first time, or after backend config changes)
+init:
+    terraform init
+
+# Format all Terraform files
+fmt:
+    terraform fmt
+
+# Validate Terraform configuration
+validate:
+    terraform validate
+
+# Preview infrastructure changes
+plan:
+    terraform plan
+
+# Apply infrastructure changes
+apply:
+    terraform apply
+
+# Show all Terraform outputs
+output:
+    terraform output
+
+# Print the server's public IPv4
+ip:
+    @terraform output -raw server_ip
+
+# --- Server access ---
+
+# Open an interactive SSH session
+ssh:
+    ssh root@app-server
+
+# Show health of all services and disk usage
+status:
+    ssh root@app-server " \
+        echo '=== cloud-init ===' && cloud-init status && \
+        echo '=== services ===' && systemctl is-active postgresql nginx motori && \
+        echo '=== disk ===' && df -h /var/lib/postgresql"
+
+# Tail the app logs (Ctrl+C to exit)
+logs:
+    ssh root@app-server "journalctl -u motori -f --no-pager"
+
+# --- Secrets & certs ---
+
+# Push local .env.production to the server
+push-env:
+    rsync ../.env.production root@app-server:/etc/motori.env
+    @echo "Secrets pushed. Restart the app with: just restart"
+
+# Push TLS certificates and nginx SSL config to server (required after every server rebuild)
+push-certs:
+    scp certs/motori.com.pem root@app-server:/etc/ssl/motori.fi.pem
+    scp certs/motori.com.key root@app-server:/etc/ssl/motori.fi.key
+    scp nginx/motori.conf root@app-server:/etc/nginx/sites-available/motori
+    ssh root@app-server "chmod 600 /etc/ssl/motori.fi.key && nginx -t && systemctl reload nginx"
+
+# --- Maintenance ---
+
+# Restart the app service
+restart:
+    ssh root@app-server "systemctl restart motori"
+
+# Run a database backup right now
+backup:
+    ssh root@app-server "/usr/local/bin/db-backup"
+
+# Fix Tailscale SSH MTU (run locally when SSH hangs but ping works)
+fix-mtu:
+    sudo ip link set tailscale0 mtu 1200

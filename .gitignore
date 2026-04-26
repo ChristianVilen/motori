@@ -5,6 +5,7 @@ playwright-report/
 .output
 dist
 .env
+.env.prod
 *.local
 .vinxi
 .vite
@@ -16,3 +17,9 @@ dist
 !/images/.gitkeep
 *:Zone.Identifier
 AGENTS.md
+
+# Terraform
+infra/terraform.tfvars
+infra/*.tfstate
+infra/*.tfstate.backup
+infra/.terraform/

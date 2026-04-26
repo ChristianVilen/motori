@@ -1,0 +1,179 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+# Run before package_upgrade to silence needrestart's interactive kernel/service prompts,
+# which otherwise hang cloud-init forever on a console nobody's watching.
+bootcmd:
+  - mkdir -p /etc/needrestart/conf.d
+  - printf '$nrconf{restart} = "a";\n$nrconf{kernelhints} = 0;\n' > /etc/needrestart/conf.d/no-interactive.conf
+
+apt:
+  conf: |
+    Acquire::Retries "3";
+    DPkg::Options { "--force-confdef"; "--force-confold"; };
+
+packages:
+  - curl
+  - git
+  - nginx
+  - ufw
+  - awscli
+
+write_files:
+  - path: /etc/db-backup.env
+    permissions: '0600'
+    content: |
+      BACKUP_S3_ENDPOINT=${backup_s3_endpoint}
+      BACKUP_S3_BUCKET=${backup_s3_bucket}
+      AWS_ACCESS_KEY_ID=${backup_s3_access_key}
+      AWS_SECRET_ACCESS_KEY=${backup_s3_secret_key}
+      AWS_DEFAULT_REGION=${backup_s3_region}
+
+  - path: /usr/local/bin/db-backup
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+      . /etc/db-backup.env
+      TIMESTAMP=$$(date +%Y%m%d-%H%M%S)
+      sudo -u postgres pg_dump appdb | gzip | \
+        aws s3 cp - "s3://$$BACKUP_S3_BUCKET/db-backups/pgdump-$$TIMESTAMP.sql.gz" \
+        --endpoint-url "$$BACKUP_S3_ENDPOINT"
+      # Prune oldest dumps, keep newest 30. Sort by filename (column 4) so listing format changes don't break us.
+      aws s3 ls "s3://$$BACKUP_S3_BUCKET/db-backups/" --endpoint-url "$$BACKUP_S3_ENDPOINT" \
+        | awk '{print $$4}' | grep -E '^pgdump-' | sort | head -n -30 \
+        | xargs -r -I{} aws s3 rm "s3://$$BACKUP_S3_BUCKET/db-backups/{}" \
+          --endpoint-url "$$BACKUP_S3_ENDPOINT"
+
+  - path: /etc/cron.d/db-backup
+    permissions: '0644'
+    content: |
+      0 2 * * * root /usr/local/bin/db-backup >> /var/log/db-backup.log 2>&1
+
+  - path: /etc/systemd/system/motori.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Motori app
+      After=network.target postgresql.service
+      Wants=postgresql.service
+
+      [Service]
+      Type=simple
+      User=app
+      Group=app
+      WorkingDirectory=/opt/motori
+      EnvironmentFile=/etc/motori.env
+      ExecStart=/usr/bin/node .output/server/index.mjs
+      Restart=on-failure
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+
+  - path: /etc/motori.env
+    permissions: '0600'
+    content: |
+      # Filled in on first deploy. DATABASE_URL is set by cloud-init below.
+      NODE_ENV=production
+      PORT=3000
+
+  - path: /etc/nginx/sites-available/motori
+    permissions: '0644'
+    content: |
+      server {
+        listen 80;
+        listen [::]:80;
+        server_name ${domain} www.${domain};
+
+        # HTTP bootstrap only — replaced by SSL config via `just push-certs` after provisioning.
+
+        client_max_body_size 25M;
+
+        location / {
+          proxy_pass http://127.0.0.1:3000;
+          proxy_http_version 1.1;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 60s;
+        }
+      }
+
+runcmd:
+  # Wait for time sync before any HTTPS — first boot clock can be 1970 and break TLS
+  - systemctl start systemd-timesyncd
+  - timedatectl set-ntp true
+  - until timedatectl show -p NTPSynchronized --value | grep -q yes; do sleep 1; done
+
+  # Install Node.js 24 (remove any distro nodejs first to avoid version conflicts)
+  - apt-get remove -y nodejs npm libnode-dev || true
+  - curl -fsSL https://deb.nodesource.com/setup_24.x -o /tmp/nodesource_setup.sh
+  - bash /tmp/nodesource_setup.sh
+  - apt-get install -y nodejs
+
+  # Install pinned pnpm via corepack (ships with Node 24). Version must match package.json's packageManager field.
+  - corepack enable
+  - corepack prepare pnpm@${pnpm_version} --activate
+
+  # Mount the persistent pgdata volume before PostgreSQL installs so initdb writes directly onto it
+  - until [ -b /dev/disk/by-id/scsi-0HC_Volume_${pgdata_volume_id} ]; do sleep 1; done
+  - blkid /dev/disk/by-id/scsi-0HC_Volume_${pgdata_volume_id} | grep -q 'TYPE="ext4"' || mkfs.ext4 -F /dev/disk/by-id/scsi-0HC_Volume_${pgdata_volume_id}
+  - mkdir -p /var/lib/postgresql
+  - echo '/dev/disk/by-id/scsi-0HC_Volume_${pgdata_volume_id} /var/lib/postgresql ext4 defaults,nofail 0 2' >> /etc/fstab
+  - mount /var/lib/postgresql
+
+  # Install PostgreSQL 17 from PGDG (Ubuntu 24.04 ships 16; we use 17 in dev)
+  - install -d /usr/share/postgresql-common/pgdg
+  - curl -fsSL --retry 3 https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+  - sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+  - apt-get update
+  - apt-get install -y postgresql-17 postgresql-contrib-17
+
+  # Configure PostgreSQL. db_password must be alphanumeric — interpolated directly into SQL.
+  - sudo -u postgres psql -c "CREATE USER appuser WITH PASSWORD '${db_password}';"
+  - sudo -u postgres psql -c "CREATE DATABASE appdb OWNER appuser;"
+
+  # Verify the app user can actually connect — fail fast if pg_hba blocks us
+  - PGPASSWORD='${db_password}' psql -h localhost -U appuser -d appdb -c 'select 1' > /dev/null
+
+  # Configure UFW (backup firewall)
+  - ufw allow 'Nginx Full'
+  - ufw allow in on tailscale0
+  - ufw --force enable
+
+  # Harden SSH: disable password auth, root password login
+  - sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/^#*PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
+  - systemctl reload ssh
+
+  # Install and connect Tailscale
+  - curl -fsSL https://tailscale.com/install.sh | sh
+  - tailscale up --authkey='${tailscale_auth_key}' --ssh --advertise-tags=tag:server
+
+  # Create app user and deploy directory. Root deploys, but the systemd service runs as `app`.
+  - useradd -m -s /bin/bash app
+  - mkdir -p /opt/motori
+  - chown app:app /opt/motori
+  - chown app:app /etc/motori.env
+
+  # Wire DATABASE_URL into the service env file (cloud-init knows the password)
+  - echo "DATABASE_URL=postgresql://appuser:${db_password}@localhost:5432/appdb" >> /etc/motori.env
+
+  # Enable the nginx site (HTTP bootstrap — SSL config deployed separately via `just push-certs`)
+  - sed -i "s/server_name _;/server_name ${domain} www.${domain};/" /etc/nginx/sites-available/default || true
+  - rm -f /etc/nginx/sites-enabled/default
+  - ln -sf /etc/nginx/sites-available/motori /etc/nginx/sites-enabled/motori
+  - nginx -t
+  - systemctl reload nginx
+
+  # Enable the app service. Won't start cleanly until first deploy populates /opt/motori — expected.
+  - systemctl daemon-reload
+  - systemctl enable motori.service
+
+  # Record the configured domain for later (Certbot, etc.)
+  - echo "${domain}" > /etc/app-domain
