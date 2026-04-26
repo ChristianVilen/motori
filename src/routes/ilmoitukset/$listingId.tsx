@@ -3,7 +3,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { sql } from "kysely";
-import { ArrowLeft, Calendar, MapPin, Tag } from "lucide-react";
+import { ArrowLeft, MapPin, Tag } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
@@ -22,43 +22,49 @@ import { getSession } from "~/lib/session";
 const VIEW_DEDUP_MAX = 10_000;
 const viewedRecently = new Set<string>();
 
+function maybeIncrementViewCount(listingId: string, userId: string | undefined) {
+	const request = getRequest();
+	const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+	// When the set is full, dedup stops and every view is counted (fail-open).
+	const dedupKey = userId ? `view:${listingId}:${userId}` : `view:${listingId}:${ip}`;
+	if (viewedRecently.size < VIEW_DEDUP_MAX && viewedRecently.has(dedupKey)) {
+		return;
+	}
+	if (viewedRecently.size < VIEW_DEDUP_MAX) {
+		viewedRecently.add(dedupKey);
+		setTimeout(() => viewedRecently.delete(dedupKey), 60_000);
+	}
+	// updated_at intentionally omitted — view bumps should not surface listings
+	// as "recently updated" in sorting or the sitemap lastmod.
+	db.updateTable("listing")
+		.set({ view_count: sql`view_count + 1` })
+		.where("id", "=", listingId)
+		.execute()
+		.catch(() => {});
+}
+
 const getListing = createServerFn({ method: "GET" })
 	.inputValidator((id: string) => id)
 	.handler(async ({ data: id }) => {
 		const session = await getSession();
 
-		const listing = await db
+		const row = await db
 			.selectFrom("listing")
-			.selectAll()
+			.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
+			.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
+			.selectAll("listing")
+			.select(["motorcycle_make.name as makeName", "motorcycle_model.name as modelName"])
 			.where("listing.id", "=", id)
 			.where("listing.status", "!=", "removed")
 			.executeTakeFirst();
 
-		if (!listing) {
+		if (!row) {
 			return null;
 		}
 
-		// Fire-and-forget — sql expression avoids RMW race on concurrent views.
-		// Deduplicate: only count once per session per listing.
-		const viewKey = `view:${id}:${session?.user.id ?? "anon"}`;
-		const request = getRequest();
-		const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-		const dedupKey = session?.user.id ? viewKey : `view:${id}:${ip}`;
-		// When the set is full, dedup stops and every view is counted (fail-open).
-		const shouldCount = viewedRecently.size >= VIEW_DEDUP_MAX || !viewedRecently.has(dedupKey);
-		if (shouldCount) {
-			if (viewedRecently.size < VIEW_DEDUP_MAX) {
-				viewedRecently.add(dedupKey);
-				setTimeout(() => viewedRecently.delete(dedupKey), 60_000);
-			}
-			// updated_at intentionally omitted — view bumps should not surface listings
-			// as "recently updated" in sorting or the sitemap lastmod.
-			db.updateTable("listing")
-				.set({ view_count: sql`view_count + 1` })
-				.where("id", "=", id)
-				.execute()
-				.catch(() => {});
-		}
+		const { makeName, modelName, ...listing } = row;
+
+		maybeIncrementViewCount(id, session?.user.id);
 
 		const images = await db
 			.selectFrom("listing_image")
@@ -92,7 +98,14 @@ const getListing = createServerFn({ method: "GET" })
 			ownerEmail = ownerUser?.email ?? null;
 		}
 
-		return { listing, images, owner, ownerEmail };
+		return {
+			listing,
+			images,
+			owner,
+			ownerEmail,
+			makeName: makeName ?? null,
+			modelName: modelName ?? null,
+		};
 	});
 
 export const Route = createFileRoute("/ilmoitukset/$listingId")({
@@ -111,8 +124,10 @@ export const Route = createFileRoute("/ilmoitukset/$listingId")({
 		if (!l) {
 			return {};
 		}
+		const make = loaderData?.makeName ?? "";
+		const model = loaderData?.modelName ?? "";
 		const title = `${l.title} — Vuokramoto`;
-		const desc = `Vuokraa ${l.brand} ${l.model} (${l.year}) — ${l.city}. Alkaen ${(l.price_per_day / 100).toFixed(0)} €/pv.`;
+		const desc = `Vuokraa ${make} ${model} (${l.year}) — ${l.city}. Alkaen ${(l.price_per_day / 100).toFixed(0)} €/pv.`;
 		const url = `${SITE_URL}/ilmoitukset/${l.id}`;
 		return {
 			meta: [
@@ -192,21 +207,33 @@ function ListingGallery({ images, title }: { images: ListingImage[]; title: stri
 	);
 }
 
-function ListingSpecs({ listing }: { listing: Listing }) {
+function ListingSpecs({
+	listing,
+	makeName,
+	modelName,
+}: {
+	listing: Listing;
+	makeName: string | null;
+	modelName: string | null;
+}) {
 	const { t } = useTranslation("listings");
 
 	return (
 		<div className="rounded-xl border border-border bg-card p-5">
 			<h2 className="mb-3 text-sm font-semibold text-foreground">{t("detail.specs.heading")}</h2>
 			<dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-				<div>
-					<dt className="text-muted">{t("detail.specs.brand")}</dt>
-					<dd className="font-medium text-foreground">{listing.brand}</dd>
-				</div>
-				<div>
-					<dt className="text-muted">{t("detail.specs.model")}</dt>
-					<dd className="font-medium text-foreground">{listing.model}</dd>
-				</div>
+				{!!makeName && (
+					<div>
+						<dt className="text-muted">{t("detail.specs.brand")}</dt>
+						<dd className="font-medium text-foreground">{makeName}</dd>
+					</div>
+				)}
+				{!!modelName && (
+					<div>
+						<dt className="text-muted">{t("detail.specs.model")}</dt>
+						<dd className="font-medium text-foreground">{modelName}</dd>
+					</div>
+				)}
 				<div>
 					<dt className="text-muted">{t("detail.specs.year")}</dt>
 					<dd className="font-medium text-foreground">{listing.year}</dd>
@@ -227,18 +254,6 @@ function ListingSpecs({ listing }: { listing: Listing }) {
 						</dd>
 					</div>
 				)}
-				{!!listing.available_from && (
-					<div>
-						<dt className="flex items-center gap-1 text-muted">
-							<Calendar className="h-3 w-3" />
-							{t("detail.specs.available")}
-						</dt>
-						<dd className="font-medium text-foreground">
-							{listing.available_from}
-							{listing.available_to ? ` – ${listing.available_to}` : ""}
-						</dd>
-					</div>
-				)}
 			</dl>
 		</div>
 	);
@@ -247,7 +262,6 @@ function ListingSpecs({ listing }: { listing: Listing }) {
 interface PricingCardProps {
 	pricePerDayCents: number;
 	pricePerWeekCents: number | null;
-	depositCents: number | null;
 	listing: Listing;
 	owner: { display_name: string | null; city: string | null; phone: string | null } | null;
 	ownerEmail: string | null;
@@ -258,7 +272,6 @@ interface PricingCardProps {
 function PricingCard({
 	pricePerDayCents,
 	pricePerWeekCents,
-	depositCents,
 	listing,
 	owner,
 	ownerEmail,
@@ -278,11 +291,6 @@ function PricingCard({
 				{!!pricePerWeekCents && (
 					<div data-testid="price-per-week" className="mt-1 text-sm text-muted">
 						{t("detail.pricing.perWeek", { price: formatEur(pricePerWeekCents) })}
-					</div>
-				)}
-				{!!depositCents && (
-					<div data-testid="price-deposit" className="mt-1 text-sm text-muted">
-						{t("detail.pricing.deposit", { price: formatEur(depositCents) })}
 					</div>
 				)}
 				{!!listing.price_description && (
@@ -373,7 +381,8 @@ function PricingCard({
 
 function ListingDetailPage() {
 	const { t } = useTranslation("listings");
-	const { listing, images, owner, ownerEmail, session } = Route.useLoaderData();
+	const { listing, images, owner, ownerEmail, session, makeName, modelName } =
+		Route.useLoaderData();
 
 	const isOwner = session?.user.id === listing.owner_id;
 	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
@@ -440,7 +449,7 @@ function ListingDetailPage() {
 							</div>
 						</div>
 
-						<ListingSpecs listing={listing} />
+						<ListingSpecs listing={listing} makeName={makeName} modelName={modelName} />
 
 						{/* Description */}
 						<div>
@@ -458,7 +467,6 @@ function ListingDetailPage() {
 						<PricingCard
 							pricePerDayCents={listing.price_per_day}
 							pricePerWeekCents={listing.price_per_week ?? null}
-							depositCents={listing.deposit_amount ?? null}
 							listing={listing}
 							owner={owner}
 							ownerEmail={ownerEmail}

@@ -3,22 +3,28 @@ import { ArrowRight } from "lucide-react";
 import { ListingCard } from "~/components/listings/listing-card";
 import { useTranslation } from "~/lib/i18n";
 import { getHomepageStats, getLatestListings } from "~/lib/listings-queries";
-import { useEmailVerified } from "~/lib/use-email-verified";
+import { getSession } from "~/lib/session";
 
 export const Route = createFileRoute("/")({
 	loader: async () => {
-		const [latestListings, stats] = await Promise.all([getLatestListings(), getHomepageStats()]);
-		return { latestListings, stats };
+		const [latestListings, stats, session] = await Promise.all([
+			getLatestListings(),
+			getHomepageStats(),
+			getSession(),
+		]);
+		// Logged-out users are treated as verified so they see enabled links;
+		// server auth middleware handles actual gating.
+		const emailVerified = session?.user.emailVerified ?? true;
+		return { latestListings, stats, emailVerified };
 	},
 	component: HomePage,
 });
 
 function HomePage() {
-	const { latestListings, stats } = Route.useLoaderData();
+	const { latestListings, stats, emailVerified: verified } = Route.useLoaderData();
 	const navigate = useNavigate();
 	const { t } = useTranslation("home");
 	const { t: tAuth } = useTranslation("auth");
-	const verified = useEmailVerified();
 
 	const isRidingSeason = (() => {
 		const month = new Date().getMonth();

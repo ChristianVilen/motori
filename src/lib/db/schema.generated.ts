@@ -35,19 +35,16 @@ export interface Favorite {
 }
 
 export interface Listing {
-	available_from: Timestamp | null;
-	available_to: Timestamp | null;
-	brand: string;
 	city: string;
 	created_at: Generated<Timestamp>;
-	deposit_amount: number | null;
 	description: string;
 	engine_cc: number | null;
 	expires_at: Timestamp | null;
 	expiry_notified_at: Timestamp | null;
 	id: string;
+	make_id: string;
 	mileage_limit: number | null;
-	model: string;
+	model_id: string | null;
 	motorcycle_type: string;
 	owner_id: string;
 	postal_code: string | null;
@@ -57,7 +54,6 @@ export interface Listing {
 	region: string;
 	required_license: string | null;
 	search_vector: string | null;
-	season_only: Generated<boolean>;
 	status: Generated<string>;
 	title: string;
 	updated_at: Generated<Timestamp>;
@@ -71,6 +67,20 @@ export interface ListingImage {
 	order: Generated<number>;
 	thumbnail_url: string | null;
 	url: string;
+}
+
+export interface MotorcycleMake {
+	approved: Generated<boolean>;
+	id: string;
+	name: string;
+	slug: string;
+}
+
+export interface MotorcycleModel {
+	approved: Generated<boolean>;
+	id: string;
+	make_id: string;
+	name: string;
 }
 
 export interface Profile {
@@ -125,6 +135,8 @@ export interface DB {
 	favorite: Favorite;
 	listing: Listing;
 	listing_image: ListingImage;
+	motorcycle_make: MotorcycleMake;
+	motorcycle_model: MotorcycleModel;
 	profile: Profile;
 	session: Session;
 	user: User;

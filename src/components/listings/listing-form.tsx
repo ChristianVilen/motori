@@ -3,6 +3,7 @@
 import { useForm } from "@tanstack/react-form";
 import { X } from "lucide-react";
 import { useState } from "react";
+import { MakeModelSelect } from "~/components/listings/make-model-select";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -13,21 +14,13 @@ import {
 	SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
-import {
-	CURRENT_YEAR,
-	LICENSE_CLASSES,
-	MOTORCYCLE_BRANDS,
-	MOTORCYCLE_TYPES,
-	REGIONS,
-} from "~/lib/constants";
+import { CURRENT_YEAR, LICENSE_CLASSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { getImageUploadUrl } from "~/lib/storage";
 import { type ListingFormData, listingFormSchema } from "~/lib/validators";
 
-export interface ListingFormValues extends ListingFormData {}
-
 interface ListingFormProps {
-	initialValues?: Partial<ListingFormValues>;
+	initialValues?: Partial<ListingFormData>;
 	initialImageUrls?: string[];
 	onSubmit: (data: ListingFormData) => Promise<void>;
 	submitLabel?: string;
@@ -64,22 +57,18 @@ export function ListingForm({
 	const form = useForm({
 		defaultValues: {
 			title: initialValues?.title ?? "",
-			brand: initialValues?.brand ?? "",
-			model: initialValues?.model ?? "",
+			make_id: initialValues?.make_id ?? "",
+			model_id: initialValues?.model_id ?? null,
 			year: initialValues?.year ?? CURRENT_YEAR,
 			engine_cc: initialValues?.engine_cc ?? null,
 			motorcycle_type: initialValues?.motorcycle_type ?? "",
 			required_license: initialValues?.required_license ?? null,
 			price_per_day: initialValues?.price_per_day ?? (0 as number),
 			price_per_week: initialValues?.price_per_week ?? null,
-			deposit_amount: initialValues?.deposit_amount ?? null,
 			price_description: initialValues?.price_description ?? "",
 			city: initialValues?.city ?? "",
 			region: initialValues?.region ?? "",
 			postal_code: initialValues?.postal_code ?? "",
-			available_from: initialValues?.available_from ?? "",
-			available_to: initialValues?.available_to ?? "",
-			season_only: initialValues?.season_only ?? false,
 			description: initialValues?.description ?? "",
 			mileage_limit: initialValues?.mileage_limit ?? null,
 		},
@@ -178,7 +167,6 @@ export function ListingForm({
 									value={field.state.value}
 									onBlur={field.handleBlur}
 									onChange={(e) => field.handleChange(e.target.value)}
-									placeholder={t("form.fields.titlePlaceholder")}
 								/>
 								<p className="mt-1 text-xs text-muted">{t("form.fields.titleHint")}</p>
 								<FieldError errors={field.state.meta.errors} />
@@ -186,47 +174,17 @@ export function ListingForm({
 						)}
 					</form.Field>
 
-					<div className="grid grid-cols-2 gap-4">
-						<form.Field name="brand">
-							{(field) => (
-								<div>
-									<label htmlFor="brand" className="mb-1 block text-sm font-medium text-foreground">
-										{t("form.fields.brand")} <span className="text-destructive">*</span>
-									</label>
-									<Select value={field.state.value} onValueChange={(v) => field.handleChange(v)}>
-										<SelectTrigger id="brand">
-											<SelectValue placeholder={t("form.fields.brandPlaceholder")} />
-										</SelectTrigger>
-										<SelectContent>
-											{MOTORCYCLE_BRANDS.map((b) => (
-												<SelectItem key={b} value={b}>
-													{b}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-									<FieldError errors={field.state.meta.errors} />
-								</div>
-							)}
-						</form.Field>
-						<form.Field name="model">
-							{(field) => (
-								<div>
-									<label htmlFor="model" className="mb-1 block text-sm font-medium text-foreground">
-										{t("form.fields.model")} <span className="text-destructive">*</span>
-									</label>
-									<Input
-										id="model"
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-										placeholder={t("form.fields.modelPlaceholder")}
-									/>
-									<FieldError errors={field.state.meta.errors} />
-								</div>
-							)}
-						</form.Field>
-					</div>
+					<form.Field name="make_id">
+						{(makeField) => (
+							<MakeModelSelect
+								initialMakeId={initialValues?.make_id ?? null}
+								initialModelId={initialValues?.model_id ?? null}
+								onMakeChange={(id) => makeField.handleChange(id)}
+								onModelChange={(id) => form.setFieldValue("model_id", id)}
+								makeError={makeField.state.meta.errors[0]}
+							/>
+						)}
+					</form.Field>
 
 					<div className="grid grid-cols-2 gap-4">
 						<form.Field name="year">
@@ -267,7 +225,6 @@ export function ListingForm({
 										onChange={(e) =>
 											field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
 										}
-										placeholder={t("form.fields.engineCcPlaceholder")}
 									/>
 									<FieldError errors={field.state.meta.errors} />
 								</div>
@@ -358,7 +315,6 @@ export function ListingForm({
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onChange={(e) => field.handleChange(e.target.valueAsNumber)}
-										placeholder={t("form.fields.pricePerDayPlaceholder")}
 									/>
 									<FieldError errors={field.state.meta.errors} />
 								</div>
@@ -383,7 +339,6 @@ export function ListingForm({
 										onChange={(e) =>
 											field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
 										}
-										placeholder={t("form.fields.pricePerWeekPlaceholder")}
 									/>
 									<FieldError errors={field.state.meta.errors} />
 								</div>
@@ -391,53 +346,25 @@ export function ListingForm({
 						</form.Field>
 					</div>
 
-					<div className="grid grid-cols-2 gap-4">
-						<form.Field name="deposit_amount">
-							{(field) => (
-								<div>
-									<label
-										htmlFor="deposit_amount"
-										className="mb-1 block text-sm font-medium text-foreground"
-									>
-										{t("form.fields.deposit")}
-									</label>
-									<Input
-										id="deposit_amount"
-										type="number"
-										min={0}
-										max={100000}
-										value={field.state.value ?? ""}
-										onBlur={field.handleBlur}
-										onChange={(e) =>
-											field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
-										}
-										placeholder={t("form.fields.depositPlaceholder")}
-									/>
-									<FieldError errors={field.state.meta.errors} />
-								</div>
-							)}
-						</form.Field>
-						<form.Field name="price_description">
-							{(field) => (
-								<div>
-									<label
-										htmlFor="price_description"
-										className="mb-1 block text-sm font-medium text-foreground"
-									>
-										{t("form.fields.priceDescription")}
-									</label>
-									<Input
-										id="price_description"
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-										placeholder={t("form.fields.priceDescriptionPlaceholder")}
-									/>
-									<FieldError errors={field.state.meta.errors} />
-								</div>
-							)}
-						</form.Field>
-					</div>
+					<form.Field name="price_description">
+						{(field) => (
+							<div>
+								<label
+									htmlFor="price_description"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
+									{t("form.fields.priceDescription")}
+								</label>
+								<Input
+									id="price_description"
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onChange={(e) => field.handleChange(e.target.value)}
+								/>
+								<FieldError errors={field.state.meta.errors} />
+							</div>
+						)}
+					</form.Field>
 					<form.Field name="mileage_limit">
 						{(field) => (
 							<div className="w-1/3">
@@ -457,7 +384,6 @@ export function ListingForm({
 									onChange={(e) =>
 										field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
 									}
-									placeholder={t("form.fields.mileageLimitPlaceholder")}
 								/>
 								<p className="mt-1 text-xs text-muted">{t("form.fields.mileageLimitHint")}</p>
 								<FieldError errors={field.state.meta.errors} />
@@ -485,7 +411,6 @@ export function ListingForm({
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onChange={(e) => field.handleChange(e.target.value)}
-										placeholder={t("form.fields.cityPlaceholder")}
 									/>
 									<FieldError errors={field.state.meta.errors} />
 								</div>
@@ -531,75 +456,10 @@ export function ListingForm({
 									value={field.state.value}
 									onBlur={field.handleBlur}
 									onChange={(e) => field.handleChange(e.target.value)}
-									placeholder={t("form.fields.postalCodePlaceholder")}
 									maxLength={10}
 								/>
 								<FieldError errors={field.state.meta.errors} />
 							</div>
-						)}
-					</form.Field>
-				</div>
-			</section>
-
-			{/* ── Saatavuus ─────────────────────────────────────────────────── */}
-			<section className="rounded-lg border border-border bg-card p-6">
-				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-					{t("form.sections.availability")}
-				</h2>
-				<div className="space-y-4">
-					<div className="grid grid-cols-2 gap-4">
-						<form.Field name="available_from">
-							{(field) => (
-								<div>
-									<label
-										htmlFor="available_from"
-										className="mb-1 block text-sm font-medium text-foreground"
-									>
-										{t("form.fields.availableFrom")}
-									</label>
-									<Input
-										id="available_from"
-										type="date"
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-									<FieldError errors={field.state.meta.errors} />
-								</div>
-							)}
-						</form.Field>
-						<form.Field name="available_to">
-							{(field) => (
-								<div>
-									<label
-										htmlFor="available_to"
-										className="mb-1 block text-sm font-medium text-foreground"
-									>
-										{t("form.fields.availableTo")}
-									</label>
-									<Input
-										id="available_to"
-										type="date"
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-									<FieldError errors={field.state.meta.errors} />
-								</div>
-							)}
-						</form.Field>
-					</div>
-					<form.Field name="season_only">
-						{(field) => (
-							<label className="flex cursor-pointer items-center gap-3">
-								<input
-									type="checkbox"
-									checked={field.state.value}
-									onChange={(e) => field.handleChange(e.target.checked)}
-									className="h-4 w-4 rounded border-border accent-accent"
-								/>
-								<span className="text-sm text-foreground">{t("form.fields.seasonOnly")}</span>
-							</label>
 						)}
 					</form.Field>
 				</div>
@@ -625,7 +485,6 @@ export function ListingForm({
 								value={field.state.value}
 								onBlur={field.handleBlur}
 								onChange={(e) => field.handleChange(e.target.value)}
-								placeholder={t("form.fields.descriptionPlaceholder")}
 								className="resize-y"
 							/>
 							<p className="mt-1 text-xs text-muted">
@@ -735,6 +594,7 @@ export function ListingForm({
 						disabled={isSubmitting}
 						className="w-full bg-accent text-white hover:bg-accent-hover"
 						size="lg"
+						data-testid="listing-form-submit"
 					>
 						{isSubmitting ? t("form.submit.saving") : (submitLabel ?? t("create.submitLabel"))}
 					</Button>
