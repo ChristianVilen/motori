@@ -5,7 +5,7 @@ import { useTranslation } from "~/lib/i18n";
 
 export const Route = createFileRoute("/kirjaudu")({
 	head: () => ({
-		meta: [{ title: "Kirjaudu sisään — Vuokramoto" }],
+		meta: [{ title: "Kirjaudu sisään — Motori" }],
 	}),
 	validateSearch: (search: Record<string, unknown>) => ({
 		redirect: typeof search.redirect === "string" ? search.redirect : undefined,
@@ -21,7 +21,7 @@ function LoginPage() {
 		<div className="flex min-h-screen items-center justify-center bg-background px-4">
 			<div className="w-full max-w-sm space-y-6">
 				<div className="text-center">
-					<h1 className="text-2xl font-bold text-primary">Vuokramoto</h1>
+					<h1 className="text-2xl font-bold text-primary">Motori</h1>
 					<p className="mt-1 text-sm text-muted">{t("login.tagline")}</p>
 				</div>
 

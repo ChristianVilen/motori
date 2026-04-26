@@ -48,7 +48,7 @@ function AdminLayout() {
 				<div className="mx-auto flex max-w-6xl items-center justify-between">
 					<div className="flex items-center gap-3">
 						<a href="/admin" className="font-heading text-lg font-bold text-white">
-							vuokramoto
+							Motori
 						</a>
 						<span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/80">
 							Admin

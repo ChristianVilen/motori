@@ -89,7 +89,7 @@ export const Route = createFileRoute("/ilmoitukset/uusi")({
 		return { session };
 	},
 	head: () => ({
-		meta: [{ title: "Uusi ilmoitus — Vuokramoto" }],
+		meta: [{ title: "Uusi ilmoitus — Motori" }],
 	}),
 	component: NewListingPage,
 });

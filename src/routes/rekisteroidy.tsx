@@ -9,7 +9,7 @@ import { passwordStrength } from "~/lib/password-strength";
 
 export const Route = createFileRoute("/rekisteroidy")({
 	head: () => ({
-		meta: [{ title: "Rekisteröidy — Vuokramoto" }],
+		meta: [{ title: "Rekisteröidy — Motori" }],
 	}),
 	component: RegisterPage,
 });
@@ -55,7 +55,7 @@ function RegisterPage() {
 		<div className="flex min-h-screen items-center justify-center bg-background px-4">
 			<div className="w-full max-w-sm space-y-6">
 				<div className="text-center">
-					<h1 className="text-2xl font-bold text-primary">Vuokramoto</h1>
+					<h1 className="text-2xl font-bold text-primary">Motori</h1>
 					<p className="mt-1 text-sm text-muted">{t("register.tagline")}</p>
 				</div>
 

@@ -126,7 +126,7 @@ export const Route = createFileRoute("/ilmoitukset/$listingId")({
 		}
 		const make = loaderData?.makeName ?? "";
 		const model = loaderData?.modelName ?? "";
-		const title = `${l.title} — Vuokramoto`;
+		const title = `${l.title} — Motori`;
 		const desc = `Vuokraa ${make} ${model} (${l.year}) — ${l.city}. Alkaen ${(l.price_per_day / 100).toFixed(0)} €/pv.`;
 		const url = `${SITE_URL}/ilmoitukset/${l.id}`;
 		return {

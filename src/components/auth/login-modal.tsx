@@ -64,7 +64,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 						<h2 id="login-modal-title" className="text-lg font-bold text-primary">
 							{t("modal.heading")}
 						</h2>
-						<p className="mt-0.5 text-xs text-muted">Vuokramoto</p>
+						<p className="mt-0.5 text-xs text-muted">Motori</p>
 					</div>
 					<button
 						type="button"

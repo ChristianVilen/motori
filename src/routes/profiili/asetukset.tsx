@@ -94,7 +94,7 @@ export const Route = createFileRoute("/profiili/asetukset")({
 		return loadSettings();
 	},
 	head: () => ({
-		meta: [{ title: "Asetukset — Vuokramoto" }],
+		meta: [{ title: "Asetukset — Motori" }],
 	}),
 	component: SettingsPage,
 });

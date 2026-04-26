@@ -29,7 +29,7 @@ export const Route = createRootRoute({
 			{ charSet: "utf-8" },
 
 			{ name: "viewport", content: "width=device-width, initial-scale=1" },
-			{ title: "Vuokramoto — Vuokraa moottoripyörä" },
+			{ title: "Motori — Vuokraa moottoripyörä" },
 			{
 				name: "description",
 				content:
@@ -37,8 +37,8 @@ export const Route = createRootRoute({
 			},
 			{ name: "theme-color", content: "#1a1a2e" },
 			{ property: "og:type", content: "website" },
-			{ property: "og:site_name", content: "Vuokramoto" },
-			{ property: "og:title", content: "Vuokramoto — Vuokraa moottoripyörä" },
+			{ property: "og:site_name", content: "Motori" },
+			{ property: "og:title", content: "Motori — Vuokraa moottoripyörä" },
 			{
 				property: "og:description",
 				content: "Suomalainen moottoripyörien vuokrausilmoitukset.",
@@ -190,7 +190,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 					<nav className="border-b border-border bg-primary px-4 py-3">
 						<div className="mx-auto flex max-w-6xl items-center justify-between">
 							<Link to="/" className="font-heading text-lg font-bold text-white">
-								vuokramoto
+								Motori
 							</Link>
 							<div className="flex items-center gap-4 sm:gap-6">
 								<Link to="/ilmoitukset" className="text-sm text-white/70 hover:text-white">

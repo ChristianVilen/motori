@@ -7,7 +7,7 @@ import { useTranslation } from "~/lib/i18n";
 
 export const Route = createFileRoute("/unohdin-salasanan")({
 	head: () => ({
-		meta: [{ title: "Unohdin salasanan — Vuokramoto" }],
+		meta: [{ title: "Unohdin salasanan — Motori" }],
 	}),
 	component: ForgotPasswordPage,
 });
@@ -39,7 +39,7 @@ function ForgotPasswordPage() {
 		<div className="flex min-h-screen items-center justify-center bg-background px-4">
 			<div className="w-full max-w-sm space-y-6">
 				<div className="text-center">
-					<h1 className="text-2xl font-bold text-primary">Vuokramoto</h1>
+					<h1 className="text-2xl font-bold text-primary">Motori</h1>
 					<p className="mt-1 text-sm text-muted">{t("forgotPassword.heading")}</p>
 				</div>
 

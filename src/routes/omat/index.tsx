@@ -82,7 +82,7 @@ export const Route = createFileRoute("/omat/")({
 		return getMyListings();
 	},
 	head: () => ({
-		meta: [{ title: "Omat ilmoitukset — Vuokramoto" }],
+		meta: [{ title: "Omat ilmoitukset — Motori" }],
 	}),
 	component: ProfilePage,
 });

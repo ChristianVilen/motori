@@ -17,7 +17,7 @@ export const Route = createFileRoute("/ilmoitukset/")({
 	loader: ({ deps }) => searchListings({ data: deps }),
 	head: () => ({
 		meta: [
-			{ title: "Selaa ilmoituksia — Vuokramoto" },
+			{ title: "Selaa ilmoituksia — Motori" },
 			{
 				name: "description",
 				content:
