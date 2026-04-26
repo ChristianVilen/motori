@@ -5,6 +5,7 @@ playwright-report/
 .output
 dist
 .env
+.env.prod
 *.local
 .vinxi
 .vite

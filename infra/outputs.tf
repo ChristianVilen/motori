@@ -20,7 +20,7 @@ output "volume_id" {
 output "dns_records" {
   description = "DNS records to create at your registrar."
   value = {
-    "${var.domain}"     = { A = hcloud_primary_ip.app.ip_address, AAAA = hcloud_server.app.ipv6_address }
-    "www.${var.domain}" = { A = hcloud_primary_ip.app.ip_address, AAAA = hcloud_server.app.ipv6_address }
+    "${var.domain}"     = { "A" = hcloud_primary_ip.app.ip_address, "AAAA" = hcloud_server.app.ipv6_address }
+    "www.${var.domain}" = { "A" = hcloud_primary_ip.app.ip_address, "AAAA" = hcloud_server.app.ipv6_address }
   }
 }

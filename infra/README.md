@@ -16,7 +16,7 @@ Single Hetzner Cloud VPS running the app (served at **motori.fi**) and PostgreSQ
 
 A 10 GB `hcloud_volume` named `pgdata` is attached to the server. PostgreSQL's data directory (`/var/lib/postgresql`) lives on it. The volume has `delete_protection = true` and is **not** tied to the server lifecycle — it survives `terraform destroy` (you must disable delete protection first) and can be reattached to a replacement server.
 
-Device path inside the server: `/dev/disk/by-id/scsi-0HC_Volume_pgdata`  
+Device path inside the server: `/dev/disk/by-id/scsi-0HC_Volume_<volume_id>` (Hetzner uses the numeric volume ID, not the name — the ID is baked into cloud-init by Terraform via `hcloud_volume.pgdata.id`)  
 Mount point: `/var/lib/postgresql`  
 fstab entry: added by cloud-init with `nofail` so a missing volume doesn't brick boot.
 
@@ -100,7 +100,6 @@ Without this you'll get `tailnet policy does not permit you to SSH as user "root
 - Tailscale is installed on first boot and joins your tailnet via a single-use auth key
 - `tailscale up --ssh` enables Tailscale SSH — the daemon listens on port 22 inside the tailnet and validates connections against the ACL
 - Password authentication is disabled in `sshd` as a belt-and-suspenders measure
-- fail2ban is installed as additional protection
 - Port 22 is absent from the Hetzner firewall — invisible to the public internet
 
 **First login after provisioning:**
@@ -143,19 +142,18 @@ Managed by Hetzner Cloud firewall (`hcloud_firewall.web`). Only inbound rules �
 
 SSH (port 22) is not exposed — access is via Tailscale only.
 
-## DNS
+## DNS & TLS
 
-The app is served at **motori.fi** (and **www.motori.fi**). DNS is managed at the registrar — Terraform doesn't touch it. The `domain` Terraform variable is the source of truth and gets passed into cloud-init (written to `/etc/app-domain`) so Certbot and nginx config can read it.
+DNS is managed in **Cloudflare** (not the registrar directly). Terraform doesn't touch DNS. The `domain` variable is the source of truth and is baked into the nginx config via cloud-init.
 
-A `hcloud_primary_ip` resource holds the static IPv4. It has `auto_delete = false` and `delete_protection = true`, so the IP survives server rebuilds and accidental `terraform destroy` — once DNS points here, it stays valid.
+A `hcloud_primary_ip` resource holds the static IPv4 with `auto_delete = false` and `delete_protection = true` — it survives server rebuilds and `terraform destroy`.
 
 ```bash
 terraform output server_ip     # IPv4 for the A record
 terraform output server_ipv6   # IPv6 for the AAAA record
-terraform output dns_records   # full record set (apex + www)
 ```
 
-Records to create at the registrar:
+Cloudflare DNS records (both proxied — orange cloud):
 
 | Name | Type | Value |
 |------|------|-------|
@@ -164,11 +162,11 @@ Records to create at the registrar:
 | `www.motori.fi` | A | `terraform output server_ip` |
 | `www.motori.fi` | AAAA | `terraform output server_ipv6` |
 
-After DNS resolves, issue the TLS cert on the server (one-time):
+**TLS is handled by Cloudflare** — no certbot needed. Cloudflare terminates HTTPS at the edge and proxies HTTP to the server. SSL mode must be set to **Full** (not Flexible, not Full Strict) in the Cloudflare dashboard: motori.fi → SSL/TLS → Overview.
 
-```bash
-ssh root@app-server "certbot --nginx -d motori.fi -d www.motori.fi --agree-tos -m c.vilen@outlook.com -n"
-```
+- Flexible: don't use — browsers get HTTPS but Cloudflare sends plaintext HTTP to the server with no validation.
+- **Full**: Cloudflare sends HTTP to the server. Correct for this setup.
+- Full (strict): requires a valid CA-signed cert on the server — skip unless adding certbot later.
 
 ## Backups
 
@@ -180,6 +178,9 @@ Instead, a nightly `pg_dump` cron runs at 02:00 and uploads a gzipped dump to He
 - Credentials: `/etc/db-backup.env` (written by cloud-init, mode 600)
 - Log: `/var/log/db-backup.log`
 - Retention: last 30 dumps (older ones are pruned after each run)
+- Failures: the script runs under `set -euo pipefail` and the prune step no longer masks errors, so any failure exits non-zero. There's no external alerting — check `/var/log/db-backup.log` periodically, or `aws s3 ls s3://<bucket>/db-backups/` to confirm a recent dump exists.
+
+The backup S3 bucket lives in `fsn1` while the server lives in `hel1` — intentional DR isolation so a Hetzner Helsinki outage doesn't take backups with it.
 
 **Restore a backup:**
 
@@ -211,56 +212,84 @@ hcloud primary-ip disable-protection app-ip delete  # if also removing the IP
 
 ## Terraform operations
 
+State lives in the **`motori-tfstate`** Hetzner Object Storage bucket (Helsinki, `hel1`) with native S3 lockfile-based locking — no DynamoDB. The bucket must exist before `terraform init`. Bootstrap once:
+
+1. Create the bucket by hand in the Hetzner Cloud Console: project → Object Storage → Create bucket → name `motori-tfstate`, location `Helsinki`.
+2. Generate an Object Storage access key in the same project (Security → Object Storage → Generate credentials). The key is project-wide; one set of credentials addresses both `motori-tfstate` (state) and `vuokramoto-backups` (db dumps).
+3. Export the credentials before running terraform:
+   ```bash
+   export AWS_ACCESS_KEY_ID=...
+   export AWS_SECRET_ACCESS_KEY=...
+   ```
+
+Then:
+
 ```bash
 cd infra
 
-terraform init          # first time only — downloads hcloud provider
+terraform init          # first time only — downloads hcloud provider, configures S3 backend
 terraform plan          # preview changes
 terraform apply         # provision / update
 terraform destroy       # tear down everything (protections must be disabled first)
 terraform output        # show server IP
 ```
 
-State is stored locally in `terraform.tfstate`. Don't lose it — it's how Terraform tracks what it manages. Back it up somewhere safe (e.g. a private S3 bucket or encrypted file in 1Password).
+If you ever need to migrate state out of S3 (or recover from a deleted state file), `terraform state pull > backup.tfstate` works against the remote backend.
 
 ## What cloud-init installs
 
 Runs once on first boot. Takes ~2-3 minutes.
 
 - Node.js 24 (via NodeSource)
-- pnpm (via corepack)
+- pnpm — version pinned via `var.pnpm_version`, must match `package.json`'s `packageManager` field
 - PostgreSQL 17 (via PGDG apt repo — Ubuntu 24.04's default is 16; we pin 17 to match dev)
-- Nginx
-- Certbot + python3-certbot-nginx (for Let's Encrypt SSL)
+- Nginx + an `/etc/nginx/sites-available/motori` site (HTTP only; certbot adds TLS on first run)
+- Certbot + python3-certbot-nginx (for Let's Encrypt SSL — run by hand once DNS resolves)
 - UFW (secondary firewall, mirrors Hetzner firewall rules)
-- fail2ban
+- AWS CLI (used by the backup cron)
 
 Also:
-- Creates PostgreSQL user `appuser` and database `appdb`
+- Creates PostgreSQL user `appuser` and database `appdb`, then verifies `appuser` can authenticate
+- Creates the `app` system user; the `motori.service` systemd unit runs as `app`
+- Creates `/opt/motori` (deployment target, owned `app:app`)
+- Writes `/etc/motori.env` (mode 600, owned `app:app`) with `DATABASE_URL` pre-filled
+- Enables `motori.service` (it will sit in `failed` state until the first deploy populates `/opt/motori` — expected)
 - Disables SSH password authentication
-- Creates `/opt/app` (app deployment directory)
 
 ## Deployment
 
-See `IAC_PLAN.md` for the full deployment walkthrough. Short version:
+Root deploys (over Tailscale SSH); the service runs as the unprivileged `app` user.
 
 ```bash
 # Local: build the app
 pnpm build
 
 # Local: copy to server (over Tailscale — port 22 isn't public)
-rsync -avz .output/ root@app-server:/opt/app/.output/
-rsync -avz package.json pnpm-lock.yaml root@app-server:/opt/app/
+rsync -avz --delete .output/ root@app-server:/opt/motori/.output/
+rsync -avz package.json pnpm-lock.yaml root@app-server:/opt/motori/
 
-# Server: install deps and restart
-ssh root@app-server "cd /opt/app && pnpm install --prod && systemctl restart app"
+# Server: install deps, fix ownership, restart
+ssh root@app-server "cd /opt/motori && pnpm install --prod && chown -R app:app /opt/motori && systemctl restart motori"
 ```
+
+Before the first deploy, edit `/etc/motori.env` on the server and add the remaining secrets (`BETTER_AUTH_SECRET`, `STORAGE_*`, `RESEND_*`, etc.). `DATABASE_URL` is already set by cloud-init.
+
+### TLS certificates (after server rebuild)
+
+The Cloudflare Origin Certificate lives in `infra/certs/` (gitignored). Push it to a fresh server before nginx can serve HTTPS:
+
+```bash
+scp infra/certs/motori.com.pem root@app-server:/etc/ssl/motori.fi.pem
+scp infra/certs/motori.com.key root@app-server:/etc/ssl/motori.fi.key
+ssh root@app-server "chmod 600 /etc/ssl/motori.fi.key"
+```
+
+Then update the nginx site config to the SSL version (see current `/etc/nginx/sites-available/motori` on the server for the template) and reload nginx. Cloudflare SSL mode should be **Full (strict)**.
 
 ## Installed services
 
 | Service | Managed by | Config location |
 |---------|-----------|-----------------|
-| App (Node.js) | systemd | `/etc/systemd/system/app.service` |
+| Motori app (Node.js, runs as `app`) | systemd | `/etc/systemd/system/motori.service`, env in `/etc/motori.env` |
 | PostgreSQL | systemd | `/etc/postgresql/` |
-| Nginx | systemd | `/etc/nginx/sites-available/app` |
-| fail2ban | systemd | `/etc/fail2ban/` |
+| Nginx | systemd | `/etc/nginx/sites-available/motori` |

@@ -5,7 +5,28 @@ terraform {
       version = "~> 1.60"
     }
   }
-  required_version = ">= 1.0"
+  required_version = ">= 1.10"
+
+  backend "s3" {
+    bucket = "motori-tfstate"
+    key    = "terraform.tfstate"
+    region = "hel1"
+
+    endpoints = {
+      s3 = "https://hel1.your-objectstorage.com"
+    }
+
+    # Hetzner Object Storage isn't AWS — skip the AWS-specific validation.
+    skip_credentials_validation = true
+    skip_region_validation      = true
+    skip_requesting_account_id  = true
+    skip_metadata_api_check     = true
+    skip_s3_checksum            = true
+    use_path_style              = true
+
+    # Native S3 locking (Terraform 1.10+); no DynamoDB needed.
+    use_lockfile = true
+  }
 }
 
 provider "hcloud" {
@@ -14,7 +35,7 @@ provider "hcloud" {
 
 locals {
   labels = {
-    project     = "vuokramoto"
+    project     = "motori"
     environment = "production"
     managed_by  = "terraform"
   }
@@ -48,7 +69,7 @@ resource "hcloud_firewall" "web" {
 resource "hcloud_primary_ip" "app" {
   name              = "app-ip"
   type              = "ipv4"
-  location          = "hel1"
+  location          = var.location
   assignee_type     = "server"
   auto_delete       = false
   delete_protection = true
@@ -87,6 +108,8 @@ resource "hcloud_server" "app" {
     backup_s3_bucket     = var.backup_s3_bucket
     backup_s3_access_key = var.backup_s3_access_key
     backup_s3_secret_key = var.backup_s3_secret_key
+    pnpm_version         = var.pnpm_version
+    pgdata_volume_id     = hcloud_volume.pgdata.id
   })
   delete_protection  = false
   rebuild_protection = false
