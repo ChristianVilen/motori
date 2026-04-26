@@ -2,7 +2,7 @@
 import { auth } from "../auth";
 import { db } from "./index";
 
-const SEED_EMAIL = "dev@vuokramoto.local";
+const SEED_EMAIL = "dev@motori.local";
 const SEED_PASSWORD = "devpassword";
 const SEED_NAME = "Dev";
 
