@@ -1,4 +1,4 @@
-# Vuokramoto Infrastructure
+# Motori Infrastructure
 
 Single Hetzner Cloud VPS running the app (served at **motori.fi**) and PostgreSQL. Terraform manages provisioning; deployments are manual rsync + systemd.
 
@@ -217,7 +217,7 @@ hcloud primary-ip disable-protection app-ip delete  # if also removing the IP
 State lives in the **`motori-tfstate`** Hetzner Object Storage bucket (Helsinki, `hel1`) with native S3 lockfile-based locking — no DynamoDB. The bucket must exist before `terraform init`. Bootstrap once:
 
 1. Create the bucket by hand in the Hetzner Cloud Console: project → Object Storage → Create bucket → name `motori-tfstate`, location `Helsinki`.
-2. Generate an Object Storage access key in the same project (Security → Object Storage → Generate credentials). The key is project-wide; one set of credentials addresses both `motori-tfstate` (state) and `vuokramoto-backups` (db dumps).
+2. Generate an Object Storage access key in the same project (Security → Object Storage → Generate credentials). The key is project-wide; one set of credentials addresses both `motori-tfstate` (state) and `motori-backups` (db dumps).
 3. Export the credentials before running terraform:
    ```bash
    export AWS_ACCESS_KEY_ID=...

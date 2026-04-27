@@ -14,8 +14,8 @@ function Tietosuoja() {
 			<p className="mt-2 text-sm text-muted">Päivitetty viimeksi: 19.4.2025</p>
 
 			<p className="mt-6 text-sm text-foreground/80">
-				Tämä tietosuojaseloste kuvaa, miten Motori kerää ja käsittelee henkilötietojasi EU:n
-				yleisen tietosuoja-asetuksen (GDPR, 2016/679) mukaisesti.
+				Tämä tietosuojaseloste kuvaa, miten Motori kerää ja käsittelee henkilötietojasi EU:n yleisen
+				tietosuoja-asetuksen (GDPR, 2016/679) mukaisesti.
 			</p>
 
 			<section className="mt-8">

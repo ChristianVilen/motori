@@ -14,16 +14,16 @@ function Kayttoehdot() {
 			<p className="mt-2 text-sm text-muted">Päivitetty viimeksi: 19.4.2025</p>
 
 			<p className="mt-6 text-sm text-foreground/80">
-				Rekisteröitymällä Motori-palveluun tai julkaisemalla ilmoituksen hyväksyt nämä
-				käyttöehdot. Ehdot koskevat kaikkia palvelun käyttäjiä.
+				Rekisteröitymällä Motori-palveluun tai julkaisemalla ilmoituksen hyväksyt nämä käyttöehdot.
+				Ehdot koskevat kaikkia palvelun käyttäjiä.
 			</p>
 
 			<section className="mt-8">
 				<h2 className="font-heading text-xl font-semibold text-foreground">1. Määritelmät</h2>
 				<ul className="mt-3 space-y-2 text-sm text-foreground/80">
 					<li>
-						<strong>Palvelu</strong> – Motori-verkkosivusto (motori.fi), joka toimii
-						moottoripyörien vuokrausilmoitusten alustana.
+						<strong>Palvelu</strong> – Motori-verkkosivusto (motori.fi), joka toimii moottoripyörien
+						vuokrausilmoitusten alustana.
 					</li>
 					<li>
 						<strong>Käyttäjä</strong> – kaikki palveluun rekisteröityneet tai sitä selailevat
@@ -51,9 +51,9 @@ function Kayttoehdot() {
 				<h2 className="font-heading text-xl font-semibold text-foreground">2. Yleiset ehdot</h2>
 				<div className="mt-3 space-y-3 text-sm text-foreground/80">
 					<p>
-						Motori on ilmoitusalusta, joka mahdollistaa yksityishenkilöiden välisen
-						moottoripyörien vuokrauksen. Motori ei ole osapuolena käyttäjien välisissä
-						sopimuksissa eikä vastaa niiden täytäntöönpanosta.
+						Motori on ilmoitusalusta, joka mahdollistaa yksityishenkilöiden välisen moottoripyörien
+						vuokrauksen. Motori ei ole osapuolena käyttäjien välisissä sopimuksissa eikä vastaa
+						niiden täytäntöönpanosta.
 					</p>
 					<p>
 						Käyttäjät julkaisevat ilmoituksia ja sopivat vuokrauksista keskenään omalla vastuullaan.
@@ -102,9 +102,7 @@ function Kayttoehdot() {
 						Motori ei takaa ilmoitusten oikeellisuutta tai täydellisyyttä. Käyttäjä vastaa itse
 						julkaisemansa sisällön lainmukaisuudesta.
 					</p>
-					<p>
-						Motorin vastuu rajoittuu aina Suomen pakottavan lainsäädännön sallimaan minimiin.
-					</p>
+					<p>Motorin vastuu rajoittuu aina Suomen pakottavan lainsäädännön sallimaan minimiin.</p>
 				</div>
 			</section>
 
