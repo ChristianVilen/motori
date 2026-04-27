@@ -14,6 +14,11 @@ variable "db_password" {
   type        = string
   sensitive   = true
   description = "Password for the Postgres app user created on first boot. Alphanumeric only — interpolated into a SQL CREATE USER statement."
+
+  validation {
+    condition     = can(regex("^[A-Za-z0-9]{16,}$", var.db_password))
+    error_message = "db_password must be alphanumeric only, at least 16 characters."
+  }
 }
 
 variable "ssh_public_key_path" {
