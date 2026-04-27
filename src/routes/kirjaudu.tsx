@@ -1,11 +1,12 @@
 // src/routes/kirjaudu.tsx
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { LoginForm } from "~/components/auth/login-form";
+import { SITE_NAME } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 
 export const Route = createFileRoute("/kirjaudu")({
 	head: () => ({
-		meta: [{ title: "Kirjaudu sisään — Motori" }],
+		meta: [{ title: `Kirjaudu sisään — ${SITE_NAME}` }],
 	}),
 	validateSearch: (search: Record<string, unknown>) => ({
 		redirect: typeof search.redirect === "string" ? search.redirect : undefined,
@@ -21,7 +22,7 @@ function LoginPage() {
 		<div className="flex min-h-screen items-center justify-center bg-background px-4">
 			<div className="w-full max-w-sm space-y-6">
 				<div className="text-center">
-					<h1 className="text-2xl font-bold text-primary">Motori</h1>
+					<h1 className="text-2xl font-bold text-primary">{SITE_NAME}</h1>
 					<p className="mt-1 text-sm text-muted">{t("login.tagline")}</p>
 				</div>
 

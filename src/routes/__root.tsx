@@ -12,6 +12,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { LoginModal } from "~/components/auth/login-modal";
 import { authClient, signOut, useSession } from "~/lib/auth-client";
+import { SITE_NAME } from "~/lib/constants";
 import { i18n as clientI18n, ensureClientI18n } from "~/lib/i18n/client";
 import type { SupportedLocale } from "~/lib/i18n/resources";
 import { createI18nSync } from "~/lib/i18n/server";
@@ -29,7 +30,7 @@ export const Route = createRootRoute({
 			{ charSet: "utf-8" },
 
 			{ name: "viewport", content: "width=device-width, initial-scale=1" },
-			{ title: "Motori — Vuokraa moottoripyörä" },
+			{ title: `${SITE_NAME} — Vuokraa moottoripyörä` },
 			{
 				name: "description",
 				content:
@@ -37,8 +38,8 @@ export const Route = createRootRoute({
 			},
 			{ name: "theme-color", content: "#1a1a2e" },
 			{ property: "og:type", content: "website" },
-			{ property: "og:site_name", content: "Motori" },
-			{ property: "og:title", content: "Motori — Vuokraa moottoripyörä" },
+			{ property: "og:site_name", content: SITE_NAME },
+			{ property: "og:title", content: `${SITE_NAME} — Vuokraa moottoripyörä` },
 			{
 				property: "og:description",
 				content: "Suomalainen moottoripyörien vuokrausilmoitukset.",
@@ -190,7 +191,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 					<nav className="border-b border-border bg-primary px-4 py-3">
 						<div className="mx-auto flex max-w-6xl items-center justify-between">
 							<Link to="/" className="font-heading text-lg font-bold text-white">
-								Motori
+								{SITE_NAME}
 							</Link>
 							<div className="flex items-center gap-4 sm:gap-6">
 								<Link to="/ilmoitukset" className="text-sm text-white/70 hover:text-white">

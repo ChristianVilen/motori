@@ -4,7 +4,7 @@ import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-rout
 import { createServerFn } from "@tanstack/react-start";
 import { MapPin, Pencil, Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
+import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, SITE_NAME } from "~/lib/constants";
 import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import type { Listing, ListingImage } from "~/lib/db/schema";
@@ -82,7 +82,7 @@ export const Route = createFileRoute("/omat/")({
 		return getMyListings();
 	},
 	head: () => ({
-		meta: [{ title: "Omat ilmoitukset — Motori" }],
+		meta: [{ title: `Omat ilmoitukset — ${SITE_NAME}` }],
 	}),
 	component: ProfilePage,
 });

@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { SITE_NAME } from "~/lib/constants";
 
 export const Route = createFileRoute("/tietosuoja")({
 	head: () => ({
-		meta: [{ title: "Tietosuoja — Motori" }],
+		meta: [{ title: `Tietosuoja — ${SITE_NAME}` }],
 	}),
 	component: Tietosuoja,
 });

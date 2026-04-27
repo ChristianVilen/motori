@@ -1,6 +1,5 @@
 export const SITE_URL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
-// src/lib/constants.ts
-// Finnish market constants for motori
+export const SITE_NAME = "Motori";
 
 export const REGIONS = [
 	{ value: "uusimaa", label: "Uusimaa" },

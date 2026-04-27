@@ -4,7 +4,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { MapPin } from "lucide-react";
 import { ListingCard } from "~/components/listings/listing-card";
-import { LICENSE_CLASSES } from "~/lib/constants";
+import { LICENSE_CLASSES, SITE_NAME } from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import type { ListingImage } from "~/lib/db/schema";
 import { formatDate, useTranslation } from "~/lib/i18n";
@@ -67,7 +67,7 @@ export const Route = createFileRoute("/profiili/$userId")({
 	head: ({ loaderData }) => {
 		const name = loaderData?.profile?.display_name;
 		return {
-			meta: [{ title: name ? `${name} — Motori` : "Profiili — Motori" }],
+			meta: [{ title: name ? `${name} — ${SITE_NAME}` : `Profiili — ${SITE_NAME}` }],
 		};
 	},
 	component: PublicProfilePage,

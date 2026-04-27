@@ -5,7 +5,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { LICENSE_CLASSES, type LicenseClass } from "~/lib/constants";
+import { LICENSE_CLASSES, type LicenseClass, SITE_NAME } from "~/lib/constants";
 import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import { deleteAccount } from "~/lib/delete-account";
@@ -94,7 +94,7 @@ export const Route = createFileRoute("/profiili/asetukset")({
 		return loadSettings();
 	},
 	head: () => ({
-		meta: [{ title: "Asetukset — Motori" }],
+		meta: [{ title: `Asetukset — ${SITE_NAME}` }],
 	}),
 	component: SettingsPage,
 });

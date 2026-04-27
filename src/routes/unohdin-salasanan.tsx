@@ -3,11 +3,12 @@ import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { authClient } from "~/lib/auth-client";
+import { SITE_NAME } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 
 export const Route = createFileRoute("/unohdin-salasanan")({
 	head: () => ({
-		meta: [{ title: "Unohdin salasanan — Motori" }],
+		meta: [{ title: `Unohdin salasanan — ${SITE_NAME}` }],
 	}),
 	component: ForgotPasswordPage,
 });
@@ -39,7 +40,7 @@ function ForgotPasswordPage() {
 		<div className="flex min-h-screen items-center justify-center bg-background px-4">
 			<div className="w-full max-w-sm space-y-6">
 				<div className="text-center">
-					<h1 className="text-2xl font-bold text-primary">Motori</h1>
+					<h1 className="text-2xl font-bold text-primary">{SITE_NAME}</h1>
 					<p className="mt-1 text-sm text-muted">{t("forgotPassword.heading")}</p>
 				</div>
 
