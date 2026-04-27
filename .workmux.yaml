@@ -14,4 +14,4 @@ panes:
   - command: <agent>
     focus: true
   - command: pnpm install
-    split: horizontal
+    split: vertical

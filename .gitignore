@@ -11,6 +11,7 @@ dist
 .vite
 .tanstack
 .superpowers/
+.claude/worktrees/
 
 # Raw image originals — optimized output goes to public/images/
 /images/
