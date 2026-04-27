@@ -86,32 +86,32 @@ function AdminLayout() {
 						href="/admin"
 						label="Stats"
 						icon={BarChart3}
-						active={matchRoute({ to: "/admin" }) != null}
+						active={matchRoute({ to: "/admin" }) !== false}
 					/>
 					<NavTab
 						href="/admin/listings"
 						label="Listings"
 						icon={FileText}
-						active={matchRoute({ to: "/admin/listings", fuzzy: true }) != null}
+						active={matchRoute({ to: "/admin/listings", fuzzy: true }) !== false}
 					/>
 					<NavTab
 						href="/admin/users"
 						label="Users"
 						icon={Users}
-						active={matchRoute({ to: "/admin/users", fuzzy: true }) != null}
+						active={matchRoute({ to: "/admin/users", fuzzy: true }) !== false}
 					/>
 					<NavTab
 						href="/admin/moderation"
 						label="Moderation"
 						icon={Shield}
-						active={matchRoute({ to: "/admin/moderation", fuzzy: true }) != null}
+						active={matchRoute({ to: "/admin/moderation", fuzzy: true }) !== false}
 						badge={counts.pendingReports + counts.unreviewedListings}
 					/>
 					<NavTab
 						href="/admin/makes"
 						label="Makes & Models"
 						icon={Wrench}
-						active={matchRoute({ to: "/admin/makes", fuzzy: true }) != null}
+						active={matchRoute({ to: "/admin/makes", fuzzy: true }) !== false}
 					/>
 				</nav>
 				<Outlet />
