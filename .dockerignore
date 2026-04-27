@@ -1,0 +1,14 @@
+node_modules
+.output
+.git
+.github
+docs
+e2e
+playwright-report
+test-results
+.env
+.env.*
+!.env.example
+infra
+*.md
+images

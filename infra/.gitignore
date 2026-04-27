@@ -1,4 +1,5 @@
 certs/
+secrets/
 terraform.tfvars
 .terraform/
 terraform.tfstate*

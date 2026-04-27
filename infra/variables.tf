@@ -73,8 +73,3 @@ variable "domain" {
   description = "Public domain served by the app. Point its A/AAAA records at the primary IP."
 }
 
-variable "pnpm_version" {
-  type        = string
-  default     = "10.33.0"
-  description = "pnpm version installed on the server. Must match package.json's packageManager field."
-}

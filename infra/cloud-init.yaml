@@ -16,9 +16,9 @@ apt:
 packages:
   - curl
   - git
-  - nginx
   - ufw
-  - awscli
+  - unzip
+  - ca-certificates
 
 write_files:
   - path: /etc/db-backup.env
@@ -37,9 +37,10 @@ write_files:
       set -euo pipefail
       . /etc/db-backup.env
       TIMESTAMP=$$(date +%Y%m%d-%H%M%S)
-      sudo -u postgres pg_dump appdb | gzip | \
+      docker compose --env-file /etc/motori.env -f /opt/motori/docker-compose.prod.yml exec -T db \
+        pg_dump -U appuser appdb | gzip | \
         aws s3 cp - "s3://$$BACKUP_S3_BUCKET/db-backups/pgdump-$$TIMESTAMP.sql.gz" \
-        --endpoint-url "$$BACKUP_S3_ENDPOINT"
+          --endpoint-url "$$BACKUP_S3_ENDPOINT"
       # Prune oldest dumps, keep newest 30. Sort by filename (column 4) so listing format changes don't break us.
       aws s3 ls "s3://$$BACKUP_S3_BUCKET/db-backups/" --endpoint-url "$$BACKUP_S3_ENDPOINT" \
         | awk '{print $$4}' | grep -E '^pgdump-' | sort | head -n -30 \
@@ -51,58 +52,12 @@ write_files:
     content: |
       0 2 * * * root /usr/local/bin/db-backup >> /var/log/db-backup.log 2>&1
 
-  - path: /etc/systemd/system/motori.service
-    permissions: '0644'
-    content: |
-      [Unit]
-      Description=Motori app
-      After=network.target postgresql.service
-      Wants=postgresql.service
-
-      [Service]
-      Type=simple
-      User=app
-      Group=app
-      WorkingDirectory=/opt/motori
-      EnvironmentFile=/etc/motori.env
-      ExecStart=/usr/bin/node .output/server/index.mjs
-      Restart=on-failure
-      RestartSec=5
-
-      [Install]
-      WantedBy=multi-user.target
-
   - path: /etc/motori.env
     permissions: '0600'
     content: |
-      # Filled in on first deploy. DATABASE_URL is set by cloud-init below.
+      # Filled in on first deploy. DATABASE_URL and DB_PASSWORD are appended by cloud-init below.
       NODE_ENV=production
       PORT=3000
-
-  - path: /etc/nginx/sites-available/motori
-    permissions: '0644'
-    content: |
-      server {
-        listen 80;
-        listen [::]:80;
-        server_name ${domain} www.${domain};
-
-        # HTTP bootstrap only — replaced by SSL config via `just push-certs` after provisioning.
-
-        client_max_body_size 25M;
-
-        location / {
-          proxy_pass http://127.0.0.1:3000;
-          proxy_http_version 1.1;
-          proxy_set_header Host $host;
-          proxy_set_header X-Real-IP $remote_addr;
-          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-          proxy_set_header X-Forwarded-Proto $scheme;
-          proxy_set_header Upgrade $http_upgrade;
-          proxy_set_header Connection "upgrade";
-          proxy_read_timeout 60s;
-        }
-      }
 
 runcmd:
   # Wait for time sync before any HTTPS — first boot clock can be 1970 and break TLS
@@ -110,39 +65,31 @@ runcmd:
   - timedatectl set-ntp true
   - until timedatectl show -p NTPSynchronized --value | grep -q yes; do sleep 1; done
 
-  # Install Node.js 24 (remove any distro nodejs first to avoid version conflicts)
-  - apt-get remove -y nodejs npm libnode-dev || true
-  - curl -fsSL https://deb.nodesource.com/setup_24.x -o /tmp/nodesource_setup.sh
-  - bash /tmp/nodesource_setup.sh
-  - apt-get install -y nodejs
-
-  # Install pinned pnpm via corepack (ships with Node 24). Version must match package.json's packageManager field.
-  - corepack enable
-  - corepack prepare pnpm@${pnpm_version} --activate
-
-  # Mount the persistent pgdata volume before PostgreSQL installs so initdb writes directly onto it
+  # Mount the persistent pgdata volume. Docker bind-mounts the container's data dir onto this path.
   - until [ -b /dev/disk/by-id/scsi-0HC_Volume_${pgdata_volume_id} ]; do sleep 1; done
   - blkid /dev/disk/by-id/scsi-0HC_Volume_${pgdata_volume_id} | grep -q 'TYPE="ext4"' || mkfs.ext4 -F /dev/disk/by-id/scsi-0HC_Volume_${pgdata_volume_id}
-  - mkdir -p /var/lib/postgresql
-  - echo '/dev/disk/by-id/scsi-0HC_Volume_${pgdata_volume_id} /var/lib/postgresql ext4 defaults,nofail 0 2' >> /etc/fstab
-  - mount /var/lib/postgresql
+  - mkdir -p /var/lib/motori/pgdata
+  - echo '/dev/disk/by-id/scsi-0HC_Volume_${pgdata_volume_id} /var/lib/motori/pgdata ext4 defaults,nofail 0 2' >> /etc/fstab
+  - mount /var/lib/motori/pgdata
 
-  # Install PostgreSQL 17 from PGDG (Ubuntu 24.04 ships 16; we use 17 in dev)
-  - install -d /usr/share/postgresql-common/pgdg
-  - curl -fsSL --retry 3 https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
-  - sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+  # Install AWS CLI v2 (Ubuntu 24.04 dropped the apt awscli package)
+  - curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
+  - unzip -q /tmp/awscliv2.zip -d /tmp
+  - /tmp/aws/install
+  - rm -rf /tmp/awscliv2.zip /tmp/aws
+
+  # Install Docker Engine + compose plugin from Docker's official apt repo
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - chmod a+r /etc/apt/keyrings/docker.asc
+  - sh -c 'echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list'
   - apt-get update
-  - apt-get install -y postgresql-17 postgresql-contrib-17
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  - systemctl enable --now docker
 
-  # Configure PostgreSQL. db_password must be alphanumeric — interpolated directly into SQL.
-  - sudo -u postgres psql -c "CREATE USER appuser WITH PASSWORD '${db_password}';"
-  - sudo -u postgres psql -c "CREATE DATABASE appdb OWNER appuser;"
-
-  # Verify the app user can actually connect — fail fast if pg_hba blocks us
-  - PGPASSWORD='${db_password}' psql -h localhost -U appuser -d appdb -c 'select 1' > /dev/null
-
-  # Configure UFW (backup firewall)
-  - ufw allow 'Nginx Full'
+  # Configure UFW (backup firewall — Hetzner firewall is the primary)
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
   - ufw allow in on tailscale0
   - ufw --force enable
 
@@ -155,25 +102,15 @@ runcmd:
   - curl -fsSL https://tailscale.com/install.sh | sh
   - tailscale up --authkey='${tailscale_auth_key}' --ssh --advertise-tags=tag:server
 
-  # Create app user and deploy directory. Root deploys, but the systemd service runs as `app`.
-  - useradd -m -s /bin/bash app
+  # Create deploy directory. Root owns it; docker daemon runs as root anyway.
   - mkdir -p /opt/motori
-  - chown app:app /opt/motori
-  - chown app:app /etc/motori.env
+  - mkdir -p /etc/ssl
 
-  # Wire DATABASE_URL into the service env file (cloud-init knows the password)
-  - echo "DATABASE_URL=postgresql://appuser:${db_password}@localhost:5432/appdb" >> /etc/motori.env
-
-  # Enable the nginx site (HTTP bootstrap — SSL config deployed separately via `just push-certs`)
-  - sed -i "s/server_name _;/server_name ${domain} www.${domain};/" /etc/nginx/sites-available/default || true
-  - rm -f /etc/nginx/sites-enabled/default
-  - ln -sf /etc/nginx/sites-available/motori /etc/nginx/sites-enabled/motori
-  - nginx -t
-  - systemctl reload nginx
-
-  # Enable the app service. Won't start cleanly until first deploy populates /opt/motori — expected.
-  - systemctl daemon-reload
-  - systemctl enable motori.service
+  # Wire DB credentials into the env file (cloud-init knows the password). The compose file
+  # reads DB_PASSWORD to set POSTGRES_PASSWORD on the db service, and DATABASE_URL is what
+  # the app + migrate services consume.
+  - echo "DB_PASSWORD=${db_password}" >> /etc/motori.env
+  - echo "DATABASE_URL=postgresql://appuser:${db_password}@db:5432/appdb" >> /etc/motori.env
 
   # Record the configured domain for later (Certbot, etc.)
   - echo "${domain}" > /etc/app-domain
