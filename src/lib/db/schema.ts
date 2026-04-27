@@ -87,6 +87,7 @@ export interface MotorcycleMakeTable {
 	name: string;
 	slug: string;
 	approved: Generated<boolean>;
+	created_at: ColumnType<Date, Date | undefined, Date>;
 }
 
 export interface MotorcycleModelTable {
@@ -94,6 +95,7 @@ export interface MotorcycleModelTable {
 	make_id: string;
 	name: string;
 	approved: Generated<boolean>;
+	created_at: ColumnType<Date, Date | undefined, Date>;
 }
 
 export type MotorcycleMake = Selectable<MotorcycleMakeTable>;

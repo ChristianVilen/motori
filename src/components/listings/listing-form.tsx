@@ -59,11 +59,11 @@ export function ListingForm({
 			title: initialValues?.title ?? "",
 			make_id: initialValues?.make_id ?? "",
 			model_id: initialValues?.model_id ?? null,
-			year: initialValues?.year ?? CURRENT_YEAR,
+			year: initialValues?.year ?? ("" as unknown as number),
 			engine_cc: initialValues?.engine_cc ?? null,
 			motorcycle_type: initialValues?.motorcycle_type ?? "",
 			required_license: initialValues?.required_license ?? null,
-			price_per_day: initialValues?.price_per_day ?? (0 as number),
+			price_per_day: initialValues?.price_per_day ?? ("" as unknown as number),
 			price_per_week: initialValues?.price_per_week ?? null,
 			price_description: initialValues?.price_description ?? "",
 			city: initialValues?.city ?? "",
@@ -198,9 +198,13 @@ export function ListingForm({
 										type="number"
 										min={1970}
 										max={CURRENT_YEAR + 1}
-										value={field.state.value}
+										value={field.state.value ?? ""}
 										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.valueAsNumber)}
+										onChange={(e) =>
+											field.handleChange(
+												e.target.value === "" ? ("" as unknown as number) : e.target.valueAsNumber,
+											)
+										}
 									/>
 									<FieldError errors={field.state.meta.errors} />
 								</div>
@@ -312,9 +316,13 @@ export function ListingForm({
 										type="number"
 										min={1}
 										max={10000}
-										value={field.state.value}
+										value={field.state.value ?? ""}
 										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.valueAsNumber)}
+										onChange={(e) =>
+											field.handleChange(
+												e.target.value === "" ? ("" as unknown as number) : e.target.valueAsNumber,
+											)
+										}
 									/>
 									<FieldError errors={field.state.meta.errors} />
 								</div>

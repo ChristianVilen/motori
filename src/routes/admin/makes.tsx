@@ -1,5 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { GitMerge, Pencil, Trash2 } from "lucide-react";
+import { GitMerge, Pencil, Sparkles, Trash2 } from "lucide-react";
+
+const NEW_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
+
+function isNew(createdAt: Date) {
+	return Date.now() - new Date(createdAt).getTime() < NEW_THRESHOLD_MS;
+}
+
 import { useState } from "react";
 import {
 	type AdminMake,
@@ -16,10 +23,7 @@ import {
 
 export const Route = createFileRoute("/admin/makes")({
 	loader: async () => {
-		const [makes, models] = await Promise.all([
-			getAdminMakes(),
-			getAdminModels({ data: null }),
-		]);
+		const [makes, models] = await Promise.all([getAdminMakes(), getAdminModels({ data: null })]);
 		return { makes, models };
 	},
 	component: MakesPage,
@@ -87,13 +91,17 @@ function RenameCell({
 				value={value}
 				onChange={(e) => setValue(e.target.value)}
 				onKeyDown={(e) => {
-					if (e.key === "Enter") save();
-					if (e.key === "Escape") setEditing(false);
+					if (e.key === "Enter") {
+						save();
+					}
+					if (e.key === "Escape") {
+						setEditing(false);
+					}
 				}}
 				onBlur={save}
 				className="rounded border border-input bg-background px-2 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent"
 			/>
-			{error && <span className="text-xs text-destructive">{error}</span>}
+			{error ? <span className="text-xs text-destructive">{error}</span> : null}
 		</span>
 	);
 }
@@ -116,7 +124,9 @@ function MergeCell({
 	const others = options.filter((o) => o.id !== id);
 
 	async function confirm() {
-		if (!targetId) return;
+		if (!targetId) {
+			return;
+		}
 		try {
 			await onMerge(id, targetId);
 			setOpen(false);
@@ -171,7 +181,7 @@ function MergeCell({
 					Cancel
 				</button>
 			</span>
-			{error && <span className="text-xs text-destructive">{error}</span>}
+			{error ? <span className="text-xs text-destructive">{error}</span> : null}
 		</span>
 	);
 }
@@ -211,7 +221,7 @@ function DeleteButton({
 			>
 				<Trash2 size={13} /> Delete
 			</button>
-			{error && <span className="text-xs text-destructive">{error}</span>}
+			{error ? <span className="text-xs text-destructive">{error}</span> : null}
 		</span>
 	);
 }
@@ -254,10 +264,15 @@ function MakesTable({ makes }: { makes: AdminMake[] }) {
 						{makes.map((make) => (
 							<tr
 								key={make.id}
-								className="group border-b border-border last:border-0 hover:bg-muted-light/20"
+								className={`group border-b border-border last:border-0 hover:bg-muted-light/20 ${isNew(make.createdAt) ? "bg-yellow-50" : ""}`}
 							>
 								<td className="px-4 py-3">
-									<RenameCell id={make.id} name={make.name} onSave={handleRename} />
+									<span className="flex items-center gap-2">
+										<RenameCell id={make.id} name={make.name} onSave={handleRename} />
+										{isNew(make.createdAt) && (
+											<Sparkles size={13} className="shrink-0 text-yellow-500" />
+										)}
+									</span>
 								</td>
 								<td className="px-4 py-3 text-muted">{make.modelCount}</td>
 								<td className="px-4 py-3 text-muted">{make.listingCount}</td>
@@ -347,10 +362,15 @@ function ModelsTable({ models, makes }: { models: AdminModel[]; makes: AdminMake
 						{filtered.map((model) => (
 							<tr
 								key={model.id}
-								className="group border-b border-border last:border-0 hover:bg-muted-light/20"
+								className={`group border-b border-border last:border-0 hover:bg-muted-light/20 ${isNew(model.createdAt) ? "bg-yellow-50" : ""}`}
 							>
 								<td className="px-4 py-3">
-									<RenameCell id={model.id} name={model.name} onSave={handleRename} />
+									<span className="flex items-center gap-2">
+										<RenameCell id={model.id} name={model.name} onSave={handleRename} />
+										{isNew(model.createdAt) && (
+											<Sparkles size={13} className="shrink-0 text-yellow-500" />
+										)}
+									</span>
 								</td>
 								<td className="px-4 py-3 text-muted">{model.makeName}</td>
 								<td className="px-4 py-3 text-muted">{model.listingCount}</td>

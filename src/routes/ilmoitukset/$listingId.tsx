@@ -401,7 +401,7 @@ function ListingDetailPage() {
 				{/* Back */}
 				<Link
 					data-testid="listing-detail-back"
-					to="/"
+					to="/ilmoitukset"
 					className="mb-6 flex items-center gap-1 text-sm text-muted hover:text-foreground"
 				>
 					<ArrowLeft className="h-4 w-4" />
@@ -419,14 +419,21 @@ function ListingDetailPage() {
 								<h1 data-testid="listing-detail-title" className="text-2xl font-bold text-primary">
 									{listing.title}
 								</h1>
-								{listing.status !== "active" && (
-									<span
-										data-testid="listing-status-badge"
-										className="shrink-0 rounded bg-warning/20 px-2 py-1 text-xs font-medium text-warning"
-									>
-										{statusLabel}
-									</span>
-								)}
+								<div className="flex shrink-0 gap-2">
+									{!!isOwner && (
+										<span className="rounded bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">
+											Oma ilmoitus
+										</span>
+									)}
+									{listing.status !== "active" && (
+										<span
+											data-testid="listing-status-badge"
+											className="rounded bg-warning/20 px-2 py-1 text-xs font-medium text-warning"
+										>
+											{statusLabel}
+										</span>
+									)}
+								</div>
 							</div>
 							<div className="mt-2 flex flex-wrap gap-2">
 								<span

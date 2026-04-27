@@ -2,7 +2,7 @@
 // Public user profile — display name, location, license, and their active listings.
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { MapPin } from "lucide-react";
+import { ArrowLeft, MapPin } from "lucide-react";
 import { ListingCard } from "~/components/listings/listing-card";
 import { ReportButton } from "~/components/report-button";
 import { LICENSE_CLASSES, SITE_NAME } from "~/lib/constants";
@@ -98,6 +98,14 @@ function PublicProfilePage() {
 	return (
 		<div className="min-h-screen bg-background">
 			<div className="mx-auto max-w-5xl px-4 py-8">
+				<Link
+					to="/ilmoitukset"
+					className="mb-6 flex items-center gap-1 text-sm text-muted hover:text-foreground"
+				>
+					<ArrowLeft className="h-4 w-4" />
+					{t("publicProfile.back")}
+				</Link>
+
 				{/* Header */}
 				<div className="mb-8 rounded-xl border border-border bg-card p-6">
 					<h1 className="text-2xl font-bold text-primary">{profile.display_name}</h1>

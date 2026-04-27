@@ -177,7 +177,7 @@ export function MakeModelSelect({
 		"flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent";
 
 	const dropdownClass =
-		"absolute left-0 right-0 top-full z-10 mt-1 rounded-md border border-border bg-card shadow-lg";
+		"absolute left-0 top-full z-10 mt-1 w-max min-w-full rounded-md border border-border bg-card shadow-lg";
 
 	const filterInputClass =
 		"w-full rounded border border-input bg-background px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-accent";

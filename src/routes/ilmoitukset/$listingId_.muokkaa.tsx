@@ -181,7 +181,7 @@ function EditListingPage() {
 
 	async function handleSubmit(data: ListingFormData) {
 		await updateListing({ data: { id: listing.id, form: data } });
-		navigate({ to: "/ilmoitukset/$listingId", params: { listingId: listing.id } });
+		navigate({ to: "/ilmoitukset/$listingId", params: { listingId: listing.id }, replace: true });
 	}
 
 	return (

@@ -11,6 +11,7 @@ export interface AdminMake {
 	slug: string;
 	listingCount: number;
 	modelCount: number;
+	createdAt: Date;
 }
 
 export interface AdminModel {
@@ -19,6 +20,7 @@ export interface AdminModel {
 	makeId: string;
 	makeName: string;
 	listingCount: number;
+	createdAt: Date;
 }
 
 export const getAdminMakes = createServerFn({ method: "GET" }).handler(async () => {
@@ -31,10 +33,11 @@ export const getAdminMakes = createServerFn({ method: "GET" }).handler(async () 
 			"mk.id",
 			"mk.name",
 			"mk.slug",
+			"mk.created_at as createdAt",
 			sql<number>`count(distinct mo.id)::int`.as("modelCount"),
 			sql<number>`count(distinct l.id)::int`.as("listingCount"),
 		])
-		.groupBy(["mk.id", "mk.name", "mk.slug"])
+		.groupBy(["mk.id", "mk.name", "mk.slug", "mk.created_at"])
 		.orderBy("mk.name", "asc")
 		.execute();
 	return rows as AdminMake[];
@@ -53,9 +56,10 @@ export const getAdminModels = createServerFn({ method: "GET" })
 				"mo.name",
 				"mo.make_id as makeId",
 				"mk.name as makeName",
+				"mo.created_at as createdAt",
 				sql<number>`count(distinct l.id)::int`.as("listingCount"),
 			])
-			.groupBy(["mo.id", "mo.name", "mo.make_id", "mk.name"])
+			.groupBy(["mo.id", "mo.name", "mo.make_id", "mk.name", "mo.created_at"])
 			.orderBy("mk.name", "asc")
 			.orderBy("mo.name", "asc");
 		if (makeId) {
@@ -71,7 +75,9 @@ export const renameMake = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		await requireAdmin();
 		const name = data.name.trim();
-		if (!name) throw new Error("Name cannot be empty");
+		if (!name) {
+			throw new Error("Name cannot be empty");
+		}
 		await db
 			.updateTable("motorcycle_make")
 			.set({ name, slug: toSlug(name) })
@@ -85,12 +91,10 @@ export const renameModel = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		await requireAdmin();
 		const name = data.name.trim();
-		if (!name) throw new Error("Name cannot be empty");
-		await db
-			.updateTable("motorcycle_model")
-			.set({ name })
-			.where("id", "=", data.id)
-			.execute();
+		if (!name) {
+			throw new Error("Name cannot be empty");
+		}
+		await db.updateTable("motorcycle_model").set({ name }).where("id", "=", data.id).execute();
 	});
 
 export const deleteMake = createServerFn({ method: "POST" })
@@ -138,7 +142,9 @@ export const mergeMakes = createServerFn({ method: "POST" })
 	.inputValidator((data: { sourceId: string; targetId: string }) => data)
 	.handler(async ({ data }) => {
 		await requireAdmin();
-		if (data.sourceId === data.targetId) throw new Error("Cannot merge a make into itself");
+		if (data.sourceId === data.targetId) {
+			throw new Error("Cannot merge a make into itself");
+		}
 		await db.transaction().execute(async (trx) => {
 			await trx
 				.updateTable("listing")
@@ -159,7 +165,9 @@ export const mergeModels = createServerFn({ method: "POST" })
 	.inputValidator((data: { sourceId: string; targetId: string }) => data)
 	.handler(async ({ data }) => {
 		await requireAdmin();
-		if (data.sourceId === data.targetId) throw new Error("Cannot merge a model into itself");
+		if (data.sourceId === data.targetId) {
+			throw new Error("Cannot merge a model into itself");
+		}
 		await db.transaction().execute(async (trx) => {
 			await trx
 				.updateTable("listing")
