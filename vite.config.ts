@@ -1,5 +1,6 @@
 import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
+import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
@@ -14,5 +15,5 @@ export default defineConfig({
 			"~": path.resolve(import.meta.dirname, "./src"),
 		},
 	},
-	plugins: [tanstackStart(), nitro(), react(), tailwindcss()],
+	plugins: [devtools(), tanstackStart(), nitro(), react(), tailwindcss()],
 });
