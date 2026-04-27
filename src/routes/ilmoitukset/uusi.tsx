@@ -101,7 +101,7 @@ function NewListingPage() {
 
 	async function handleSubmit(data: ListingFormData) {
 		const { id } = await createListing({ data });
-		navigate({ to: "/ilmoitukset/$listingId", params: { listingId: id } });
+		navigate({ to: "/ilmoitukset/$listingId", params: { listingId: id }, replace: true });
 	}
 
 	return (

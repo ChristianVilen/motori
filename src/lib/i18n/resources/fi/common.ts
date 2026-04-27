@@ -20,6 +20,15 @@ export default {
 	errors: {
 		generic: "Jotain meni pieleen. Yritä uudelleen.",
 	},
+	report: {
+		button: "Ilmoita",
+		modalTitle: "Ilmoita sisällöstä",
+		placeholder: "Kerro miksi haluat ilmoittaa tästä sisällöstä...",
+		submit: "Lähetä ilmoitus",
+		submitting: "Lähetetään...",
+		success: "Kiitos ilmoituksestasi. Käsittelemme sen mahdollisimman pian.",
+		duplicate: "Olet jo ilmoittanut tästä sisällöstä.",
+	},
 	validation: {
 		titleTooShort: "Otsikko on liian lyhyt (min 5 merkkiä)",
 		titleTooLong: "Otsikko on liian pitkä",

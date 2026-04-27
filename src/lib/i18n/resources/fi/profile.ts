@@ -17,6 +17,7 @@ export default {
 		},
 	},
 	publicProfile: {
+		back: "Takaisin",
 		notFound: "Käyttäjää ei löydy.",
 		notFoundBack: "Etusivulle",
 		licenseBadge: "Kortti {{license}}",

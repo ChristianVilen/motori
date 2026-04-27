@@ -87,6 +87,7 @@ export interface MotorcycleMakeTable {
 	name: string;
 	slug: string;
 	approved: Generated<boolean>;
+	created_at: ColumnType<Date, Date | undefined, Date>;
 }
 
 export interface MotorcycleModelTable {
@@ -94,6 +95,7 @@ export interface MotorcycleModelTable {
 	make_id: string;
 	name: string;
 	approved: Generated<boolean>;
+	created_at: ColumnType<Date, Date | undefined, Date>;
 }
 
 export type MotorcycleMake = Selectable<MotorcycleMakeTable>;
@@ -122,6 +124,7 @@ export interface ListingTable {
 	expires_at: ColumnType<Date, Date | undefined, Date> | null;
 	expiry_notified_at: ColumnType<Date, Date | undefined, Date> | null;
 	search_vector: Generated<string>; // tsvector, maintained by trigger
+	reviewed_at: ColumnType<Date, Date | undefined, Date> | null;
 	created_at: ColumnType<Date, Date | undefined, Date>;
 	updated_at: ColumnType<Date, Date | undefined, Date>;
 }
@@ -149,6 +152,22 @@ export interface FavoriteTable {
 
 export type Favorite = Selectable<FavoriteTable>;
 
+export interface ReportTable {
+	id: string;
+	reporter_id: string;
+	target_type: "listing" | "user";
+	target_id: string;
+	reason: string;
+	status: Generated<"pending" | "resolved" | "dismissed">;
+	admin_note: string | null;
+	resolved_by: string | null;
+	resolved_at: ColumnType<Date, Date, Date> | null;
+	created_at: ColumnType<Date, Date | undefined, Date>;
+}
+
+export type Report = Selectable<ReportTable>;
+export type NewReport = Insertable<ReportTable>;
+
 // ─── Database interface ───────────────────────────────────────────────────────
 
 export interface Database {
@@ -162,4 +181,5 @@ export interface Database {
 	listing: ListingTable;
 	listing_image: ListingImageTable;
 	favorite: FavoriteTable;
+	report: ReportTable;
 }

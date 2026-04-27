@@ -9,12 +9,16 @@ import { ListingCardSkeleton } from "~/components/listings/listing-card-skeleton
 import { REGIONS, SITE_NAME, SITE_URL } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { type SearchResult, searchListings } from "~/lib/listings-queries";
+import { getSession } from "~/lib/session";
 import { type BrowseSearchParams, browseSearchSchema } from "~/lib/validators";
 
 export const Route = createFileRoute("/ilmoitukset/")({
 	validateSearch: (search) => browseSearchSchema.parse(search),
 	loaderDeps: ({ search }) => search,
-	loader: ({ deps }) => searchListings({ data: deps }),
+	loader: async ({ deps }) => {
+		const [result, session] = await Promise.all([searchListings({ data: deps }), getSession()]);
+		return { ...result, currentUserId: session?.user.id ?? null };
+	},
 	head: () => ({
 		meta: [
 			{ title: `Selaa ilmoituksia — ${SITE_NAME}` },
@@ -62,6 +66,7 @@ function BrowsePage() {
 	const initialData = Route.useLoaderData();
 	const navigate = useNavigate();
 
+	const { currentUserId } = initialData;
 	const { allListings, totalCount, nextCursor, remaining } = useAccumulatedPages(
 		initialData,
 		search,
@@ -172,7 +177,12 @@ function BrowsePage() {
 								className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
 							>
 								{allListings.map((listing) => (
-									<ListingCard key={listing.id} listing={listing} images={listing.images} />
+									<ListingCard
+										key={listing.id}
+										listing={listing}
+										images={listing.images}
+										isOwn={currentUserId !== null && listing.owner_id === currentUserId}
+									/>
 								))}
 								{isLoading
 									? ["skel-a", "skel-b", "skel-c"].map((key) => <ListingCardSkeleton key={key} />)

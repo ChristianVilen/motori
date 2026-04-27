@@ -53,6 +53,7 @@ export interface Listing {
 	price_per_week: number | null;
 	region: string;
 	required_license: string | null;
+	reviewed_at: Timestamp | null;
 	search_vector: string | null;
 	status: Generated<string>;
 	title: string;
@@ -71,6 +72,7 @@ export interface ListingImage {
 
 export interface MotorcycleMake {
 	approved: Generated<boolean>;
+	created_at: Generated<Timestamp>;
 	id: string;
 	name: string;
 	slug: string;
@@ -78,6 +80,7 @@ export interface MotorcycleMake {
 
 export interface MotorcycleModel {
 	approved: Generated<boolean>;
+	created_at: Generated<Timestamp>;
 	id: string;
 	make_id: string;
 	name: string;
@@ -93,6 +96,19 @@ export interface Profile {
 	show_phone: Generated<boolean>;
 	updated_at: Generated<Timestamp>;
 	user_id: string;
+}
+
+export interface Report {
+	admin_note: string | null;
+	created_at: Generated<Timestamp>;
+	id: string;
+	reason: string;
+	reporter_id: string;
+	resolved_at: Timestamp | null;
+	resolved_by: string | null;
+	status: Generated<string>;
+	target_id: string;
+	target_type: string;
 }
 
 export interface Session {
@@ -138,6 +154,7 @@ export interface DB {
 	motorcycle_make: MotorcycleMake;
 	motorcycle_model: MotorcycleModel;
 	profile: Profile;
+	report: Report;
 	session: Session;
 	user: User;
 	verification: Verification;

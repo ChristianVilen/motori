@@ -2,12 +2,14 @@
 // Public user profile — display name, location, license, and their active listings.
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { MapPin } from "lucide-react";
+import { ArrowLeft, MapPin } from "lucide-react";
 import { ListingCard } from "~/components/listings/listing-card";
+import { ReportButton } from "~/components/report-button";
 import { LICENSE_CLASSES, SITE_NAME } from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import type { ListingImage } from "~/lib/db/schema";
 import { formatDate, useTranslation } from "~/lib/i18n";
+import { getSession } from "~/lib/session";
 
 const getPublicProfile = createServerFn({ method: "GET" })
 	.inputValidator((userId: string) => userId)
@@ -58,11 +60,14 @@ function NotFoundProfile() {
 
 export const Route = createFileRoute("/profiili/$userId")({
 	loader: async ({ params }) => {
-		const result = await getPublicProfile({ data: params.userId });
+		const [result, session] = await Promise.all([
+			getPublicProfile({ data: params.userId }),
+			getSession(),
+		]);
 		if (!result) {
 			throw notFound();
 		}
-		return result;
+		return { ...result, session };
 	},
 	head: ({ loaderData }) => {
 		const name = loaderData?.profile?.display_name;
@@ -76,7 +81,8 @@ export const Route = createFileRoute("/profiili/$userId")({
 
 function PublicProfilePage() {
 	const { t } = useTranslation("profile");
-	const { profile, listings, images } = Route.useLoaderData();
+	const { profile, listings, images, session } = Route.useLoaderData();
+	const isOwnProfile = session?.user.id === profile.user_id;
 	const licenseLabel =
 		LICENSE_CLASSES.find((l) => l.value === profile.license_class)?.label ?? null;
 
@@ -92,6 +98,14 @@ function PublicProfilePage() {
 	return (
 		<div className="min-h-screen bg-background">
 			<div className="mx-auto max-w-5xl px-4 py-8">
+				<Link
+					to="/ilmoitukset"
+					className="mb-6 flex items-center gap-1 text-sm text-muted hover:text-foreground"
+				>
+					<ArrowLeft className="h-4 w-4" />
+					{t("publicProfile.back")}
+				</Link>
+
 				{/* Header */}
 				<div className="mb-8 rounded-xl border border-border bg-card p-6">
 					<h1 className="text-2xl font-bold text-primary">{profile.display_name}</h1>
@@ -109,6 +123,11 @@ function PublicProfilePage() {
 						)}
 						<span>{t("publicProfile.memberSince", { date: memberSince })}</span>
 					</div>
+					{!!session && !isOwnProfile && (
+						<div className="mt-3">
+							<ReportButton targetType="user" targetId={profile.user_id} />
+						</div>
+					)}
 				</div>
 
 				{/* Listings */}

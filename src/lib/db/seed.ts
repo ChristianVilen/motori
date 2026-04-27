@@ -111,7 +111,7 @@ const listings: SeedListing[] = [
 		city: "Tampere",
 		region: "pirkanmaa",
 		description: "Vihreä Ninja, hyvässä kunnossa. Kypärä mukana, vakuutus omasta.",
-		images: [LINEUP],
+		images: [LINEUP, R6, TANK],
 	},
 	{
 		title: "Kawasaki Z650 — kevyt naked",
@@ -125,7 +125,7 @@ const listings: SeedListing[] = [
 		city: "Turku",
 		region: "varsinais-suomi",
 		description: "Loistava arkikäyttöön ja kaupunkiajoon. A2-rajoitettu.",
-		images: [TANK],
+		images: [TANK, FERRY],
 	},
 	{
 		title: "Suzuki SV650 — kaupunkiajon klassikko",
@@ -139,7 +139,7 @@ const listings: SeedListing[] = [
 		city: "Espoo",
 		region: "uusimaa",
 		description: "Helppo ja luotettava. Sopii myös vasta-alkajalle (A2-luokka).",
-		images: [FERRY],
+		images: [FERRY, LINEUP, R6],
 	},
 	{
 		title: "BMW R 1250 RT — pitkien matkojen kuningas",
@@ -168,7 +168,7 @@ const listings: SeedListing[] = [
 		city: "Oulu",
 		region: "pohjois-pohjanmaa",
 		description: "Mukavin tapa kierrellä Lappia. Audio, GPS, lämpenevät kahvat ja istuin.",
-		images: [FERRY],
+		images: [FERRY, TANK, LINEUP],
 	},
 	{
 		title: "KTM 890 Adventure — soraa ja asfalttia",
@@ -183,7 +183,7 @@ const listings: SeedListing[] = [
 		region: "lappi",
 		description:
 			"Loistava Lapin reissupyörä. Off-road-renkaat saatavissa pyynnöstä, pannarit mukana.",
-		images: [LINEUP],
+		images: [LINEUP, FERRY, R6],
 	},
 	{
 		title: "Triumph Tiger 900 GT",
@@ -197,7 +197,7 @@ const listings: SeedListing[] = [
 		city: "Tampere",
 		region: "pirkanmaa",
 		description: "Mukava ja ketterä adventure-pyörä. Sivulaukut ja topcase mukana.",
-		images: [FERRY],
+		images: [FERRY, R6],
 	},
 	{
 		title: "Harley-Davidson Iron 883 — klassinen cruiseri",
@@ -211,7 +211,7 @@ const listings: SeedListing[] = [
 		city: "Helsinki",
 		region: "uusimaa",
 		description: "Mustan klassinen H-D. Sopii Helsinki–Hanko-reissuille kesäisin.",
-		images: [TANK],
+		images: [TANK, LINEUP, FERRY],
 	},
 	{
 		title: "Yamaha MT-125 — A1-luokan arkipyörä",
@@ -247,6 +247,8 @@ async function main() {
 
 	// 2. Wipe and re-seed makes/models
 	console.log("Seeding makes and models...");
+	await db.deleteFrom("listing_image").execute();
+	await db.deleteFrom("listing").execute();
 	await db.deleteFrom("motorcycle_model").execute();
 	await db.deleteFrom("motorcycle_make").execute();
 

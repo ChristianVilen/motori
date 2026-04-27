@@ -27,6 +27,7 @@ export default {
 	},
 	card: {
 		newBadge: "Uusi",
+		ownBadge: "Oma ilmoitus",
 		addToFavoritesAriaLabel: "Lisää suosikkeihin",
 		perDay: "/pv",
 	},
@@ -94,6 +95,8 @@ export default {
 		fields: {
 			title: "Otsikko",
 			titleHint: "Kuvaava otsikko houkuttelee enemmän yhteydenottoja",
+			year: "Vuosimalli",
+			engineCc: "Moottorin tilavuus (cc)",
 			type: "Tyyppi",
 			typePlaceholder: "Valitse tyyppi",
 			requiredLicense: "Vaadittu ajokortti",

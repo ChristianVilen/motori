@@ -10,8 +10,8 @@ Motori is a P2P motorcycle rental noticeboard for Finland. Lean MVP — prefer m
 
 Always use `pnpm` (not npm/bun — lockfile is pnpm-lock.yaml).
 
-- `pnpm dev` — Vite dev server at http://localhost:3000
-- `pnpm build` / `pnpm start` — production build and node server
+- `pnpm dev` — Vite dev server at http://localhost:3000 (also auto-regenerates `routeTree.gen.ts` on file changes)
+- `pnpm build` / `pnpm start` — production build and node server (also regenerates `routeTree.gen.ts`)
 - `pnpm typecheck` — `tsc --noEmit`
 - `pnpm lint` / `pnpm lint:fix` — Biome (tabs, 100-col, strict rules incl. `noExplicitAny`, `noConsole` warn, `noNonNullAssertion`)
 - `pnpm test` — Vitest (unit). Run a single file: `pnpm vitest run path/to/file.test.ts`

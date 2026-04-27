@@ -7,9 +7,10 @@ import { formatEur, useTranslation } from "~/lib/i18n";
 interface ListingCardProps {
 	listing: Listing;
 	images: ListingImage[];
+	isOwn?: boolean;
 }
 
-export function ListingCard({ listing, images }: ListingCardProps) {
+export function ListingCard({ listing, images, isOwn }: ListingCardProps) {
 	const { t } = useTranslation("listings");
 	const firstImage = images[0];
 	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
@@ -59,11 +60,18 @@ export function ListingCard({ listing, images }: ListingCardProps) {
 				)}
 
 				{/* Badges overlay */}
-				{isNew && (
-					<span className="absolute top-2.5 left-2.5 rounded-md bg-accent px-2 py-0.5 text-xs font-semibold text-white">
-						{t("card.newBadge")}
-					</span>
-				)}
+				<div className="absolute top-2.5 left-2.5 flex gap-1.5">
+					{isNew && (
+						<span className="rounded-md bg-accent px-2 py-0.5 text-xs font-semibold text-white">
+							{t("card.newBadge")}
+						</span>
+					)}
+					{isOwn ? (
+						<span className="rounded-md bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+							{t("card.ownBadge")}
+						</span>
+					) : null}
+				</div>
 
 				{/* Favorite button placeholder */}
 				<button
