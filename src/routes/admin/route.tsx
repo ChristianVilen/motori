@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useMatchRoute, useRouter } from "@tanstack/react-router";
-import { BarChart3, FileText, LogOut, Shield, Users } from "lucide-react";
+import { BarChart3, FileText, LogOut, Shield, Users, Wrench } from "lucide-react";
 import { requireAdmin } from "~/lib/admin";
 import { signOut } from "~/lib/auth-client";
 import { SITE_NAME } from "~/lib/constants";
@@ -106,6 +106,12 @@ function AdminLayout() {
 						icon={Shield}
 						active={matchRoute({ to: "/admin/moderation", fuzzy: true }) != null}
 						badge={counts.pendingReports + counts.unreviewedListings}
+					/>
+					<NavTab
+						href="/admin/makes"
+						label="Makes & Models"
+						icon={Wrench}
+						active={matchRoute({ to: "/admin/makes", fuzzy: true }) != null}
 					/>
 				</nav>
 				<Outlet />
