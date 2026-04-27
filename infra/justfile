@@ -104,6 +104,25 @@ bootstrap-repo:
           git clone git@github.com:ChristianVilen/motori.git /opt/motori; \
         fi"
 
+# Wait until the server is reachable over Tailscale and cloud-init has finished.
+# Useful right after `just rebuild` — cloud-init takes ~1-2 min before SSH works.
+wait-for-server:
+    @echo "→ waiting for Tailscale SSH + cloud-init…"
+    @while ! ssh -o ConnectTimeout=5 -o BatchMode=yes -o StrictHostKeyChecking=accept-new \
+        root@app-server "cloud-init status --wait" >/dev/null 2>&1; do \
+        printf "."; sleep 5; \
+    done
+    @echo " ready."
+
+# Full bootstrap: deploy key + repo clone + env + certs + first deploy.
+# Run after `just rebuild` (rename the new Tailscale node back to `app-server` first if needed).
+bootstrap: wait-for-server push-deploy-key bootstrap-repo push-env push-certs deploy
+    @echo "✓ Bootstrap complete. Verify: just status && curl -I https://motori.fi"
+
+# Nuclear option: rebuild the server and run full bootstrap in one go.
+# Reminder: delete the old `app-server` node in Tailscale admin first, or you'll get `app-server-1`.
+nuke: rebuild bootstrap
+
 # --- Maintenance ---
 
 # Restart the app container

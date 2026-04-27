@@ -1,6 +1,6 @@
 # Motori Infrastructure
 
-Single Hetzner Cloud VPS running the app (served at **motori.fi**) via Docker Compose. Terraform provisions the box; deployments are `git pull && docker compose build && up -d`.
+Single Hetzner Cloud VPS running the app (served at **motori.fi**) via Docker Compose. Terraform provisions the box; deployments are driven by `just` recipes (`just deploy` for routine code changes, `just bootstrap` after a rebuild, `just nuke` for full DR).
 
 ## Server
 
@@ -200,7 +200,8 @@ Runs once on first boot. Takes ~1–2 minutes (much shorter than the previous No
 - Docker Engine + Compose plugin (from Docker's official apt repo)
 - Tailscale (joins the tailnet via single-use auth key)
 - UFW (secondary firewall, mirrors Hetzner firewall rules)
-- AWS CLI + `git` + `curl` + `ca-certificates`
+- AWS CLI v2 (via the official installer — Ubuntu 24.04 dropped the apt package)
+- `git`, `curl`, `unzip`, `ca-certificates`
 - Backup cron (`/usr/local/bin/db-backup`, 02:00 daily)
 
 Also:
@@ -212,30 +213,60 @@ It does **not** clone the repo or start containers — those happen on first dep
 
 ## Deployment
 
-### First-time bootstrap (after a fresh `terraform apply`)
+There are three flows, in increasing order of impact:
 
-```bash
-# 1. Clone the repo onto the server
-just bootstrap-repo
+| Command | When to use | Roughly does |
+|---------|-------------|--------------|
+| `just deploy` | Routine code change merged to `main` | `git pull` → build → migrate → `up -d` |
+| `just bootstrap` | After `terraform apply` of a fresh server (or after `just rebuild`) | Wait for cloud-init → push deploy key → clone repo → push env → push certs → deploy |
+| `just nuke` | Disaster recovery — destroy + rebuild + bootstrap end-to-end | `just rebuild` + `just bootstrap` |
 
-# 2. Push the remaining secrets (BETTER_AUTH_SECRET, STORAGE_*, RESEND_*, etc.) on top of /etc/motori.env
-#    DB_PASSWORD and DATABASE_URL are already set by cloud-init — keep those lines.
-just push-env
-
-# 3. Push the Cloudflare origin cert + key
-just push-certs
-
-# 4. Build, migrate, and start everything
-just deploy
-```
-
-### Subsequent deploys
+### Routine deploys
 
 ```bash
 just deploy
 ```
 
-This SSHes to the server, pulls `main`, builds the images, runs the `migrate` oneshot, then `up -d` for `app` + `nginx` (rolling restart of changed services).
+SSHes to the server, pulls `main`, builds the images, runs the `migrate` oneshot, then `up -d` for `app` + `nginx` (rolling restart of changed services).
+
+### First-time bootstrap (or after a rebuild)
+
+Prerequisites:
+- `infra/secrets/github_deploy{,.pub}` exists locally (the deploy key registered with GitHub — see "GitHub deploy key" below).
+- `.env.production` at the repo root, with `DB_PASSWORD` matching the `db_password` tfvar.
+- `infra/certs/motori.com.{pem,key}` — the Cloudflare origin certificate.
+
+Then:
+
+```bash
+just bootstrap
+```
+
+This runs the full chain: `wait-for-server → push-deploy-key → bootstrap-repo → push-env → push-certs → deploy`. If any step fails the chain stops; re-running picks back up cleanly because each step is idempotent (`bootstrap-repo` skips if already cloned, `push-env` is rsync, etc.).
+
+### Disaster recovery
+
+```bash
+just nuke
+```
+
+`taint` the server in Terraform, `apply` (volume + IP survive — both delete-protected), then full bootstrap. Total time ~5–7 min on the CX33.
+
+⚠ **Manual step required first**: delete the existing `app-server` node in the Tailscale admin console, otherwise the new VPS registers as `app-server-1` and SSH (which targets `app-server` via MagicDNS) hits the dead node. There's no Tailscale CLI for this from the local side — open the admin and click delete.
+
+### GitHub deploy key
+
+The repo is private, so the server clones over SSH using a per-repo deploy key.
+
+1. Generate once, locally:
+   ```bash
+   mkdir -p infra/secrets
+   ssh-keygen -t ed25519 -f infra/secrets/github_deploy -N "" -C "motori-vps-deploy"
+   ```
+2. Register the public key on GitHub: repo Settings → Deploy keys → Add deploy key. **Leave "Allow write access" unchecked.**
+3. `infra/secrets/` is gitignored. Back up the keypair to a password manager — losing it means generating a new one and re-registering.
+
+`just push-deploy-key` (called automatically by `bootstrap`) scps the keypair to `/root/.ssh/` on the server and writes a `~/.ssh/config` block pinning `github.com` to it.
 
 ### Build location
 
