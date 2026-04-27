@@ -2,6 +2,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ListingForm } from "~/components/listings/listing-form";
+import { SITE_NAME } from "~/lib/constants";
 import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import { useTranslation } from "~/lib/i18n";
@@ -89,7 +90,7 @@ export const Route = createFileRoute("/ilmoitukset/uusi")({
 		return { session };
 	},
 	head: () => ({
-		meta: [{ title: "Uusi ilmoitus — Vuokramoto" }],
+		meta: [{ title: `Uusi ilmoitus — ${SITE_NAME}` }],
 	}),
 	component: NewListingPage,
 });

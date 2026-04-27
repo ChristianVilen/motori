@@ -4,12 +4,13 @@ import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { signUp } from "~/lib/auth-client";
+import { SITE_NAME } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { passwordStrength } from "~/lib/password-strength";
 
 export const Route = createFileRoute("/rekisteroidy")({
 	head: () => ({
-		meta: [{ title: "Rekisteröidy — Vuokramoto" }],
+		meta: [{ title: `Rekisteröidy — ${SITE_NAME}` }],
 	}),
 	component: RegisterPage,
 });
@@ -55,7 +56,7 @@ function RegisterPage() {
 		<div className="flex min-h-screen items-center justify-center bg-background px-4">
 			<div className="w-full max-w-sm space-y-6">
 				<div className="text-center">
-					<h1 className="text-2xl font-bold text-primary">Vuokramoto</h1>
+					<h1 className="text-2xl font-bold text-primary">{SITE_NAME}</h1>
 					<p className="mt-1 text-sm text-muted">{t("register.tagline")}</p>
 				</div>
 

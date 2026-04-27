@@ -48,9 +48,9 @@ export default {
 		button: "Lisää ilmoitus",
 	},
 	footer: {
-		brand: "vuokramoto",
+		brand: "Motori",
 		browseListings: "Selaa ilmoituksia",
 		addListing: "Ilmoita pyörä",
-		copyright: "© {{year}} Vuokramoto",
+		copyright: "© {{year}} Motori",
 	},
 } as const;

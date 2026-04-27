@@ -5,9 +5,9 @@ services:
     ports:
       - "5433:5432"
     environment:
-      POSTGRES_USER: vuokramoto
-      POSTGRES_PASSWORD: vuokramoto
-      POSTGRES_DB: vuokramoto
+      POSTGRES_USER: motori
+      POSTGRES_PASSWORD: motori
+      POSTGRES_DB: motori
     volumes:
       - pgdata:/var/lib/postgresql/data
 

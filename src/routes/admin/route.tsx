@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useMatchRoute, useRouter } from "@tansta
 import { BarChart3, FileText, LogOut, Users } from "lucide-react";
 import { requireAdmin } from "~/lib/admin";
 import { signOut } from "~/lib/auth-client";
+import { SITE_NAME } from "~/lib/constants";
 
 export const Route = createFileRoute("/admin")({
 	beforeLoad: () => requireAdmin(),
@@ -48,7 +49,7 @@ function AdminLayout() {
 				<div className="mx-auto flex max-w-6xl items-center justify-between">
 					<div className="flex items-center gap-3">
 						<a href="/admin" className="font-heading text-lg font-bold text-white">
-							vuokramoto
+							{SITE_NAME}
 						</a>
 						<span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/80">
 							Admin

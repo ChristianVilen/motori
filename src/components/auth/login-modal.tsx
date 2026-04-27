@@ -4,6 +4,7 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import { useEffect } from "react";
 import { LoginForm } from "~/components/auth/login-form";
+import { SITE_NAME } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { useFocusTrap } from "~/lib/use-focus-trap";
 
@@ -64,7 +65,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 						<h2 id="login-modal-title" className="text-lg font-bold text-primary">
 							{t("modal.heading")}
 						</h2>
-						<p className="mt-0.5 text-xs text-muted">Vuokramoto</p>
+						<p className="mt-0.5 text-xs text-muted">{SITE_NAME}</p>
 					</div>
 					<button
 						type="button"

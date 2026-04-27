@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { SITE_NAME } from "~/lib/constants";
 
 export const Route = createFileRoute("/tietosuoja")({
 	head: () => ({
-		meta: [{ title: "Tietosuoja — Vuokramoto" }],
+		meta: [{ title: `Tietosuoja — ${SITE_NAME}` }],
 	}),
 	component: Tietosuoja,
 });
@@ -14,8 +15,8 @@ function Tietosuoja() {
 			<p className="mt-2 text-sm text-muted">Päivitetty viimeksi: 19.4.2025</p>
 
 			<p className="mt-6 text-sm text-foreground/80">
-				Tämä tietosuojaseloste kuvaa, miten Vuokramoto kerää ja käsittelee henkilötietojasi EU:n
-				yleisen tietosuoja-asetuksen (GDPR, 2016/679) mukaisesti.
+				Tämä tietosuojaseloste kuvaa, miten Motori kerää ja käsittelee henkilötietojasi EU:n yleisen
+				tietosuoja-asetuksen (GDPR, 2016/679) mukaisesti.
 			</p>
 
 			<section className="mt-8">

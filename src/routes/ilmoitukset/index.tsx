@@ -6,7 +6,7 @@ import { FilterDrawer } from "~/components/listings/filter-drawer";
 import { FilterSidebar } from "~/components/listings/filter-sidebar";
 import { ListingCard } from "~/components/listings/listing-card";
 import { ListingCardSkeleton } from "~/components/listings/listing-card-skeleton";
-import { REGIONS, SITE_URL } from "~/lib/constants";
+import { REGIONS, SITE_NAME, SITE_URL } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { type SearchResult, searchListings } from "~/lib/listings-queries";
 import { type BrowseSearchParams, browseSearchSchema } from "~/lib/validators";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/ilmoitukset/")({
 	loader: ({ deps }) => searchListings({ data: deps }),
 	head: () => ({
 		meta: [
-			{ title: "Selaa ilmoituksia — Vuokramoto" },
+			{ title: `Selaa ilmoituksia — ${SITE_NAME}` },
 			{
 				name: "description",
 				content:

@@ -11,6 +11,7 @@ import {
 	LISTING_STATUSES,
 	MOTORCYCLE_TYPES,
 	REGIONS,
+	SITE_NAME,
 	SITE_URL,
 } from "~/lib/constants";
 import { db } from "~/lib/db/index";
@@ -126,7 +127,7 @@ export const Route = createFileRoute("/ilmoitukset/$listingId")({
 		}
 		const make = loaderData?.makeName ?? "";
 		const model = loaderData?.modelName ?? "";
-		const title = `${l.title} — Vuokramoto`;
+		const title = `${l.title} — ${SITE_NAME}`;
 		const desc = `Vuokraa ${make} ${model} (${l.year}) — ${l.city}. Alkaen ${(l.price_per_day / 100).toFixed(0)} €/pv.`;
 		const url = `${SITE_URL}/ilmoitukset/${l.id}`;
 		return {

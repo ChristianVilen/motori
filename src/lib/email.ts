@@ -9,7 +9,7 @@ export interface EmailPayload {
 	idempotencyKey?: string;
 }
 
-const FROM = "Vuokramoto <noreply@vuokramoto.fi>";
+const FROM = "Motori <noreply@motori.fi>";
 
 let _resend: import("resend").Resend | null | undefined;
 async function getResend() {
