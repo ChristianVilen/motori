@@ -1,11 +1,13 @@
 import { createFileRoute, Link, Outlet, useMatchRoute, useRouter } from "@tanstack/react-router";
-import { BarChart3, FileText, LogOut, Users } from "lucide-react";
+import { BarChart3, FileText, LogOut, Shield, Users } from "lucide-react";
 import { requireAdmin } from "~/lib/admin";
 import { signOut } from "~/lib/auth-client";
 import { SITE_NAME } from "~/lib/constants";
+import { getModerationCounts } from "~/lib/reports";
 
 export const Route = createFileRoute("/admin")({
 	beforeLoad: () => requireAdmin(),
+	loader: () => getModerationCounts(),
 	component: AdminLayout,
 });
 
@@ -14,11 +16,13 @@ function NavTab({
 	label,
 	icon: Icon,
 	active,
+	badge,
 }: {
 	href: string;
 	label: string;
 	icon: typeof BarChart3;
 	active: boolean;
+	badge?: number;
 }) {
 	return (
 		<a
@@ -29,6 +33,11 @@ function NavTab({
 		>
 			<Icon size={16} />
 			{label}
+			{!!badge && badge > 0 && (
+				<span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+					{badge}
+				</span>
+			)}
 		</a>
 	);
 }
@@ -36,6 +45,7 @@ function NavTab({
 function AdminLayout() {
 	const matchRoute = useMatchRoute();
 	const router = useRouter();
+	const counts = Route.useLoaderData();
 
 	async function handleSignOut() {
 		await signOut();
@@ -89,6 +99,13 @@ function AdminLayout() {
 						label="Users"
 						icon={Users}
 						active={matchRoute({ to: "/admin/users", fuzzy: true }) != null}
+					/>
+					<NavTab
+						href="/admin/moderation"
+						label="Moderation"
+						icon={Shield}
+						active={matchRoute({ to: "/admin/moderation", fuzzy: true }) != null}
+						badge={counts.pendingReports + counts.unreviewedListings}
 					/>
 				</nav>
 				<Outlet />

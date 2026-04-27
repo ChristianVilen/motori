@@ -5,6 +5,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { sql } from "kysely";
 import { ArrowLeft, MapPin, Tag } from "lucide-react";
 import { useState } from "react";
+import { ReportButton } from "~/components/report-button";
 import { Button } from "~/components/ui/button";
 import {
 	LICENSE_CLASSES,
@@ -479,6 +480,11 @@ function ListingDetailPage() {
 						<p className="text-center text-xs text-muted">
 							{t("detail.viewCount", { n: listing.view_count })}
 						</p>
+						{!!session && !isOwner && (
+							<div className="text-center">
+								<ReportButton targetType="listing" targetId={listing.id} />
+							</div>
+						)}
 					</div>
 				</div>
 			</div>

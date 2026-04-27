@@ -28,6 +28,7 @@ import { Route as ProfiiliUserIdRouteImport } from './routes/profiili/$userId'
 import { Route as IlmoituksetUusiRouteImport } from './routes/ilmoitukset/uusi'
 import { Route as IlmoituksetListingIdRouteImport } from './routes/ilmoitukset/$listingId'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AdminModerationRouteImport } from './routes/admin/moderation'
 import { Route as AdminListingsRouteImport } from './routes/admin/listings'
 import { Route as IlmoituksetListingIdMuokkaaRouteImport } from './routes/ilmoitukset/$listingId_.muokkaa'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -127,6 +128,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminModerationRoute = AdminModerationRouteImport.update({
+  id: '/moderation',
+  path: '/moderation',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminListingsRoute = AdminListingsRouteImport.update({
   id: '/listings',
   path: '/listings',
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/vaihda-salasana': typeof VaihdaSalasanaRoute
   '/admin/listings': typeof AdminListingsRoute
+  '/admin/moderation': typeof AdminModerationRoute
   '/admin/users': typeof AdminUsersRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
@@ -180,6 +187,7 @@ export interface FileRoutesByTo {
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/vaihda-salasana': typeof VaihdaSalasanaRoute
   '/admin/listings': typeof AdminListingsRoute
+  '/admin/moderation': typeof AdminModerationRoute
   '/admin/users': typeof AdminUsersRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/vaihda-salasana': typeof VaihdaSalasanaRoute
   '/admin/listings': typeof AdminListingsRoute
+  '/admin/moderation': typeof AdminModerationRoute
   '/admin/users': typeof AdminUsersRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
@@ -231,6 +240,7 @@ export interface FileRouteTypes {
     | '/vahvista-sahkoposti'
     | '/vaihda-salasana'
     | '/admin/listings'
+    | '/admin/moderation'
     | '/admin/users'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/vahvista-sahkoposti'
     | '/vaihda-salasana'
     | '/admin/listings'
+    | '/admin/moderation'
     | '/admin/users'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/vahvista-sahkoposti'
     | '/vaihda-salasana'
     | '/admin/listings'
+    | '/admin/moderation'
     | '/admin/users'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
@@ -447,6 +459,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/moderation': {
+      id: '/admin/moderation'
+      path: '/moderation'
+      fullPath: '/admin/moderation'
+      preLoaderRoute: typeof AdminModerationRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/listings': {
       id: '/admin/listings'
       path: '/listings'
@@ -473,12 +492,14 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteRouteChildren {
   AdminListingsRoute: typeof AdminListingsRoute
+  AdminModerationRoute: typeof AdminModerationRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminListingsRoute: AdminListingsRoute,
+  AdminModerationRoute: AdminModerationRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
