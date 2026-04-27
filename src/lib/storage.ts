@@ -41,7 +41,8 @@ export async function generatePresignedUploadUrl(
 		Key: key,
 		ContentType: contentType,
 	});
-	return getSignedUrl(client, command, { expiresIn: 3600 });
+	// 5 minutes — short window to limit abuse. Upcoming Cloudflare image refactor will replace this flow.
+	return getSignedUrl(client, command, { expiresIn: 300 });
 }
 
 export function getPublicUrl(key: string): string {

@@ -12,7 +12,8 @@ import type { Database } from "~/lib/db/schema";
 const PAGE_SIZE = 25;
 const MAX_BULK_IDS = 100;
 
-type ListingStatus = "active" | "paused" | "rented" | "removed";
+const VALID_STATUSES = ["active", "paused", "rented", "removed"] as const;
+type ListingStatus = (typeof VALID_STATUSES)[number];
 
 function escapeLike(value: string) {
 	return value.replace(/[%_\\]/g, "\\$&");
@@ -34,7 +35,12 @@ function applyListingFilters(
 }
 
 const getAdminListings = createServerFn({ method: "GET" })
-	.inputValidator((input: { status?: ListingStatus; search?: string; page?: number }) => input)
+	.inputValidator((input: { status?: ListingStatus; search?: string; page?: number }) => {
+		if (input.status && !VALID_STATUSES.includes(input.status)) {
+			throw new Error("Invalid status");
+		}
+		return input;
+	})
 	.handler(async ({ data }) => {
 		await requireAdmin();
 
@@ -76,6 +82,9 @@ const getAdminListings = createServerFn({ method: "GET" })
 const updateListingStatuses = createServerFn({ method: "POST" })
 	.middleware([csrfMiddleware()])
 	.inputValidator((input: { ids: string[]; status: ListingStatus }) => {
+		if (!VALID_STATUSES.includes(input.status)) {
+			throw new Error("Invalid status");
+		}
 		if (input.ids.length > MAX_BULK_IDS) {
 			throw new Error(`Cannot update more than ${MAX_BULK_IDS} listings at once`);
 		}

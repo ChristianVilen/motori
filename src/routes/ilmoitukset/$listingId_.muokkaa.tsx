@@ -62,6 +62,12 @@ const updateListing = createServerFn({ method: "POST" })
 			throw new Error("Kirjaudu sisään");
 		}
 
+		// Validate image URLs against configured storage domain (replaced by Cloudflare image refactor)
+		const storageBase = process.env.STORAGE_PUBLIC_URL;
+		if (storageBase && data.form.image_urls.some((url) => !url.startsWith(storageBase))) {
+			throw new Error("Virheellinen kuva-URL");
+		}
+
 		const existing = await db
 			.selectFrom("listing")
 			.select(["owner_id"])

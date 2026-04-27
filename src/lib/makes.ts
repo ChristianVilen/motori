@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
+import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
+import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { getSession } from "~/lib/session";
 
 export function toSlug(name: string): string {
@@ -32,6 +34,7 @@ export const getModels = createServerFn({ method: "GET" })
 const MAX_NAME_LENGTH = 100;
 
 export const createMake = createServerFn({ method: "POST" })
+	.middleware([csrfMiddleware(), rateLimitMiddleware(10, 60, "create-make")])
 	.inputValidator((name: string) => name)
 	.handler(async ({ data: name }) => {
 		const session = await getSession();
@@ -50,6 +53,7 @@ export const createMake = createServerFn({ method: "POST" })
 	});
 
 export const createModel = createServerFn({ method: "POST" })
+	.middleware([csrfMiddleware(), rateLimitMiddleware(10, 60, "create-model")])
 	.inputValidator((data: { makeId: string; name: string }) => data)
 	.handler(async ({ data }) => {
 		const session = await getSession();

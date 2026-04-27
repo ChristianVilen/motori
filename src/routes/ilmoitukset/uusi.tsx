@@ -26,6 +26,12 @@ const createListing = createServerFn({ method: "POST" })
 			throw new Error("Kirjaudu sisään ensin");
 		}
 
+		// Validate image URLs against configured storage domain (replaced by Cloudflare image refactor)
+		const storageBase = process.env.STORAGE_PUBLIC_URL;
+		if (storageBase && data.image_urls.some((url) => !url.startsWith(storageBase))) {
+			throw new Error("Virheellinen kuva-URL");
+		}
+
 		const id = crypto.randomUUID();
 		const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days
 
