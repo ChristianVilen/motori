@@ -52,7 +52,14 @@ BetterAuth with Kysely adapter. `src/lib/auth.ts` (server) and `src/lib/auth-cli
 
 ### Security
 
-Every POST `createServerFn` must include `csrfMiddleware()` as its first middleware entry (see `src/lib/csrf.ts`). It validates the `Origin` header against `BETTER_AUTH_URL`. Omitting it leaves the function open to cross-site request forgery.
+Every POST `createServerFn` must include, in order:
+1. `csrfMiddleware()` — validates `Origin` header against `BETTER_AUTH_URL` (see `src/lib/csrf.ts`).
+2. `rateLimitMiddleware(max, windowSec, prefix)` — per-IP fixed-window limiter (see `src/lib/rate-limit.ts`).
+3. `requireVerifiedEmail()` where the action requires a verified account.
+
+Enum/union inputs from the client (status, role, type, etc.) must be runtime-validated in the `inputValidator` — TypeScript types are erased at runtime and provide no protection against crafted requests.
+
+Image URLs stored in listings must be validated against `STORAGE_PUBLIC_URL` when the env var is configured.
 
 ### SEO / canonical URLs
 

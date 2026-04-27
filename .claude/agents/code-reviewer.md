@@ -37,6 +37,9 @@ Work through these in order. Skip any that don't apply.
 1. **Correctness** — does the change do what it claims? Off-by-one, wrong branch of a conditional, forgotten await, unhandled promise rejection, N+1 queries, missing `returning()` on inserts that need the row back.
 2. **Type safety** — `any`, unchecked `as`, unsafe non-null `!`, Kysely selections that over-return or under-return fields.
 3. **Auth & authorization** — any new route/endpoint/mutation: is the session checked? Is the current user authorized to touch the target row (e.g., only owner can edit their listing)? IDOR is the most likely bug class here.
+   - Every POST `createServerFn` must have `csrfMiddleware()` as its first middleware entry.
+   - Every POST `createServerFn` that writes data must also have `rateLimitMiddleware()`.
+   - Enum/union inputs from the client (e.g. status, role, type) must be runtime-validated — TypeScript types are compile-time only and don't exist at runtime.
 4. **Input validation** — API routes and server functions: is input parsed through a Zod schema before hitting the DB?
 5. **SQL & query shape** — Kysely usage correct? Transactions where multi-statement consistency matters? No raw string interpolation into `sql`.
 6. **Errors & logging** — errors surface meaningfully; no empty catches; structured log events (per log catalog), not `console.log`.
