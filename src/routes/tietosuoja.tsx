@@ -24,7 +24,7 @@ function Tietosuoja() {
 				<p className="mt-3 text-sm text-foreground/80">
 					Christian Vilen
 					<br />
-					Sähköposti: [sähköposti]
+					Sähköposti: support@motari.fi
 				</p>
 			</section>
 
@@ -121,7 +121,7 @@ function Tietosuoja() {
 						<li>siirtää tietosi toiselle rekisterinpitäjälle (tietojen siirrettävyys)</li>
 						<li>vastustaa tietojesi käsittelyä oikeutettuun etuun perustuvissa tilanteissa</li>
 					</ul>
-					<p>Oikeuksien käyttämiseksi ota yhteyttä: [sähköposti]</p>
+					<p>Oikeuksien käyttämiseksi ota yhteyttä: support@motari.fi</p>
 					<p>
 						Jos koet, että henkilötietojesi käsittely on lainvastaista, voit tehdä valituksen
 						tietosuojavaltuutetun toimistoon:{" "}

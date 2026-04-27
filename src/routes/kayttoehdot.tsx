@@ -129,7 +129,7 @@ function Kayttoehdot() {
 				<p className="mt-3 text-sm text-foreground/80">
 					Christian Vilen
 					<br />
-					Sähköposti: [sähköposti]
+					Sähköposti: support@motari.fi
 				</p>
 			</section>
 		</main>
