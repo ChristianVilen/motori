@@ -1,7 +1,6 @@
 import { createFileRoute, getRouteApi, useNavigate, useRouter } from "@tanstack/react-router";
 import { CheckCircle, ExternalLink, Trash2, XCircle } from "lucide-react";
 import { useState } from "react";
-import { requireAdmin } from "~/lib/admin";
 import { getReports, getUnreviewedListings, resolveReport, reviewListing } from "~/lib/reports";
 
 type Tab = "listings" | "reports";
@@ -15,7 +14,6 @@ export const Route = createFileRoute("/admin/moderation")({
 	}),
 	loaderDeps: ({ search }) => search,
 	loader: async ({ deps }) => {
-		await requireAdmin();
 		if (deps.tab === "reports") {
 			const reports = await getReports({
 				data: { status: deps.reportStatus, page: deps.page },

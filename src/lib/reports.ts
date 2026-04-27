@@ -92,8 +92,15 @@ export const submitReport = createServerFn({ method: "POST" })
 		return { ok: true };
 	});
 
+const VALID_REPORT_STATUSES = ["pending", "resolved", "dismissed", "all"] as const;
+
 export const getReports = createServerFn({ method: "GET" })
-	.inputValidator((input: { status?: string; page?: number }) => input)
+	.inputValidator((input: { status?: string; page?: number }) => {
+		if (input.status && !VALID_REPORT_STATUSES.includes(input.status as never)) {
+			throw new Error("Invalid status");
+		}
+		return input;
+	})
 	.handler(async ({ data }) => {
 		await requireAdmin();
 

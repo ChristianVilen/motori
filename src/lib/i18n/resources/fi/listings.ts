@@ -27,6 +27,7 @@ export default {
 	},
 	card: {
 		newBadge: "Uusi",
+		ownBadge: "Oma ilmoitus",
 		addToFavoritesAriaLabel: "Lisää suosikkeihin",
 		perDay: "/pv",
 	},

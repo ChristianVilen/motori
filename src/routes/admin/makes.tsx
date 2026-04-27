@@ -1,12 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { GitMerge, Pencil, Sparkles, Trash2 } from "lucide-react";
-
-const NEW_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
-
-function isNew(createdAt: Date) {
-	return Date.now() - new Date(createdAt).getTime() < NEW_THRESHOLD_MS;
-}
-
 import { useState } from "react";
 import {
 	type AdminMake,
@@ -20,6 +13,12 @@ import {
 	renameMake,
 	renameModel,
 } from "~/lib/admin-makes";
+
+const NEW_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
+
+function isNew(createdAt: Date) {
+	return Date.now() - new Date(createdAt).getTime() < NEW_THRESHOLD_MS;
+}
 
 export const Route = createFileRoute("/admin/makes")({
 	loader: async () => {
@@ -48,18 +47,22 @@ function RenameCell({
 	const [editing, setEditing] = useState(false);
 	const [value, setValue] = useState(name);
 	const [error, setError] = useState<string | null>(null);
+	const [saving, setSaving] = useState(false);
 
 	async function save() {
-		if (value.trim() === name) {
+		if (saving || value.trim() === name) {
 			setEditing(false);
 			return;
 		}
+		setSaving(true);
 		try {
 			await onSave(id, value.trim());
 			setEditing(false);
 			setError(null);
 		} catch (e) {
 			setError(e instanceof Error ? e.message : "Error");
+		} finally {
+			setSaving(false);
 		}
 	}
 
@@ -98,7 +101,11 @@ function RenameCell({
 						setEditing(false);
 					}
 				}}
-				onBlur={save}
+				onBlur={() => {
+					if (!saving) {
+						save();
+					}
+				}}
 				className="rounded border border-input bg-background px-2 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent"
 			/>
 			{error ? <span className="text-xs text-destructive">{error}</span> : null}
@@ -122,6 +129,10 @@ function MergeCell({
 	const [error, setError] = useState<string | null>(null);
 
 	const others = options.filter((o) => o.id !== id);
+
+	if (others.length === 0) {
+		return null;
+	}
 
 	async function confirm() {
 		if (!targetId) {

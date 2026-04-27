@@ -59,11 +59,12 @@ export function ListingForm({
 			title: initialValues?.title ?? "",
 			make_id: initialValues?.make_id ?? "",
 			model_id: initialValues?.model_id ?? null,
+			// "" lets the controlled input start empty; the form validates before submit
 			year: initialValues?.year ?? ("" as unknown as number),
 			engine_cc: initialValues?.engine_cc ?? null,
 			motorcycle_type: initialValues?.motorcycle_type ?? "",
 			required_license: initialValues?.required_license ?? null,
-			price_per_day: initialValues?.price_per_day ?? ("" as unknown as number),
+			price_per_day: initialValues?.price_per_day ?? ("" as unknown as number), // same as year
 			price_per_week: initialValues?.price_per_week ?? null,
 			price_description: initialValues?.price_description ?? "",
 			city: initialValues?.city ?? "",

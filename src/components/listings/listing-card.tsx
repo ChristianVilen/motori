@@ -68,7 +68,7 @@ export function ListingCard({ listing, images, isOwn }: ListingCardProps) {
 					)}
 					{isOwn ? (
 						<span className="rounded-md bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
-							Oma ilmoitus
+							{t("card.ownBadge")}
 						</span>
 					) : null}
 				</div>

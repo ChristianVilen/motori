@@ -422,7 +422,7 @@ function ListingDetailPage() {
 								<div className="flex shrink-0 gap-2">
 									{!!isOwner && (
 										<span className="rounded bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">
-											Oma ilmoitus
+											{t("card.ownBadge")}
 										</span>
 									)}
 									{listing.status !== "active" && (
