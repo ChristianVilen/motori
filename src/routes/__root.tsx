@@ -8,7 +8,7 @@ import {
 	Scripts,
 	useRouter,
 } from "@tanstack/react-router";
-import { type ReactNode, useEffect, useState } from "react";
+import { lazy, type ReactNode, useEffect, useState } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { LoginModal } from "~/components/auth/login-modal";
 import { authClient, signOut, useSession } from "~/lib/auth-client";
@@ -18,6 +18,22 @@ import type { SupportedLocale } from "~/lib/i18n/resources";
 import { createI18nSync } from "~/lib/i18n/server";
 import { useEmailVerified } from "~/lib/use-email-verified";
 import appCss from "~/styles/app.css?url";
+
+const TanStackDevtools = import.meta.env.DEV
+	? lazy(() =>
+			import("@tanstack/react-devtools").then((m) => ({
+				default: m.TanStackDevtools,
+			})),
+		)
+	: () => null;
+
+const TanStackRouterDevtoolsPanel = import.meta.env.DEV
+	? lazy(() =>
+			import("@tanstack/react-router-devtools").then((m) => ({
+				default: m.TanStackRouterDevtoolsPanel,
+			})),
+		)
+	: () => null;
 
 export const Route = createRootRoute({
 	beforeLoad: () => {
@@ -286,6 +302,16 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 				)}
 				{!isAdmin && <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />}
 				<Scripts />
+				{import.meta.env.DEV ? (
+					<TanStackDevtools
+						plugins={[
+							{
+								name: "TanStack Router",
+								render: <TanStackRouterDevtoolsPanel router={router} />,
+							},
+						]}
+					/>
+				) : null}
 				<script
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: inline locale for hydration
 					dangerouslySetInnerHTML={{
