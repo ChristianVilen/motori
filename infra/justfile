@@ -26,6 +26,13 @@ plan:
 apply:
     terraform apply
 
+# Force the server to be rebuilt on next apply (volume + IP survive — they're delete-protected)
+taint:
+    terraform taint hcloud_server.app
+
+# Rebuild the server from scratch — taint + apply in one go
+rebuild: taint apply
+
 # Show all Terraform outputs
 output:
     terraform output
@@ -36,44 +43,99 @@ ip:
 
 # --- Server access ---
 
-# Open an interactive SSH session
+# Open an interactive SSH session (fixes Tailscale MTU first to avoid hangs)
 ssh:
     ssh root@app-server
+ssh-fix:
+    sudo ip link set tailscale0 mtu 1200
 
-# Show health of all services and disk usage
+# Show health of all containers and disk usage
 status:
     ssh root@app-server " \
         echo '=== cloud-init ===' && cloud-init status && \
-        echo '=== services ===' && systemctl is-active postgresql nginx motori && \
-        echo '=== disk ===' && df -h /var/lib/postgresql"
+        echo '=== containers ===' && docker compose --env-file /etc/motori.env -f /opt/motori/docker-compose.prod.yml ps && \
+        echo '=== disk ===' && df -h /var/lib/motori/pgdata"
 
 # Tail the app logs (Ctrl+C to exit)
 logs:
-    ssh root@app-server "journalctl -u motori -f --no-pager"
+    ssh root@app-server "docker compose --env-file /etc/motori.env -f /opt/motori/docker-compose.prod.yml logs -f --tail=200 app"
 
 # --- Secrets & certs ---
 
-# Push local .env.production to the server
+# Push local .env.production to the server (DB_PASSWORD + DATABASE_URL must already be set by cloud-init)
 push-env:
     rsync ../.env.production root@app-server:/etc/motori.env
     @echo "Secrets pushed. Restart the app with: just restart"
 
-# Push TLS certificates and nginx SSL config to server (required after every server rebuild)
+# Push the GitHub deploy key (kept locally in infra/secrets/, gitignored). Run after every rebuild.
+push-deploy-key:
+    ssh root@app-server "mkdir -p /root/.ssh && chmod 700 /root/.ssh"
+    scp secrets/github_deploy root@app-server:/root/.ssh/github_deploy
+    scp secrets/github_deploy.pub root@app-server:/root/.ssh/github_deploy.pub
+    ssh root@app-server "chmod 600 /root/.ssh/github_deploy && chmod 644 /root/.ssh/github_deploy.pub"
+    ssh root@app-server "grep -q '^Host github.com' /root/.ssh/config 2>/dev/null || \
+        printf 'Host github.com\n  HostName github.com\n  User git\n  IdentityFile /root/.ssh/github_deploy\n  IdentitiesOnly yes\n' >> /root/.ssh/config && \
+        chmod 600 /root/.ssh/config"
+    ssh root@app-server "ssh-keyscan -t ed25519 github.com >> /root/.ssh/known_hosts 2>/dev/null"
+    @echo "Deploy key pushed. Test with: ssh root@app-server 'ssh -T git@github.com'"
+
+# Push TLS certificates to the server. The nginx config is mounted from the repo, so no nginx push needed.
 push-certs:
     scp certs/motori.com.pem root@app-server:/etc/ssl/motori.fi.pem
     scp certs/motori.com.key root@app-server:/etc/ssl/motori.fi.key
-    scp nginx/motori.conf root@app-server:/etc/nginx/sites-available/motori
-    ssh root@app-server "chmod 600 /etc/ssl/motori.fi.key && nginx -t && systemctl reload nginx"
+    ssh root@app-server "chmod 600 /etc/ssl/motori.fi.key && docker compose --env-file /etc/motori.env -f /opt/motori/docker-compose.prod.yml restart nginx"
+
+# --- Deploy ---
+
+# Pull latest main, rebuild, run migrations, restart app + nginx
+deploy:
+    ssh root@app-server " \
+        cd /opt/motori && \
+        git pull && \
+        docker compose --env-file /etc/motori.env -f docker-compose.prod.yml build && \
+        docker compose --env-file /etc/motori.env -f docker-compose.prod.yml run --rm migrate && \
+        docker compose --env-file /etc/motori.env -f docker-compose.prod.yml up -d"
+
+# Initial bootstrap — clone the repo into /opt/motori (run once, after first provision)
+bootstrap-repo:
+    ssh root@app-server " \
+        if [ ! -d /opt/motori/.git ]; then \
+          rm -rf /opt/motori && \
+          git clone git@github.com:ChristianVilen/motori.git /opt/motori; \
+        fi"
+
+# Wait until the server is reachable over Tailscale and cloud-init has finished.
+# Useful right after `just rebuild` — cloud-init takes ~1-2 min before SSH works.
+wait-for-server:
+    @echo "→ waiting for Tailscale SSH + cloud-init…"
+    @while ! ssh -o ConnectTimeout=5 -o BatchMode=yes -o StrictHostKeyChecking=accept-new \
+        root@app-server "cloud-init status --wait" >/dev/null 2>&1; do \
+        printf "."; sleep 5; \
+    done
+    @echo " ready."
+
+# Full bootstrap: deploy key + repo clone + env + certs + first deploy.
+# Run after `just rebuild` (rename the new Tailscale node back to `app-server` first if needed).
+bootstrap: wait-for-server push-deploy-key bootstrap-repo push-env push-certs deploy
+    @echo "✓ Bootstrap complete. Verify: just status && curl -I https://motori.fi"
+
+# Nuclear option: rebuild the server and run full bootstrap in one go.
+# Reminder: delete the old `app-server` node in Tailscale admin first, or you'll get `app-server-1`.
+nuke: rebuild bootstrap
 
 # --- Maintenance ---
 
-# Restart the app service
+# Restart the app container
 restart:
-    ssh root@app-server "systemctl restart motori"
+    ssh root@app-server "docker compose --env-file /etc/motori.env -f /opt/motori/docker-compose.prod.yml restart app"
 
 # Run a database backup right now
 backup:
     ssh root@app-server "/usr/local/bin/db-backup"
+
+# Open a psql shell on the server
+psql:
+    ssh -t root@app-server "docker compose --env-file /etc/motori.env -f /opt/motori/docker-compose.prod.yml exec db psql -U appuser appdb"
 
 # Fix Tailscale SSH MTU (run locally when SSH hangs but ping works)
 fix-mtu:

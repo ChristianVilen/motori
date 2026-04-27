@@ -108,7 +108,6 @@ resource "hcloud_server" "app" {
     backup_s3_bucket     = var.backup_s3_bucket
     backup_s3_access_key = var.backup_s3_access_key
     backup_s3_secret_key = var.backup_s3_secret_key
-    pnpm_version         = var.pnpm_version
     pgdata_volume_id     = hcloud_volume.pgdata.id
   })
   delete_protection  = false
