@@ -13,7 +13,7 @@ import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { requireVerifiedEmail } from "~/lib/require-verified-email";
 import { getSession } from "~/lib/session";
 import type { ListingFormData } from "~/lib/validators";
-import { listingFormSchema } from "~/lib/validators";
+import { isValidImageUrl, listingFormSchema } from "~/lib/validators";
 
 const getListingForEdit = createServerFn({ method: "GET" })
 	.inputValidator((id: string) => id)
@@ -62,9 +62,8 @@ const updateListing = createServerFn({ method: "POST" })
 			throw new Error("Kirjaudu sisään");
 		}
 
-		// Validate image URLs against configured storage domain (replaced by Cloudflare image refactor)
-		const storageBase = process.env.STORAGE_PUBLIC_URL;
-		if (storageBase && data.form.image_urls.some((url) => !url.startsWith(storageBase))) {
+		// Validate image URLs — must be from our storage (Cloudflare or local dev)
+		if (data.form.images.some((img) => !isValidImageUrl(img.url))) {
 			throw new Error("Virheellinen kuva-URL");
 		}
 
@@ -109,14 +108,15 @@ const updateListing = createServerFn({ method: "POST" })
 
 			await trx.deleteFrom("listing_image").where("listing_id", "=", data.id).execute();
 
-			if (form.image_urls.length > 0) {
+			if (form.images.length > 0) {
 				await trx
 					.insertInto("listing_image")
 					.values(
-						form.image_urls.map((url, i) => ({
+						form.images.map((img, i) => ({
 							id: crypto.randomUUID(),
 							listing_id: data.id,
-							url,
+							url: img.url,
+							thumbnail_url: img.thumbnail_url ?? null,
 							order: i,
 						})),
 					)
@@ -201,7 +201,7 @@ function EditListingPage() {
 				</div>
 				<ListingForm
 					initialValues={initialValues}
-					initialImageUrls={images.map((img) => img.url)}
+					initialImages={images.map((img) => ({ url: img.url, thumbnail_url: img.thumbnail_url }))}
 					onSubmit={handleSubmit}
 					submitLabel={t("edit.submitLabel")}
 				/>

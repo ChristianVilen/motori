@@ -16,12 +16,12 @@ import {
 import { Textarea } from "~/components/ui/textarea";
 import { CURRENT_YEAR, LICENSE_CLASSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
-import { getImageUploadUrl } from "~/lib/storage";
-import { type ListingFormData, listingFormSchema } from "~/lib/validators";
+import type { ListingFormData, ListingImageInput } from "~/lib/validators";
+import { listingFormSchema } from "~/lib/validators";
 
 interface ListingFormProps {
 	initialValues?: Partial<ListingFormData>;
-	initialImageUrls?: string[];
+	initialImages?: ListingImageInput[];
 	onSubmit: (data: ListingFormData) => Promise<void>;
 	submitLabel?: string;
 }
@@ -42,17 +42,38 @@ function FieldError({ errors }: { errors: unknown[] }) {
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: large form with many fields
 export function ListingForm({
 	initialValues,
-	initialImageUrls = [],
+	initialImages = [],
 	onSubmit,
 	submitLabel,
 }: ListingFormProps) {
 	const { t } = useTranslation("listings");
 
-	const [imageUrls, setImageUrls] = useState<string[]>(initialImageUrls);
+	const [existingImages, setExistingImages] = useState<ListingImageInput[]>(initialImages);
 	const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 	const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 	const [imageError, setImageError] = useState<string | null>(null);
 	const [submitError, setSubmitError] = useState<string | null>(null);
+	const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+
+	async function uploadFiles(
+		files: File[],
+		onProgress: (msg: string) => void,
+	): Promise<{ url: string; thumbnail_url: string | null }[]> {
+		const results: { url: string; thumbnail_url: string | null }[] = [];
+		for (let i = 0; i < files.length; i++) {
+			onProgress(t("form.images.uploading", { current: i + 1, total: files.length }));
+			const body = new FormData();
+			body.append("file", files[i]);
+			const res = await fetch("/api/images/upload", { method: "POST", body });
+			if (!res.ok) {
+				const err = await res.json().catch(() => ({ error: "Kuvan lataus epäonnistui" }));
+				throw new Error((err as { error: string }).error);
+			}
+			const { url, thumbnailUrl } = (await res.json()) as { url: string; thumbnailUrl: string };
+			results.push({ url, thumbnail_url: thumbnailUrl });
+		}
+		return results;
+	}
 
 	const form = useForm({
 		defaultValues: {
@@ -75,23 +96,22 @@ export function ListingForm({
 		},
 		onSubmit: async ({ value }) => {
 			setSubmitError(null);
+			setUploadProgress(null);
 			try {
-				const newImageUrls: string[] = [];
-				for (const file of pendingFiles) {
-					const { uploadUrl, publicUrl } = await getImageUploadUrl({
-						data: { filename: file.name, contentType: file.type },
-					});
-					await fetch(uploadUrl, {
-						method: "PUT",
-						body: file,
-						headers: { "Content-Type": file.type },
-					});
-					newImageUrls.push(publicUrl);
-				}
-				const allImageUrls = [...imageUrls, ...newImageUrls];
-				const parsed = listingFormSchema.safeParse({ ...value, image_urls: allImageUrls });
+				const newImages = await uploadFiles(pendingFiles, setUploadProgress);
+				setUploadProgress(null);
+				const allImages = [...existingImages, ...newImages];
+				const parsed = listingFormSchema.safeParse({ ...value, images: allImages });
 				if (!parsed.success) {
-					setSubmitError(parsed.error.issues[0]?.message ?? t("form.submit.genericError"));
+					const first = parsed.error.issues[0];
+					const fieldName = first?.path[0] as keyof typeof value | undefined;
+					if (fieldName && fieldName in value) {
+						form.setFieldMeta(fieldName, (prev) => ({
+							...prev,
+							errors: [first.message],
+						}));
+					}
+					setSubmitError(first?.message ?? t("form.submit.genericError"));
 					return;
 				}
 				await onSubmit(parsed.data);
@@ -104,7 +124,7 @@ export function ListingForm({
 	function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
 		setImageError(null);
 		const files = Array.from(e.target.files ?? []);
-		const remaining = MAX_IMAGES - imageUrls.length;
+		const remaining = MAX_IMAGES - existingImages.length;
 		const valid: File[] = [];
 		for (const file of files) {
 			if (valid.length >= remaining) {
@@ -132,7 +152,7 @@ export function ListingForm({
 	}
 
 	function removeExistingImage(url: string) {
-		setImageUrls((prev) => prev.filter((u) => u !== url));
+		setExistingImages((prev) => prev.filter((img) => img.url !== url));
 	}
 
 	function removePendingImage(index: number) {
@@ -140,7 +160,7 @@ export function ListingForm({
 		setImagePreviews((prev) => prev.filter((_, i) => i !== index));
 	}
 
-	const totalImages = imageUrls.length + pendingFiles.length;
+	const totalImages = existingImages.length + pendingFiles.length;
 	const canAddMore = totalImages < MAX_IMAGES;
 
 	return (
@@ -497,7 +517,8 @@ export function ListingForm({
 								className="resize-y"
 							/>
 							<p className="mt-1 text-xs text-muted">
-								{t("form.fields.descriptionCharCount", { n: field.state.value.length })}
+								{t("form.fields.descriptionCharCount", { n: field.state.value.length })} ·{" "}
+								{t("form.fields.descriptionMinHint")}
 							</p>
 							<FieldError errors={field.state.meta.errors} />
 						</div>
@@ -514,17 +535,17 @@ export function ListingForm({
 					</span>
 				</h2>
 
-				{(imageUrls.length > 0 || imagePreviews.length > 0) && (
+				{(existingImages.length > 0 || imagePreviews.length > 0) && (
 					<div className="mb-4 grid grid-cols-4 gap-2">
-						{imageUrls.map((url) => (
+						{existingImages.map((img) => (
 							<div
-								key={url}
+								key={img.url}
 								className="group relative aspect-square overflow-hidden rounded-md bg-muted-light"
 							>
-								<img src={url} alt="" className="h-full w-full object-cover" />
+								<img src={img.url} alt="" className="h-full w-full object-cover" />
 								<button
 									type="button"
-									onClick={() => removeExistingImage(url)}
+									onClick={() => removeExistingImage(img.url)}
 									className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
 									aria-label={t("form.images.removeImageAriaLabel")}
 								>
@@ -538,9 +559,6 @@ export function ListingForm({
 								className="group relative aspect-square overflow-hidden rounded-md bg-muted-light"
 							>
 								<img src={preview} alt="" className="h-full w-full object-cover" />
-								<div className="absolute inset-0 flex items-center justify-center bg-black/20">
-									<div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-								</div>
 								<button
 									type="button"
 									onClick={() => removePendingImage(i)}
@@ -605,7 +623,8 @@ export function ListingForm({
 						size="lg"
 						data-testid="listing-form-submit"
 					>
-						{isSubmitting ? t("form.submit.saving") : (submitLabel ?? t("create.submitLabel"))}
+						{uploadProgress ??
+							(isSubmitting ? t("form.submit.saving") : (submitLabel ?? t("create.submitLabel")))}
 					</Button>
 				)}
 			</form.Subscribe>
