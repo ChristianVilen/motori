@@ -26,7 +26,7 @@ export class CloudflareStorage implements ImageStorage {
 
 	async upload(buffer: Buffer, key: string, contentType: string): Promise<string> {
 		const form = new FormData();
-		form.append("file", new Blob([buffer], { type: contentType }), key);
+		form.append("file", new Blob([new Uint8Array(buffer)], { type: contentType }), key);
 		form.append("id", key);
 
 		const res = await fetch(

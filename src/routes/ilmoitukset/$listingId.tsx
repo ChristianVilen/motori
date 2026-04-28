@@ -489,13 +489,12 @@ function ListingDetailPage() {
 							{t("detail.contact.loginPrompt")}
 						</Link>
 					) : (
-						<Link
-							to=""
-							hash="pricing"
+						<a
+							href="#pricing"
 							className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
 						>
 							{t("detail.contact.reveal")}
-						</Link>
+						</a>
 					)}
 				</div>
 			</div>
