@@ -95,12 +95,16 @@ function Tietosuoja() {
 			</section>
 
 			<section className="mt-8">
-				<h2 className="font-heading text-xl font-semibold text-foreground">5. Alihankkijat ja tietojen siirrotKäytämme seuraavia alihankkijoita henkilötietojen käsittelyssä:</h2>
+				<h2 className="font-heading text-xl font-semibold text-foreground">
+					5. Alihankkijat ja tietojen siirrotKäytämme seuraavia alihankkijoita henkilötietojen
+					käsittelyssä:
+				</h2>
 				<div className="mt-3 space-y-3 text-sm text-foreground/80">
 					<p>
-						Hetzner Online GmbH (palvelinhostaus, Saksa) — palvelimet, joilla palvelu toimii
-Resend Inc. (sähköpostipalvelu, USA) — transaktiosähköpostit kuten rekisteröintivahvistukset
-Cloudflare Inc. (tietoliikenne ja tietoturva, USA) — liikenne kulkee Cloudflaren verkon kautta
+						Hetzner Online GmbH (palvelinhostaus, Saksa) — palvelimet, joilla palvelu toimii Resend
+						Inc. (sähköpostipalvelu, USA) — transaktiosähköpostit kuten rekisteröintivahvistukset
+						Cloudflare Inc. (tietoliikenne ja tietoturva, USA) — liikenne kulkee Cloudflaren verkon
+						kautta
 					</p>
 				</div>
 			</section>
