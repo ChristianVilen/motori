@@ -29,7 +29,7 @@ After schema changes: add a new migration file, run `db:migrate`, then `db:codeg
 
 ## Architecture
 
-**Stack:** TanStack Start (SSR + file-based routing) + React 19 + Kysely (Postgres) + BetterAuth + Tailwind v4 + Hetzner Object Storage (S3-compatible, `hel1` region, via `@aws-sdk/client-s3`).
+**Stack:** TanStack Start (SSR + file-based routing) + React 19 + Kysely (Postgres) + BetterAuth + Tailwind v4 + Hetzner Object Storage (S3-compatible, `hel1` region, via `@aws-sdk/client-s3`) + sharp (server-side image optimisation).
 
 ### Routing
 
@@ -67,7 +67,9 @@ Image URLs stored in listings must be validated against `STORAGE_PUBLIC_URL` whe
 
 ### Storage
 
-Hetzner Object Storage (S3-compatible). Env vars: `STORAGE_ENDPOINT`, `STORAGE_BUCKET`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`, `STORAGE_PUBLIC_URL`. Configured in `src/lib/storage.ts`.
+Hetzner Object Storage (S3-compatible, `hel1`). Env vars: `STORAGE_ENDPOINT`, `STORAGE_BUCKET`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`, `STORAGE_PUBLIC_URL`. The bucket must have public read access so objects are served directly via `STORAGE_PUBLIC_URL`.
+
+Image uploads go through `POST /api/images/upload` — the server receives the file, optimises it with sharp (1600px main WebP + 400px thumbnail WebP), and stores both via `getImageStorage()` in `src/lib/image-storage.ts`. When `STORAGE_ENDPOINT` is set, `HetznerStorage` is used; otherwise `LocalStorage` saves to `/uploads/` for dev. Image URLs are validated against `STORAGE_PUBLIC_URL` (or `/api/uploads/` in dev) in `isValidImageUrl()`.
 
 ### Logging (`src/lib/log/`)
 
