@@ -2,6 +2,20 @@
 import { z } from "zod";
 import { CURRENT_YEAR } from "~/lib/constants";
 
+const imageUrlSchema = z
+	.string()
+	.refine(
+		(v) => v.startsWith("https://") || v.startsWith("/api/uploads/"),
+		"Virheellinen kuva-URL",
+	);
+
+export const listingImageSchema = z.object({
+	url: imageUrlSchema,
+	thumbnail_url: imageUrlSchema.nullable().optional(),
+});
+
+export type ListingImageInput = z.infer<typeof listingImageSchema>;
+
 export const listingFormSchema = z.object({
 	title: z
 		.string()
@@ -26,10 +40,7 @@ export const listingFormSchema = z.object({
 	postal_code: z.string().trim().max(10).nullable().optional(),
 	description: z.string().trim().min(20, "Kuvaus on liian lyhyt (min 20 merkkiä)").max(5000),
 	mileage_limit: z.number().int().min(0).max(10000).nullable().optional(),
-	image_urls: z
-		.array(z.string().url().startsWith("https://", "Vain HTTPS-osoitteet sallittu"))
-		.max(8)
-		.default([]),
+	images: z.array(listingImageSchema).max(8).default([]),
 });
 
 export type ListingFormData = z.infer<typeof listingFormSchema>;
@@ -48,6 +59,13 @@ export const browseSearchSchema = z.object({
 export type BrowseSearchParams = z.infer<typeof browseSearchSchema>;
 
 const FINNISH_PHONE_RE = /^(\+358|0)\d{6,9}$/;
+
+export function isValidImageUrl(url: string): boolean {
+	return (
+		url.startsWith("/api/uploads/") ||
+		(!!process.env.STORAGE_PUBLIC_URL && url.startsWith(process.env.STORAGE_PUBLIC_URL))
+	);
+}
 
 export function validateFinnishPhone(raw: string): string {
 	const phone = raw.trim();

@@ -18,7 +18,7 @@ Build a Tori.fi/Craigslist-style noticeboard for peer-to-peer motorcycle rentals
 | Database | PostgreSQL 17 | Full-text search (Finnish stemmer), PostGIS-ready for future maps |
 | Query Builder | **Kysely** | Type-safe SQL query builder, no magic — explicit queries, great PostgreSQL support |
 | Auth | BetterAuth (Google + Meta social login) | Session management, OAuth, pairs with Kysely via adapter |
-| Image Storage | Hetzner Object Storage (Helsinki) | S3-compatible, Finnish data residency, single vendor with VPS, presigned URLs for direct browser upload |
+| Image Storage | Hetzner Object Storage (Helsinki) | S3-compatible, Finnish data residency, single vendor with VPS, server-side upload with sharp optimisation |
 | Email | Resend | Simple transactional email API |
 | Validation | Zod | Form + server function validation, TanStack ecosystem standard |
 | Search | PostgreSQL full-text search (`tsvector`, Finnish config) | Sufficient at Finnish-market scale, no extra service |
@@ -68,7 +68,7 @@ motori/
       api/
         auth/$.ts            # BetterAuth catch-all
         listings/            # CRUD endpoints
-        images/presign.ts    # R2 presigned upload URL
+        images/upload.ts     # Server-side image upload (sharp optimise → Hetzner)
 
     components/
       ui/                    # shadcn/ui components
@@ -84,7 +84,7 @@ motori/
         migrations/          # Kysely migrations (up/down functions)
       auth.ts                # BetterAuth server config
       auth-client.ts         # BetterAuth client config
-      storage.ts             # Hetzner Object Storage presign helpers (S3-compatible)
+      image-storage.ts       # ImageStorage abstraction (HetznerStorage prod / LocalStorage dev)
       search.ts              # PostgreSQL FTS helpers
       validators.ts          # Zod schemas
       constants.ts           # Finnish regions, license classes, motorcycle types
@@ -168,10 +168,10 @@ interface Database {
 
 ### Image Upload
 
-1. Client validates files (JPEG/PNG/WebP, max 5MB, max 8 images)
-2. Client requests presigned PUT URL from `/api/images/presign`
-3. Client uploads directly to Hetzner Object Storage (no server bandwidth cost)
-4. Listing saved with object storage public URLs
+1. Client validates files (JPEG/PNG/WebP, max 10MB, max 8 images) and POSTs to `POST /api/images/upload`
+2. Server optimises with sharp: 1600px main WebP (quality 80) + 400px thumbnail WebP (quality 70)
+3. Both variants uploaded to Hetzner Object Storage via `HetznerStorage` (or `/uploads/` locally)
+4. Listing saved with `{ url, thumbnailUrl }` pairs returned from the upload endpoint
 
 ### Search
 

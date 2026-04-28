@@ -5,6 +5,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { sql } from "kysely";
 import { ArrowLeft, MapPin, Tag } from "lucide-react";
 import { useState } from "react";
+import { ListingGallery } from "~/components/listings/listing-gallery";
 import { ReportButton } from "~/components/report-button";
 import { Button } from "~/components/ui/button";
 import {
@@ -16,7 +17,7 @@ import {
 	SITE_URL,
 } from "~/lib/constants";
 import { db } from "~/lib/db/index";
-import type { Listing, ListingImage } from "~/lib/db/schema";
+import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { getSession } from "~/lib/session";
 
@@ -158,56 +159,6 @@ export const Route = createFileRoute("/ilmoitukset/$listingId")({
 		);
 	},
 });
-
-function ListingGallery({ images, title }: { images: ListingImage[]; title: string }) {
-	const [activeImage, setActiveImage] = useState(0);
-
-	if (images.length === 0) {
-		return (
-			<div className="flex aspect-[16/10] items-center justify-center rounded-xl bg-muted-light">
-				<svg
-					className="h-16 w-16 text-border"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-					aria-hidden="true"
-				>
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						strokeWidth={1}
-						d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 20.25h18A1.5 1.5 0 0022.5 18.75V6.75A1.5 1.5 0 0021 5.25H3A1.5 1.5 0 001.5 6.75v12A1.5 1.5 0 003 20.25z"
-					/>
-				</svg>
-			</div>
-		);
-	}
-
-	return (
-		<div className="space-y-2">
-			<div className="aspect-[16/10] overflow-hidden rounded-xl bg-muted-light">
-				<img src={images[activeImage]?.url} alt={title} className="h-full w-full object-cover" />
-			</div>
-			{images.length > 1 && (
-				<div className="flex gap-2 overflow-x-auto pb-1">
-					{images.map((img, i) => (
-						<button
-							key={img.id}
-							type="button"
-							onClick={() => setActiveImage(i)}
-							aria-label={`Kuva ${i + 1}`}
-							className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition-colors ${
-								i === activeImage ? "border-accent" : "border-transparent"
-							}`}
-						>
-							<img src={img.url} alt="" className="h-full w-full object-cover" />
-						</button>
-					))}
-				</div>
-			)}
-		</div>
-	);
-}
 
 function ListingSpecs({
 	listing,
@@ -396,27 +347,30 @@ function ListingDetailPage() {
 	const statusLabel = LISTING_STATUSES[listing.status];
 
 	return (
-		<div data-testid="listing-detail" className="min-h-screen bg-background">
-			<div className="mx-auto max-w-4xl px-4 py-8">
+		<div data-testid="listing-detail" className="min-h-screen bg-background pb-20 md:pb-0">
+			<div className="mx-auto max-w-4xl px-4 py-4 md:py-8">
 				{/* Back */}
 				<Link
 					data-testid="listing-detail-back"
 					to="/ilmoitukset"
-					className="mb-6 flex items-center gap-1 text-sm text-muted hover:text-foreground"
+					className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground"
 				>
 					<ArrowLeft className="h-4 w-4" />
 					{t("detail.back")}
 				</Link>
 
-				<div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+				<div className="grid gap-6 lg:grid-cols-[1fr_320px] lg:gap-8">
 					{/* Left column */}
-					<div className="space-y-6">
+					<div className="space-y-4">
 						<ListingGallery images={images} title={listing.title} />
 
 						{/* Title + badges */}
 						<div>
 							<div className="flex items-start justify-between gap-3">
-								<h1 data-testid="listing-detail-title" className="text-2xl font-bold text-primary">
+								<h1
+									data-testid="listing-detail-title"
+									className="text-xl font-bold text-primary md:text-2xl"
+								>
 									{listing.title}
 								</h1>
 								<div className="flex shrink-0 gap-2">
@@ -435,23 +389,23 @@ function ListingDetailPage() {
 									)}
 								</div>
 							</div>
-							<div className="mt-2 flex flex-wrap gap-2">
+							<div className="mt-1.5 flex flex-wrap gap-1.5">
 								<span
 									data-testid="listing-type"
-									className="flex items-center gap-1 rounded-full bg-muted-light px-3 py-1 text-xs text-muted"
+									className="flex items-center gap-1 rounded-full bg-muted-light px-2.5 py-0.5 text-xs text-muted"
 								>
 									<Tag className="h-3 w-3" />
 									{typeLabel}
 								</span>
 								<span
 									data-testid="location-info"
-									className="flex items-center gap-1 rounded-full bg-muted-light px-3 py-1 text-xs text-muted"
+									className="flex items-center gap-1 rounded-full bg-muted-light px-2.5 py-0.5 text-xs text-muted"
 								>
 									<MapPin className="h-3 w-3" />
 									{listing.city}, {regionLabel}
 								</span>
 								{!!licenseLabel && (
-									<span className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
+									<span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
 										{t("detail.licenseBadge", { license: licenseLabel })}
 									</span>
 								)}
@@ -462,7 +416,7 @@ function ListingDetailPage() {
 
 						{/* Description */}
 						<div>
-							<h2 className="mb-2 text-sm font-semibold text-foreground">
+							<h2 className="mb-1.5 text-sm font-semibold text-foreground">
 								{t("detail.description")}
 							</h2>
 							<p className="whitespace-pre-line text-sm leading-relaxed text-foreground">
@@ -471,8 +425,8 @@ function ListingDetailPage() {
 						</div>
 					</div>
 
-					{/* Right column — sticky sidebar */}
-					<div className="space-y-4 lg:sticky lg:top-8 lg:self-start">
+					{/* Pricing — inline below content on mobile, sticky sidebar on desktop */}
+					<div id="pricing" className="space-y-4 lg:sticky lg:top-8 lg:self-start">
 						<PricingCard
 							pricePerDayCents={listing.price_per_day}
 							pricePerWeekCents={listing.price_per_week ?? null}
@@ -482,8 +436,6 @@ function ListingDetailPage() {
 							isOwner={!!isOwner}
 							isSignedIn={!!session}
 						/>
-
-						{/* Listing meta */}
 						<p className="text-center text-xs text-muted">
 							{t("detail.viewCount", { n: listing.view_count })}
 						</p>
@@ -493,6 +445,34 @@ function ListingDetailPage() {
 							</div>
 						)}
 					</div>
+				</div>
+			</div>
+
+			{/* Sticky bottom bar on mobile — quick price + CTA */}
+			<div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-4 py-3 backdrop-blur-md lg:hidden">
+				<div className="flex items-center justify-between gap-4">
+					<div>
+						<span className="text-lg font-bold text-accent">
+							{formatEur(listing.price_per_day)}
+						</span>
+						<span className="ml-1 text-xs text-muted">{t("detail.pricing.perDay")}</span>
+					</div>
+					{!session ? (
+						<Link
+							to="/kirjaudu"
+							search={{ redirect: `/ilmoitukset/${listing.id}` }}
+							className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
+						>
+							{t("detail.contact.loginPrompt")}
+						</Link>
+					) : (
+						<a
+							href="#pricing"
+							className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
+						>
+							{t("detail.contact.reveal")}
+						</a>
+					)}
 				</div>
 			</div>
 		</div>

@@ -17,6 +17,9 @@ dist
 # Raw image originals — optimized output goes to public/images/
 /images/
 !/images/.gitkeep
+
+# Uploaded images (local dev)
+/uploads/
 *:Zone.Identifier
 AGENTS.md
 

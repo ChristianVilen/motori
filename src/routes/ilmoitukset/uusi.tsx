@@ -12,7 +12,7 @@ import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { requireVerifiedEmail } from "~/lib/require-verified-email";
 import { getSession } from "~/lib/session";
 import type { ListingFormData } from "~/lib/validators";
-import { listingFormSchema } from "~/lib/validators";
+import { isValidImageUrl, listingFormSchema } from "~/lib/validators";
 
 const createListing = createServerFn({ method: "POST" })
 	.middleware([
@@ -27,9 +27,8 @@ const createListing = createServerFn({ method: "POST" })
 			throw new Error("Kirjaudu sisään ensin");
 		}
 
-		// Validate image URLs against configured storage domain (replaced by Cloudflare image refactor)
-		const storageBase = process.env.STORAGE_PUBLIC_URL;
-		if (storageBase && data.image_urls.some((url) => !url.startsWith(storageBase))) {
+		// Validate image URLs — must be from our storage (Cloudflare or local dev)
+		if (data.images.some((img) => !isValidImageUrl(img.url))) {
 			throw new Error("Virheellinen kuva-URL");
 		}
 
@@ -64,14 +63,15 @@ const createListing = createServerFn({ method: "POST" })
 
 		log.event(EVENTS.listing.created, { listingId: id });
 
-		if (data.image_urls.length > 0) {
+		if (data.images.length > 0) {
 			await db
 				.insertInto("listing_image")
 				.values(
-					data.image_urls.map((url, i) => ({
+					data.images.map((img, i) => ({
 						id: crypto.randomUUID(),
 						listing_id: id,
-						url,
+						url: img.url,
+						thumbnail_url: img.thumbnail_url ?? null,
 						order: i,
 					})),
 				)

@@ -1,45 +1,14 @@
 // src/lib/delete-account.ts
 // Right-to-erasure: delete all user data (listings, images, favorites, profile, auth).
 
-import { DeleteObjectsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { createServerFn } from "@tanstack/react-start";
 import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
+import { getImageStorage } from "~/lib/image-storage";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { getSession } from "~/lib/session";
-import { getStorageClient } from "~/lib/storage";
-
-async function deleteUserImages(userId: string) {
-	if (!process.env.STORAGE_ENDPOINT) {
-		return;
-	}
-	const client = getStorageClient();
-	const bucket = process.env.STORAGE_BUCKET;
-	const prefix = `listings/${userId}/`;
-
-	let continuationToken: string | undefined;
-	do {
-		const list = await client.send(
-			new ListObjectsV2Command({
-				Bucket: bucket,
-				Prefix: prefix,
-				ContinuationToken: continuationToken,
-			}),
-		);
-		const keys = list.Contents?.map((o) => o.Key).filter(Boolean) as string[] | undefined;
-		if (keys?.length) {
-			await client.send(
-				new DeleteObjectsCommand({
-					Bucket: bucket,
-					Delete: { Objects: keys.map((Key) => ({ Key })) },
-				}),
-			);
-		}
-		continuationToken = list.IsTruncated ? list.NextContinuationToken : undefined;
-	} while (continuationToken);
-}
 
 export const deleteAccount = createServerFn({ method: "POST" })
 	.middleware([csrfMiddleware(), rateLimitMiddleware(3, 60, "delete-account")])
@@ -51,16 +20,16 @@ export const deleteAccount = createServerFn({ method: "POST" })
 		const userId = session.user.id;
 		const userEmail = session.user.email;
 
-		// Delete S3 images (best-effort — don't block account deletion on storage failure)
+		// Delete images (best-effort — don't block account deletion on storage failure)
 		try {
-			await deleteUserImages(userId);
+			await getImageStorage().deleteByPrefix(`listings/${userId}/`);
 		} catch {
-			log.warn("Failed to delete S3 images during account deletion", { userId });
+			log.warn("Failed to delete images during account deletion", { userId });
 		}
 
 		// Delete all DB data in a transaction
 		await db.transaction().execute(async (trx) => {
-			// App tables (explicit deletes before cascade for clarity and S3 key lookup)
+			// App tables (explicit deletes before cascade for clarity)
 			const listingIds = await trx
 				.selectFrom("listing")
 				.select("id")

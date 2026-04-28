@@ -54,7 +54,7 @@ function HomePage() {
 					className="absolute inset-0 h-full w-full object-cover lg:left-1/2 lg:w-1/2"
 				/>
 				{/* Mobile darken */}
-				<div className="absolute inset-0 bg-primary/85 lg:hidden" />
+				<div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/60 to-primary/80 lg:hidden" />
 				{/* Desktop left-edge fade */}
 				<div className="absolute inset-y-0 left-1/2 hidden w-32 bg-gradient-to-r from-primary to-transparent lg:block" />
 
@@ -63,12 +63,12 @@ function HomePage() {
 					<div className="flex flex-col justify-center px-6 py-16 lg:px-12 lg:py-24">
 						{/* Seasonal tag */}
 						{isRidingSeason && (
-							<div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5">
+							<div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-xl">
 								<span className="relative flex h-2 w-2">
 									<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
 									<span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
 								</span>
-								<span className="text-sm text-white/70">{t("hero.seasonTag")}</span>
+								<span className="text-sm text-white/80">{t("hero.seasonTag")}</span>
 							</div>
 						)}
 
@@ -85,19 +85,19 @@ function HomePage() {
 						<form
 							onSubmit={handleSearch}
 							data-testid="home-search-form"
-							className="mt-8 flex max-w-lg gap-2"
+							className="mt-8 flex max-w-lg gap-2 rounded-xl border border-white/20 bg-white/10 p-1.5 backdrop-blur-xl"
 						>
 							<input
 								data-testid="home-search-input"
 								name="q"
 								type="text"
 								placeholder={t("hero.searchPlaceholder")}
-								className="h-12 flex-1 rounded-lg bg-white/10 px-4 text-white placeholder:text-white/70 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent"
+								className="h-10 flex-1 rounded-lg bg-transparent px-4 text-white placeholder:text-white/50 focus:outline-none"
 							/>
 							<button
 								data-testid="home-search-submit"
 								type="submit"
-								className="h-12 rounded-lg bg-accent px-6 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
+								className="h-10 rounded-lg bg-accent px-6 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
 							>
 								{t("hero.searchButton")}
 							</button>
@@ -133,7 +133,7 @@ function HomePage() {
 									data-testid={`home-chip-${chip.slug}`}
 									to="/ilmoitukset"
 									search={chip.search}
-									className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+									className="rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs text-white/90 backdrop-blur-xl transition-colors hover:bg-white/20 hover:text-white"
 								>
 									{t(chip.labelKey)}
 								</Link>
@@ -212,7 +212,7 @@ function HomePage() {
 						{t("howItWorks.heading")}
 					</h2>
 
-					<div className="grid grid-cols-1 gap-10 md:grid-cols-3">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 						{[
 							{
 								num: "01",
@@ -230,16 +230,13 @@ function HomePage() {
 								desc: t("howItWorks.step3.desc"),
 							},
 						].map((step) => (
-							<div key={step.num} className="relative pl-16">
-								<span
-									aria-hidden="true"
-									className="absolute top-0 left-0 font-heading text-5xl font-bold text-white/5"
-								>
-									{step.num}
-								</span>
-								<div className="mb-2 h-1 w-8 rounded-full bg-accent" />
-								<h3 className="font-heading text-lg font-semibold text-white">{step.title}</h3>
-								<p className="mt-1 text-sm leading-relaxed text-white/50">{step.desc}</p>
+							<div
+								key={step.num}
+								className="rounded-2xl border border-white/10 bg-white/[0.05] p-6"
+							>
+								<span className="font-heading text-3xl font-bold text-orange-400">{step.num}</span>
+								<h3 className="mt-3 font-heading text-lg font-semibold text-white">{step.title}</h3>
+								<p className="mt-2 text-sm leading-relaxed text-white/70">{step.desc}</p>
 							</div>
 						))}
 					</div>

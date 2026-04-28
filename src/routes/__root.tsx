@@ -283,7 +283,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 				<main id="main-content">{children}</main>
 				{!isAdmin && (
 					<footer className="border-t border-border px-4 py-6 text-center text-xs text-muted">
-						<span>© {new Date().getFullYear()} Christian Vilen</span>
+						<span>© Motori</span>
 						<span className="mx-2">·</span>
 						<Link to="/kayttoehdot" className="hover:text-foreground">
 							Käyttöehdot

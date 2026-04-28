@@ -109,6 +109,7 @@ export default {
 			postalCode: "Postinumero",
 			description: "Kuvaus",
 			descriptionCharCount: "{{n}}/5000 merkkiä",
+			descriptionMinHint: "vähintään 20 merkkiä",
 			mileageLimit: "Kilometriraja (km/pv)",
 			mileageLimitHint: "Jätä tyhjäksi jos ei kilometrirajoitusta",
 		},
@@ -119,6 +120,7 @@ export default {
 			removeImageAriaLabel: "Poista kuva",
 			errorInvalidType: "Vain JPEG, PNG ja WebP tiedostot ovat sallittuja",
 			errorFileTooLarge: "Kuvan maksimikoko on 5 MB",
+			uploading: "Ladataan kuvaa {{current}}/{{total}}...",
 		},
 		submit: {
 			saving: "Tallennetaan...",

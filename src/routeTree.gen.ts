@@ -32,6 +32,8 @@ import { Route as AdminModerationRouteImport } from './routes/admin/moderation'
 import { Route as AdminMakesRouteImport } from './routes/admin/makes'
 import { Route as AdminListingsRouteImport } from './routes/admin/listings'
 import { Route as IlmoituksetListingIdMuokkaaRouteImport } from './routes/ilmoitukset/$listingId_.muokkaa'
+import { Route as ApiUploadsSplatRouteImport } from './routes/api/uploads/$'
+import { Route as ApiImagesUploadRouteImport } from './routes/api/images/upload'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const VaihdaSalasanaRoute = VaihdaSalasanaRouteImport.update({
@@ -150,6 +152,16 @@ const IlmoituksetListingIdMuokkaaRoute =
     path: '/ilmoitukset/$listingId/muokkaa',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiUploadsSplatRoute = ApiUploadsSplatRouteImport.update({
+  id: '/api/uploads/$',
+  path: '/api/uploads/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiImagesUploadRoute = ApiImagesUploadRouteImport.update({
+  id: '/api/images/upload',
+  path: '/api/images/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -180,6 +192,8 @@ export interface FileRoutesByFullPath {
   '/ilmoitukset/': typeof IlmoituksetIndexRoute
   '/omat/': typeof OmatIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/images/upload': typeof ApiImagesUploadRoute
+  '/api/uploads/$': typeof ApiUploadsSplatRoute
   '/ilmoitukset/$listingId/muokkaa': typeof IlmoituksetListingIdMuokkaaRoute
 }
 export interface FileRoutesByTo {
@@ -205,6 +219,8 @@ export interface FileRoutesByTo {
   '/ilmoitukset': typeof IlmoituksetIndexRoute
   '/omat': typeof OmatIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/images/upload': typeof ApiImagesUploadRoute
+  '/api/uploads/$': typeof ApiUploadsSplatRoute
   '/ilmoitukset/$listingId/muokkaa': typeof IlmoituksetListingIdMuokkaaRoute
 }
 export interface FileRoutesById {
@@ -232,6 +248,8 @@ export interface FileRoutesById {
   '/ilmoitukset/': typeof IlmoituksetIndexRoute
   '/omat/': typeof OmatIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/images/upload': typeof ApiImagesUploadRoute
+  '/api/uploads/$': typeof ApiUploadsSplatRoute
   '/ilmoitukset/$listingId_/muokkaa': typeof IlmoituksetListingIdMuokkaaRoute
 }
 export interface FileRouteTypes {
@@ -260,6 +278,8 @@ export interface FileRouteTypes {
     | '/ilmoitukset/'
     | '/omat/'
     | '/api/auth/$'
+    | '/api/images/upload'
+    | '/api/uploads/$'
     | '/ilmoitukset/$listingId/muokkaa'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -285,6 +305,8 @@ export interface FileRouteTypes {
     | '/ilmoitukset'
     | '/omat'
     | '/api/auth/$'
+    | '/api/images/upload'
+    | '/api/uploads/$'
     | '/ilmoitukset/$listingId/muokkaa'
   id:
     | '__root__'
@@ -311,6 +333,8 @@ export interface FileRouteTypes {
     | '/ilmoitukset/'
     | '/omat/'
     | '/api/auth/$'
+    | '/api/images/upload'
+    | '/api/uploads/$'
     | '/ilmoitukset/$listingId_/muokkaa'
   fileRoutesById: FileRoutesById
 }
@@ -333,6 +357,8 @@ export interface RootRouteChildren {
   IlmoituksetIndexRoute: typeof IlmoituksetIndexRoute
   OmatIndexRoute: typeof OmatIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiImagesUploadRoute: typeof ApiImagesUploadRoute
+  ApiUploadsSplatRoute: typeof ApiUploadsSplatRoute
   IlmoituksetListingIdMuokkaaRoute: typeof IlmoituksetListingIdMuokkaaRoute
 }
 
@@ -499,6 +525,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IlmoituksetListingIdMuokkaaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/uploads/$': {
+      id: '/api/uploads/$'
+      path: '/api/uploads/$'
+      fullPath: '/api/uploads/$'
+      preLoaderRoute: typeof ApiUploadsSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/images/upload': {
+      id: '/api/images/upload'
+      path: '/api/images/upload'
+      fullPath: '/api/images/upload'
+      preLoaderRoute: typeof ApiImagesUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -548,6 +588,8 @@ const rootRouteChildren: RootRouteChildren = {
   IlmoituksetIndexRoute: IlmoituksetIndexRoute,
   OmatIndexRoute: OmatIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiImagesUploadRoute: ApiImagesUploadRoute,
+  ApiUploadsSplatRoute: ApiUploadsSplatRoute,
   IlmoituksetListingIdMuokkaaRoute: IlmoituksetListingIdMuokkaaRoute,
 }
 export const routeTree = rootRouteImport
