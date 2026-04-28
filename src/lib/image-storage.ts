@@ -1,6 +1,10 @@
-// src/lib/image-storage.ts
-// Storage abstraction: Cloudflare Images (prod) or local filesystem (dev).
-
+import {
+	DeleteObjectCommand,
+	DeleteObjectsCommand,
+	ListObjectsV2Command,
+	PutObjectCommand,
+	S3Client,
+} from "@aws-sdk/client-s3";
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -10,57 +14,66 @@ export interface ImageStorage {
 	deleteByPrefix(prefix: string): Promise<void>;
 }
 
-// ── Cloudflare Images ──────────────────────────────────────────────────────
+// ── Hetzner Object Storage (S3-compatible) ─────────────────────────────────
 
-export class CloudflareStorage implements ImageStorage {
-	private accountId: string;
-	private apiToken: string;
+export class HetznerStorage implements ImageStorage {
+	private client: S3Client;
+	private bucket: string;
+	private publicUrl: string;
 
 	constructor() {
-		this.accountId = process.env.CLOUDFLARE_ACCOUNT_ID ?? "";
-		this.apiToken = process.env.CLOUDFLARE_API_TOKEN ?? "";
-		if (!this.accountId || !this.apiToken) {
-			throw new Error("CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are required");
-		}
+		this.client = new S3Client({
+			region: "hel1",
+			endpoint: process.env.STORAGE_ENDPOINT,
+			credentials: {
+				accessKeyId: process.env.STORAGE_ACCESS_KEY ?? "",
+				secretAccessKey: process.env.STORAGE_SECRET_KEY ?? "",
+			},
+			forcePathStyle: true,
+		});
+		this.bucket = process.env.STORAGE_BUCKET ?? "";
+		this.publicUrl = (process.env.STORAGE_PUBLIC_URL ?? "").replace(/\/$/, "");
 	}
 
 	async upload(buffer: Buffer, key: string, contentType: string): Promise<string> {
-		const form = new FormData();
-		form.append("file", new Blob([new Uint8Array(buffer)], { type: contentType }), key);
-		form.append("id", key);
-
-		const res = await fetch(
-			`https://api.cloudflare.com/client/v4/accounts/${this.accountId}/images/v1`,
-			{ method: "POST", headers: { Authorization: `Bearer ${this.apiToken}` }, body: form },
+		await this.client.send(
+			new PutObjectCommand({ Bucket: this.bucket, Key: key, Body: buffer, ContentType: contentType }),
 		);
-		if (!res.ok) {
-			const body = await res.text();
-			throw new Error(`Cloudflare upload failed: ${res.status} ${body}`);
-		}
-		const json = (await res.json()) as { result: { variants: string[] } };
-		// Return the "public" variant URL
-		return json.result.variants[0];
+		return `${this.publicUrl}/${key}`;
 	}
 
 	async delete(url: string): Promise<void> {
-		// Cloudflare Images URL: https://imagedelivery.net/<account-hash>/<image-id>/<variant>
-		// The image ID is the key we set during upload (e.g. listings/userId/timestamp.webp)
-		const parts = new URL(url).pathname.split("/").filter(Boolean);
-		// parts: [account-hash, image-id, variant] — image-id is at index 1
-		const id = parts[1];
-		if (!id) {
+		if (!this.publicUrl || !url.startsWith(this.publicUrl)) {
 			return;
 		}
-		await fetch(`https://api.cloudflare.com/client/v4/accounts/${this.accountId}/images/v1/${id}`, {
-			method: "DELETE",
-			headers: { Authorization: `Bearer ${this.apiToken}` },
-		});
+		const key = url.slice(this.publicUrl.length).replace(/^\//, "");
+		if (!key) {
+			return;
+		}
+		await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
 	}
 
-	async deleteByPrefix(_prefix: string): Promise<void> {
-		// Cloudflare Images doesn't support prefix-based deletion.
-		// Account deletion will delete listing_image rows; orphaned CF images
-		// can be cleaned up via a scheduled job if needed.
+	async deleteByPrefix(prefix: string): Promise<void> {
+		let continuationToken: string | undefined;
+		do {
+			const list = await this.client.send(
+				new ListObjectsV2Command({
+					Bucket: this.bucket,
+					Prefix: prefix,
+					ContinuationToken: continuationToken,
+				}),
+			);
+			const keys = (list.Contents ?? []).map((o) => o.Key).filter(Boolean) as string[];
+			if (keys.length) {
+				await this.client.send(
+					new DeleteObjectsCommand({
+						Bucket: this.bucket,
+						Delete: { Objects: keys.map((Key) => ({ Key })) },
+					}),
+				);
+			}
+			continuationToken = list.IsTruncated ? list.NextContinuationToken : undefined;
+		} while (continuationToken);
 	}
 }
 
@@ -101,7 +114,6 @@ export function getImageStorage(): ImageStorage {
 	if (_storage) {
 		return _storage;
 	}
-	const mode = process.env.IMAGE_STORAGE ?? "local";
-	_storage = mode === "cloudflare" ? new CloudflareStorage() : new LocalStorage();
+	_storage = process.env.STORAGE_ENDPOINT ? new HetznerStorage() : new LocalStorage();
 	return _storage;
 }

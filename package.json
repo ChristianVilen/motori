@@ -22,7 +22,6 @@
 	},
 	"dependencies": {
 		"@aws-sdk/client-s3": "3.1030.0",
-		"@aws-sdk/s3-request-presigner": "3.1030.0",
 		"@better-auth/kysely-adapter": "1.6.3",
 		"@radix-ui/react-select": "2.2.6",
 		"@radix-ui/react-slot": "1.2.4",
