@@ -1,10 +1,8 @@
 import { createMiddleware } from "@tanstack/react-start";
 
 const storagePublicUrl = process.env.STORAGE_PUBLIC_URL ?? "";
-const storageEndpoint = process.env.STORAGE_ENDPOINT ?? "";
 
 const imgSrc = storagePublicUrl ? `'self' blob: data: ${storagePublicUrl}` : "'self' blob: data:";
-const connectSrc = storageEndpoint ? `'self' ${storageEndpoint}` : "'self'";
 
 const csp = [
 	"default-src 'self'",
@@ -17,7 +15,7 @@ const csp = [
 	"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 	"font-src 'self' https://fonts.gstatic.com",
 	`img-src ${imgSrc}`,
-	`connect-src ${connectSrc}`,
+	"connect-src 'self'",
 	"frame-ancestors 'none'",
 ].join("; ");
 

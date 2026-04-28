@@ -63,8 +63,7 @@ const FINNISH_PHONE_RE = /^(\+358|0)\d{6,9}$/;
 export function isValidImageUrl(url: string): boolean {
 	return (
 		url.startsWith("/api/uploads/") ||
-		(!!process.env.STORAGE_PUBLIC_URL && url.startsWith(process.env.STORAGE_PUBLIC_URL)) ||
-		url.startsWith("https://imagedelivery.net/")
+		(!!process.env.STORAGE_PUBLIC_URL && url.startsWith(process.env.STORAGE_PUBLIC_URL))
 	);
 }
 
