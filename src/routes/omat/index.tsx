@@ -336,13 +336,6 @@ function ProfilePage() {
 						))}
 					</div>
 				)}
-
-				{/* Profile link */}
-				<div className="mt-8 text-center">
-					<Link to="/profiili/asetukset" className="text-sm text-muted hover:text-foreground">
-						{t("dashboard.editProfile")}
-					</Link>
-				</div>
 			</div>
 		</div>
 	);
