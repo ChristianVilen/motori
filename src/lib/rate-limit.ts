@@ -32,7 +32,7 @@ function ensureCleanup() {
 	}, 60_000).unref();
 }
 
-function check(
+export function checkRateLimit(
 	key: string,
 	max: number,
 	windowMs: number,
@@ -54,7 +54,7 @@ function check(
 	return { allowed: false, retryAfter: Math.ceil((entry.resetAt - now) / 1000) };
 }
 
-function getIp(request: Request): string | null {
+export function getClientIp(request: Request): string | null {
 	const forwarded = request.headers.get("x-forwarded-for");
 	if (forwarded) {
 		return forwarded.split(",")[0].trim();
@@ -67,7 +67,7 @@ export function rateLimitMiddleware(max: number, windowSeconds: number, prefix: 
 
 	return createMiddleware({ type: "function" }).server(async ({ next }) => {
 		const request = getRequest();
-		const ip = getIp(request);
+		const ip = getClientIp(request);
 
 		// Skip rate limiting when IP is unavailable (e.g. dev without reverse proxy).
 		if (!ip) {
@@ -75,7 +75,7 @@ export function rateLimitMiddleware(max: number, windowSeconds: number, prefix: 
 		}
 
 		const key = `${prefix}:${ip}`;
-		const { allowed, retryAfter } = check(key, max, windowMs);
+		const { allowed, retryAfter } = checkRateLimit(key, max, windowMs);
 
 		if (!allowed) {
 			setResponseStatus(429);
