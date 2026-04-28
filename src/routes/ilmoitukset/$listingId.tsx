@@ -3,8 +3,9 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { sql } from "kysely";
-import { ArrowLeft, ChevronLeft, ChevronRight, MapPin, Tag, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { ArrowLeft, MapPin, Tag } from "lucide-react";
+import { useState } from "react";
+import { ListingGallery } from "~/components/listings/listing-gallery";
 import { ReportButton } from "~/components/report-button";
 import { Button } from "~/components/ui/button";
 import {
@@ -16,7 +17,7 @@ import {
 	SITE_URL,
 } from "~/lib/constants";
 import { db } from "~/lib/db/index";
-import type { Listing, ListingImage } from "~/lib/db/schema";
+import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { getSession } from "~/lib/session";
 
@@ -158,181 +159,6 @@ export const Route = createFileRoute("/ilmoitukset/$listingId")({
 		);
 	},
 });
-
-function ListingGallery({ images, title }: { images: ListingImage[]; title: string }) {
-	const [activeImage, setActiveImage] = useState(0);
-	const [lightboxOpen, setLightboxOpen] = useState(false);
-
-	const prev = useCallback(() => {
-		setActiveImage((i) => (i > 0 ? i - 1 : images.length - 1));
-	}, [images.length]);
-	const next = useCallback(() => {
-		setActiveImage((i) => (i < images.length - 1 ? i + 1 : 0));
-	}, [images.length]);
-
-	useEffect(() => {
-		if (!lightboxOpen) {
-			return;
-		}
-		function onKey(e: KeyboardEvent) {
-			if (e.key === "Escape") {
-				setLightboxOpen(false);
-			}
-			if (e.key === "ArrowLeft") {
-				prev();
-			}
-			if (e.key === "ArrowRight") {
-				next();
-			}
-		}
-		window.addEventListener("keydown", onKey);
-		return () => window.removeEventListener("keydown", onKey);
-	}, [lightboxOpen, prev, next]);
-
-	if (images.length === 0) {
-		return (
-			<div className="flex aspect-[16/10] items-center justify-center rounded-xl bg-muted-light">
-				<svg
-					className="h-16 w-16 text-border"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-					aria-hidden="true"
-				>
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						strokeWidth={1}
-						d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 20.25h18A1.5 1.5 0 0022.5 18.75V6.75A1.5 1.5 0 0021 5.25H3A1.5 1.5 0 001.5 6.75v12A1.5 1.5 0 003 20.25z"
-					/>
-				</svg>
-			</div>
-		);
-	}
-
-	const arrowBtn =
-		"absolute top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white backdrop-blur-sm transition-colors hover:bg-black/70";
-
-	return (
-		<>
-			<div className="space-y-2">
-				{/* Main image */}
-				<div className="group relative aspect-[16/10] overflow-hidden rounded-xl bg-black">
-					<button
-						type="button"
-						onClick={() => setLightboxOpen(true)}
-						className="h-full w-full cursor-zoom-in"
-						aria-label="Avaa kuva isompana"
-					>
-						<img
-							src={images[activeImage]?.url}
-							alt={title}
-							className="h-full w-full object-contain"
-						/>
-					</button>
-					{images.length > 1 && (
-						<>
-							<button
-								type="button"
-								onClick={prev}
-								className={`${arrowBtn} left-2`}
-								aria-label="Edellinen kuva"
-							>
-								<ChevronLeft className="h-5 w-5" />
-							</button>
-							<button
-								type="button"
-								onClick={next}
-								className={`${arrowBtn} right-2`}
-								aria-label="Seuraava kuva"
-							>
-								<ChevronRight className="h-5 w-5" />
-							</button>
-							<span className="absolute bottom-2 right-2 rounded-full bg-black/50 px-2.5 py-1 text-xs text-white backdrop-blur-sm">
-								{activeImage + 1} / {images.length}
-							</span>
-						</>
-					)}
-				</div>
-				{/* Thumbnails */}
-				{images.length > 1 && (
-					<div className="flex gap-2 overflow-x-auto pb-1">
-						{images.map((img, i) => (
-							<button
-								key={img.id}
-								type="button"
-								onClick={() => setActiveImage(i)}
-								aria-label={`Kuva ${i + 1}`}
-								className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition-colors ${
-									i === activeImage ? "border-accent" : "border-transparent"
-								}`}
-							>
-								<img src={img.url} alt="" className="h-full w-full object-cover" />
-							</button>
-						))}
-					</div>
-				)}
-			</div>
-
-			{/* Fullscreen lightbox */}
-			{lightboxOpen ? (
-				<div
-					className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
-					onClick={() => setLightboxOpen(false)}
-					onKeyDown={() => {}}
-					role="dialog"
-					aria-modal="true"
-					aria-label="Kuvagalleria"
-				>
-					<button
-						type="button"
-						onClick={() => setLightboxOpen(false)}
-						className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
-						aria-label="Sulje"
-					>
-						<X className="h-6 w-6" />
-					</button>
-					<img
-						src={images[activeImage]?.url}
-						alt={title}
-						className="max-h-[90vh] max-w-[90vw] object-contain"
-						onClick={(e) => e.stopPropagation()}
-						onKeyDown={(e) => e.stopPropagation()}
-					/>
-					{images.length > 1 && (
-						<>
-							<button
-								type="button"
-								onClick={(e) => {
-									e.stopPropagation();
-									prev();
-								}}
-								className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
-								aria-label="Edellinen kuva"
-							>
-								<ChevronLeft className="h-6 w-6" />
-							</button>
-							<button
-								type="button"
-								onClick={(e) => {
-									e.stopPropagation();
-									next();
-								}}
-								className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
-								aria-label="Seuraava kuva"
-							>
-								<ChevronRight className="h-6 w-6" />
-							</button>
-							<span className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1.5 text-sm text-white">
-								{activeImage + 1} / {images.length}
-							</span>
-						</>
-					)}
-				</div>
-			) : null}
-		</>
-	);
-}
 
 function ListingSpecs({
 	listing,
@@ -521,27 +347,30 @@ function ListingDetailPage() {
 	const statusLabel = LISTING_STATUSES[listing.status];
 
 	return (
-		<div data-testid="listing-detail" className="min-h-screen bg-background">
-			<div className="mx-auto max-w-4xl px-4 py-8">
+		<div data-testid="listing-detail" className="min-h-screen bg-background pb-20 md:pb-0">
+			<div className="mx-auto max-w-4xl px-4 py-4 md:py-8">
 				{/* Back */}
 				<Link
 					data-testid="listing-detail-back"
 					to="/ilmoitukset"
-					className="mb-6 flex items-center gap-1 text-sm text-muted hover:text-foreground"
+					className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground"
 				>
 					<ArrowLeft className="h-4 w-4" />
 					{t("detail.back")}
 				</Link>
 
-				<div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+				<div className="grid gap-6 lg:grid-cols-[1fr_320px] lg:gap-8">
 					{/* Left column */}
-					<div className="space-y-6">
+					<div className="space-y-4">
 						<ListingGallery images={images} title={listing.title} />
 
 						{/* Title + badges */}
 						<div>
 							<div className="flex items-start justify-between gap-3">
-								<h1 data-testid="listing-detail-title" className="text-2xl font-bold text-primary">
+								<h1
+									data-testid="listing-detail-title"
+									className="text-xl font-bold text-primary md:text-2xl"
+								>
 									{listing.title}
 								</h1>
 								<div className="flex shrink-0 gap-2">
@@ -560,23 +389,23 @@ function ListingDetailPage() {
 									)}
 								</div>
 							</div>
-							<div className="mt-2 flex flex-wrap gap-2">
+							<div className="mt-1.5 flex flex-wrap gap-1.5">
 								<span
 									data-testid="listing-type"
-									className="flex items-center gap-1 rounded-full bg-muted-light px-3 py-1 text-xs text-muted"
+									className="flex items-center gap-1 rounded-full bg-muted-light px-2.5 py-0.5 text-xs text-muted"
 								>
 									<Tag className="h-3 w-3" />
 									{typeLabel}
 								</span>
 								<span
 									data-testid="location-info"
-									className="flex items-center gap-1 rounded-full bg-muted-light px-3 py-1 text-xs text-muted"
+									className="flex items-center gap-1 rounded-full bg-muted-light px-2.5 py-0.5 text-xs text-muted"
 								>
 									<MapPin className="h-3 w-3" />
 									{listing.city}, {regionLabel}
 								</span>
 								{!!licenseLabel && (
-									<span className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
+									<span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
 										{t("detail.licenseBadge", { license: licenseLabel })}
 									</span>
 								)}
@@ -587,7 +416,7 @@ function ListingDetailPage() {
 
 						{/* Description */}
 						<div>
-							<h2 className="mb-2 text-sm font-semibold text-foreground">
+							<h2 className="mb-1.5 text-sm font-semibold text-foreground">
 								{t("detail.description")}
 							</h2>
 							<p className="whitespace-pre-line text-sm leading-relaxed text-foreground">
@@ -596,8 +425,8 @@ function ListingDetailPage() {
 						</div>
 					</div>
 
-					{/* Right column — sticky sidebar */}
-					<div className="space-y-4 lg:sticky lg:top-8 lg:self-start">
+					{/* Right column — sticky sidebar (desktop only) */}
+					<div className="hidden space-y-4 lg:block lg:sticky lg:top-8 lg:self-start">
 						<PricingCard
 							pricePerDayCents={listing.price_per_day}
 							pricePerWeekCents={listing.price_per_week ?? null}
@@ -618,6 +447,56 @@ function ListingDetailPage() {
 							</div>
 						)}
 					</div>
+
+					{/* Mobile pricing — inline card below content */}
+					<div id="pricing" className="space-y-4 lg:hidden">
+						<PricingCard
+							pricePerDayCents={listing.price_per_day}
+							pricePerWeekCents={listing.price_per_week ?? null}
+							listing={listing}
+							owner={owner}
+							ownerEmail={ownerEmail}
+							isOwner={!!isOwner}
+							isSignedIn={!!session}
+						/>
+						<p className="text-center text-xs text-muted">
+							{t("detail.viewCount", { n: listing.view_count })}
+						</p>
+						{!!session && !isOwner && (
+							<div className="text-center">
+								<ReportButton targetType="listing" targetId={listing.id} />
+							</div>
+						)}
+					</div>
+				</div>
+			</div>
+
+			{/* Sticky bottom bar on mobile — quick price + CTA */}
+			<div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-4 py-3 backdrop-blur-md lg:hidden">
+				<div className="flex items-center justify-between gap-4">
+					<div>
+						<span className="text-lg font-bold text-accent">
+							{formatEur(listing.price_per_day)}
+						</span>
+						<span className="ml-1 text-xs text-muted">{t("detail.pricing.perDay")}</span>
+					</div>
+					{!session ? (
+						<Link
+							to="/kirjaudu"
+							search={{ redirect: `/ilmoitukset/${listing.id}` }}
+							className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
+						>
+							{t("detail.contact.loginPrompt")}
+						</Link>
+					) : (
+						<Link
+							to=""
+							hash="pricing"
+							className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
+						>
+							{t("detail.contact.reveal")}
+						</Link>
+					)}
 				</div>
 			</div>
 		</div>

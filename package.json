@@ -34,6 +34,7 @@
 		"better-auth": "1.6.3",
 		"class-variance-authority": "0.7.1",
 		"clsx": "2.1.1",
+		"embla-carousel-react": "8.6.0",
 		"i18next": "25.10.10",
 		"kysely": "0.28.16",
 		"lucide-react": "1.8.0",
