@@ -25,7 +25,9 @@ export function ReportButton({ targetType, targetId }: ReportButtonProps) {
 		}
 		setStatus("submitting");
 		try {
-			await submitReport({ data: { targetType, targetId, reason: reason.trim() } });
+			await submitReport({
+				data: { targetType, targetId, reason: reason.trim() },
+			});
 			setStatus("done");
 		} catch (err: unknown) {
 			setStatus((err as Error).message === "ALREADY_REPORTED" ? "duplicate" : "error");
@@ -61,7 +63,7 @@ export function ReportButton({ targetType, targetId }: ReportButtonProps) {
 						role="dialog"
 						aria-modal="true"
 						aria-label={t("report.modalTitle")}
-						className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg"
+						className="w-full max-w-md rounded-l bg-white p-6 shadow-lg"
 					>
 						{status === "done" || status === "duplicate" ? (
 							<div className="text-center">

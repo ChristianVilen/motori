@@ -8,33 +8,18 @@ import {
 	Scripts,
 	useRouter,
 } from "@tanstack/react-router";
-import { lazy, type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { LoginModal } from "~/components/auth/login-modal";
 import { UserMenu } from "~/components/auth/user-menu";
 import { authClient, signOut, useSession } from "~/lib/auth-client";
-import { SITE_NAME } from "~/lib/constants";
+import { SITE_NAME, SITE_URL } from "~/lib/constants";
+import { supportedLngs } from "~/lib/i18n/resources";
 import { i18n as clientI18n, ensureClientI18n } from "~/lib/i18n/client";
 import type { SupportedLocale } from "~/lib/i18n/resources";
 import { createI18nSync } from "~/lib/i18n/server";
 import { useEmailVerified } from "~/lib/use-email-verified";
 import appCss from "~/styles/app.css?url";
-
-const TanStackDevtools = import.meta.env.DEV
-	? lazy(() =>
-			import("@tanstack/react-devtools").then((m) => ({
-				default: m.TanStackDevtools,
-			})),
-		)
-	: () => null;
-
-const TanStackRouterDevtoolsPanel = import.meta.env.DEV
-	? lazy(() =>
-			import("@tanstack/react-router-devtools").then((m) => ({
-				default: m.TanStackRouterDevtoolsPanel,
-			})),
-		)
-	: () => null;
 
 export const Route = createRootRoute({
 	beforeLoad: () => {
@@ -69,8 +54,8 @@ export const Route = createRootRoute({
 			{ rel: "manifest", href: "/manifest.webmanifest" },
 			{ rel: "icon", href: "/favicon.ico", sizes: "any" },
 			{ rel: "apple-touch-icon", href: "/icon-192.png" },
-			{ rel: "alternate", hrefLang: "fi", href: "/" },
-			{ rel: "alternate", hrefLang: "x-default", href: "/" },
+			...supportedLngs.map((lng) => ({ rel: "alternate", hrefLang: lng, href: `${SITE_URL}/` })),
+			{ rel: "alternate", hrefLang: "x-default", href: `${SITE_URL}/` },
 			{
 				rel: "preconnect",
 				href: "https://fonts.googleapis.com",
@@ -296,16 +281,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 				)}
 				{!isAdmin && <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />}
 				<Scripts />
-				{import.meta.env.DEV ? (
-					<TanStackDevtools
-						plugins={[
-							{
-								name: "TanStack Router",
-								render: <TanStackRouterDevtoolsPanel router={router} />,
-							},
-						]}
-					/>
-				) : null}
+
 				<script
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: inline locale for hydration
 					dangerouslySetInnerHTML={{

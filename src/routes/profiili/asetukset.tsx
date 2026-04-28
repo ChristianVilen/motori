@@ -144,7 +144,7 @@ function SettingsPage() {
 
 				<form
 					onSubmit={handleSubmit}
-					className="space-y-5 rounded-xl border border-border bg-card p-5"
+					className="space-y-5 rounded-l border border-border bg-card p-5"
 				>
 					<div className="space-y-2">
 						<label htmlFor="displayName" className="text-sm font-medium text-foreground">
@@ -294,7 +294,7 @@ function ChangePasswordSection() {
 	}
 
 	return (
-		<div className="mt-6 rounded-xl border border-border bg-card p-5">
+		<div className="mt-6 rounded-l border border-border bg-card p-5">
 			<h2 className="text-lg font-bold text-primary">{t("settings.changePasswordHeading")}</h2>
 			<form onSubmit={handleSubmit} className="mt-4 space-y-4">
 				<div className="space-y-2">
@@ -398,7 +398,7 @@ function DeleteAccountSection() {
 	return (
 		<div
 			data-testid="delete-account-section"
-			className="mt-8 rounded-xl border border-destructive/30 bg-card p-5"
+			className="mt-8 rounded-l border border-destructive/30 bg-card p-5"
 		>
 			<h2 className="text-lg font-bold text-destructive">{t("settings.deleteAccount")}</h2>
 			<p className="mt-1 text-sm text-muted">{t("settings.deleteAccountDescription")}</p>

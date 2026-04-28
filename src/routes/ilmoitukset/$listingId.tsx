@@ -172,7 +172,7 @@ function ListingSpecs({
 	const { t } = useTranslation("listings");
 
 	return (
-		<div className="rounded-xl border border-border bg-card p-5">
+		<div className="rounded-l border border-border bg-card p-5">
 			<h2 className="mb-3 text-sm font-semibold text-foreground">{t("detail.specs.heading")}</h2>
 			<dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
 				{!!makeName && (
@@ -235,7 +235,7 @@ function PricingCard({
 	const [contactVisible, setContactVisible] = useState(false);
 
 	return (
-		<div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+		<div className="rounded-l border border-border bg-card p-5 shadow-sm">
 			<div data-testid="price-info" className="mb-4">
 				<span data-testid="price-per-day" className="text-3xl font-bold text-accent">
 					{formatEur(pricePerDayCents)}
