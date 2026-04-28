@@ -3,8 +3,8 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { sql } from "kysely";
-import { ArrowLeft, MapPin, Tag } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, ChevronLeft, ChevronRight, MapPin, Tag, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { ReportButton } from "~/components/report-button";
 import { Button } from "~/components/ui/button";
 import {
@@ -161,6 +161,33 @@ export const Route = createFileRoute("/ilmoitukset/$listingId")({
 
 function ListingGallery({ images, title }: { images: ListingImage[]; title: string }) {
 	const [activeImage, setActiveImage] = useState(0);
+	const [lightboxOpen, setLightboxOpen] = useState(false);
+
+	const prev = useCallback(() => {
+		setActiveImage((i) => (i > 0 ? i - 1 : images.length - 1));
+	}, [images.length]);
+	const next = useCallback(() => {
+		setActiveImage((i) => (i < images.length - 1 ? i + 1 : 0));
+	}, [images.length]);
+
+	useEffect(() => {
+		if (!lightboxOpen) {
+			return;
+		}
+		function onKey(e: KeyboardEvent) {
+			if (e.key === "Escape") {
+				setLightboxOpen(false);
+			}
+			if (e.key === "ArrowLeft") {
+				prev();
+			}
+			if (e.key === "ArrowRight") {
+				next();
+			}
+		}
+		window.addEventListener("keydown", onKey);
+		return () => window.removeEventListener("keydown", onKey);
+	}, [lightboxOpen, prev, next]);
 
 	if (images.length === 0) {
 		return (
@@ -183,29 +210,127 @@ function ListingGallery({ images, title }: { images: ListingImage[]; title: stri
 		);
 	}
 
+	const arrowBtn =
+		"absolute top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white backdrop-blur-sm transition-colors hover:bg-black/70";
+
 	return (
-		<div className="space-y-2">
-			<div className="aspect-[16/10] overflow-hidden rounded-xl bg-muted-light">
-				<img src={images[activeImage]?.url} alt={title} className="h-full w-full object-cover" />
-			</div>
-			{images.length > 1 && (
-				<div className="flex gap-2 overflow-x-auto pb-1">
-					{images.map((img, i) => (
-						<button
-							key={img.id}
-							type="button"
-							onClick={() => setActiveImage(i)}
-							aria-label={`Kuva ${i + 1}`}
-							className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition-colors ${
-								i === activeImage ? "border-accent" : "border-transparent"
-							}`}
-						>
-							<img src={img.url} alt="" className="h-full w-full object-cover" />
-						</button>
-					))}
+		<>
+			<div className="space-y-2">
+				{/* Main image */}
+				<div className="group relative aspect-[16/10] overflow-hidden rounded-xl bg-black">
+					<button
+						type="button"
+						onClick={() => setLightboxOpen(true)}
+						className="h-full w-full cursor-zoom-in"
+						aria-label="Avaa kuva isompana"
+					>
+						<img
+							src={images[activeImage]?.url}
+							alt={title}
+							className="h-full w-full object-contain"
+						/>
+					</button>
+					{images.length > 1 && (
+						<>
+							<button
+								type="button"
+								onClick={prev}
+								className={`${arrowBtn} left-2`}
+								aria-label="Edellinen kuva"
+							>
+								<ChevronLeft className="h-5 w-5" />
+							</button>
+							<button
+								type="button"
+								onClick={next}
+								className={`${arrowBtn} right-2`}
+								aria-label="Seuraava kuva"
+							>
+								<ChevronRight className="h-5 w-5" />
+							</button>
+							<span className="absolute bottom-2 right-2 rounded-full bg-black/50 px-2.5 py-1 text-xs text-white backdrop-blur-sm">
+								{activeImage + 1} / {images.length}
+							</span>
+						</>
+					)}
 				</div>
-			)}
-		</div>
+				{/* Thumbnails */}
+				{images.length > 1 && (
+					<div className="flex gap-2 overflow-x-auto pb-1">
+						{images.map((img, i) => (
+							<button
+								key={img.id}
+								type="button"
+								onClick={() => setActiveImage(i)}
+								aria-label={`Kuva ${i + 1}`}
+								className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition-colors ${
+									i === activeImage ? "border-accent" : "border-transparent"
+								}`}
+							>
+								<img src={img.url} alt="" className="h-full w-full object-cover" />
+							</button>
+						))}
+					</div>
+				)}
+			</div>
+
+			{/* Fullscreen lightbox */}
+			{lightboxOpen ? (
+				<div
+					className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+					onClick={() => setLightboxOpen(false)}
+					onKeyDown={() => {}}
+					role="dialog"
+					aria-modal="true"
+					aria-label="Kuvagalleria"
+				>
+					<button
+						type="button"
+						onClick={() => setLightboxOpen(false)}
+						className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+						aria-label="Sulje"
+					>
+						<X className="h-6 w-6" />
+					</button>
+					<img
+						src={images[activeImage]?.url}
+						alt={title}
+						className="max-h-[90vh] max-w-[90vw] object-contain"
+						onClick={(e) => e.stopPropagation()}
+						onKeyDown={(e) => e.stopPropagation()}
+					/>
+					{images.length > 1 && (
+						<>
+							<button
+								type="button"
+								onClick={(e) => {
+									e.stopPropagation();
+									prev();
+								}}
+								className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
+								aria-label="Edellinen kuva"
+							>
+								<ChevronLeft className="h-6 w-6" />
+							</button>
+							<button
+								type="button"
+								onClick={(e) => {
+									e.stopPropagation();
+									next();
+								}}
+								className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
+								aria-label="Seuraava kuva"
+							>
+								<ChevronRight className="h-6 w-6" />
+							</button>
+							<span className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1.5 text-sm text-white">
+								{activeImage + 1} / {images.length}
+							</span>
+						</>
+					)}
+				</div>
+			) : null}
+		</>
 	);
 }
 
