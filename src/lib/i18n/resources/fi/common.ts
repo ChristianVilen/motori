@@ -5,6 +5,7 @@ export default {
 		myListings: "Omat",
 		signIn: "Kirjaudu",
 		signOut: "Kirjaudu ulos",
+		profile: "Profiili",
 	},
 	notFound: {
 		heading: "Sivua ei löytynyt",

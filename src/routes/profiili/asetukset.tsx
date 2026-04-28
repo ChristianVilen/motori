@@ -5,11 +5,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { authClient } from "~/lib/auth-client";
 import { LICENSE_CLASSES, type LicenseClass, SITE_NAME } from "~/lib/constants";
 import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import { deleteAccount } from "~/lib/delete-account";
 import { useTranslation } from "~/lib/i18n";
+import { passwordStrength } from "~/lib/password-strength";
 import { getSession } from "~/lib/session";
 import { validateFinnishPhone } from "~/lib/validators";
 
@@ -229,8 +231,139 @@ function SettingsPage() {
 					</div>
 				</form>
 
+				<ChangePasswordSection />
 				<DeleteAccountSection />
 			</div>
+		</div>
+	);
+}
+
+function ChangePasswordSection() {
+	const { t } = useTranslation("profile");
+	const { t: tAuth } = useTranslation("auth");
+	const [currentPassword, setCurrentPassword] = useState("");
+	const [newPassword, setNewPassword] = useState("");
+	const [confirm, setConfirm] = useState("");
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const [success, setSuccess] = useState(false);
+	const strength = passwordStrength(newPassword);
+
+	async function handleSubmit(e: React.FormEvent) {
+		e.preventDefault();
+		setError(null);
+		setSuccess(false);
+
+		if (newPassword !== confirm) {
+			setError(t("settings.changePasswordErrorMismatch"));
+			return;
+		}
+
+		setLoading(true);
+		try {
+			const result = await authClient.changePassword({
+				currentPassword,
+				newPassword,
+				revokeOtherSessions: true,
+			});
+			if (result.error) {
+				setError(
+					result.error.code === "INVALID_PASSWORD"
+						? t("settings.changePasswordErrorWrong")
+						: t("settings.changePasswordError"),
+				);
+				return;
+			}
+			setSuccess(true);
+			setCurrentPassword("");
+			setNewPassword("");
+			setConfirm("");
+		} catch {
+			setError(t("settings.changePasswordError"));
+		} finally {
+			setLoading(false);
+		}
+	}
+
+	return (
+		<div className="mt-6 rounded-xl border border-border bg-card p-5">
+			<h2 className="text-lg font-bold text-primary">{t("settings.changePasswordHeading")}</h2>
+			<form onSubmit={handleSubmit} className="mt-4 space-y-4">
+				<div className="space-y-2">
+					<label htmlFor="currentPassword" className="text-sm font-medium text-foreground">
+						{t("settings.currentPasswordLabel")}
+					</label>
+					<Input
+						id="currentPassword"
+						type="password"
+						autoComplete="current-password"
+						required
+						value={currentPassword}
+						onChange={(e) => setCurrentPassword(e.target.value)}
+					/>
+				</div>
+
+				<div className="space-y-2">
+					<label htmlFor="newPassword" className="text-sm font-medium text-foreground">
+						{t("settings.newPasswordLabel")}
+					</label>
+					<Input
+						id="newPassword"
+						type="password"
+						autoComplete="new-password"
+						required
+						minLength={8}
+						value={newPassword}
+						onChange={(e) => setNewPassword(e.target.value)}
+					/>
+					{newPassword.length > 0 && (
+						<div className="space-y-1">
+							<div className="flex gap-1">
+								{[1, 2, 3, 4, 5].map((i) => (
+									<div
+										key={i}
+										className={`h-1 flex-1 rounded-full transition-colors ${
+											i <= strength.score ? strength.color : "bg-border"
+										}`}
+									/>
+								))}
+							</div>
+							<p className="text-xs text-muted">{tAuth(`register.${strength.labelKey}`)}</p>
+						</div>
+					)}
+				</div>
+
+				<div className="space-y-2">
+					<label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
+						{t("settings.confirmPasswordLabel")}
+					</label>
+					<Input
+						id="confirmPassword"
+						type="password"
+						autoComplete="new-password"
+						required
+						minLength={8}
+						value={confirm}
+						onChange={(e) => setConfirm(e.target.value)}
+					/>
+				</div>
+
+				<div className="flex items-center gap-3">
+					<Button
+						type="submit"
+						className="bg-accent text-white hover:bg-accent-hover"
+						disabled={
+							loading || !currentPassword || !newPassword || !confirm || strength.score <= 1
+						}
+					>
+						{loading ? t("settings.changePasswordSubmitting") : t("settings.changePasswordSubmit")}
+					</Button>
+					{!!success && (
+						<span className="text-sm text-success">{t("settings.changePasswordSuccess")}</span>
+					)}
+					{!!error && <span className="text-sm text-destructive">{error}</span>}
+				</div>
+			</form>
 		</div>
 	);
 }

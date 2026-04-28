@@ -53,6 +53,7 @@ test.describe("Auth flow", () => {
 		const home = new HomePage(page);
 		await home.goto();
 		await waitForHydration(page);
+		await home.navUserMenu.click();
 		await home.navSignOutLink.click();
 		await expect(home.navLoginLink).toBeVisible({ timeout: 5000 });
 		await expect(home.navDashboardLink).not.toBeVisible();
@@ -77,6 +78,7 @@ test.describe("Auth flow", () => {
 		const home = new HomePage(page);
 		await home.goto();
 		await waitForHydration(page);
+		await home.navUserMenu.click();
 		await home.navSignOutLink.click();
 		await expect(home.navLoginLink).toBeVisible({ timeout: 5000 });
 		await home.navLoginLink.click();

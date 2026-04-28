@@ -10,6 +10,7 @@ export class HomePage {
 	readonly addListingCta: Locator;
 	readonly navLoginLink: Locator;
 	readonly navDashboardLink: Locator;
+	readonly navUserMenu: Locator;
 	readonly navSignOutLink: Locator;
 	readonly loginModal: Locator;
 
@@ -22,6 +23,7 @@ export class HomePage {
 		this.addListingCta = page.getByTestId("home-add-listing-cta");
 		this.navLoginLink = page.getByTestId("nav-login");
 		this.navDashboardLink = page.getByTestId("nav-dashboard");
+		this.navUserMenu = page.getByTestId("nav-user-menu");
 		this.navSignOutLink = page.getByTestId("nav-signout");
 		this.loginModal = page.getByTestId("login-modal");
 	}
