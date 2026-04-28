@@ -12,7 +12,7 @@ function Tietosuoja() {
 	return (
 		<main className="mx-auto max-w-3xl px-4 py-12">
 			<h1 className="font-heading text-3xl font-bold text-foreground">Tietosuojaseloste</h1>
-			<p className="mt-2 text-sm text-muted">Päivitetty viimeksi: 19.4.2025</p>
+			<p className="mt-2 text-sm text-muted">Päivitetty viimeksi: 28.4.2026</p>
 
 			<p className="mt-6 text-sm text-foreground/80">
 				Tämä tietosuojaseloste kuvaa, miten Motori kerää ja käsittelee henkilötietojasi EU:n yleisen
@@ -24,7 +24,7 @@ function Tietosuoja() {
 				<p className="mt-3 text-sm text-foreground/80">
 					Christian Vilen
 					<br />
-					Sähköposti: support@motari.fi
+					Sähköposti: support@motori.fi
 				</p>
 			</section>
 
@@ -95,22 +95,38 @@ function Tietosuoja() {
 			</section>
 
 			<section className="mt-8">
-				<h2 className="font-heading text-xl font-semibold text-foreground">5. Säilytysaika</h2>
+				<h2 className="font-heading text-xl font-semibold text-foreground">
+					5. Alihankkijat ja tietojen siirrotKäytämme seuraavia alihankkijoita henkilötietojen
+					käsittelyssä:
+				</h2>
 				<div className="mt-3 space-y-3 text-sm text-foreground/80">
 					<p>
-						Säilytämme henkilötietojasi niin kauan kuin tilisi on aktiivinen, sekä enintään 2 vuotta
-						tilin sulkemisen jälkeen.
+						Hetzner Online GmbH (palvelinhostaus, Saksa) — palvelimet, joilla palvelu toimii Resend
+						Inc. (sähköpostipalvelu, USA) — transaktiosähköpostit kuten rekisteröintivahvistukset
+						Cloudflare Inc. (tietoliikenne ja tietoturva, USA) — liikenne kulkee Cloudflaren verkon
+						kautta
+					</p>
+				</div>
+			</section>
+
+			<section className="mt-8">
+				<h2 className="font-heading text-xl font-semibold text-foreground">6. Säilytysaika</h2>
+				<div className="mt-3 space-y-3 text-sm text-foreground/80">
+					<p>
+						Säilytämme henkilötietojasi niin kauan kuin tilisi on aktiivinen. Kun poistat tilisi,
+						kaikki henkilötietosi (mukaan lukien ilmoitukset, kuvat ja profiilitiedot) poistetaan
+						välittömästi ja pysyvästi.
 					</p>
 					<p>
-						Kirjanpitovelvoitteiden edellyttämät tiedot säilytetään 7 vuotta voimassa olevan
-						lainsäädännön mukaisesti.
+						Palvelimen lokitiedot (IP-osoitteet) säilytetään enintään 90 päivää turvallisuus- ja
+						väärinkäytösten estotarkoituksiin.
 					</p>
 				</div>
 			</section>
 
 			<section className="mt-8">
 				<h2 className="font-heading text-xl font-semibold text-foreground">
-					6. Rekisteröidyn oikeudet
+					7. Rekisteröidyn oikeudet
 				</h2>
 				<div className="mt-3 space-y-3 text-sm text-foreground/80">
 					<p>Sinulla on oikeus:</p>
@@ -121,7 +137,7 @@ function Tietosuoja() {
 						<li>siirtää tietosi toiselle rekisterinpitäjälle (tietojen siirrettävyys)</li>
 						<li>vastustaa tietojesi käsittelyä oikeutettuun etuun perustuvissa tilanteissa</li>
 					</ul>
-					<p>Oikeuksien käyttämiseksi ota yhteyttä: support@motari.fi</p>
+					<p>Oikeuksien käyttämiseksi ota yhteyttä: support@motori.fi</p>
 					<p>
 						Jos koet, että henkilötietojesi käsittely on lainvastaista, voit tehdä valituksen
 						tietosuojavaltuutetun toimistoon:{" "}
@@ -138,7 +154,7 @@ function Tietosuoja() {
 			</section>
 
 			<section className="mt-8">
-				<h2 className="font-heading text-xl font-semibold text-foreground">7. Evästeet</h2>
+				<h2 className="font-heading text-xl font-semibold text-foreground">8. Evästeet</h2>
 				<p className="mt-3 text-sm text-foreground/80">
 					Käytämme ainoastaan teknisesti välttämättömiä evästeitä kirjautumisen ylläpitoon. Emme
 					käytä mainos- tai seurantaevästeitä.
@@ -147,7 +163,7 @@ function Tietosuoja() {
 
 			<section className="mt-8">
 				<h2 className="font-heading text-xl font-semibold text-foreground">
-					8. Muutokset tietosuojaselosteeseen
+					9. Muutokset tietosuojaselosteeseen
 				</h2>
 				<p className="mt-3 text-sm text-foreground/80">
 					Voimme päivittää tätä tietosuojaselostetta. Merkittävistä muutoksista ilmoitetaan

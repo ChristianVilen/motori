@@ -11,6 +11,7 @@
 		"db:seed": "tsx --env-file-if-exists=.env src/lib/db/seed.ts",
 		"db:codegen": "tsx --env-file-if-exists=.env src/lib/db/codegen.ts",
 		"notify:expiry": "tsx --env-file-if-exists=.env src/lib/notify-expiry.ts",
+		"purge:sessions": "tsx --env-file-if-exists=.env src/lib/purge-sessions.ts",
 		"typecheck": "tsc --noEmit",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",

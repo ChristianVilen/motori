@@ -45,6 +45,7 @@ test.describe("Auth flow", () => {
 		await register.nameInput.fill(name);
 		await register.emailInput.fill(email);
 		await register.passwordInput.pressSequentially(password, { delay: 30 });
+		await register.termsCheckbox.check();
 		await register.submitButton.click();
 		await expect(page).toHaveURL(/\/taydenna-profiili/, { timeout: 10000 });
 	});

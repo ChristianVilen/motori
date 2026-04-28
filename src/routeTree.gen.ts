@@ -27,6 +27,7 @@ import { Route as ProfiiliAsetuksetRouteImport } from './routes/profiili/asetuks
 import { Route as ProfiiliUserIdRouteImport } from './routes/profiili/$userId'
 import { Route as IlmoituksetUusiRouteImport } from './routes/ilmoitukset/uusi'
 import { Route as IlmoituksetListingIdRouteImport } from './routes/ilmoitukset/$listingId'
+import { Route as ApiCronRouteImport } from './routes/api/cron'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminModerationRouteImport } from './routes/admin/moderation'
 import { Route as AdminMakesRouteImport } from './routes/admin/makes'
@@ -126,6 +127,11 @@ const IlmoituksetListingIdRoute = IlmoituksetListingIdRouteImport.update({
   path: '/ilmoitukset/$listingId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronRoute = ApiCronRouteImport.update({
+  id: '/api/cron',
+  path: '/api/cron',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -184,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/admin/makes': typeof AdminMakesRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/users': typeof AdminUsersRoute
+  '/api/cron': typeof ApiCronRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
@@ -211,6 +218,7 @@ export interface FileRoutesByTo {
   '/admin/makes': typeof AdminMakesRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/users': typeof AdminUsersRoute
+  '/api/cron': typeof ApiCronRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/admin/makes': typeof AdminMakesRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/users': typeof AdminUsersRoute
+  '/api/cron': typeof ApiCronRoute
   '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
@@ -270,6 +279,7 @@ export interface FileRouteTypes {
     | '/admin/makes'
     | '/admin/moderation'
     | '/admin/users'
+    | '/api/cron'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
     | '/profiili/$userId'
@@ -297,6 +307,7 @@ export interface FileRouteTypes {
     | '/admin/makes'
     | '/admin/moderation'
     | '/admin/users'
+    | '/api/cron'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
     | '/profiili/$userId'
@@ -325,6 +336,7 @@ export interface FileRouteTypes {
     | '/admin/makes'
     | '/admin/moderation'
     | '/admin/users'
+    | '/api/cron'
     | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
     | '/profiili/$userId'
@@ -350,6 +362,7 @@ export interface RootRouteChildren {
   UnohdinSalasananRoute: typeof UnohdinSalasananRoute
   VahvistaSahkopostiRoute: typeof VahvistaSahkopostiRoute
   VaihdaSalasanaRoute: typeof VaihdaSalasanaRoute
+  ApiCronRoute: typeof ApiCronRoute
   IlmoituksetListingIdRoute: typeof IlmoituksetListingIdRoute
   IlmoituksetUusiRoute: typeof IlmoituksetUusiRoute
   ProfiiliUserIdRoute: typeof ProfiiliUserIdRoute
@@ -490,6 +503,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IlmoituksetListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron': {
+      id: '/api/cron'
+      path: '/api/cron'
+      fullPath: '/api/cron'
+      preLoaderRoute: typeof ApiCronRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/users': {
       id: '/admin/users'
       path: '/users'
@@ -581,6 +601,7 @@ const rootRouteChildren: RootRouteChildren = {
   UnohdinSalasananRoute: UnohdinSalasananRoute,
   VahvistaSahkopostiRoute: VahvistaSahkopostiRoute,
   VaihdaSalasanaRoute: VaihdaSalasanaRoute,
+  ApiCronRoute: ApiCronRoute,
   IlmoituksetListingIdRoute: IlmoituksetListingIdRoute,
   IlmoituksetUusiRoute: IlmoituksetUusiRoute,
   ProfiiliUserIdRoute: ProfiiliUserIdRoute,
