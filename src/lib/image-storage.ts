@@ -1,3 +1,5 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import {
 	DeleteObjectCommand,
 	DeleteObjectsCommand,
@@ -5,8 +7,6 @@ import {
 	PutObjectCommand,
 	S3Client,
 } from "@aws-sdk/client-s3";
-import fs from "node:fs/promises";
-import path from "node:path";
 
 export interface ImageStorage {
 	upload(buffer: Buffer, key: string, contentType: string): Promise<string>;
@@ -37,7 +37,12 @@ export class HetznerStorage implements ImageStorage {
 
 	async upload(buffer: Buffer, key: string, contentType: string): Promise<string> {
 		await this.client.send(
-			new PutObjectCommand({ Bucket: this.bucket, Key: key, Body: buffer, ContentType: contentType }),
+			new PutObjectCommand({
+				Bucket: this.bucket,
+				Key: key,
+				Body: buffer,
+				ContentType: contentType,
+			}),
 		);
 		return `${this.publicUrl}/${key}`;
 	}

@@ -425,31 +425,8 @@ function ListingDetailPage() {
 						</div>
 					</div>
 
-					{/* Right column — sticky sidebar (desktop only) */}
-					<div className="hidden space-y-4 lg:block lg:sticky lg:top-8 lg:self-start">
-						<PricingCard
-							pricePerDayCents={listing.price_per_day}
-							pricePerWeekCents={listing.price_per_week ?? null}
-							listing={listing}
-							owner={owner}
-							ownerEmail={ownerEmail}
-							isOwner={!!isOwner}
-							isSignedIn={!!session}
-						/>
-
-						{/* Listing meta */}
-						<p className="text-center text-xs text-muted">
-							{t("detail.viewCount", { n: listing.view_count })}
-						</p>
-						{!!session && !isOwner && (
-							<div className="text-center">
-								<ReportButton targetType="listing" targetId={listing.id} />
-							</div>
-						)}
-					</div>
-
-					{/* Mobile pricing — inline card below content */}
-					<div id="pricing" className="space-y-4 lg:hidden">
+					{/* Pricing — inline below content on mobile, sticky sidebar on desktop */}
+					<div id="pricing" className="space-y-4 lg:sticky lg:top-8 lg:self-start">
 						<PricingCard
 							pricePerDayCents={listing.price_per_day}
 							pricePerWeekCents={listing.price_per_week ?? null}
