@@ -52,6 +52,11 @@ write_files:
     content: |
       0 2 * * * root /usr/local/bin/db-backup >> /var/log/db-backup.log 2>&1
 
+  - path: /etc/cron.d/motori-cron
+    permissions: '0644'
+    content: |
+      0 3 * * * root curl -sf -X POST -H "Authorization: Bearer $(grep CRON_SECRET /etc/motori.env | cut -d= -f2-)" http://localhost:3000/api/cron >> /var/log/motori-cron.log 2>&1
+
   - path: /etc/motori.env
     permissions: '0600'
     content: |

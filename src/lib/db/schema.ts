@@ -74,6 +74,7 @@ export interface ProfileTable {
 	show_phone: Generated<boolean>; // DB default false — omit on insert to use default
 	license_class: "A1" | "A2" | "A" | null;
 	language: "fi" | "en";
+	terms_accepted_at: ColumnType<Date, Date | undefined, Date> | null;
 	created_at: ColumnType<Date, Date | undefined, Date>;
 	updated_at: ColumnType<Date, Date | undefined, Date>;
 }

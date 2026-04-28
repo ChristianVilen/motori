@@ -8,6 +8,7 @@ import { Input } from "~/components/ui/input";
 import { authClient } from "~/lib/auth-client";
 import { LICENSE_CLASSES, type LicenseClass, SITE_NAME } from "~/lib/constants";
 import { csrfMiddleware } from "~/lib/csrf";
+import { exportMyData } from "~/lib/data-export";
 import { db } from "~/lib/db/index";
 import { deleteAccount } from "~/lib/delete-account";
 import { useTranslation } from "~/lib/i18n";
@@ -232,6 +233,7 @@ function SettingsPage() {
 				</form>
 
 				<ChangePasswordSection />
+				<DataExportSection />
 				<DeleteAccountSection />
 			</div>
 		</div>
@@ -372,6 +374,43 @@ function ChangePasswordSection() {
 					{!!error && <span className="text-sm text-destructive">{error}</span>}
 				</div>
 			</form>
+		</div>
+	);
+}
+
+function DataExportSection() {
+	const { t } = useTranslation("profile");
+	const [loading, setLoading] = useState(false);
+
+	async function handleExport() {
+		setLoading(true);
+		try {
+			const data = await exportMyData();
+			const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = "motori-omat-tiedot.json";
+			a.click();
+			URL.revokeObjectURL(url);
+		} finally {
+			setLoading(false);
+		}
+	}
+
+	return (
+		<div className="mt-8 rounded-xl border border-border bg-card p-5">
+			<h2 className="text-lg font-bold text-foreground">{t("settings.exportData")}</h2>
+			<p className="mt-1 text-sm text-muted">{t("settings.exportDataDescription")}</p>
+			<Button
+				type="button"
+				variant="outline"
+				className="mt-4"
+				disabled={loading}
+				onClick={handleExport}
+			>
+				{loading ? t("settings.exportDataLoading") : t("settings.exportDataButton")}
+			</Button>
 		</div>
 	);
 }

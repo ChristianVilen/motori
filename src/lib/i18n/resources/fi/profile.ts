@@ -54,5 +54,10 @@ export default {
 		deleteAccountButton: "Poista tili pysyvästi",
 		deleteAccountDeleting: "Poistetaan...",
 		deleteAccountError: "Tilin poisto epäonnistui. Yritä uudelleen.",
+		exportData: "Lataa omat tiedot",
+		exportDataDescription:
+			"Lataa kaikki sinusta tallennetut tiedot JSON-muodossa (GDPR, artikla 20).",
+		exportDataButton: "Lataa tiedot",
+		exportDataLoading: "Ladataan...",
 	},
 } as const;

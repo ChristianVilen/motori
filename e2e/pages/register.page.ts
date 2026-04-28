@@ -12,6 +12,7 @@ export class RegisterPage {
 	readonly loginLink: Locator;
 	readonly passwordStrength: Locator;
 	readonly passwordStrengthLabel: Locator;
+	readonly termsCheckbox: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
@@ -24,6 +25,7 @@ export class RegisterPage {
 		this.loginLink = page.getByTestId("register-login-link");
 		this.passwordStrength = page.getByTestId("password-strength");
 		this.passwordStrengthLabel = page.getByTestId("password-strength-label");
+		this.termsCheckbox = page.getByTestId("register-terms");
 	}
 
 	async goto() {
@@ -37,6 +39,7 @@ export class RegisterPage {
 		await this.emailInput.fill(email);
 		// pressSequentially so React's onChange fires per-keystroke for the strength meter
 		await this.passwordInput.pressSequentially(password, { delay: 30 });
+		await this.termsCheckbox.check();
 		await this.submitButton.click();
 	}
 }

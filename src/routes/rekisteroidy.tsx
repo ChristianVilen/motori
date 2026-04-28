@@ -21,6 +21,7 @@ function RegisterPage() {
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [termsAccepted, setTermsAccepted] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
 
@@ -134,11 +135,32 @@ function RegisterPage() {
 						</p>
 					)}
 
+					<label className="flex items-start gap-2 text-sm text-foreground/80">
+						<input
+							data-testid="register-terms"
+							type="checkbox"
+							required
+							checked={termsAccepted}
+							onChange={(e) => setTermsAccepted(e.target.checked)}
+							className="mt-0.5 h-4 w-4 shrink-0"
+						/>
+						<span>
+							{t("register.termsCheckboxPrefix")}{" "}
+							<Link to="/kayttoehdot" className="text-accent underline" target="_blank">
+								{t("register.termsLink")}
+							</Link>{" "}
+							{t("register.termsCheckboxAnd")}{" "}
+							<Link to="/tietosuoja" className="text-accent underline" target="_blank">
+								{t("register.privacyLink")}
+							</Link>
+						</span>
+					</label>
+
 					<Button
 						data-testid="register-submit"
 						type="submit"
 						className="w-full bg-accent text-white hover:bg-accent-hover"
-						disabled={loading}
+						disabled={loading || !termsAccepted}
 					>
 						{loading ? t("register.submitLoading") : t("register.submitIdle")}
 					</Button>
@@ -155,8 +177,6 @@ function RegisterPage() {
 						{t("register.loginLink")}
 					</Link>
 				</p>
-
-				<p className="text-center text-xs text-muted">{t("register.termsNotice")}</p>
 			</div>
 		</div>
 	);

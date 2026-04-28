@@ -43,6 +43,7 @@ const saveProfile = createServerFn({ method: "POST" })
 				phone: data.phone || null,
 				license_class: licenseClass || null,
 				language: "fi",
+				terms_accepted_at: new Date(),
 			})
 			.onConflict((oc) =>
 				oc.column("user_id").doUpdateSet({

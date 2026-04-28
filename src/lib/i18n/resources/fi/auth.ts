@@ -24,7 +24,10 @@ export default {
 		errorGeneric: "Rekisteröityminen epäonnistui. Yritä uudelleen.",
 		hasAccount: "Onko sinulla jo tili?",
 		loginLink: "Kirjaudu sisään",
-		termsNotice: "Rekisteröitymällä hyväksyt käyttöehdot",
+		termsCheckboxPrefix: "Hyväksyn",
+		termsLink: "käyttöehdot",
+		termsCheckboxAnd: "ja",
+		privacyLink: "tietosuojaselosteen",
 	},
 	verifyEmail: {
 		heading: "Tarkista sähköpostisi",
