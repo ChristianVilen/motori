@@ -112,9 +112,7 @@ export const getReports = createServerFn({ method: "GET" })
 			.selectFrom("report")
 			.innerJoin("user as reporter", "reporter.id", "report.reporter_id")
 			.leftJoin("listing", (join) =>
-				join
-					.onRef("listing.id", "=", "report.target_id")
-					.on("report.target_type", "=", "listing"),
+				join.onRef("listing.id", "=", "report.target_id").on("report.target_type", "=", "listing"),
 			)
 			.leftJoin("motorcycle_make", (join) =>
 				join
@@ -127,9 +125,7 @@ export const getReports = createServerFn({ method: "GET" })
 					.on("report.target_type", "=", "listing"),
 			)
 			.leftJoin("user as target_user", (join) =>
-				join
-					.onRef("target_user.id", "=", "report.target_id")
-					.on("report.target_type", "=", "user"),
+				join.onRef("target_user.id", "=", "report.target_id").on("report.target_type", "=", "user"),
 			)
 			.select([
 				"report.id",

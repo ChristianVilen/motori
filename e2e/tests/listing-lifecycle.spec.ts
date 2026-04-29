@@ -61,14 +61,15 @@ test.describe("Listing lifecycle", () => {
 		});
 		await form.submitButton.click();
 		await page.waitForURL(
-			(url) => /\/ilmoitukset\/[^/]+$/.test(url.pathname) && url.pathname !== "/ilmoitukset/uusi",
+			(url) =>
+				/\/ilmoitukset\/[^/]+\/[^/]+$/.test(url.pathname) && url.pathname !== "/ilmoitukset/uusi",
 			{ timeout: 15000 },
 		);
 		await waitForHydration(page);
 
-		const match = page.url().match(/\/ilmoitukset\/([^/]+)$/);
+		const match = page.url().match(/\/ilmoitukset\/([^/]+)\/[^/]+$/);
 		if (!match) {
-			throw new Error("Could not extract listing ID from URL");
+			throw new Error("Could not extract listing short_id from URL");
 		}
 		listingId = match[1];
 
@@ -93,7 +94,7 @@ test.describe("Listing lifecycle", () => {
 		const form = new ListingFormPage(page);
 		await form.titleInput.fill(LISTING_TITLE_EDITED);
 		await form.submitButton.click();
-		await page.waitForURL(/\/ilmoitukset\/[^/]+$/, { timeout: 15000 });
+		await page.waitForURL(/\/ilmoitukset\/[^/]+\/[^/]+$/, { timeout: 15000 });
 		await waitForHydration(page);
 
 		const detail = new ListingDetailPage(page);

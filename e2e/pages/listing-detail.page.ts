@@ -28,8 +28,8 @@ export class ListingDetailPage {
 		this.notFound = page.getByTestId("listing-not-found");
 	}
 
-	async goto(listingId: string) {
-		await this.page.goto(`/ilmoitukset/${listingId}`);
+	async goto(shortId: string, slug: string) {
+		await this.page.goto(`/ilmoitukset/${shortId}/${slug}`);
 		await waitForHydration(this.page);
 	}
 
