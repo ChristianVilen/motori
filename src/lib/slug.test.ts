@@ -37,9 +37,7 @@ describe("computeListingSlug", () => {
 	});
 
 	it("slugifies city and model name", () => {
-		expect(computeListingSlug("yamaha", "MT-07", "Hämeenlinna")).toBe(
-			"yamaha-mt-07-hameenlinna",
-		);
+		expect(computeListingSlug("yamaha", "MT-07", "Hämeenlinna")).toBe("yamaha-mt-07-hameenlinna");
 	});
 
 	it("handles null make slug gracefully", () => {

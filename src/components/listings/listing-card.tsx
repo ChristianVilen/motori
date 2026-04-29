@@ -3,14 +3,17 @@ import { Heart } from "lucide-react";
 import { MOTORCYCLE_TYPES, REGIONS, TYPE_EMOJI } from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
+import { computeListingSlug } from "~/lib/slug";
 
 interface ListingCardProps {
 	listing: Listing;
 	images: ListingImage[];
+	makeSlug: string | null;
+	modelName: string | null;
 	isOwn?: boolean;
 }
 
-export function ListingCard({ listing, images, isOwn }: ListingCardProps) {
+export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: ListingCardProps) {
 	const { t } = useTranslation("listings");
 	const firstImage = images[0];
 	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
@@ -20,16 +23,16 @@ export function ListingCard({ listing, images, isOwn }: ListingCardProps) {
 	const typeEmoji = TYPE_EMOJI[listing.motorcycle_type] ?? "";
 
 	const isNew = Date.now() - new Date(listing.created_at).getTime() < 48 * 60 * 60 * 1000;
-
 	const imageCount = images.length;
+	const slug = computeListingSlug(makeSlug, modelName, listing.city);
 
 	return (
 		<Link
 			data-testid="listing-card"
-			data-listing-id={listing.id}
-			to="/ilmoitukset/$listingId"
-			params={{ listingId: listing.id }}
-			className="group block overflow-hidden rounded-l border border-border bg-card card-hover hover:card-hover-active"
+			data-listing-id={listing.short_id}
+			to="/ilmoitukset/$listingId/$slug"
+			params={{ listingId: listing.short_id, slug }}
+			className="group block overflow-hidden rounded-xl border border-border bg-card card-hover hover:card-hover-active"
 		>
 			{/* Image */}
 			<div className="relative aspect-[16/10] overflow-hidden bg-muted-light">
