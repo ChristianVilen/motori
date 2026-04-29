@@ -112,6 +112,7 @@ async function seedListings(ownerId: string) {
 		.insertInto("listing")
 		.values({
 			id: SEEDED_LISTING_ID,
+			short_id: crypto.randomUUID().slice(0, 8),
 			owner_id: ownerId,
 			title: SEEDED_LISTING_TITLE,
 			make_id: e2eMake.id,

@@ -112,10 +112,24 @@ export const getReports = createServerFn({ method: "GET" })
 			.selectFrom("report")
 			.innerJoin("user as reporter", "reporter.id", "report.reporter_id")
 			.leftJoin("listing", (join) =>
-				join.onRef("listing.id", "=", "report.target_id").on("report.target_type", "=", "listing"),
+				join
+					.onRef("listing.id", "=", "report.target_id")
+					.on("report.target_type", "=", "listing"),
+			)
+			.leftJoin("motorcycle_make", (join) =>
+				join
+					.onRef("motorcycle_make.id", "=", "listing.make_id")
+					.on("report.target_type", "=", "listing"),
+			)
+			.leftJoin("motorcycle_model", (join) =>
+				join
+					.onRef("motorcycle_model.id", "=", "listing.model_id")
+					.on("report.target_type", "=", "listing"),
 			)
 			.leftJoin("user as target_user", (join) =>
-				join.onRef("target_user.id", "=", "report.target_id").on("report.target_type", "=", "user"),
+				join
+					.onRef("target_user.id", "=", "report.target_id")
+					.on("report.target_type", "=", "user"),
 			)
 			.select([
 				"report.id",
@@ -127,6 +141,10 @@ export const getReports = createServerFn({ method: "GET" })
 				"report.created_at",
 				"reporter.name as reporterName",
 				sql<string | null>`coalesce(listing.title, target_user.name)`.as("targetName"),
+				sql<string | null>`listing.short_id`.as("listingShortId"),
+				sql<string | null>`listing.city`.as("listingCity"),
+				sql<string | null>`motorcycle_make.slug`.as("listingMakeSlug"),
+				sql<string | null>`motorcycle_model.name`.as("listingModelName"),
 			]);
 
 		if (status !== "all") {
@@ -191,13 +209,18 @@ export const getUnreviewedListings = createServerFn({ method: "GET" })
 			db
 				.selectFrom("listing")
 				.innerJoin("user", "user.id", "listing.owner_id")
+				.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
+				.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
 				.select([
 					"listing.id",
+					"listing.short_id",
 					"listing.title",
 					"listing.status",
 					"listing.city",
 					"listing.created_at",
 					"user.name as ownerName",
+					"motorcycle_make.slug as makeSlug",
+					"motorcycle_model.name as modelName",
 				])
 				.where("listing.reviewed_at", "is", null)
 				.where("listing.status", "!=", "removed")

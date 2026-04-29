@@ -26,10 +26,13 @@ const getPublicProfile = createServerFn({ method: "GET" })
 
 		const listings = await db
 			.selectFrom("listing")
-			.selectAll()
+			.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
+			.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
+			.selectAll("listing")
+			.select(["motorcycle_make.slug as makeSlug", "motorcycle_model.name as modelName"])
 			.where("owner_id", "=", userId)
-			.where("status", "=", "active")
-			.orderBy("created_at", "desc")
+			.where("listing.status", "=", "active")
+			.orderBy("listing.created_at", "desc")
 			.execute();
 
 		const listingIds = listings.map((l) => l.id);
@@ -146,6 +149,8 @@ function PublicProfilePage() {
 								key={listing.id}
 								listing={listing}
 								images={imagesByListing.get(listing.id) ?? []}
+								makeSlug={listing.makeSlug}
+								modelName={listing.modelName}
 							/>
 						))}
 					</div>
