@@ -29,7 +29,7 @@ export function ListingCard({ listing, images, isOwn }: ListingCardProps) {
 			data-listing-id={listing.id}
 			to="/ilmoitukset/$listingId"
 			params={{ listingId: listing.id }}
-			className="group block overflow-hidden rounded-xl border border-border bg-card card-hover hover:card-hover-active"
+			className="group block overflow-hidden rounded-l border border-border bg-card card-hover hover:card-hover-active"
 		>
 			{/* Image */}
 			<div className="relative aspect-[16/10] overflow-hidden bg-muted-light">

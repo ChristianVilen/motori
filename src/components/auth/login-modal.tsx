@@ -55,7 +55,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 		>
 			<div
 				ref={trapRef}
-				className="w-full max-w-sm rounded-xl bg-card p-6 shadow-xl"
+				className="w-full max-w-sm rounded-l bg-card p-6 shadow-xl"
 				onClick={(e) => e.stopPropagation()}
 				onKeyDown={(e) => e.stopPropagation()}
 				role="document"

@@ -212,6 +212,9 @@ export function MakeModelSelect({
 						<div className="p-2">
 							<input
 								type="text"
+								id="make-filter"
+								name="make_filter"
+								autoComplete="off"
 								// biome-ignore lint/a11y/noAutofocus: intentional — focus filter on dropdown open
 								autoFocus
 								value={makeFilter}
@@ -242,6 +245,9 @@ export function MakeModelSelect({
 									<div className="flex items-center gap-2">
 										<input
 											type="text"
+											id="new-make-name"
+											name="new_make_name"
+											autoComplete="off"
 											// biome-ignore lint/a11y/noAutofocus: intentional — focus add input
 											autoFocus
 											value={newMakeName}
@@ -330,6 +336,9 @@ export function MakeModelSelect({
 						<div className="p-2">
 							<input
 								type="text"
+								id="model-filter"
+								name="model_filter"
+								autoComplete="off"
 								// biome-ignore lint/a11y/noAutofocus: intentional
 								autoFocus
 								value={modelFilter}
@@ -375,6 +384,9 @@ export function MakeModelSelect({
 									<div className="flex items-center gap-2">
 										<input
 											type="text"
+											id="new-model-name"
+											name="new_model_name"
+											autoComplete="off"
 											// biome-ignore lint/a11y/noAutofocus: intentional
 											autoFocus
 											value={newModelName}

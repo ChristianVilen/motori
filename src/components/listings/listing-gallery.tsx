@@ -81,7 +81,7 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 
 	if (images.length === 0) {
 		return (
-			<div className="flex aspect-[4/3] items-center justify-center bg-muted-light md:rounded-2xl">
+			<div className="flex aspect-[4/3] items-center justify-center bg-muted-light md:rounded-l">
 				<svg
 					className="h-16 w-16 text-border"
 					fill="none"
@@ -104,7 +104,7 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 		<>
 			{/* Main carousel — edge-to-edge on mobile, rounded on desktop */}
 			<section
-				className="group relative -mx-4 bg-black md:mx-0 md:overflow-hidden md:rounded-2xl md:shadow-lg"
+				className="group relative -mx-4 bg-black md:mx-0 md:overflow-hidden md:rounded-l md:shadow-lg"
 				aria-roledescription="carousel"
 				aria-label={`${title} — kuvagalleria`}
 			>
@@ -162,8 +162,8 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 
 			{/* Thumbnail strip */}
 			{images.length > 1 && (
-				<nav className="mt-3 overflow-x-clip" ref={thumbRef} aria-label="Pikkukuvat">
-					<div className="flex gap-2 px-0.5 py-0.5">
+				<nav className="mt-3" ref={thumbRef} aria-label="Pikkukuvat">
+					<div className="flex gap-2 px-0.5 py-0.5 flex-wrap">
 						{images.map((img, i) => (
 							<button
 								key={img.id}
@@ -171,7 +171,7 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 								onClick={() => onThumbClick(i)}
 								aria-label={`Siirry kuvaan ${i + 1}`}
 								aria-current={i === selectedIndex ? "true" : undefined}
-								className={`relative h-[4.5rem] w-[4.5rem] flex-[0_0_4.5rem] overflow-hidden rounded-xl transition-all ${
+								className={`h-18 w-18 transition-all ${
 									i === selectedIndex
 										? "ring-2 ring-accent ring-offset-2 ring-offset-background"
 										: "opacity-60 hover:opacity-90"

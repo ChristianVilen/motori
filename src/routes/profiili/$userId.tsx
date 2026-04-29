@@ -93,7 +93,10 @@ function PublicProfilePage() {
 		imagesByListing.set(img.listing_id, arr);
 	}
 
-	const memberSince = formatDate(new Date(profile.created_at), { year: "numeric", month: "long" });
+	const memberSince = formatDate(new Date(profile.created_at), {
+		year: "numeric",
+		month: "long",
+	});
 
 	return (
 		<div className="min-h-screen bg-background">
@@ -107,7 +110,7 @@ function PublicProfilePage() {
 				</Link>
 
 				{/* Header */}
-				<div className="mb-8 rounded-xl border border-border bg-card p-6">
+				<div className="mb-8 rounded-l border border-border bg-card p-6">
 					<h1 className="text-2xl font-bold text-primary">{profile.display_name}</h1>
 					<div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted">
 						{!!profile.city && (

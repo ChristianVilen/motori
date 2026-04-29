@@ -437,6 +437,7 @@ export function ListingForm({
 									</label>
 									<Input
 										id="city"
+										autoComplete="address-level2"
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onChange={(e) => field.handleChange(e.target.value)}
@@ -482,6 +483,7 @@ export function ListingForm({
 								</label>
 								<Input
 									id="postal_code"
+									autoComplete="postal-code"
 									value={field.state.value}
 									onBlur={field.handleBlur}
 									onChange={(e) => field.handleChange(e.target.value)}

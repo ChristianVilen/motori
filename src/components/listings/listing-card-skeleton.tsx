@@ -1,6 +1,6 @@
 export function ListingCardSkeleton() {
 	return (
-		<div className="overflow-hidden rounded-xl border border-border bg-card">
+		<div className="overflow-hidden rounded-l border border-border bg-card">
 			<div className="aspect-[16/10] animate-pulse bg-muted-light" />
 			<div className="space-y-3 p-4">
 				<div className="flex items-start justify-between gap-2">
