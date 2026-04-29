@@ -134,7 +134,7 @@ Cloudflare DNS records (both proxied — orange cloud):
 
 **TLS is handled by Cloudflare** using a Cloudflare Origin Certificate (free, 15-year validity). Cloudflare terminates HTTPS at the edge and connects to the nginx container over HTTPS using the origin cert. SSL mode in the Cloudflare dashboard must be **Full (strict)**: motori.fi → SSL/TLS → Overview.
 
-The origin cert lives in `infra/certs/` (gitignored) and is deployed to `/etc/ssl/motori.fi.{pem,key}` on the host via `just push-certs`. The nginx config (`infra/nginx/motori.conf`) is bind-mounted from the repo, so it ships with the codebase and doesn't need a separate push step.
+The origin cert lives in `infra/certs/` (gitignored) and is deployed to `/etc/ssl/motori.fi.{pem,key}` on the host via `just push-certs`. The nginx config (`infra/nginx/motori.conf`) is rsynced to `/opt/motori/nginx/motori.conf` by `just push-config` (called from every `just deploy`).
 
 ## Backups
 
@@ -209,7 +209,7 @@ Also:
 - Writes `/etc/motori.env` (mode 600) with `NODE_ENV`, `PORT`, `DB_PASSWORD`, and `DATABASE_URL` pre-filled
 - Disables SSH password authentication
 
-It does **not** clone the repo or start containers — those happen on first deploy.
+It does **not** push config or start containers — those happen on first deploy (`just bootstrap`).
 
 ## Deployment
 
@@ -217,22 +217,25 @@ There are three flows, in increasing order of impact:
 
 | Command | When to use | Roughly does |
 |---------|-------------|--------------|
-| `just deploy` | Routine code change merged to `main` | `git pull` → build → migrate → `up -d` |
-| `just bootstrap` | After `terraform apply` of a fresh server (or after `just rebuild`) | Wait for cloud-init → push deploy key → clone repo → push env → push certs → deploy |
+| `just deploy` | Routine code change merged to `main` | rsync compose+nginx → `docker pull` (from GHCR) → migrate → `up -d` |
+| `just bootstrap` | After `terraform apply` of a fresh server (or after `just rebuild`) | Wait for cloud-init → GHCR login → push env → push compose+nginx → push certs → deploy |
 | `just nuke` | Disaster recovery — destroy + rebuild + bootstrap end-to-end | `just rebuild` + `just bootstrap` |
+
+The VPS holds **no source code** — only the compose file, nginx config, env, and TLS certs. Application images come from GHCR; everything else is rsynced from this repo.
 
 ### Routine deploys
 
 ```bash
-just deploy
+just deploy                       # ships :latest (last green build of main)
+just deploy tag=<short-or-full-sha>  # roll back / pin a specific build
 ```
 
-SSHes to the server, pulls `main`, builds the images, runs the `migrate` oneshot, then `up -d` for `app` + `nginx` (rolling restart of changed services).
+`push-config` rsyncs `docker-compose.prod.yml` and `nginx/motori.conf` to `/opt/motori/`, then SSHes to the server, pulls the matching `motori-app` and `motori-migrate` images from GHCR, runs the `migrate` oneshot, then `up -d`. No build, no clone, no `git` on the VPS — images come from CI (`.github/workflows/ci.yml`, `release` job, gated on the full test suite).
 
 ### First-time bootstrap (or after a rebuild)
 
 Prerequisites:
-- `infra/secrets/github_deploy{,.pub}` exists locally (the deploy key registered with GitHub — see "GitHub deploy key" below).
+- `infra/secrets/ghcr-token` — a GitHub PAT with `read:packages` scope. See "GHCR access" below.
 - `.env.production` at the repo root, with `DB_PASSWORD` matching the `db_password` tfvar.
 - `infra/certs/motori.com.{pem,key}` — the Cloudflare origin certificate.
 
@@ -242,7 +245,7 @@ Then:
 just bootstrap
 ```
 
-This runs the full chain: `wait-for-server → push-deploy-key → bootstrap-repo → push-env → push-certs → deploy`. If any step fails the chain stops; re-running picks back up cleanly because each step is idempotent (`bootstrap-repo` skips if already cloned, `push-env` is rsync, etc.).
+Runs `wait-for-server → login → push-env → push-config → push-certs → deploy`. Each step is idempotent — re-running after a failure picks back up cleanly.
 
 ### Disaster recovery
 
@@ -250,27 +253,26 @@ This runs the full chain: `wait-for-server → push-deploy-key → bootstrap-rep
 just nuke
 ```
 
-`taint` the server in Terraform, `apply` (volume + IP survive — both delete-protected), then full bootstrap. Total time ~5–7 min on the CX33.
+`taint` the server in Terraform, `apply` (volume + IP survive — both delete-protected), then full bootstrap. Total time ~3–5 min on the CX33 (faster than before since no build runs on the VPS).
 
 ⚠ **Manual step required first**: delete the existing `app-server` node in the Tailscale admin console, otherwise the new VPS registers as `app-server-1` and SSH (which targets `app-server` via MagicDNS) hits the dead node. There's no Tailscale CLI for this from the local side — open the admin and click delete.
 
-### GitHub deploy key
-
-The repo is private, so the server clones over SSH using a per-repo deploy key.
-
-1. Generate once, locally:
-   ```bash
-   mkdir -p infra/secrets
-   ssh-keygen -t ed25519 -f infra/secrets/github_deploy -N "" -C "motori-vps-deploy"
-   ```
-2. Register the public key on GitHub: repo Settings → Deploy keys → Add deploy key. **Leave "Allow write access" unchecked.**
-3. `infra/secrets/` is gitignored. Back up the keypair to a password manager — losing it means generating a new one and re-registering.
-
-`just push-deploy-key` (called automatically by `bootstrap`) scps the keypair to `/root/.ssh/` on the server and writes a `~/.ssh/config` block pinning `github.com` to it.
-
 ### Build location
 
-Builds run on the server. The CX33 has 4 vCPU / 8 GB RAM — `pnpm install` + Vite build takes ~1–2 min and shares CPU/RAM with the running Postgres + app, so expect a brief latency spike during deploy. There's no image registry; rolling back means `git checkout <sha> && just deploy`. If you outgrow this, switch to building in CI and pushing to GHCR.
+Builds run in GitHub Actions (`.github/workflows/ci.yml`, `release` job, gated on `lint + format + typecheck + test + e2e`) on every push to `main`, producing two images in **GHCR**:
+
+- `ghcr.io/christianvilen/motori-app` (Dockerfile target `runner`)
+- `ghcr.io/christianvilen/motori-migrate` (target `migrator`)
+
+Each image is published with three tags: full SHA, short SHA (7 chars), and `:latest`. The VPS only pulls — no build CPU on production, no latency spike during deploy. Rollback is a one-liner: `just deploy tag=ad1549d` re-pulls and restarts in ~10 seconds.
+
+### GHCR access
+
+Both image packages are private (the repo is private). The server authenticates to GHCR with a personal access token persisted in `/root/.docker/config.json`.
+
+1. Generate a token at github.com/settings/tokens — classic with scope `read:packages`, or a fine-grained PAT with package read access on this repo.
+2. Save it as a single line (no trailing newline) at `infra/secrets/ghcr-token`. The directory is gitignored.
+3. `just login` (called automatically by `bootstrap`) pipes it into `docker login ghcr.io` on the server. Run it again whenever you rotate the token.
 
 ## Installed services
 
