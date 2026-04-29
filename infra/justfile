@@ -1,22 +1,12 @@
 set shell := ["bash", "-c"]
 
+compose := "docker compose --env-file /etc/motori.env -f /opt/motori/docker-compose.prod.yml"
+
 # List available commands
 default:
     @just --list
 
 # --- Terraform ---
-
-# Initialize (first time, or after backend config changes)
-init:
-    terraform init
-
-# Format all Terraform files
-fmt:
-    terraform fmt
-
-# Validate Terraform configuration
-validate:
-    terraform validate
 
 # Preview infrastructure changes
 plan:
@@ -26,122 +16,105 @@ plan:
 apply:
     terraform apply
 
-# Force the server to be rebuilt on next apply (volume + IP survive — they're delete-protected)
+# Force the server to be rebuilt on next apply (volume + IP survive — both delete-protected)
 taint:
     terraform taint hcloud_server.app
 
-# Rebuild the server from scratch — taint + apply in one go
+# Rebuild the server from scratch — taint + apply
 rebuild: taint apply
 
 # Show all Terraform outputs
 output:
     terraform output
 
-# Print the server's public IPv4
+# Print the server's public IPv4 (for Cloudflare A record)
 ip:
     @terraform output -raw server_ip
 
 # --- Server access ---
 
-# Open an interactive SSH session (fixes Tailscale MTU first to avoid hangs)
+# Open an interactive SSH session
 ssh:
     ssh root@app-server
-ssh-fix:
-    sudo ip link set tailscale0 mtu 1200
 
 # Show health of all containers and disk usage
 status:
     ssh root@app-server " \
         echo '=== cloud-init ===' && cloud-init status && \
-        echo '=== containers ===' && docker compose --env-file /etc/motori.env -f /opt/motori/docker-compose.prod.yml ps && \
+        echo '=== containers ===' && {{compose}} ps && \
         echo '=== disk ===' && df -h /var/lib/motori/pgdata"
 
-# Tail the app logs (Ctrl+C to exit)
+# Tail the app logs
 logs:
-    ssh root@app-server "docker compose --env-file /etc/motori.env -f /opt/motori/docker-compose.prod.yml logs -f --tail=200 app"
+    ssh root@app-server "{{compose}} logs -f --tail=200 app"
 
-# --- Secrets & certs ---
+# Fix Tailscale SSH MTU locally (run when SSH hangs but ping works)
+fix-mtu:
+    sudo ip link set tailscale0 mtu 1200
 
-# Push local .env.production to the server (DB_PASSWORD + DATABASE_URL must already be set by cloud-init)
+# --- Push secrets, config, certs ---
+
+# Rsync .env.production to /etc/motori.env
 push-env:
     rsync ../.env.production root@app-server:/etc/motori.env
-    @echo "Secrets pushed. Restart the app with: just restart"
 
-# Push the compose file and nginx config to /opt/motori on the server. The server holds no source.
+# Rsync compose file + nginx config to /opt/motori/ (the only files the server needs from this repo)
 push-config:
     ssh root@app-server "mkdir -p /opt/motori/nginx"
     rsync ../docker-compose.prod.yml root@app-server:/opt/motori/docker-compose.prod.yml
     rsync nginx/motori.conf root@app-server:/opt/motori/nginx/motori.conf
 
-# Push TLS certificates to the server. nginx config is bind-mounted from /opt/motori/nginx (push-config).
+# Push Cloudflare origin TLS certs and reload nginx
 push-certs:
     scp certs/motori.com.pem root@app-server:/etc/ssl/motori.fi.pem
     scp certs/motori.com.key root@app-server:/etc/ssl/motori.fi.key
-    ssh root@app-server "chmod 600 /etc/ssl/motori.fi.key && docker compose --env-file /etc/motori.env -f /opt/motori/docker-compose.prod.yml restart nginx"
+    ssh root@app-server "chmod 600 /etc/ssl/motori.fi.key && {{compose}} restart nginx"
+
+# Log the server into GHCR. Reads infra/secrets/ghcr-token (PAT with read:packages).
+login:
+    tr -d '\n' < secrets/ghcr-token | ssh root@app-server "docker login ghcr.io -u christianvilen --password-stdin"
+
+# Install/update the motori app cron job (idempotent)
+push-cron:
+    ssh root@app-server "printf '0 3 * * * root curl -sf -X POST -H \"Authorization: Bearer \$(grep CRON_SECRET /etc/motori.env | cut -d= -f2-)\" http://localhost:3000/api/cron >> /var/log/motori-cron.log 2>&1\n' > /etc/cron.d/motori-cron && chmod 644 /etc/cron.d/motori-cron"
 
 # --- Deploy ---
 
-# Sync compose+nginx, pull pre-built images from GHCR, run migrations, restart app + nginx.
-# Defaults to `:latest` (last green build of `main`).
-# Roll back / pin a build:  just deploy tag=<git-sha-short-or-long>
+# Sync compose+nginx, pull GHCR images, run migrations, restart app + nginx. Roll back: just deploy tag=<sha>
 deploy tag="latest": push-config
-    ssh root@app-server " \
-        export MOTORI_TAG={{tag}} && \
-        cd /opt/motori && \
-        docker compose --env-file /etc/motori.env -f docker-compose.prod.yml pull app migrate && \
-        docker compose --env-file /etc/motori.env -f docker-compose.prod.yml run --rm migrate && \
-        docker compose --env-file /etc/motori.env -f docker-compose.prod.yml up -d"
+    ssh root@app-server "export MOTORI_TAG={{tag}} && \
+        {{compose}} pull app migrate && \
+        {{compose}} run --rm migrate && \
+        {{compose}} up -d"
 
-# Log Docker into GHCR on the server. One-time per server (token persists in /root/.docker/config.json).
-# Reads token from infra/secrets/ghcr-token (gitignored). Generate at github.com/settings/tokens
-# (classic, scope: read:packages) or a fine-grained PAT with package read access.
-# `tr -d '\n'` defends against accidental trailing newlines in the token file.
-login:
-    tr -d '\n' < secrets/ghcr-token | ssh root@app-server "docker login ghcr.io -u christianvilen --password-stdin"
-    @echo "GHCR login OK."
-
-# Wait until the server is reachable over Tailscale and cloud-init has finished.
-# Useful right after `just rebuild` — cloud-init takes ~1-2 min before SSH works.
+# Wait for Tailscale + cloud-init after a server rebuild
 wait-for-server:
-    @echo "→ waiting for Tailscale SSH + cloud-init…"
+    @echo "→ waiting for cloud-init…"
     @while ! ssh -o ConnectTimeout=5 -o BatchMode=yes -o StrictHostKeyChecking=accept-new \
-        root@app-server "cloud-init status --wait" >/dev/null 2>&1; do \
-        printf "."; sleep 5; \
-    done
+        root@app-server "cloud-init status --wait" >/dev/null 2>&1; do printf "."; sleep 5; done
     @echo " ready."
 
-# Full bootstrap: GHCR login, env, config, certs, first deploy.
-# Run after `just rebuild` (rename the new Tailscale node back to `app-server` first if needed).
+# First-time provisioning chain (GHCR login → env → config → certs → deploy). Use after `just rebuild`.
 bootstrap: wait-for-server login push-env push-config push-certs deploy
     @echo "✓ Bootstrap complete. Verify: just status && curl -I https://motori.fi"
 
-# Nuclear option: rebuild the server and run full bootstrap in one go.
-# Reminder: delete the old `app-server` node in Tailscale admin first, or you'll get `app-server-1`.
+# Disaster recovery: rebuild + bootstrap
 nuke: rebuild bootstrap
 
 # --- Maintenance ---
 
 # Restart the app container
 restart:
-    ssh root@app-server "docker compose --env-file /etc/motori.env -f /opt/motori/docker-compose.prod.yml restart app"
+    ssh root@app-server "{{compose}} restart app"
 
 # Run a database backup right now
 backup:
     ssh root@app-server "/usr/local/bin/db-backup"
 
-# Open a psql shell on the server
+# Open a psql shell
 psql:
-    ssh -t root@app-server "docker compose --env-file /etc/motori.env -f /opt/motori/docker-compose.prod.yml exec db psql -U appuser appdb"
+    ssh -t root@app-server "{{compose}} exec db psql -U appuser appdb"
 
-# Grant admin role to a user by email: just make-admin email=user@example.com
+# Grant admin role to a user: just make-admin email=user@example.com
 make-admin email:
-    ssh root@app-server "docker compose --env-file /etc/motori.env -f /opt/motori/docker-compose.prod.yml exec -T db psql -U appuser appdb -c \"UPDATE \\\"user\\\" SET role = 'admin' WHERE email = '{{email}}'; SELECT email, role FROM \\\"user\\\" WHERE email = '{{email}}';\""
-
-# Install/update the motori cron job on the running server (idempotent)
-push-cron:
-    ssh root@app-server "printf '0 3 * * * root curl -sf -X POST -H \"Authorization: Bearer \$(grep CRON_SECRET /etc/motori.env | cut -d= -f2-)\" http://localhost:3000/api/cron >> /var/log/motori-cron.log 2>&1\n' > /etc/cron.d/motori-cron && chmod 644 /etc/cron.d/motori-cron"
-    @echo "Cron installed. Verify with: ssh root@app-server 'cat /etc/cron.d/motori-cron'"
-
-# Fix Tailscale SSH MTU (run locally when SSH hangs but ping works)
-fix-mtu:
-    sudo ip link set tailscale0 mtu 1200
+    ssh root@app-server "{{compose}} exec -T db psql -U appuser appdb -c \"UPDATE \\\"user\\\" SET role = 'admin' WHERE email = '{{email}}'; SELECT email, role FROM \\\"user\\\" WHERE email = '{{email}}';\""

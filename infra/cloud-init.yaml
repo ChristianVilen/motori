@@ -15,7 +15,6 @@ apt:
 
 packages:
   - curl
-  - git
   - ufw
   - unzip
   - ca-certificates
