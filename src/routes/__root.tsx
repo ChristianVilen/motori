@@ -53,6 +53,7 @@ export const Route = createRootRoute({
 			{ rel: "stylesheet", href: appCss },
 			{ rel: "manifest", href: "/manifest.webmanifest" },
 			{ rel: "icon", href: "/favicon.ico", sizes: "any" },
+			{ rel: "icon", href: "/favicon-96x96.png", type: "image/png", sizes: "96x96" },
 			{ rel: "apple-touch-icon", href: "/icon-192.png" },
 			...supportedLngs.map((lng) => ({ rel: "alternate", hrefLang: lng, href: `${SITE_URL}/` })),
 			{ rel: "alternate", hrefLang: "x-default", href: `${SITE_URL}/` },
