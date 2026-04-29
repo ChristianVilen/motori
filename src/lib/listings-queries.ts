@@ -11,7 +11,11 @@ const PAGE_SIZE = 12;
 
 type SortMode = "relevance" | "price_asc" | "price_desc" | "newest";
 
-export type ListingWithImages = Listing & { images: ListingImage[] };
+export type ListingWithImages = Listing & {
+	images: ListingImage[];
+	makeSlug: string | null;
+	modelName: string | null;
+};
 
 export interface SearchResult {
 	listings: ListingWithImages[];
@@ -100,6 +104,39 @@ async function fetchFirstImages(listingIds: string[]): Promise<Map<string, Listi
 	return imageMap;
 }
 
+async function attachMakeModel<T extends Listing>(
+	listings: T[],
+): Promise<Array<T & { makeSlug: string | null; modelName: string | null }>> {
+	if (listings.length === 0) {
+		return [];
+	}
+
+	const makeIds = [...new Set(listings.map((l) => l.make_id))];
+	const modelIds = [
+		...new Set(listings.map((l) => l.model_id).filter((id): id is string => id !== null)),
+	];
+
+	const [makes, models] = await Promise.all([
+		db.selectFrom("motorcycle_make").select(["id", "slug"]).where("id", "in", makeIds).execute(),
+		modelIds.length > 0
+			? db
+					.selectFrom("motorcycle_model")
+					.select(["id", "name"])
+					.where("id", "in", modelIds)
+					.execute()
+			: Promise.resolve([]),
+	]);
+
+	const makeMap = new Map(makes.map((m) => [m.id, m.slug]));
+	const modelMap = new Map(models.map((m) => [m.id, m.name]));
+
+	return listings.map((l) => ({
+		...l,
+		makeSlug: makeMap.get(l.make_id) ?? null,
+		modelName: l.model_id ? (modelMap.get(l.model_id) ?? null) : null,
+	}));
+}
+
 // NOTE: For "relevance" sort, the cursor falls back to created_at which may skip
 // results with lower relevance but newer timestamps. Acceptable for MVP since most
 // users won't page deep through relevance results. A proper fix would require
@@ -122,7 +159,6 @@ export const searchListings = createServerFn({ method: "GET" })
 		const tsquery = params.q ? toTsQuery(params.q) : null;
 		const sort: SortMode = params.sort ?? (tsquery ? "relevance" : "newest");
 
-		// --- Build the filtered base query ---
 		let baseQuery = db.selectFrom("listing").where("listing.status", "=", "active");
 
 		if (tsquery) {
@@ -163,8 +199,12 @@ export const searchListings = createServerFn({ method: "GET" })
 
 		const listings = await query.execute();
 
-		const imageMap = await fetchFirstImages(listings.map((l) => l.id));
-		const listingsWithImages: ListingWithImages[] = listings.map((l) => ({
+		const [withMakeModel, imageMap] = await Promise.all([
+			attachMakeModel(listings),
+			fetchFirstImages(listings.map((l) => l.id)),
+		]);
+
+		const listingsWithImages: ListingWithImages[] = withMakeModel.map((l) => ({
 			...l,
 			images: imageMap.get(l.id) ?? [],
 		}));
@@ -186,11 +226,15 @@ export const getLatestListings = createServerFn({ method: "GET" }).handler(async
 		.execute();
 
 	if (listings.length === 0) {
-		return [];
+		return [] as ListingWithImages[];
 	}
 
-	const imageMap = await fetchFirstImages(listings.map((l) => l.id));
-	return listings.map((l) => ({
+	const [withMakeModel, imageMap] = await Promise.all([
+		attachMakeModel(listings),
+		fetchFirstImages(listings.map((l) => l.id)),
+	]);
+
+	return withMakeModel.map((l) => ({
 		...l,
 		images: imageMap.get(l.id) ?? [],
 	})) as ListingWithImages[];

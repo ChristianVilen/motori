@@ -181,6 +181,8 @@ function BrowsePage() {
 										key={listing.id}
 										listing={listing}
 										images={listing.images}
+										makeSlug={listing.makeSlug}
+										modelName={listing.modelName}
 										isOwn={currentUserId !== null && listing.owner_id === currentUserId}
 									/>
 								))}

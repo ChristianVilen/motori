@@ -1,5 +1,5 @@
 // src/routes/ilmoitukset/$listingId_.muokkaa.tsx
-// Trailing underscore on $listingId_ opts out of $listingId.tsx as parent layout.
+// Trailing underscore on $listingId_ opts out of $listingId_.$slug.tsx as parent layout.
 import { createFileRoute, Link, notFound, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ArrowLeft } from "lucide-react";
@@ -12,26 +12,33 @@ import { EVENTS } from "~/lib/log/events";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { requireVerifiedEmail } from "~/lib/require-verified-email";
 import { getSession } from "~/lib/session";
+import { computeListingSlug } from "~/lib/slug";
 import type { ListingFormData } from "~/lib/validators";
 import { isValidImageUrl, listingFormSchema } from "~/lib/validators";
 
 const getListingForEdit = createServerFn({ method: "GET" })
-	.inputValidator((id: string) => id)
-	.handler(async ({ data: id }) => {
+	.inputValidator((shortId: string) => shortId)
+	.handler(async ({ data: shortId }) => {
 		const session = await getSession();
 		if (!session) {
 			throw new Error("Kirjaudu sisään");
 		}
 
-		const listing = await db
+		const row = await db
 			.selectFrom("listing")
-			.selectAll()
-			.where("id", "=", id)
+			.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
+			.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
+			.selectAll("listing")
+			.select(["motorcycle_make.slug as makeSlug", "motorcycle_model.name as modelName"])
+			.where("listing.short_id", "=", shortId)
 			.executeTakeFirst();
 
-		if (!listing) {
+		if (!row) {
 			return null;
 		}
+
+		const { makeSlug, modelName, ...listing } = row;
+
 		if (listing.owner_id !== session.user.id) {
 			throw new Error("Ei oikeuksia");
 		}
@@ -39,11 +46,11 @@ const getListingForEdit = createServerFn({ method: "GET" })
 		const images = await db
 			.selectFrom("listing_image")
 			.selectAll()
-			.where("listing_id", "=", id)
+			.where("listing_id", "=", listing.id)
 			.orderBy("order", "asc")
 			.execute();
 
-		return { listing, images };
+		return { listing, images, makeSlug: makeSlug ?? null, modelName: modelName ?? null };
 	});
 
 const updateListing = createServerFn({ method: "POST" })
@@ -158,7 +165,7 @@ export const Route = createFileRoute("/ilmoitukset/$listingId_/muokkaa")({
 
 function EditListingPage() {
 	const { t } = useTranslation("listings");
-	const { listing, images } = Route.useLoaderData();
+	const { listing, images, makeSlug, modelName } = Route.useLoaderData();
 	const navigate = useNavigate();
 
 	const initialValues = {
@@ -181,16 +188,23 @@ function EditListingPage() {
 
 	async function handleSubmit(data: ListingFormData) {
 		await updateListing({ data: { id: listing.id, form: data } });
-		navigate({ to: "/ilmoitukset/$listingId", params: { listingId: listing.id }, replace: true });
+		const slug = computeListingSlug(makeSlug, modelName, listing.city);
+		navigate({
+			to: "/ilmoitukset/$listingId/$slug",
+			params: { listingId: listing.short_id, slug },
+			replace: true,
+		});
 	}
+
+	const slug = computeListingSlug(makeSlug, modelName, listing.city);
 
 	return (
 		<div className="min-h-screen bg-background">
 			<div className="mx-auto max-w-2xl px-4 py-8">
 				<div className="mb-8">
 					<Link
-						to="/ilmoitukset/$listingId"
-						params={{ listingId: listing.id }}
+						to="/ilmoitukset/$listingId/$slug"
+						params={{ listingId: listing.short_id, slug }}
 						className="mb-4 flex items-center gap-1 text-sm text-muted hover:text-foreground"
 					>
 						<ArrowLeft className="h-4 w-4" />

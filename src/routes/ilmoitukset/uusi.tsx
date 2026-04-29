@@ -11,6 +11,7 @@ import { EVENTS } from "~/lib/log/events";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { requireVerifiedEmail } from "~/lib/require-verified-email";
 import { getSession } from "~/lib/session";
+import { computeListingSlug, generateShortId } from "~/lib/slug";
 import type { ListingFormData } from "~/lib/validators";
 import { isValidImageUrl, listingFormSchema } from "~/lib/validators";
 
@@ -33,12 +34,14 @@ const createListing = createServerFn({ method: "POST" })
 		}
 
 		const id = crypto.randomUUID();
+		const shortId = generateShortId();
 		const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days
 
 		await db
 			.insertInto("listing")
 			.values({
 				id,
+				short_id: shortId,
 				owner_id: session.user.id,
 				title: data.title,
 				make_id: data.make_id,
@@ -78,7 +81,26 @@ const createListing = createServerFn({ method: "POST" })
 				.execute();
 		}
 
-		return { id };
+		const make = await db
+			.selectFrom("motorcycle_make")
+			.select(["slug"])
+			.where("id", "=", data.make_id)
+			.executeTakeFirst();
+
+		const model = data.model_id
+			? await db
+					.selectFrom("motorcycle_model")
+					.select(["name"])
+					.where("id", "=", data.model_id)
+					.executeTakeFirst()
+			: null;
+
+		return {
+			shortId,
+			makeSlug: make?.slug ?? null,
+			modelName: model?.name ?? null,
+			city: data.city,
+		};
 	});
 
 export const Route = createFileRoute("/ilmoitukset/uusi")({
@@ -100,8 +122,13 @@ function NewListingPage() {
 	const navigate = useNavigate();
 
 	async function handleSubmit(data: ListingFormData) {
-		const { id } = await createListing({ data });
-		navigate({ to: "/ilmoitukset/$listingId", params: { listingId: id }, replace: true });
+		const result = await createListing({ data });
+		const slug = computeListingSlug(result.makeSlug, result.modelName, result.city);
+		navigate({
+			to: "/ilmoitukset/$listingId/$slug",
+			params: { listingId: result.shortId, slug },
+			replace: true,
+		});
 	}
 
 	return (

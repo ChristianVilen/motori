@@ -11,6 +11,7 @@ import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { requireVerifiedEmail } from "~/lib/require-verified-email";
 import { getSession } from "~/lib/session";
+import { computeListingSlug } from "~/lib/slug";
 import { useEmailVerified } from "~/lib/use-email-verified";
 
 const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
@@ -21,10 +22,13 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 
 	const listings = await db
 		.selectFrom("listing")
-		.selectAll()
+		.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
+		.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
+		.selectAll("listing")
+		.select(["motorcycle_make.slug as makeSlug", "motorcycle_model.name as modelName"])
 		.where("owner_id", "=", session.user.id)
-		.where("status", "!=", "removed")
-		.orderBy("created_at", "desc")
+		.where("listing.status", "!=", "removed")
+		.orderBy("listing.created_at", "desc")
 		.execute();
 
 	const listingIds = listings.map((l) => l.id);
@@ -94,7 +98,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 interface ListingRowProps {
-	listing: Listing;
+	listing: Listing & { makeSlug: string | null; modelName: string | null };
 	firstImage: ListingImage | undefined;
 	onStatusChange: () => void;
 	verified: boolean | null;
@@ -124,16 +128,18 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 		onStatusChange();
 	}
 
+	const slug = computeListingSlug(listing.makeSlug, listing.modelName, listing.city);
+
 	return (
 		<div
 			className="flex gap-4 rounded-l border border-border bg-card p-4"
 			data-testid="dashboard-listing-row"
-			data-listing-id={listing.id}
+			data-listing-id={listing.short_id}
 		>
 			{/* Thumbnail */}
 			<Link
-				to="/ilmoitukset/$listingId"
-				params={{ listingId: listing.id }}
+				to="/ilmoitukset/$listingId/$slug"
+				params={{ listingId: listing.short_id, slug }}
 				className="h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-muted-light"
 			>
 				{firstImage ? (
@@ -162,8 +168,8 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 			<div className="min-w-0 flex-1">
 				<div className="flex flex-wrap items-start justify-between gap-2">
 					<Link
-						to="/ilmoitukset/$listingId"
-						params={{ listingId: listing.id }}
+						to="/ilmoitukset/$listingId/$slug"
+						params={{ listingId: listing.short_id, slug }}
 						className="text-sm font-semibold text-foreground hover:text-accent"
 					>
 						{listing.title}
@@ -198,7 +204,7 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 					{verified ? (
 						<Link
 							to="/ilmoitukset/$listingId/muokkaa"
-							params={{ listingId: listing.id }}
+							params={{ listingId: listing.short_id }}
 							data-testid="dashboard-listing-edit"
 						>
 							<Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs">

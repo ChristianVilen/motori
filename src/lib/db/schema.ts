@@ -105,6 +105,7 @@ export type MotorcycleModel = Selectable<MotorcycleModelTable>;
 export interface ListingTable {
 	id: string;
 	owner_id: string;
+	short_id: string;
 	title: string;
 	make_id: string;
 	model_id: string | null;

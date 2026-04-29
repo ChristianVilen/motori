@@ -14,8 +14,10 @@ export const TEST_EMAIL = "e2e-user@test.example.com";
 export const TEST_PASSWORD = "E2eTestPass123!";
 export const AUTH_STATE_PATH = "e2e/.auth/user.json";
 
-// Deterministic listing used by listings.spec.ts. Slug-like id so we can assert on it.
-export const SEEDED_LISTING_ID = "e2e-seed-honda-cb500f-uusimaa";
+// Deterministic IDs for the e2e seed listing
+export const SEEDED_LISTING_UUID = "e2e-seed-honda-cb500f-uusimaa"; // stable DB id
+export const SEEDED_LISTING_ID = "e2eseed1"; // short_id — used in URLs and data-listing-id
+export const SEEDED_LISTING_SLUG = "honda-e2e-helsinki"; // make slug + city
 export const SEEDED_LISTING_TITLE = "E2E Seed Honda CB500F 2022";
 
 export default async function globalSetup() {
@@ -89,7 +91,7 @@ async function seedListings(ownerId: string) {
 	const { db } = await import("../src/lib/db/index");
 
 	// Idempotent: delete any prior seed rows first so tests always see a known state.
-	await db.deleteFrom("listing").where("id", "=", SEEDED_LISTING_ID).execute();
+	await db.deleteFrom("listing").where("id", "=", SEEDED_LISTING_UUID).execute();
 
 	// Clean up e2e make from previous run, then re-insert.
 	// listing.make_id has no ON DELETE CASCADE, so clean up dependent listings first.
@@ -111,7 +113,8 @@ async function seedListings(ownerId: string) {
 	await db
 		.insertInto("listing")
 		.values({
-			id: SEEDED_LISTING_ID,
+			id: SEEDED_LISTING_UUID,
+			short_id: SEEDED_LISTING_ID,
 			owner_id: ownerId,
 			title: SEEDED_LISTING_TITLE,
 			make_id: e2eMake.id,

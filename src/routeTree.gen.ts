@@ -26,13 +26,13 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ProfiiliAsetuksetRouteImport } from './routes/profiili/asetukset'
 import { Route as ProfiiliUserIdRouteImport } from './routes/profiili/$userId'
 import { Route as IlmoituksetUusiRouteImport } from './routes/ilmoitukset/uusi'
-import { Route as IlmoituksetListingIdRouteImport } from './routes/ilmoitukset/$listingId'
 import { Route as ApiCronRouteImport } from './routes/api/cron'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminModerationRouteImport } from './routes/admin/moderation'
 import { Route as AdminMakesRouteImport } from './routes/admin/makes'
 import { Route as AdminListingsRouteImport } from './routes/admin/listings'
 import { Route as IlmoituksetListingIdMuokkaaRouteImport } from './routes/ilmoitukset/$listingId_.muokkaa'
+import { Route as IlmoituksetListingIdSlugRouteImport } from './routes/ilmoitukset/$listingId_.$slug'
 import { Route as ApiUploadsSplatRouteImport } from './routes/api/uploads/$'
 import { Route as ApiImagesUploadRouteImport } from './routes/api/images/upload'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -122,11 +122,6 @@ const IlmoituksetUusiRoute = IlmoituksetUusiRouteImport.update({
   path: '/ilmoitukset/uusi',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IlmoituksetListingIdRoute = IlmoituksetListingIdRouteImport.update({
-  id: '/ilmoitukset/$listingId',
-  path: '/ilmoitukset/$listingId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiCronRoute = ApiCronRouteImport.update({
   id: '/api/cron',
   path: '/api/cron',
@@ -156,6 +151,12 @@ const IlmoituksetListingIdMuokkaaRoute =
   IlmoituksetListingIdMuokkaaRouteImport.update({
     id: '/ilmoitukset/$listingId_/muokkaa',
     path: '/ilmoitukset/$listingId/muokkaa',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const IlmoituksetListingIdSlugRoute =
+  IlmoituksetListingIdSlugRouteImport.update({
+    id: '/ilmoitukset/$listingId_/$slug',
+    path: '/ilmoitukset/$listingId/$slug',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiUploadsSplatRoute = ApiUploadsSplatRouteImport.update({
@@ -191,7 +192,6 @@ export interface FileRoutesByFullPath {
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/cron': typeof ApiCronRoute
-  '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
@@ -201,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/images/upload': typeof ApiImagesUploadRoute
   '/api/uploads/$': typeof ApiUploadsSplatRoute
+  '/ilmoitukset/$listingId/$slug': typeof IlmoituksetListingIdSlugRoute
   '/ilmoitukset/$listingId/muokkaa': typeof IlmoituksetListingIdMuokkaaRoute
 }
 export interface FileRoutesByTo {
@@ -219,7 +220,6 @@ export interface FileRoutesByTo {
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/cron': typeof ApiCronRoute
-  '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
@@ -229,6 +229,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/images/upload': typeof ApiImagesUploadRoute
   '/api/uploads/$': typeof ApiUploadsSplatRoute
+  '/ilmoitukset/$listingId/$slug': typeof IlmoituksetListingIdSlugRoute
   '/ilmoitukset/$listingId/muokkaa': typeof IlmoituksetListingIdMuokkaaRoute
 }
 export interface FileRoutesById {
@@ -249,7 +250,6 @@ export interface FileRoutesById {
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/cron': typeof ApiCronRoute
-  '/ilmoitukset/$listingId': typeof IlmoituksetListingIdRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
@@ -259,6 +259,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/images/upload': typeof ApiImagesUploadRoute
   '/api/uploads/$': typeof ApiUploadsSplatRoute
+  '/ilmoitukset/$listingId_/$slug': typeof IlmoituksetListingIdSlugRoute
   '/ilmoitukset/$listingId_/muokkaa': typeof IlmoituksetListingIdMuokkaaRoute
 }
 export interface FileRouteTypes {
@@ -280,7 +281,6 @@ export interface FileRouteTypes {
     | '/admin/moderation'
     | '/admin/users'
     | '/api/cron'
-    | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
     | '/profiili/$userId'
     | '/profiili/asetukset'
@@ -290,6 +290,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/images/upload'
     | '/api/uploads/$'
+    | '/ilmoitukset/$listingId/$slug'
     | '/ilmoitukset/$listingId/muokkaa'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -308,7 +309,6 @@ export interface FileRouteTypes {
     | '/admin/moderation'
     | '/admin/users'
     | '/api/cron'
-    | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
     | '/profiili/$userId'
     | '/profiili/asetukset'
@@ -318,6 +318,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/images/upload'
     | '/api/uploads/$'
+    | '/ilmoitukset/$listingId/$slug'
     | '/ilmoitukset/$listingId/muokkaa'
   id:
     | '__root__'
@@ -337,7 +338,6 @@ export interface FileRouteTypes {
     | '/admin/moderation'
     | '/admin/users'
     | '/api/cron'
-    | '/ilmoitukset/$listingId'
     | '/ilmoitukset/uusi'
     | '/profiili/$userId'
     | '/profiili/asetukset'
@@ -347,6 +347,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/images/upload'
     | '/api/uploads/$'
+    | '/ilmoitukset/$listingId_/$slug'
     | '/ilmoitukset/$listingId_/muokkaa'
   fileRoutesById: FileRoutesById
 }
@@ -363,7 +364,6 @@ export interface RootRouteChildren {
   VahvistaSahkopostiRoute: typeof VahvistaSahkopostiRoute
   VaihdaSalasanaRoute: typeof VaihdaSalasanaRoute
   ApiCronRoute: typeof ApiCronRoute
-  IlmoituksetListingIdRoute: typeof IlmoituksetListingIdRoute
   IlmoituksetUusiRoute: typeof IlmoituksetUusiRoute
   ProfiiliUserIdRoute: typeof ProfiiliUserIdRoute
   ProfiiliAsetuksetRoute: typeof ProfiiliAsetuksetRoute
@@ -372,6 +372,7 @@ export interface RootRouteChildren {
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiImagesUploadRoute: typeof ApiImagesUploadRoute
   ApiUploadsSplatRoute: typeof ApiUploadsSplatRoute
+  IlmoituksetListingIdSlugRoute: typeof IlmoituksetListingIdSlugRoute
   IlmoituksetListingIdMuokkaaRoute: typeof IlmoituksetListingIdMuokkaaRoute
 }
 
@@ -496,13 +497,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IlmoituksetUusiRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ilmoitukset/$listingId': {
-      id: '/ilmoitukset/$listingId'
-      path: '/ilmoitukset/$listingId'
-      fullPath: '/ilmoitukset/$listingId'
-      preLoaderRoute: typeof IlmoituksetListingIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/cron': {
       id: '/api/cron'
       path: '/api/cron'
@@ -543,6 +537,13 @@ declare module '@tanstack/react-router' {
       path: '/ilmoitukset/$listingId/muokkaa'
       fullPath: '/ilmoitukset/$listingId/muokkaa'
       preLoaderRoute: typeof IlmoituksetListingIdMuokkaaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ilmoitukset/$listingId_/$slug': {
+      id: '/ilmoitukset/$listingId_/$slug'
+      path: '/ilmoitukset/$listingId/$slug'
+      fullPath: '/ilmoitukset/$listingId/$slug'
+      preLoaderRoute: typeof IlmoituksetListingIdSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/uploads/$': {
@@ -602,7 +603,6 @@ const rootRouteChildren: RootRouteChildren = {
   VahvistaSahkopostiRoute: VahvistaSahkopostiRoute,
   VaihdaSalasanaRoute: VaihdaSalasanaRoute,
   ApiCronRoute: ApiCronRoute,
-  IlmoituksetListingIdRoute: IlmoituksetListingIdRoute,
   IlmoituksetUusiRoute: IlmoituksetUusiRoute,
   ProfiiliUserIdRoute: ProfiiliUserIdRoute,
   ProfiiliAsetuksetRoute: ProfiiliAsetuksetRoute,
@@ -611,6 +611,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiImagesUploadRoute: ApiImagesUploadRoute,
   ApiUploadsSplatRoute: ApiUploadsSplatRoute,
+  IlmoituksetListingIdSlugRoute: IlmoituksetListingIdSlugRoute,
   IlmoituksetListingIdMuokkaaRoute: IlmoituksetListingIdMuokkaaRoute,
 }
 export const routeTree = rootRouteImport

@@ -317,6 +317,7 @@ async function main() {
 			.insertInto("listing")
 			.values({
 				id,
+				short_id: crypto.randomUUID().slice(0, 8),
 				owner_id: userId,
 				title: seed.title,
 				make_id: make.id,

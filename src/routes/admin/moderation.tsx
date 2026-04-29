@@ -3,6 +3,8 @@ import { CheckCircle, ExternalLink, Trash2, XCircle } from "lucide-react";
 import { useState } from "react";
 import { getReports, getUnreviewedListings, resolveReport, reviewListing } from "~/lib/reports";
 
+import { computeListingSlug } from "~/lib/slug";
+
 type Tab = "listings" | "reports";
 type ReportStatus = "pending" | "resolved" | "dismissed" | "all";
 
@@ -136,7 +138,7 @@ function NewListingsTab({
 							<tr key={listing.id} className="border-b border-border last:border-0">
 								<td className="px-4 py-3">
 									<a
-										href={`/ilmoitukset/${listing.id}`}
+										href={`/ilmoitukset/${listing.short_id}/${computeListingSlug(listing.makeSlug ?? null, listing.modelName ?? null, listing.city)}`}
 										target="_blank"
 										rel="noreferrer"
 										className="font-medium text-accent hover:underline"
@@ -260,8 +262,8 @@ function ReportsTab({
 								<td className="px-4 py-3">
 									<a
 										href={
-											report.target_type === "listing"
-												? `/ilmoitukset/${report.target_id}`
+											report.target_type === "listing" && report.listingShortId
+												? `/ilmoitukset/${report.listingShortId}/${computeListingSlug(report.listingMakeSlug ?? null, report.listingModelName ?? null, report.listingCity ?? "")}`
 												: `/profiili/${report.target_id}`
 										}
 										target="_blank"

@@ -55,6 +55,7 @@ export interface Listing {
 	required_license: string | null;
 	reviewed_at: Timestamp | null;
 	search_vector: string | null;
+	short_id: string;
 	status: Generated<string>;
 	title: string;
 	updated_at: Generated<Timestamp>;
