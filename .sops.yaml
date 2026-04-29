@@ -1,0 +1,9 @@
+creation_rules:
+  - path_regex: \.env\.production(\.enc)?$
+    age: age1pk32xkk4hx7frnnyjaf9rk3myxz2xjczv7th97czlc7lf5mv8qaqqp6wgx
+  - path_regex: infra/secrets/
+    age: age1pk32xkk4hx7frnnyjaf9rk3myxz2xjczv7th97czlc7lf5mv8qaqqp6wgx
+  - path_regex: infra/certs/
+    age: age1pk32xkk4hx7frnnyjaf9rk3myxz2xjczv7th97czlc7lf5mv8qaqqp6wgx
+  - path_regex: infra/terraform\.tfvars(\.enc)?$
+    age: age1pk32xkk4hx7frnnyjaf9rk3myxz2xjczv7th97czlc7lf5mv8qaqqp6wgx

@@ -1,5 +1,8 @@
-certs/
-secrets/
+certs/*
+!certs/*.enc
+secrets/*
+!secrets/*.enc
 terraform.tfvars
+!terraform.tfvars.enc
 .terraform/
 terraform.tfstate*

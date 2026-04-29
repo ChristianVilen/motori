@@ -38,15 +38,43 @@ Each is tagged `<full-sha>`, `<short-sha>` (7 chars), and `:latest`.
 
 Prerequisites:
 
-- `infra/secrets/ghcr-token` — GitHub PAT (classic, scope `read:packages`, or fine-grained with package read). Single line, no trailing newline.
-- `.env.production` at the repo root, `DB_PASSWORD` matching the `db_password` tfvar.
-- `infra/certs/motori.com.{pem,key}` — Cloudflare origin certificate.
+- `~/.config/sops/age/keys.txt` — age private key (stored in password manager; see **Secrets** section below).
+
+All other secrets are encrypted in the repo (`*.enc`) and decrypted on the fly by `just` commands.
 
 ```bash
 just bootstrap
 ```
 
 Runs `wait-for-server → login → push-env → push-config → push-certs → deploy`. Idempotent.
+
+## Secrets
+
+Secrets are encrypted with [SOPS](https://github.com/getsops/sops) + [age](https://github.com/FiloSottile/age) and committed to the repo:
+
+| Encrypted file | Contains |
+|----------------|----------|
+| `.env.production.enc` | All app env vars (DB, auth, storage, Resend, cron) |
+| `infra/secrets/ghcr-token.enc` | GitHub PAT (`read:packages`) for GHCR login |
+| `infra/certs/motori.com.pem.enc` | Cloudflare origin certificate |
+| `infra/certs/motori.com.key.enc` | Cloudflare origin private key |
+| `infra/terraform.tfvars.enc` | Hetzner + Tailscale tokens, DB password, backup S3 creds |
+
+### New machine setup
+
+1. Install `age` and `sops`.
+2. Restore `~/.config/sops/age/keys.txt` from your password manager (`chmod 600`).
+3. All `just` commands (push-env, login, push-certs) decrypt automatically — no manual steps.
+
+### Rotating a secret
+
+```bash
+# Edit the plaintext, then re-encrypt:
+sops --decrypt --input-type binary --output-type binary .env.production.enc > .env.production
+# ... edit .env.production ...
+sops --encrypt --input-type binary --output-type binary .env.production > .env.production.enc
+rm .env.production
+```
 
 ### Disaster recovery
 
