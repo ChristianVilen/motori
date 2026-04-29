@@ -137,6 +137,15 @@ backup:
 psql:
     ssh -t root@app-server "docker compose --env-file /etc/motori.env -f /opt/motori/docker-compose.prod.yml exec db psql -U appuser appdb"
 
+# Grant admin role to a user by email: just make-admin email=user@example.com
+make-admin email:
+    ssh root@app-server "docker compose --env-file /etc/motori.env -f /opt/motori/docker-compose.prod.yml exec -T db psql -U appuser appdb -c \"UPDATE \\\"user\\\" SET role = 'admin' WHERE email = '{{email}}'; SELECT email, role FROM \\\"user\\\" WHERE email = '{{email}}';\""
+
+# Install/update the motori cron job on the running server (idempotent)
+push-cron:
+    ssh root@app-server "printf '0 3 * * * root curl -sf -X POST -H \"Authorization: Bearer \$(grep CRON_SECRET /etc/motori.env | cut -d= -f2-)\" http://localhost:3000/api/cron >> /var/log/motori-cron.log 2>&1\n' > /etc/cron.d/motori-cron && chmod 644 /etc/cron.d/motori-cron"
+    @echo "Cron installed. Verify with: ssh root@app-server 'cat /etc/cron.d/motori-cron'"
+
 # Fix Tailscale SSH MTU (run locally when SSH hangs but ping works)
 fix-mtu:
     sudo ip link set tailscale0 mtu 1200

@@ -31,6 +31,8 @@ services:
     build:
       context: .
       target: runner
+      args:
+        BETTER_AUTH_URL: https://motori.fi
     restart: unless-stopped
     env_file: /etc/motori.env
     expose:

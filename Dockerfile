@@ -7,6 +7,8 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 FROM base AS builder
+ARG BETTER_AUTH_URL=http://localhost:3000
+ENV BETTER_AUTH_URL=$BETTER_AUTH_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm build
