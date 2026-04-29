@@ -1,4 +1,5 @@
-// src/routes/ilmoitukset/$listingId.tsx
+// src/routes/ilmoitukset/$listingId_.$slug.tsx
+// $slug is decorative — only $listingId (the short_id) is used for DB lookup.
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
@@ -20,16 +21,17 @@ import { db } from "~/lib/db/index";
 import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { getSession } from "~/lib/session";
+import { computeListingSlug } from "~/lib/slug";
 
 // In-memory dedup for view count increments (per-process, 60s TTL, 10k cap)
 const VIEW_DEDUP_MAX = 10_000;
 const viewedRecently = new Set<string>();
 
-function maybeIncrementViewCount(listingId: string, userId: string | undefined) {
+function maybeIncrementViewCount(shortId: string, userId: string | undefined) {
 	const request = getRequest();
 	const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
 	// When the set is full, dedup stops and every view is counted (fail-open).
-	const dedupKey = userId ? `view:${listingId}:${userId}` : `view:${listingId}:${ip}`;
+	const dedupKey = userId ? `view:${shortId}:${userId}` : `view:${shortId}:${ip}`;
 	if (viewedRecently.size < VIEW_DEDUP_MAX && viewedRecently.has(dedupKey)) {
 		return;
 	}
@@ -41,14 +43,14 @@ function maybeIncrementViewCount(listingId: string, userId: string | undefined) 
 	// as "recently updated" in sorting or the sitemap lastmod.
 	db.updateTable("listing")
 		.set({ view_count: sql`view_count + 1` })
-		.where("id", "=", listingId)
+		.where("short_id", "=", shortId)
 		.execute()
 		.catch(() => {});
 }
 
 const getListing = createServerFn({ method: "GET" })
-	.inputValidator((id: string) => id)
-	.handler(async ({ data: id }) => {
+	.inputValidator((shortId: string) => shortId)
+	.handler(async ({ data: shortId }) => {
 		const session = await getSession();
 
 		const row = await db
@@ -56,8 +58,12 @@ const getListing = createServerFn({ method: "GET" })
 			.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
 			.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
 			.selectAll("listing")
-			.select(["motorcycle_make.name as makeName", "motorcycle_model.name as modelName"])
-			.where("listing.id", "=", id)
+			.select([
+				"motorcycle_make.name as makeName",
+				"motorcycle_make.slug as makeSlug",
+				"motorcycle_model.name as modelName",
+			])
+			.where("listing.short_id", "=", shortId)
 			.where("listing.status", "!=", "removed")
 			.executeTakeFirst();
 
@@ -65,14 +71,14 @@ const getListing = createServerFn({ method: "GET" })
 			return null;
 		}
 
-		const { makeName, modelName, ...listing } = row;
+		const { makeName, makeSlug, modelName, ...listing } = row;
 
-		maybeIncrementViewCount(id, session?.user.id);
+		maybeIncrementViewCount(shortId, session?.user.id);
 
 		const images = await db
 			.selectFrom("listing_image")
 			.selectAll()
-			.where("listing_id", "=", id)
+			.where("listing_id", "=", listing.id)
 			.orderBy("order", "asc")
 			.execute();
 
@@ -107,11 +113,12 @@ const getListing = createServerFn({ method: "GET" })
 			owner,
 			ownerEmail,
 			makeName: makeName ?? null,
+			makeSlug: makeSlug ?? null,
 			modelName: modelName ?? null,
 		};
 	});
 
-export const Route = createFileRoute("/ilmoitukset/$listingId")({
+export const Route = createFileRoute("/ilmoitukset/$listingId_/$slug")({
 	loader: async ({ params }) => {
 		const [result, session] = await Promise.all([
 			getListing({ data: params.listingId }),
@@ -131,7 +138,12 @@ export const Route = createFileRoute("/ilmoitukset/$listingId")({
 		const model = loaderData?.modelName ?? "";
 		const title = `${l.title} — ${SITE_NAME}`;
 		const desc = `Vuokraa ${make} ${model} (${l.year}) — ${l.city}. Alkaen ${(l.price_per_day / 100).toFixed(0)} €/pv.`;
-		const url = `${SITE_URL}/ilmoitukset/${l.id}`;
+		const slug = computeListingSlug(
+			loaderData?.makeSlug ?? null,
+			loaderData?.modelName ?? null,
+			l.city,
+		);
+		const url = `${SITE_URL}/ilmoitukset/${l.short_id}/${slug}`;
 		return {
 			meta: [
 				{ title },
@@ -220,6 +232,8 @@ interface PricingCardProps {
 	ownerEmail: string | null;
 	isOwner: boolean;
 	isSignedIn: boolean;
+	makeSlug: string | null;
+	modelName: string | null;
 }
 
 function PricingCard({
@@ -230,9 +244,13 @@ function PricingCard({
 	ownerEmail,
 	isOwner,
 	isSignedIn,
+	makeSlug,
+	modelName,
 }: PricingCardProps) {
 	const { t } = useTranslation("listings");
 	const [contactVisible, setContactVisible] = useState(false);
+	const slug = computeListingSlug(makeSlug, modelName, listing.city);
+	const redirectPath = `/ilmoitukset/${listing.short_id}/${slug}`;
 
 	return (
 		<div className="rounded-l border border-border bg-card p-5 shadow-sm">
@@ -256,7 +274,7 @@ function PricingCard({
 				<Link
 					data-testid="owner-contact-login"
 					to="/kirjaudu"
-					search={{ redirect: `/ilmoitukset/${listing.id}` }}
+					search={{ redirect: redirectPath }}
 					className="block w-full rounded-md bg-accent px-4 py-2 text-center text-sm font-medium text-white hover:bg-accent-hover"
 				>
 					{t("detail.contact.loginPrompt")}
@@ -314,7 +332,7 @@ function PricingCard({
 					<Link
 						data-testid="listing-edit-link"
 						to="/ilmoitukset/$listingId/muokkaa"
-						params={{ listingId: listing.id }}
+						params={{ listingId: listing.short_id }}
 						className="flex-1"
 					>
 						<Button variant="outline" className="w-full" size="sm">
@@ -334,7 +352,7 @@ function PricingCard({
 
 function ListingDetailPage() {
 	const { t } = useTranslation("listings");
-	const { listing, images, owner, ownerEmail, session, makeName, modelName } =
+	const { listing, images, owner, ownerEmail, session, makeName, makeSlug, modelName } =
 		Route.useLoaderData();
 
 	const isOwner = session?.user.id === listing.owner_id;
@@ -345,6 +363,8 @@ function ListingDetailPage() {
 	const licenseLabel =
 		LICENSE_CLASSES.find((l) => l.value === listing.required_license)?.label ?? null;
 	const statusLabel = LISTING_STATUSES[listing.status];
+	const slug = computeListingSlug(makeSlug, modelName, listing.city);
+	const redirectPath = `/ilmoitukset/${listing.short_id}/${slug}`;
 
 	return (
 		<div data-testid="listing-detail" className="min-h-screen bg-background pb-20 md:pb-0">
@@ -435,6 +455,8 @@ function ListingDetailPage() {
 							ownerEmail={ownerEmail}
 							isOwner={!!isOwner}
 							isSignedIn={!!session}
+							makeSlug={makeSlug}
+							modelName={modelName}
 						/>
 						<p className="text-center text-xs text-muted">
 							{t("detail.viewCount", { n: listing.view_count })}
@@ -460,7 +482,7 @@ function ListingDetailPage() {
 					{!session ? (
 						<Link
 							to="/kirjaudu"
-							search={{ redirect: `/ilmoitukset/${listing.id}` }}
+							search={{ redirect: redirectPath }}
 							className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
 						>
 							{t("detail.contact.loginPrompt")}

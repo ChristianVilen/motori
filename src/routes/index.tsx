@@ -203,7 +203,7 @@ function HomePage() {
 
 					<div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
 						{latestListings.slice(0, 6).map((listing) => (
-							<ListingCard key={listing.id} listing={listing} images={listing.images} />
+							<ListingCard key={listing.id} listing={listing} images={listing.images} makeSlug={listing.makeSlug} modelName={listing.modelName} />
 						))}
 					</div>
 				</section>
