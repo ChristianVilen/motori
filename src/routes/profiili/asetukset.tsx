@@ -462,7 +462,7 @@ function DeleteAccountSection() {
 						id="deleteConfirm"
 						value={confirmation}
 						onChange={(e) => setConfirmation(e.target.value)}
-						placeholder="POISTA"
+						placeholder={t("settings.deleteAccountConfirmWord")}
 						autoComplete="off"
 					/>
 					<div className="flex gap-3">
@@ -470,7 +470,7 @@ function DeleteAccountSection() {
 							data-testid="delete-account-submit"
 							type="button"
 							className="bg-destructive text-white hover:bg-destructive/90"
-							disabled={confirmation !== "POISTA" || deleting}
+							disabled={confirmation !== t("settings.deleteAccountConfirmWord") || deleting}
 							onClick={handleDelete}
 						>
 							{deleting ? t("settings.deleteAccountDeleting") : t("settings.deleteAccountButton")}

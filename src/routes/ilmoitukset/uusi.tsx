@@ -21,7 +21,7 @@ const createListing = createServerFn({ method: "POST" })
 		rateLimitMiddleware(5, 60, "create-listing"),
 		requireVerifiedEmail(),
 	])
-	.inputValidator((data: ListingFormData) => listingFormSchema.parse(data))
+	.inputValidator((data: ListingFormData) => listingFormSchema().parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();
 		if (!session) {
