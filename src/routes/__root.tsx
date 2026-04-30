@@ -43,13 +43,11 @@ export const Route = createRootRoute({
 					"Suomalainen moottoripyörien vuokrausilmoitukset. Vuokraa kaksipyöräinen tai ilmoita omasi vuokralle.",
 			},
 			{
-				tagName: "meta",
 				name: "theme-color",
 				content: "#fafaf9",
 				media: "(prefers-color-scheme: light)",
 			},
 			{
-				tagName: "meta",
 				name: "theme-color",
 				content: "#1a1a2e",
 				media: "(prefers-color-scheme: dark)",
