@@ -94,6 +94,32 @@ export default {
 		notFoundBack: "Omat ilmoitukset",
 		submitLabel: "Tallenna muutokset",
 	},
+	booking: {
+		calendarTitle: "Saatavuus",
+		legend: {
+			available: "Vapaa",
+			blocked: "Varattu",
+			selected: "Valinta",
+		},
+		pickRange: "Valitse aloitus- ja lopetuspäivä",
+		mustBeContiguous: "Päivien pitää olla peräkkäisiä",
+		loginRequired: "Kirjaudu sisään tehdäksesi varauspyynnön",
+		messageLabel: "Viesti omistajalle",
+		messagePlaceholder: "Kerro kuka olet ja mihin tarvitset pyörää",
+		submitButton: "Lähetä varauspyyntö",
+		submitting: "Lähetetään…",
+		successTitle: "Varauspyyntö lähetetty",
+		successBody: "Omistaja saa pyyntösi sähköpostitse. Saat ilmoituksen, kun hän vastaa.",
+	},
+	availability: {
+		formTitle: "Saatavuus",
+		defaultLabel: "Oletustila",
+		defaultOpen: "Vapaa oletuksena",
+		defaultClosed: "Varattu oletuksena",
+		hint: "Klikkaa päiviä kalenterissa muuttaaksesi yksittäisten päivien tilaa.",
+		saveButton: "Tallenna saatavuus",
+		saved: "Saatavuus tallennettu",
+	},
 	form: {
 		sections: {
 			motorcycle: "Moottoripyörä",
