@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { createFileRoute } from "@tanstack/react-router";
 import { sql } from "kysely";
+import { expireStaleBookings } from "~/lib/booking-expiry";
 import { db } from "~/lib/db/index";
 import { log } from "~/lib/log";
 import { sendListingExpiryWarnings } from "~/lib/notifications";
@@ -19,6 +20,11 @@ const TASKS: Record<string, () => Promise<Record<string, unknown>>> = {
 		const sent = await sendListingExpiryWarnings();
 		log.info("cron: expiry warnings complete", { sent });
 		return { sent };
+	},
+	"expire-bookings": async () => {
+		const expired = await expireStaleBookings();
+		log.info("cron: bookings expired", { expired });
+		return { expired };
 	},
 };
 
