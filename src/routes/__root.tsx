@@ -88,6 +88,29 @@ export const Route = createRootRoute({
 		],
 	}),
 	component: RootComponent,
+	errorComponent: ({ error }) => {
+		return (
+			<RootDocument locale="fi">
+				<div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
+					<p className="font-heading text-5xl font-bold text-destructive">Virhe</p>
+					<p className="mt-4 max-w-md text-sm text-muted">
+						Jotain meni pieleen. Yritä ladata sivu uudelleen.
+					</p>
+					{process.env.NODE_ENV !== "production" && (
+						<pre className="mt-4 max-w-lg overflow-auto rounded bg-muted-light p-3 text-left text-xs">
+							{error.message}
+						</pre>
+					)}
+					<a
+						href="/"
+						className="mt-8 rounded-lg bg-accent px-6 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
+					>
+						Etusivulle
+					</a>
+				</div>
+			</RootDocument>
+		);
+	},
 	notFoundComponent: NotFound,
 });
 

@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { createFileRoute } from "@tanstack/react-router";
 import { sql } from "kysely";
 import { db } from "~/lib/db/index";
@@ -30,7 +31,12 @@ export const Route = createFileRoute("/api/cron")({
 					return new Response("CRON_SECRET not configured", { status: 500 });
 				}
 				const auth = request.headers.get("authorization");
-				if (auth !== `Bearer ${secret}`) {
+				const expected = `Bearer ${secret}`;
+				if (
+					!auth ||
+					auth.length !== expected.length ||
+					!timingSafeEqual(Buffer.from(auth), Buffer.from(expected))
+				) {
 					return new Response("Unauthorized", { status: 401 });
 				}
 
