@@ -174,3 +174,17 @@ jobs:
           labels: ${{ steps.meta-migrate.outputs.labels }}
           cache-from: type=gha,scope=motori
           cache-to: type=gha,mode=max,scope=motori
+
+      - name: Prune old app images
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: motori-app
+          package-type: container
+          min-versions-to-keep: 4
+
+      - name: Prune old migrate images
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: motori-migrate
+          package-type: container
+          min-versions-to-keep: 4
