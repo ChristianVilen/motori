@@ -20,7 +20,7 @@ export default {
 	bookingRequest: {
 		subject: "Uusi varauspyyntö: {{title}}",
 		greeting: "Hei {{name}},",
-		intro: "Sinulle on tullut varauspyyntö ilmoituksellesi \"{{title}}\".",
+		intro: 'Sinulle on tullut varauspyyntö ilmoituksellesi "{{title}}".',
 		dates: "Päivät: {{start}} – {{end}} ({{days}} päivää)",
 		renter: "Vuokraaja: {{name}} ({{email}})",
 		message: "Viesti vuokraajalta:",
@@ -29,14 +29,14 @@ export default {
 	bookingConfirmed: {
 		subject: "Varauksesi on vahvistettu: {{title}}",
 		greeting: "Hei {{name}},",
-		body: "Omistaja on vahvistanut varauksesi ilmoitukselle \"{{title}}\" päiville {{start}} – {{end}}.",
+		body: 'Omistaja on vahvistanut varauksesi ilmoitukselle "{{title}}" päiville {{start}} – {{end}}.',
 		ownerContact: "Omistajan yhteystiedot:",
 		nextSteps: "Sopikaa luovutuksesta ja muista yksityiskohdista suoraan keskenänne.",
 	},
 	bookingRejected: {
 		subject: "Varauspyyntösi hylättiin: {{title}}",
 		greeting: "Hei {{name}},",
-		body: "Omistaja hylkäsi varauspyyntösi ilmoitukselle \"{{title}}\" päiville {{start}} – {{end}}.",
+		body: 'Omistaja hylkäsi varauspyyntösi ilmoitukselle "{{title}}" päiville {{start}} – {{end}}.',
 		reasonLabel: "Perustelu:",
 		fallback: "Voit etsiä toisen moottoripyörän sivustoltamme.",
 	},
