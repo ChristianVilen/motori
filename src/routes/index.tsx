@@ -85,7 +85,7 @@ function HomePage() {
 						<form
 							onSubmit={handleSearch}
 							data-testid="home-search-form"
-							className="mt-8 flex max-w-lg gap-2 rounded-l border border-white/20 bg-white/10 p-1.5 backdrop-blur-xl"
+							className="mt-8 flex max-w-lg gap-2 rounded-xl border border-white/20 bg-white/10 p-1.5 backdrop-blur-xl"
 						>
 							<input
 								data-testid="home-search-input"
@@ -240,8 +240,13 @@ function HomePage() {
 								desc: t("howItWorks.step3.desc"),
 							},
 						].map((step) => (
-							<div key={step.num} className="rounded-l border border-white/10 bg-white/[0.05] p-6">
-								<span className="font-heading text-3xl font-bold text-orange-400">{step.num}</span>
+							<div
+								key={step.num}
+								className="rounded-2xl border border-white/10 bg-white/[0.05] p-6"
+							>
+								<span className="font-heading text-3xl font-bold text-accent-light">
+									{step.num}
+								</span>
 								<h3 className="mt-3 font-heading text-lg font-semibold text-white">{step.title}</h3>
 								<p className="mt-2 text-sm leading-relaxed text-white/70">{step.desc}</p>
 							</div>
