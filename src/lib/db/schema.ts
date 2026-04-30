@@ -121,6 +121,7 @@ export interface ListingTable {
 	postal_code: string | null;
 	description: string;
 	mileage_limit: number | null; // km/day
+	availability_default: Generated<"open" | "closed">;
 	status: Generated<"active" | "paused" | "rented" | "removed">;
 	view_count: Generated<number>;
 	expires_at: ColumnType<Date, Date | undefined, Date> | null;
@@ -170,6 +171,38 @@ export interface ReportTable {
 export type Report = Selectable<ReportTable>;
 export type NewReport = Insertable<ReportTable>;
 
+export type BookingStatus = "pending" | "confirmed" | "rejected" | "expired" | "cancelled";
+
+export interface BookingTable {
+	id: Generated<string>;
+	short_id: string;
+	listing_id: string;
+	renter_user_id: string;
+	// `date` columns: pg returns Date by default. We use string YYYY-MM-DD on the wire
+	// for clarity (no TZ confusion). When selecting, cast with `sql<string>` (see bookings.ts).
+	start_date: string;
+	end_date: string;
+	message: string;
+	status: Generated<BookingStatus>;
+	rejection_reason: string | null;
+	responded_at: ColumnType<Date, Date | undefined, Date> | null;
+	created_at: ColumnType<Date, Date | undefined, Date>;
+	updated_at: ColumnType<Date, Date | undefined, Date>;
+}
+
+export type Booking = Selectable<BookingTable>;
+export type NewBooking = Insertable<BookingTable>;
+export type BookingUpdate = Updateable<BookingTable>;
+
+export interface ListingAvailabilityExceptionTable {
+	listing_id: string;
+	date: string; // YYYY-MM-DD, see note on BookingTable
+	created_at: ColumnType<Date, Date | undefined, Date>;
+}
+
+export type ListingAvailabilityException = Selectable<ListingAvailabilityExceptionTable>;
+export type NewListingAvailabilityException = Insertable<ListingAvailabilityExceptionTable>;
+
 // ─── Database interface ───────────────────────────────────────────────────────
 
 export interface Database {
@@ -184,4 +217,6 @@ export interface Database {
 	listing_image: ListingImageTable;
 	favorite: FavoriteTable;
 	report: ReportTable;
+	booking: BookingTable;
+	listing_availability_exception: ListingAvailabilityExceptionTable;
 }
