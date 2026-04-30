@@ -6,6 +6,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { sql } from "kysely";
 import { ArrowLeft, MapPin, Tag } from "lucide-react";
 import { useState } from "react";
+import { BookingRequestForm } from "~/components/listings/booking-request-form";
 import { ListingGallery } from "~/components/listings/listing-gallery";
 import { ReportButton } from "~/components/report-button";
 import { Button } from "~/components/ui/button";
@@ -23,6 +24,7 @@ import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
+import { getListingAvailability } from "~/lib/listings-queries";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
@@ -237,7 +239,8 @@ export const Route = createFileRoute("/ilmoitukset/$listingId_/$slug")({
 		if (!result) {
 			throw notFound();
 		}
-		return { ...result, session };
+		const availability = await getListingAvailability(result.listing.id);
+		return { ...result, session, availability };
 	},
 	head: ({ loaderData }) => {
 		const l = loaderData?.listing;
@@ -462,8 +465,17 @@ function PricingCard({
 
 function ListingDetailPage() {
 	const { t } = useTranslation("listings");
-	const { listing, images, owner, ownerEmail, session, makeName, makeSlug, modelName } =
-		Route.useLoaderData();
+	const {
+		listing,
+		images,
+		owner,
+		ownerEmail,
+		session,
+		makeName,
+		makeSlug,
+		modelName,
+		availability,
+	} = Route.useLoaderData();
 
 	const isOwner = session?.user.id === listing.owner_id;
 	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
@@ -553,6 +565,23 @@ function ListingDetailPage() {
 								{listing.description}
 							</p>
 						</div>
+
+						{listing.status === "active" && (
+							<section className="mt-8" data-testid="booking-section">
+								<BookingRequestForm
+									listingId={listing.id}
+									availabilityDefault={availability.availability_default}
+									exceptionDates={availability.exception_dates}
+									bookedDates={availability.booked_dates}
+									isLoggedIn={!!session}
+									onSubmit={async (input) => {
+										await submitBookingRequest({
+											data: { listing_id: listing.id, ...input },
+										});
+									}}
+								/>
+							</section>
+						)}
 					</div>
 
 					{/* Pricing — inline below content on mobile, sticky sidebar on desktop */}
