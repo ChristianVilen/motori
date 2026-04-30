@@ -2,10 +2,12 @@
 
 import { kyselyAdapter } from "@better-auth/kysely-adapter";
 import { betterAuth } from "better-auth";
+import { hashPassword, verifyPassword } from "better-auth/crypto";
 import { admin } from "better-auth/plugins";
 import { db } from "~/lib/db/index";
 import { sendEmail } from "~/lib/email";
 import { emailT as t } from "~/lib/i18n/email";
+import { passwordStrength } from "~/lib/password-strength";
 
 export const auth = betterAuth({
 	database: kyselyAdapter(db, {
@@ -21,6 +23,15 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		requireEmailVerification: false,
+		password: {
+			async hash(password: string) {
+				if (passwordStrength(password).score <= 1) {
+					throw new Error("PASSWORD_TOO_WEAK");
+				}
+				return hashPassword(password);
+			},
+			verify: verifyPassword,
+		},
 		sendResetPassword: async ({ user, url }) => {
 			void sendEmail({
 				to: user.email,

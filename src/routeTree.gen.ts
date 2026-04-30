@@ -26,6 +26,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ProfiiliAsetuksetRouteImport } from './routes/profiili/asetukset'
 import { Route as ProfiiliUserIdRouteImport } from './routes/profiili/$userId'
 import { Route as IlmoituksetUusiRouteImport } from './routes/ilmoitukset/uusi'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiCronRouteImport } from './routes/api/cron'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminModerationRouteImport } from './routes/admin/moderation'
@@ -122,6 +123,11 @@ const IlmoituksetUusiRoute = IlmoituksetUusiRouteImport.update({
   path: '/ilmoitukset/uusi',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCronRoute = ApiCronRouteImport.update({
   id: '/api/cron',
   path: '/api/cron',
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/cron': typeof ApiCronRoute
+  '/api/health': typeof ApiHealthRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
@@ -220,6 +227,7 @@ export interface FileRoutesByTo {
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/cron': typeof ApiCronRoute
+  '/api/health': typeof ApiHealthRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
@@ -250,6 +258,7 @@ export interface FileRoutesById {
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/cron': typeof ApiCronRoute
+  '/api/health': typeof ApiHealthRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
@@ -281,6 +290,7 @@ export interface FileRouteTypes {
     | '/admin/moderation'
     | '/admin/users'
     | '/api/cron'
+    | '/api/health'
     | '/ilmoitukset/uusi'
     | '/profiili/$userId'
     | '/profiili/asetukset'
@@ -309,6 +319,7 @@ export interface FileRouteTypes {
     | '/admin/moderation'
     | '/admin/users'
     | '/api/cron'
+    | '/api/health'
     | '/ilmoitukset/uusi'
     | '/profiili/$userId'
     | '/profiili/asetukset'
@@ -338,6 +349,7 @@ export interface FileRouteTypes {
     | '/admin/moderation'
     | '/admin/users'
     | '/api/cron'
+    | '/api/health'
     | '/ilmoitukset/uusi'
     | '/profiili/$userId'
     | '/profiili/asetukset'
@@ -364,6 +376,7 @@ export interface RootRouteChildren {
   VahvistaSahkopostiRoute: typeof VahvistaSahkopostiRoute
   VaihdaSalasanaRoute: typeof VaihdaSalasanaRoute
   ApiCronRoute: typeof ApiCronRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   IlmoituksetUusiRoute: typeof IlmoituksetUusiRoute
   ProfiiliUserIdRoute: typeof ProfiiliUserIdRoute
   ProfiiliAsetuksetRoute: typeof ProfiiliAsetuksetRoute
@@ -497,6 +510,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IlmoituksetUusiRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/cron': {
       id: '/api/cron'
       path: '/api/cron'
@@ -603,6 +623,7 @@ const rootRouteChildren: RootRouteChildren = {
   VahvistaSahkopostiRoute: VahvistaSahkopostiRoute,
   VaihdaSalasanaRoute: VaihdaSalasanaRoute,
   ApiCronRoute: ApiCronRoute,
+  ApiHealthRoute: ApiHealthRoute,
   IlmoituksetUusiRoute: IlmoituksetUusiRoute,
   ProfiiliUserIdRoute: ProfiiliUserIdRoute,
   ProfiiliAsetuksetRoute: ProfiiliAsetuksetRoute,

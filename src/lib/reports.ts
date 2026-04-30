@@ -254,7 +254,7 @@ export const reviewListing = createServerFn({ method: "POST" })
 		if (data.action === "approve") {
 			await db
 				.updateTable("listing")
-				.set({ reviewed_at: new Date() })
+				.set({ reviewed_at: new Date(), updated_at: new Date() })
 				.where("id", "=", data.listingId)
 				.execute();
 		} else {

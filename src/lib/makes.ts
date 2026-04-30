@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
-import { getSession } from "~/lib/session";
+import { requireVerifiedEmail } from "~/lib/require-verified-email";
 
 export function toSlug(name: string): string {
 	return name
@@ -34,13 +34,13 @@ export const getModels = createServerFn({ method: "GET" })
 const MAX_NAME_LENGTH = 100;
 
 export const createMake = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware(), rateLimitMiddleware(10, 60, "create-make")])
+	.middleware([
+		csrfMiddleware(),
+		rateLimitMiddleware(10, 60, "create-make"),
+		requireVerifiedEmail(),
+	])
 	.inputValidator((name: string) => name)
 	.handler(async ({ data: name }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new Error("Kirjaudu sisään");
-		}
 		const trimmedName = name.trim();
 		if (trimmedName.length === 0 || trimmedName.length > MAX_NAME_LENGTH) {
 			throw new Error("Merkin nimi on liian pitkä tai tyhjä");
@@ -53,13 +53,13 @@ export const createMake = createServerFn({ method: "POST" })
 	});
 
 export const createModel = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware(), rateLimitMiddleware(10, 60, "create-model")])
+	.middleware([
+		csrfMiddleware(),
+		rateLimitMiddleware(10, 60, "create-model"),
+		requireVerifiedEmail(),
+	])
 	.inputValidator((data: { makeId: string; name: string }) => data)
 	.handler(async ({ data }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new Error("Kirjaudu sisään");
-		}
 		const trimmedName = data.name.trim();
 		if (trimmedName.length === 0 || trimmedName.length > MAX_NAME_LENGTH) {
 			throw new Error("Mallin nimi on liian pitkä tai tyhjä");
