@@ -38,7 +38,18 @@ export const Route = createRootRoute({
 				content:
 					"Suomalainen moottoripyörien vuokrausilmoitukset. Vuokraa kaksipyöräinen tai ilmoita omasi vuokralle.",
 			},
-			{ name: "theme-color", content: "#1a1a2e" },
+			{
+				tagName: "meta",
+				name: "theme-color",
+				content: "#fafaf9",
+				media: "(prefers-color-scheme: light)",
+			},
+			{
+				tagName: "meta",
+				name: "theme-color",
+				content: "#1a1a2e",
+				media: "(prefers-color-scheme: dark)",
+			},
 			{ property: "og:type", content: "website" },
 			{ property: "og:site_name", content: SITE_NAME },
 			{ property: "og:title", content: `${SITE_NAME} — Vuokraa moottoripyörä` },
@@ -179,7 +190,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 	}
 
 	return (
-		<html lang={locale} dir="ltr">
+		<html lang={locale} dir="ltr" className="bg-background">
 			<head>
 				<HeadContent />
 			</head>
