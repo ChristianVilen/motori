@@ -26,6 +26,14 @@ export const EVENTS = {
 		expiry_warning_sent: "notification.expiry_warning.sent",
 		expiry_warning_skipped: "notification.expiry_warning.skipped",
 	},
+	booking: {
+		requested: "booking.requested",
+		confirmed: "booking.confirmed",
+		rejected: "booking.rejected",
+		cancelled: "booking.cancelled",
+		expired: "booking.expired",
+		auto_rejected_overlap: "booking.auto_rejected_overlap",
+	},
 } as const;
 
 export type EventName =
@@ -34,4 +42,5 @@ export type EventName =
 	| (typeof EVENTS.listing)[keyof typeof EVENTS.listing]
 	| (typeof EVENTS.image)[keyof typeof EVENTS.image]
 	| (typeof EVENTS.email)[keyof typeof EVENTS.email]
-	| (typeof EVENTS.notification)[keyof typeof EVENTS.notification];
+	| (typeof EVENTS.notification)[keyof typeof EVENTS.notification]
+	| (typeof EVENTS.booking)[keyof typeof EVENTS.booking];
