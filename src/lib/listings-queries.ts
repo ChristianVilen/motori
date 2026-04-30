@@ -3,6 +3,7 @@ import { type SelectQueryBuilder, type SqlBool, sql } from "kysely";
 import { ADJACENT_REGIONS } from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import type { Database, Listing, ListingImage } from "~/lib/db/schema";
+import { expandDateRange } from "~/lib/bookings";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { toTsQuery } from "~/lib/search";
 import type { BrowseSearchParams } from "~/lib/validators";
@@ -280,3 +281,46 @@ export const getNeighborRegionCount = createServerFn({ method: "GET" })
 
 		return result.count;
 	});
+
+export async function getListingAvailability(listingId: string): Promise<{
+	availability_default: "open" | "closed";
+	exception_dates: string[];
+	booked_dates: string[];
+}> {
+	const listing = await db
+		.selectFrom("listing")
+		.select(["availability_default"])
+		.where("id", "=", listingId)
+		.executeTakeFirst();
+
+	if (!listing) {
+		return { availability_default: "open", exception_dates: [], booked_dates: [] };
+	}
+
+	const exceptions = await db
+		.selectFrom("listing_availability_exception")
+		.select([sql<string>`to_char(date, 'YYYY-MM-DD')`.as("date")])
+		.where("listing_id", "=", listingId)
+		.execute();
+
+	const confirmed = await db
+		.selectFrom("booking")
+		.select([
+			sql<string>`to_char(start_date, 'YYYY-MM-DD')`.as("start_date"),
+			sql<string>`to_char(end_date, 'YYYY-MM-DD')`.as("end_date"),
+		])
+		.where("listing_id", "=", listingId)
+		.where("status", "=", "confirmed")
+		.execute();
+
+	const bookedDates: string[] = [];
+	for (const row of confirmed) {
+		bookedDates.push(...expandDateRange(row.start_date, row.end_date));
+	}
+
+	return {
+		availability_default: listing.availability_default,
+		exception_dates: exceptions.map((e) => e.date),
+		booked_dates: bookedDates,
+	};
+}
