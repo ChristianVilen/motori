@@ -12,9 +12,11 @@ import { type ReactNode, useEffect, useState } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { LoginModal } from "~/components/auth/login-modal";
 import { UserMenu } from "~/components/auth/user-menu";
+import { LanguageSelector } from "~/components/language-selector";
 import { authClient, signOut, useSession } from "~/lib/auth-client";
 import { SITE_NAME, SITE_URL } from "~/lib/constants";
 import { i18n as clientI18n, ensureClientI18n } from "~/lib/i18n/client";
+import { detectServerLocale } from "~/lib/i18n/detect-locale";
 import type { SupportedLocale } from "~/lib/i18n/resources";
 import { supportedLngs } from "~/lib/i18n/resources";
 import { createI18nSync } from "~/lib/i18n/server";
@@ -22,9 +24,11 @@ import { useEmailVerified } from "~/lib/use-email-verified";
 import appCss from "~/styles/app.css?url";
 
 export const Route = createRootRoute({
-	beforeLoad: () => {
-		// Future: check location.pathname.startsWith("/en/") → "en"
-		const locale: SupportedLocale = "fi";
+	beforeLoad: async () => {
+		let locale: SupportedLocale = "fi";
+		if (typeof window === "undefined") {
+			locale = await detectServerLocale();
+		}
 		return { locale };
 	},
 	head: () => ({
@@ -158,7 +162,8 @@ interface RootDocumentProps {
 function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 	const router = useRouter();
 	const [loginOpen, setLoginOpen] = useState(false);
-	const { t } = useTranslation("common");
+	const { t, i18n } = useTranslation("common");
+	const currentLang = (i18n.language ?? locale) as SupportedLocale;
 	const { t: tAuth } = useTranslation("auth");
 	const { data: session } = useSession();
 	const isAdmin = router.state.location.pathname.startsWith("/admin");
@@ -190,7 +195,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 	}
 
 	return (
-		<html lang={locale} dir="ltr" className="bg-background">
+		<html lang={currentLang} dir="ltr" className="bg-background">
 			<head>
 				<HeadContent />
 			</head>
@@ -199,7 +204,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 					href="#main-content"
 					className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-white"
 				>
-					Siirry sisältöön
+					{t("nav.skipToContent")}
 				</a>
 				{!isAdmin && (
 					<nav className="border-b border-border bg-primary px-4 py-3">
@@ -249,6 +254,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 										{t("nav.signIn")}
 									</button>
 								)}
+								<LanguageSelector />
 							</div>
 						</div>
 					</nav>
@@ -280,26 +286,19 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 				<main id="main-content">{children}</main>
 				{!isAdmin && (
 					<footer className="border-t border-border px-4 py-6 text-center text-xs text-muted">
-						<span>© Motori</span>
+						<span>{t("footer.copyright")}</span>
 						<span className="mx-2">·</span>
 						<Link to="/kayttoehdot" className="hover:text-foreground">
-							Käyttöehdot
+							{t("footer.terms")}
 						</Link>
 						<span className="mx-2">·</span>
 						<Link to="/tietosuoja" className="hover:text-foreground">
-							Tietosuoja
+							{t("footer.privacy")}
 						</Link>
 					</footer>
 				)}
 				{!isAdmin && <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />}
 				<Scripts />
-
-				<script
-					// biome-ignore lint/security/noDangerouslySetInnerHtml: inline locale for hydration
-					dangerouslySetInnerHTML={{
-						__html: `window.__I18N__=${JSON.stringify({ locale }).replace(/</g, "\\u003c")};`,
-					}}
-				/>
 			</body>
 		</html>
 	);

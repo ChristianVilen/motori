@@ -40,7 +40,7 @@ export function UserMenu({ onSignOut }: UserMenuProps) {
 				type="button"
 				data-testid="nav-user-menu"
 				onClick={() => setOpen(!open)}
-				aria-label="Käyttäjävalikko"
+				aria-label={t("nav.userMenuAriaLabel")}
 				aria-expanded={open}
 				aria-haspopup="menu"
 				className="rounded-full p-1 text-white/70 hover:text-white"

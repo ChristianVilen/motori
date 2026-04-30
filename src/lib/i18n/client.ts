@@ -1,12 +1,7 @@
 import i18next from "i18next";
+import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
-import { defaultNS, resources, type SupportedLocale, supportedLngs } from "./resources";
-
-declare global {
-	interface Window {
-		__I18N__?: { locale: SupportedLocale };
-	}
-}
+import { defaultNS, resources, supportedLngs } from "./resources";
 
 let bootstrapped = false;
 
@@ -15,23 +10,25 @@ export function ensureClientI18n(): void {
 		return;
 	}
 	bootstrapped = true;
-	const locale: SupportedLocale = window.__I18N__?.locale ?? "fi";
-	i18next.use(initReactI18next).init({
-		lng: locale,
-		fallbackLng: "fi",
-		supportedLngs: [...supportedLngs],
-		defaultNS,
-		ns: Object.keys(resources.fi),
-		resources,
-		interpolation: { escapeValue: false },
-		react: { useSuspense: false },
-	});
-}
-
-export async function changeClientLocale(locale: SupportedLocale): Promise<void> {
-	if (i18next.language !== locale) {
-		await i18next.changeLanguage(locale);
-	}
+	i18next
+		.use(LanguageDetector)
+		.use(initReactI18next)
+		.init({
+			fallbackLng: "fi",
+			supportedLngs: [...supportedLngs],
+			defaultNS,
+			ns: Object.keys(resources.fi),
+			resources,
+			interpolation: { escapeValue: false },
+			react: { useSuspense: false },
+			detection: {
+				order: ["cookie", "localStorage", "navigator"],
+				lookupCookie: "i18nextLng",
+				lookupLocalStorage: "i18nextLng",
+				caches: ["cookie", "localStorage"],
+				cookieOptions: { path: "/", sameSite: "lax" },
+			},
+		});
 }
 
 export { default as i18n } from "i18next";

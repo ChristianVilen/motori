@@ -2,6 +2,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { ListingImage } from "~/lib/db/schema";
+import { useTranslation } from "~/lib/i18n";
 
 interface ListingGalleryProps {
 	images: ListingImage[];
@@ -9,6 +10,7 @@ interface ListingGalleryProps {
 }
 
 export function ListingGallery({ images, title }: ListingGalleryProps) {
+	const { t } = useTranslation("listings");
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [lightboxOpen, setLightboxOpen] = useState(false);
 
@@ -106,7 +108,7 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 			<section
 				className="group relative -mx-4 bg-black md:mx-0 md:overflow-hidden md:rounded-l md:shadow-lg"
 				aria-roledescription="carousel"
-				aria-label={`${title} — kuvagalleria`}
+				aria-label={t("gallery.carouselAriaLabel", { title })}
 			>
 				<div className="overflow-hidden" ref={mainRef}>
 					<div className="flex touch-pan-y">
@@ -116,7 +118,7 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 									type="button"
 									className="h-full w-full cursor-zoom-in"
 									onClick={() => setLightboxOpen(true)}
-									aria-label={`${title}, kuva ${i + 1} — avaa suurennos`}
+									aria-label={t("gallery.openLightboxAriaLabel", { title, index: i + 1 })}
 								>
 									<img
 										src={img.url}
@@ -136,7 +138,7 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 							type="button"
 							onClick={scrollPrev}
 							className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-foreground shadow-md opacity-0 transition-all hover:bg-white group-hover:opacity-100 max-md:opacity-100"
-							aria-label="Edellinen kuva"
+							aria-label={t("gallery.prevAriaLabel")}
 						>
 							<ChevronLeft className="h-5 w-5" />
 						</button>
@@ -144,7 +146,7 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 							type="button"
 							onClick={scrollNext}
 							className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-foreground shadow-md opacity-0 transition-all hover:bg-white group-hover:opacity-100 max-md:opacity-100"
-							aria-label="Seuraava kuva"
+							aria-label={t("gallery.nextAriaLabel")}
 						>
 							<ChevronRight className="h-5 w-5" />
 						</button>
@@ -162,14 +164,14 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 
 			{/* Thumbnail strip */}
 			{images.length > 1 && (
-				<nav className="mt-3" ref={thumbRef} aria-label="Pikkukuvat">
+				<nav className="mt-3" ref={thumbRef} aria-label={t("gallery.thumbnailsAriaLabel")}>
 					<div className="flex gap-2 px-0.5 py-0.5 flex-wrap">
 						{images.map((img, i) => (
 							<button
 								key={img.id}
 								type="button"
 								onClick={() => onThumbClick(i)}
-								aria-label={`Siirry kuvaan ${i + 1}`}
+								aria-label={t("gallery.goToImageAriaLabel", { index: i + 1 })}
 								aria-current={i === selectedIndex ? "true" : undefined}
 								className={`h-18 w-18 transition-all ${
 									i === selectedIndex
@@ -221,6 +223,7 @@ function Lightbox({
 		startIndex,
 		skipSnaps: false,
 	});
+	const { t } = useTranslation("listings");
 	const [currentIndex, setCurrentIndex] = useState(startIndex);
 
 	useEffect(() => {
@@ -259,13 +262,13 @@ function Lightbox({
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/95"
 			role="dialog"
 			aria-modal="true"
-			aria-label="Kuvagalleria"
+			aria-label={t("gallery.lightboxAriaLabel")}
 		>
 			<button
 				type="button"
 				className="absolute inset-0 cursor-default"
 				onClick={onClose}
-				aria-label="Sulje galleria"
+				aria-label={t("gallery.closeLightboxAriaLabel")}
 				tabIndex={-1}
 			/>
 
@@ -273,7 +276,7 @@ function Lightbox({
 				type="button"
 				onClick={onClose}
 				className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2.5 text-white transition-colors hover:bg-white/20"
-				aria-label="Sulje galleria"
+				aria-label={t("gallery.closeLightboxAriaLabel")}
 			>
 				<X className="h-6 w-6" />
 			</button>
@@ -303,7 +306,7 @@ function Lightbox({
 						type="button"
 						onClick={() => emblaApi?.scrollPrev()}
 						className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/20"
-						aria-label="Edellinen kuva"
+						aria-label={t("gallery.prevAriaLabel")}
 					>
 						<ChevronLeft className="h-7 w-7" />
 					</button>
@@ -311,7 +314,7 @@ function Lightbox({
 						type="button"
 						onClick={() => emblaApi?.scrollNext()}
 						className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/20"
-						aria-label="Seuraava kuva"
+						aria-label={t("gallery.nextAriaLabel")}
 					>
 						<ChevronRight className="h-7 w-7" />
 					</button>

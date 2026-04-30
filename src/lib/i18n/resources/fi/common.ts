@@ -7,6 +7,9 @@ export default {
 		signOut: "Kirjaudu ulos",
 		profile: "Profiili",
 		settings: "Asetukset",
+		userMenuAriaLabel: "Käyttäjävalikko",
+		skipToContent: "Siirry sisältöön",
+		switchLanguage: "Vaihda kieli: {{lang}}",
 	},
 	notFound: {
 		heading: "Sivua ei löytynyt",
@@ -31,6 +34,11 @@ export default {
 		success: "Kiitos ilmoituksestasi. Käsittelemme sen mahdollisimman pian.",
 		duplicate: "Olet jo ilmoittanut tästä sisällöstä.",
 	},
+	footer: {
+		copyright: "© Motori",
+		terms: "Käyttöehdot",
+		privacy: "Tietosuoja",
+	},
 	validation: {
 		titleTooShort: "Otsikko on liian lyhyt (min 5 merkkiä)",
 		titleTooLong: "Otsikko on liian pitkä",
@@ -43,5 +51,7 @@ export default {
 		cityRequired: "Kaupunki on pakollinen",
 		regionRequired: "Valitse alue",
 		descriptionTooShort: "Kuvaus on liian lyhyt (min 20 merkkiä)",
+		invalidImageUrl: "Virheellinen kuva-URL",
+		invalidPhone: "Virheellinen puhelinnumero",
 	},
 } as const;

@@ -61,7 +61,7 @@ const updateListing = createServerFn({ method: "POST" })
 	])
 	.inputValidator((data: { id: string; form: ListingFormData }) => ({
 		id: data.id,
-		form: listingFormSchema.parse(data.form),
+		form: listingFormSchema().parse(data.form),
 	}))
 	.handler(async ({ data }) => {
 		const session = await getSession();

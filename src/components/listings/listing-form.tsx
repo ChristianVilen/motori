@@ -47,6 +47,7 @@ export function ListingForm({
 	submitLabel,
 }: ListingFormProps) {
 	const { t } = useTranslation("listings");
+	const { t: tCommon } = useTranslation("common");
 
 	const [existingImages, setExistingImages] = useState<ListingImageInput[]>(initialImages);
 	const [pendingFiles, setPendingFiles] = useState<File[]>([]);
@@ -101,7 +102,7 @@ export function ListingForm({
 				const newImages = await uploadFiles(pendingFiles, setUploadProgress);
 				setUploadProgress(null);
 				const allImages = [...existingImages, ...newImages];
-				const parsed = listingFormSchema.safeParse({ ...value, images: allImages });
+				const parsed = listingFormSchema(tCommon).safeParse({ ...value, images: allImages });
 				if (!parsed.success) {
 					const first = parsed.error.issues[0];
 					const fieldName = first?.path[0] as keyof typeof value | undefined;

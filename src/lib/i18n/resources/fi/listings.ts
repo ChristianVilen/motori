@@ -41,6 +41,16 @@ export default {
 		lowResults: "Vähän tuloksia? Kokeile laajentaa hakua tai",
 		lowResultsLink: "lisää oma ilmoituksesi",
 	},
+	gallery: {
+		carouselAriaLabel: "{{title}} — kuvagalleria",
+		openLightboxAriaLabel: "{{title}}, kuva {{index}} — avaa suurennos",
+		prevAriaLabel: "Edellinen kuva",
+		nextAriaLabel: "Seuraava kuva",
+		thumbnailsAriaLabel: "Pikkukuvat",
+		goToImageAriaLabel: "Siirry kuvaan {{index}}",
+		lightboxAriaLabel: "Kuvagalleria",
+		closeLightboxAriaLabel: "Sulje galleria",
+	},
 	detail: {
 		notFound: "Ilmoitusta ei löydy.",
 		notFoundBack: "Etusivulle",

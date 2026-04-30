@@ -51,6 +51,7 @@ export default {
 		deleteAccountDescription:
 			"Tilisi ja kaikki siihen liittyvät tiedot (ilmoitukset, kuvat, suosikit) poistetaan pysyvästi. Tätä ei voi peruuttaa.",
 		deleteAccountConfirm: 'Kirjoita "POISTA" vahvistaaksesi',
+		deleteAccountConfirmWord: "POISTA",
 		deleteAccountButton: "Poista tili pysyvästi",
 		deleteAccountDeleting: "Poistetaan...",
 		deleteAccountError: "Tilin poisto epäonnistui. Yritä uudelleen.",

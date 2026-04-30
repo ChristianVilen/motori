@@ -3,7 +3,7 @@ import { listingFormSchema } from "./validators";
 
 describe("listingFormSchema", () => {
 	it("requires make_id", () => {
-		const result = listingFormSchema.safeParse({
+		const result = listingFormSchema().safeParse({
 			title: "Testi pyörä jolla on pitkä nimi",
 			make_id: "",
 			year: 2020,
@@ -20,7 +20,7 @@ describe("listingFormSchema", () => {
 	});
 
 	it("accepts null model_id", () => {
-		const result = listingFormSchema.safeParse({
+		const result = listingFormSchema().safeParse({
 			title: "Testi pyörä jolla on pitkä nimi",
 			make_id: "some-uuid",
 			model_id: null,
