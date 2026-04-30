@@ -1,3 +1,16 @@
+import { randomBytes } from "node:crypto";
+
+const BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+export function generateBookingShortId(): string {
+	const bytes = randomBytes(8);
+	let out = "";
+	for (let i = 0; i < 8; i++) {
+		out += BASE62[bytes[i] % 62];
+	}
+	return out;
+}
+
 /** Expand inclusive YYYY-MM-DD range to an array of YYYY-MM-DD strings. */
 export function expandDateRange(start: string, end: string): string[] {
 	if (end < start) {
