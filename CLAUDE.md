@@ -14,7 +14,7 @@ Always use `pnpm` (not npm/bun — lockfile is pnpm-lock.yaml).
 - `pnpm build` / `pnpm start` — production build and node server (also regenerates `routeTree.gen.ts`)
 - `pnpm typecheck` — `tsc --noEmit`
 - `pnpm lint` / `pnpm lint:fix` — Biome (tabs, 100-col, strict rules incl. `noExplicitAny`, `noConsole` warn, `noNonNullAssertion`)
-- `pnpm test` — Vitest (unit). Run a single file: `pnpm vitest run path/to/file.test.ts`
+- `pnpm test` — Vitest (unit). Run a single file: `pnpm test -- path/to/file.test.ts`
 - `pnpm test:e2e` / `pnpm test:e2e:ui` — Playwright. Config auto-starts dev server with `DISABLE_EMAIL_VERIFICATION=true`.
 
 ### Database
