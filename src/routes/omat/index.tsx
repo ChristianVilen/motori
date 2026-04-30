@@ -290,27 +290,32 @@ function ProfilePage() {
 							})}
 						</p>
 					</div>
-					{verified ? (
-						<Link to="/ilmoitukset/uusi">
+					<div className="flex items-center gap-3">
+						<Link to="/omat/varaukset" className="text-sm text-muted hover:text-accent">
+							{t("bookings.navTitle")}
+						</Link>
+						{verified ? (
+							<Link to="/ilmoitukset/uusi">
+								<Button
+									data-testid="dashboard-new-listing"
+									className="gap-2 bg-accent text-white hover:bg-accent-hover"
+								>
+									<Plus className="h-4 w-4" />
+									{t("dashboard.newListing")}
+								</Button>
+							</Link>
+						) : (
 							<Button
 								data-testid="dashboard-new-listing"
-								className="gap-2 bg-accent text-white hover:bg-accent-hover"
+								className="gap-2"
+								disabled
+								title={tAuth("unverifiedTooltip")}
 							>
 								<Plus className="h-4 w-4" />
 								{t("dashboard.newListing")}
 							</Button>
-						</Link>
-					) : (
-						<Button
-							data-testid="dashboard-new-listing"
-							className="gap-2"
-							disabled
-							title={tAuth("unverifiedTooltip")}
-						>
-							<Plus className="h-4 w-4" />
-							{t("dashboard.newListing")}
-						</Button>
-					)}
+						)}
+					</div>
 				</div>
 
 				{/* Listings */}
