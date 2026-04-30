@@ -1,10 +1,12 @@
 import { createRouter } from "@tanstack/react-router";
+import { getNonce } from "~/lib/nonce";
 import { routeTree } from "./routeTree.gen";
 
 export function getRouter() {
 	const router = createRouter({
 		routeTree,
 		scrollRestoration: true,
+		ssr: { nonce: getNonce() },
 	});
 
 	return router;

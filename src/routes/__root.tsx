@@ -322,6 +322,14 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 				)}
 				{!isAdmin && <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />}
 				<Scripts />
+
+				<script
+					nonce={router.options.ssr?.nonce}
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: inline locale for hydration
+					dangerouslySetInnerHTML={{
+						__html: `window.__I18N__=${JSON.stringify({ locale }).replace(/</g, "\\u003c")};`,
+					}}
+				/>
 			</body>
 		</html>
 	);
