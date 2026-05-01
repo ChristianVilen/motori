@@ -12,7 +12,7 @@ import { EVENTS } from "~/lib/log/events";
 export async function expireStaleBookings(): Promise<number> {
 	const result = await db
 		.updateTable("booking")
-		.set({ status: "expired", updated_at: new Date() })
+		.set({ status: "expired", responded_at: new Date(), updated_at: new Date() })
 		.where("status", "=", "pending")
 		.where((eb) =>
 			eb.or([

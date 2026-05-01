@@ -97,7 +97,7 @@ function todayIsoDate(): string {
 
 export const bookingRequestSchema = z
 	.object({
-		listing_id: z.string(),
+		listing_id: z.string().uuid(),
 		start_date: isoDate,
 		end_date: isoDate,
 		message: z.string().trim().min(1, "Viesti on pakollinen").max(500, "Viesti on liian pitkä"),

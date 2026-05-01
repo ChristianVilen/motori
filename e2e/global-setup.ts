@@ -71,6 +71,7 @@ export default async function globalSetup() {
 	await browser.close();
 
 	const userId = await resolveTestUserId();
+	await seedOwnerProfile(userId);
 	await seedListings(userId);
 }
 
@@ -85,6 +86,19 @@ async function resolveTestUserId(): Promise<string> {
 		throw new Error(`Global setup: test user ${TEST_EMAIL} not found after sign-up`);
 	}
 	return user.id;
+}
+
+async function seedOwnerProfile(userId: string) {
+	const { db } = await import("../src/lib/db/index");
+	await db
+		.insertInto("profile")
+		.values({
+			user_id: userId,
+			display_name: "E2E Test User",
+			language: "fi",
+		})
+		.onConflict((oc) => oc.column("user_id").doUpdateSet({ display_name: "E2E Test User" }))
+		.execute();
 }
 
 async function seedListings(ownerId: string) {

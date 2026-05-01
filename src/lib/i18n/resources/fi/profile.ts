@@ -58,6 +58,7 @@ export default {
 			confirmConfirm: "Vahvistetaanko? Päivät lukitaan kalenterissa.",
 			rejectConfirm: "Hylätäänkö varaus?",
 			cancelConfirm: "Perutaanko varauspyyntö?",
+			rejectDismiss: "Peruuta",
 			autoRejectNotice: "{{count}} päällekkäistä pyyntöä hylättiin automaattisesti.",
 			contactRevealed: "Yhteystiedot näkyvät kummallekin osapuolelle.",
 		},

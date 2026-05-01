@@ -94,6 +94,33 @@ export default {
 		notFoundBack: "My listings",
 		submitLabel: "Save changes",
 	},
+	booking: {
+		calendarTitle: "Availability",
+		legend: {
+			available: "Available",
+			blocked: "Booked",
+			selected: "Selected",
+		},
+		pickRange: "Select a start and end date",
+		mustBeContiguous: "Dates must be consecutive",
+		loginRequired: "Sign in to make a booking request",
+		messageLabel: "Message to the owner",
+		messagePlaceholder: "Tell us who you are and what you need the bike for",
+		submitButton: "Send booking request",
+		submitting: "Sending…",
+		successTitle: "Booking request sent",
+		successBody:
+			"The owner will receive your request by email. You'll be notified when they respond.",
+	},
+	availability: {
+		formTitle: "Availability",
+		defaultLabel: "Default state",
+		defaultOpen: "Available by default",
+		defaultClosed: "Booked by default",
+		hint: "Click days in the calendar to toggle individual day availability.",
+		saveButton: "Save availability",
+		saved: "Availability saved",
+	},
 	form: {
 		sections: {
 			motorcycle: "Motorcycle",

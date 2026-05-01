@@ -22,11 +22,21 @@ test.describe("Booking flow", () => {
 
 		// DISABLE_EMAIL_VERIFICATION=true allows sign-in but does not set emailVerified.
 		// requireVerifiedEmail() blocks booking submit; flip the flag directly.
+		// Also create a profile — submitBookingRequest requires one for the renter.
 		const { db } = await import("../../src/lib/db/index");
+		const renterUser = await db
+			.selectFrom("user")
+			.select("id")
+			.where("email", "=", renterEmail)
+			.executeTakeFirstOrThrow();
 		await db
 			.updateTable("user")
 			.set({ emailVerified: true, updatedAt: new Date() })
 			.where("email", "=", renterEmail)
+			.execute();
+		await db
+			.insertInto("profile")
+			.values({ user_id: renterUser.id, display_name: renterName, language: "fi" })
 			.execute();
 
 		// 2. Log in as renter and open the seeded listing.
@@ -48,7 +58,7 @@ test.describe("Booking flow", () => {
 		// 5. Fill message and submit.
 		await page.getByPlaceholder(/Kerro kuka olet/).fill("E2E test kiinnostaa vuokrata");
 		await page.getByTestId("booking-submit").click();
-		// await expect(page.getByTestId("booking-success")).toBeVisible({ timeout: 10000 });
+		await expect(page.getByTestId("booking-success")).toBeVisible({ timeout: 10000 });
 
 		// 6. Sign out the renter.
 		await page.context().clearCookies();
@@ -63,14 +73,14 @@ test.describe("Booking flow", () => {
 		const row = page.getByTestId("booking-row").first();
 		await expect(row).toBeVisible();
 		await row.click();
-		await waitForHydration(page);
 
-		// 9. Confirm the booking.
-		//		const confirmBtn = page.getByTestId("booking-confirm");
-		//	await expect(confirmBtn).toBeVisible();
-		//	await confirmBtn.click();
+		// 9. Confirm the booking. Use a long timeout: waitForURL resolves as soon as
+		// TanStack Router pushes state, but the route data fetch is still in-flight.
+		const confirmBtn = page.getByTestId("booking-confirm");
+		await expect(confirmBtn).toBeVisible({ timeout: 15000 });
+		await confirmBtn.click();
 
 		// 10. Status should update to confirmed.
-		//await expect(page.getByText("Vahvistettu")).toBeVisible({ timeout: 10000 });
+		await expect(page.getByText("Vahvistettu")).toBeVisible({ timeout: 10000 });
 	});
 });

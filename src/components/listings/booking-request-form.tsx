@@ -36,7 +36,6 @@ export function BookingRequestForm(props: Props) {
 			});
 			setSuccess(true);
 		} catch (err) {
-			// TODO: error message from localised texts
 			let msg = err instanceof Error ? err.message : String(err);
 			try {
 				const parsed = JSON.parse(msg);

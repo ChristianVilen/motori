@@ -168,7 +168,6 @@ const confirmBooking = createServerFn({ method: "POST" })
 					sql<string>`to_char(booking.end_date, 'YYYY-MM-DD')`.as("end_date"),
 					"user.email",
 					"profile.display_name",
-					"profile.phone",
 				])
 				.where("booking.listing_id", "=", booking.listing_id)
 				.where("booking.id", "!=", booking.id)
@@ -225,7 +224,7 @@ const confirmBooking = createServerFn({ method: "POST" })
 					start_date: o.start_date,
 					end_date: o.end_date,
 				},
-				renter: { display_name: o.display_name, email: o.email, phone: o.phone },
+				renter: { display_name: o.display_name, email: o.email, phone: null },
 			});
 		}
 
@@ -337,7 +336,7 @@ const cancelBooking = createServerFn({ method: "POST" })
 		log.event(EVENTS.booking.cancelled, { bookingId: booking.id });
 	});
 
-export const Route = createFileRoute("/omat/varaukset/$bookingId")({
+export const Route = createFileRoute("/omat/varaukset_/$bookingId")({
 	loader: async ({ params }) => {
 		const session = await getSession();
 		if (!session) {
@@ -439,7 +438,7 @@ function OwnerActions(props: {
 							{t("bookings.detail.rejectButton")}
 						</Button>
 						<Button variant="outline" onClick={() => setRejectMode(false)} disabled={props.busy}>
-							Peruuta
+							{t("bookings.detail.rejectDismiss")}
 						</Button>
 					</div>
 				</div>
