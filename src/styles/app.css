@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-	--font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-	--font-heading: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+	--font-sans: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+	--font-heading: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+	--font-mono:
+		"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+		"Courier New", monospace;
 
 	/* Core palette */
 	--color-primary: #1a1a2e;

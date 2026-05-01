@@ -23,6 +23,9 @@ import { createI18nSync } from "~/lib/i18n/server";
 import { useEmailVerified } from "~/lib/use-email-verified";
 import appCss from "~/styles/app.css?url";
 
+import "@fontsource-variable/manrope/index.css";
+import "@fontsource/jetbrains-mono/index.css";
+
 export const Route = createRootRoute({
 	beforeLoad: async () => {
 		let locale: SupportedLocale = "fi";
@@ -70,19 +73,6 @@ export const Route = createRootRoute({
 			{ rel: "apple-touch-icon", href: "/icon-192.png" },
 			...supportedLngs.map((lng) => ({ rel: "alternate", hrefLang: lng, href: `${SITE_URL}/` })),
 			{ rel: "alternate", hrefLang: "x-default", href: `${SITE_URL}/` },
-			{
-				rel: "preconnect",
-				href: "https://fonts.googleapis.com",
-			},
-			{
-				rel: "preconnect",
-				href: "https://fonts.gstatic.com",
-				crossOrigin: "anonymous",
-			},
-			{
-				rel: "stylesheet",
-				href: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap",
-			},
 		],
 	}),
 	component: RootComponent,
