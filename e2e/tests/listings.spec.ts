@@ -55,12 +55,10 @@ test.describe("Listing detail", () => {
 		await expect(detail.locationInfo).toContainText("Helsinki");
 	});
 
-	test("contact reveal exposes the owner contact block", async ({ authenticatedPage }) => {
+	test("booking form is visible for authenticated non-owner", async ({ authenticatedPage }) => {
 		const detail = new ListingDetailPage(authenticatedPage);
 		await detail.goto(SEEDED_LISTING_ID, SEEDED_LISTING_SLUG);
-		await expect(detail.ownerContact).toBeHidden();
-		await detail.revealOwnerContact();
-		await expect(detail.ownerContact).toBeVisible();
+		await expect(detail.bookingSection).toBeVisible();
 	});
 
 	test("shows 404 for nonexistent listing", async ({ page }) => {

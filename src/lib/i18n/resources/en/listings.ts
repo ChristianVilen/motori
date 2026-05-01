@@ -72,6 +72,7 @@ export default {
 			perDay: "/day",
 			perWeek: "{{price}} / week",
 		},
+		bookingCta: "Make a booking request",
 		contact: {
 			loginPrompt: "Sign in to see contact details",
 			reveal: "Show contact details",

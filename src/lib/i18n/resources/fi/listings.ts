@@ -72,6 +72,7 @@ export default {
 			perDay: "/päivä",
 			perWeek: "{{price}} / viikko",
 		},
+		bookingCta: "Tee varauspyyntö",
 		contact: {
 			loginPrompt: "Kirjaudu nähdäksesi yhteystiedot",
 			reveal: "Näytä yhteystiedot",

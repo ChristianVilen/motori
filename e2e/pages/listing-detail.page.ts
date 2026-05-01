@@ -10,8 +10,7 @@ export class ListingDetailPage {
 	readonly priceInfo: Locator;
 	readonly pricePerDay: Locator;
 	readonly locationInfo: Locator;
-	readonly ownerContactReveal: Locator;
-	readonly ownerContact: Locator;
+	readonly bookingSection: Locator;
 	readonly notFound: Locator;
 
 	constructor(page: Page) {
@@ -23,17 +22,12 @@ export class ListingDetailPage {
 		this.priceInfo = page.getByTestId("price-info");
 		this.pricePerDay = page.getByTestId("price-per-day");
 		this.locationInfo = page.getByTestId("location-info");
-		this.ownerContactReveal = page.getByTestId("owner-contact-reveal");
-		this.ownerContact = page.getByTestId("owner-contact");
+		this.bookingSection = page.getByTestId("booking-section");
 		this.notFound = page.getByTestId("listing-not-found");
 	}
 
 	async goto(shortId: string, slug: string) {
 		await this.page.goto(`/ilmoitukset/${shortId}/${slug}`);
 		await waitForHydration(this.page);
-	}
-
-	async revealOwnerContact() {
-		await this.ownerContactReveal.click();
 	}
 }
