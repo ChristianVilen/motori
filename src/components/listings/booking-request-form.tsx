@@ -41,7 +41,7 @@ export function BookingRequestForm(props: Props) {
 			try {
 				const parsed = JSON.parse(msg);
 				if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].message) {
-					msg = parsed.map((p: any) => p.message).join(", ");
+					msg = parsed.map((p) => p.message).join(", ");
 				}
 			} catch {
 				// Not JSON, use original message
