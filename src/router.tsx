@@ -2,9 +2,7 @@ import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 
 export function getRouter() {
-	let nonce = (
-		globalThis as { __motoriGetNonce?: () => string | undefined }
-	).__motoriGetNonce?.();
+	let nonce = (globalThis as { __motoriGetNonce?: () => string | undefined }).__motoriGetNonce?.();
 
 	if (typeof document !== "undefined") {
 		const meta = document.querySelector('meta[name="csp-nonce"]');
