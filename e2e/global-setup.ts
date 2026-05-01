@@ -15,7 +15,7 @@ export const TEST_PASSWORD = "E2eTestPass123!";
 export const AUTH_STATE_PATH = "e2e/.auth/user.json";
 
 // Deterministic IDs for the e2e seed listing
-export const SEEDED_LISTING_UUID = "e2e-seed-honda-cb500f-uusimaa"; // stable DB id
+export const SEEDED_LISTING_UUID = "11111111-2222-3333-4444-555555555555"; // stable DB id
 export const SEEDED_LISTING_ID = "e2eseed1"; // short_id — used in URLs and data-listing-id
 export const SEEDED_LISTING_SLUG = "honda-e2e-helsinki"; // make slug + city
 export const SEEDED_LISTING_TITLE = "E2E Seed Honda CB500F 2022";

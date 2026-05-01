@@ -89,12 +89,15 @@ export function validateFinnishPhone(raw: string, errorMsg?: string): string {
 	return phone;
 }
 
-const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const isoDate = z.string().regex(ISO_DATE_RE, "Virheellinen päivämäärä");
+const isoDate = z.iso.date("Virheellinen päivämäärä");
+
+function todayIsoDate(): string {
+	return new Date().toISOString().slice(0, 10);
+}
 
 export const bookingRequestSchema = z
 	.object({
-		listing_id: z.string().uuid(),
+		listing_id: z.string(),
 		start_date: isoDate,
 		end_date: isoDate,
 		message: z.string().trim().min(1, "Viesti on pakollinen").max(500, "Viesti on liian pitkä"),
@@ -102,9 +105,15 @@ export const bookingRequestSchema = z
 	.refine((d) => d.end_date >= d.start_date, {
 		message: "Loppupäivä ennen aloituspäivää",
 		path: ["end_date"],
+	})
+	.refine((d) => d.start_date >= todayIsoDate(), {
+		message: "Aloituspäivä menneisyydessä",
+		path: ["start_date"],
 	});
 
 export type BookingRequestInput = z.infer<typeof bookingRequestSchema>;
+
+export const bookingIdSchema = z.object({ id: z.string().uuid() });
 
 export const bookingRejectSchema = z.object({
 	id: z.string().uuid(),

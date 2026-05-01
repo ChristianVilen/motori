@@ -218,6 +218,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 	return (
 		<html lang={currentLang} dir="ltr" className="bg-background">
 			<head>
+				<meta name="csp-nonce" content={router.options.ssr?.nonce} />
 				<HeadContent />
 			</head>
 			<body className="min-h-screen bg-background font-sans text-foreground antialiased">
@@ -323,6 +324,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 
 				<script
 					nonce={router.options.ssr?.nonce}
+					suppressHydrationWarning
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: inline locale for hydration
 					dangerouslySetInnerHTML={{
 						__html: `window.__I18N__=${JSON.stringify({ locale }).replace(/</g, "\\u003c")};`,

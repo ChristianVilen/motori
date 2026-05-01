@@ -54,7 +54,7 @@ const getListingForEdit = createServerFn({ method: "GET" })
 			.orderBy("order", "asc")
 			.execute();
 
-		const availability = await getListingAvailability(listing.id);
+		const availability = await getListingAvailability({ data: listing.id });
 		return {
 			listing,
 			images,

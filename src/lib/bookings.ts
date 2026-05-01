@@ -1,9 +1,8 @@
-import { randomBytes } from "node:crypto";
-
 const BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 export function generateBookingShortId(): string {
-	const bytes = randomBytes(8);
+	const bytes = new Uint8Array(8);
+	globalThis.crypto.getRandomValues(bytes);
 	let out = "";
 	for (let i = 0; i < 8; i++) {
 		out += BASE62[bytes[i] % 62];

@@ -19,7 +19,7 @@ import { EVENTS } from "~/lib/log/events";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { requireVerifiedEmail } from "~/lib/require-verified-email";
 import { getSession } from "~/lib/session";
-import { bookingRejectSchema } from "~/lib/validators";
+import { bookingIdSchema, bookingRejectSchema } from "~/lib/validators";
 
 const getBooking = createServerFn({ method: "GET" })
 	.inputValidator((shortId: string) => shortId)
@@ -107,7 +107,7 @@ const confirmBooking = createServerFn({ method: "POST" })
 		rateLimitMiddleware(10, 60, "confirm-booking"),
 		requireVerifiedEmail(),
 	])
-	.inputValidator((data: { id: string }) => ({ id: String(data.id) }))
+	.inputValidator((data: unknown) => bookingIdSchema.parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();
 		if (!session) {
@@ -305,7 +305,7 @@ const cancelBooking = createServerFn({ method: "POST" })
 		rateLimitMiddleware(10, 60, "cancel-booking"),
 		requireVerifiedEmail(),
 	])
-	.inputValidator((data: { id: string }) => ({ id: String(data.id) }))
+	.inputValidator((data: unknown) => bookingIdSchema.parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();
 		if (!session) {

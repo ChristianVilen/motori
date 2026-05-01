@@ -153,6 +153,7 @@ export const submitBookingRequest = createServerFn({ method: "POST" })
 				"user.email as owner_email",
 				"profile.display_name as owner_display_name",
 				"profile.phone as owner_phone",
+				"profile.show_phone as owner_show_phone",
 			])
 			.where("listing.id", "=", data.listing_id)
 			.executeTakeFirst();
@@ -161,9 +162,13 @@ export const submitBookingRequest = createServerFn({ method: "POST" })
 			throw new Error("Ilmoitus ei ole saatavilla");
 		}
 
+		if (listing.owner_id === session.user.id) {
+			throw new Error("Et voi varata omaa ilmoitustasi");
+		}
+
 		const renterProfile = await db
 			.selectFrom("profile")
-			.select(["display_name", "phone"])
+			.select(["display_name", "phone", "show_phone"])
 			.where("user_id", "=", session.user.id)
 			.executeTakeFirst();
 
@@ -217,12 +222,12 @@ export const submitBookingRequest = createServerFn({ method: "POST" })
 			owner: {
 				display_name: listing.owner_display_name,
 				email: listing.owner_email,
-				phone: listing.owner_phone,
+				phone: listing.owner_show_phone ? listing.owner_phone : null,
 			},
 			renter: {
 				display_name: renterProfile.display_name,
 				email: session.user.email,
-				phone: renterProfile.phone,
+				phone: renterProfile.show_phone ? renterProfile.phone : null,
 			},
 			message: data.message,
 		});
@@ -239,7 +244,7 @@ export const Route = createFileRoute("/ilmoitukset/$listingId_/$slug")({
 		if (!result) {
 			throw notFound();
 		}
-		const availability = await getListingAvailability(result.listing.id);
+		const availability = await getListingAvailability({ data: result.listing.id });
 		return { ...result, session, availability };
 	},
 	head: ({ loaderData }) => {
