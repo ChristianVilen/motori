@@ -5,8 +5,9 @@ import { betterAuth } from "better-auth";
 import { hashPassword, verifyPassword } from "better-auth/crypto";
 import { admin } from "better-auth/plugins";
 import { db } from "~/lib/db/index";
+import { wrapEmail } from "~/lib/email-wrapper";
 import { sendEmail } from "~/lib/email";
-import { emailT as t } from "~/lib/i18n/email";
+import { getEmailT } from "~/lib/i18n/email";
 import { passwordStrength } from "~/lib/password-strength";
 
 export const auth = betterAuth({
@@ -33,16 +34,22 @@ export const auth = betterAuth({
 			verify: verifyPassword,
 		},
 		sendResetPassword: async ({ user, url }) => {
+			const profile = await db
+				.selectFrom("profile")
+				.select("language")
+				.where("user_id", "=", user.id)
+				.executeTakeFirst();
+			const lang = profile?.language ?? "fi";
+			const t = getEmailT(lang);
 			void sendEmail({
 				to: user.email,
 				subject: t("passwordReset.subject"),
-				html: `
+				html: wrapEmail(`
 					<p>${t("passwordReset.greeting")}</p>
 					<p>${t("passwordReset.body")}</p>
 					<p><a href="${url}">${url}</a></p>
 					<p>${t("passwordReset.expiry")}</p>
-					<p>${t("signature")}</p>
-				`,
+				`),
 				text: `${t("passwordReset.body")}\n${url}\n\n${t("passwordReset.expiry")}`,
 			}).catch(() => {});
 		},
@@ -74,16 +81,22 @@ export const auth = betterAuth({
 	emailVerification: {
 		expiresIn: 86400, // 24 hours
 		sendVerificationEmail: async ({ user, url }) => {
+			const profile = await db
+				.selectFrom("profile")
+				.select("language")
+				.where("user_id", "=", user.id)
+				.executeTakeFirst();
+			const lang = profile?.language ?? "fi";
+			const t = getEmailT(lang);
 			void sendEmail({
 				to: user.email,
 				subject: t("verification.subject"),
-				html: `
+				html: wrapEmail(`
 					<p>${t("verification.greeting")}</p>
 					<p>${t("verification.body")}</p>
 					<p><a href="${url}">${url}</a></p>
 					<p>${t("verification.expiry")}</p>
-					<p>${t("signature")}</p>
-				`,
+				`),
 				text: `${t("verification.body")}\n${url}\n\n${t("verification.expiry")}`,
 			}).catch(() => {});
 		},
