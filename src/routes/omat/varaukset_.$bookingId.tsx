@@ -299,7 +299,12 @@ const rejectBooking = createServerFn({ method: "POST" })
 				start_date: booking.start_date,
 				end_date: booking.end_date,
 			},
-			renter: { display_name: booking.renter_name, email: booking.renter_email, phone: null, language: booking.renter_language },
+			renter: {
+				display_name: booking.renter_name,
+				email: booking.renter_email,
+				phone: null,
+				language: booking.renter_language,
+			},
 			reason: data.reason ?? null,
 		});
 	});
