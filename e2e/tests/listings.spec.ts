@@ -55,8 +55,8 @@ test.describe("Listing detail", () => {
 		await expect(detail.locationInfo).toContainText("Helsinki");
 	});
 
-	test("booking form is visible for authenticated non-owner", async ({ authenticatedPage }) => {
-		const detail = new ListingDetailPage(authenticatedPage);
+	test("booking form is visible for authenticated non-owner", async ({ authenticatedViewerPage }) => {
+		const detail = new ListingDetailPage(authenticatedViewerPage);
 		await detail.goto(SEEDED_LISTING_ID, SEEDED_LISTING_SLUG);
 		await expect(detail.bookingSection).toBeVisible();
 	});
