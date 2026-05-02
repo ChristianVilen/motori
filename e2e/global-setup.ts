@@ -108,6 +108,8 @@ export default async function globalSetup() {
 
 	const userId = await resolveTestUserId(TEST_EMAIL);
 	const viewerId = await resolveTestUserId(VIEWER_EMAIL);
+	await verifyEmail(userId);
+	await verifyEmail(viewerId);
 	await seedProfile(userId, "E2E Test User");
 	await seedProfile(viewerId, "E2E Viewer");
 	await seedListings(userId);
@@ -124,6 +126,15 @@ async function resolveTestUserId(email: string): Promise<string> {
 		throw new Error(`Global setup: user ${email} not found after sign-up`);
 	}
 	return user.id;
+}
+
+async function verifyEmail(userId: string) {
+	const { db } = await import("../src/lib/db/index");
+	await db
+		.updateTable("user")
+		.set({ emailVerified: true, updatedAt: new Date() })
+		.where("id", "=", userId)
+		.execute();
 }
 
 async function seedProfile(userId: string, displayName: string) {
