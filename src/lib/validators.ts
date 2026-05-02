@@ -47,6 +47,7 @@ export function listingFormSchema(t: T = defaultT) {
 		required_license: z.enum(["A1", "A2", "A"]).nullable().optional(),
 		price_per_day: z.number().min(1, t("validation.pricePerDayRequired")).max(10000),
 		price_per_week: z.number().min(1).max(50000).nullable().optional(),
+		price_per_weekend: z.number().min(1).max(50000).nullable().optional(),
 		price_description: z.string().trim().max(200).nullable().optional(),
 		city: z.string().trim().min(1, t("validation.cityRequired")).max(100),
 		region: z.string().trim().min(1, t("validation.regionRequired")),

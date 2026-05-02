@@ -71,6 +71,7 @@ export default {
 		pricing: {
 			perDay: "/day",
 			perWeek: "{{price}} / week",
+			perWeekend: "{{price}} / weekend (Fri–Sun)",
 		},
 		bookingCta: "Make a booking request",
 		contact: {
@@ -112,6 +113,9 @@ export default {
 		successTitle: "Booking request sent",
 		successBody:
 			"The owner will receive your request by email. You'll be notified when they respond.",
+		costSummary: "{{days}} days — {{total}}",
+		costLabelWeekend: "weekend rate",
+		costLabelWeek: "weekly rate",
 	},
 	availability: {
 		formTitle: "Availability",
@@ -140,6 +144,7 @@ export default {
 			requiredLicense: "Required license",
 			pricePerDay: "Price per day (€)",
 			pricePerWeek: "Price per week (€)",
+			pricePerWeekend: "Weekend price (€, Fri–Sun)",
 			priceDescription: "Additional pricing info",
 			city: "City",
 			region: "Region",
