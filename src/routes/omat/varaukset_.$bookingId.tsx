@@ -340,7 +340,10 @@ export const Route = createFileRoute("/omat/varaukset_/$bookingId")({
 	loader: async ({ params }) => {
 		const session = await getSession();
 		if (!session) {
-			throw redirect({ to: "/kirjaudu", search: { redirect: undefined } });
+			throw redirect({
+				to: "/kirjaudu",
+				search: { redirect: `/omat/varaukset/${params.bookingId}` },
+			});
 		}
 		const result = await getBooking({ data: params.bookingId });
 		if (!result) {
