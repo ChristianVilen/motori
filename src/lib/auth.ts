@@ -5,8 +5,8 @@ import { betterAuth } from "better-auth";
 import { hashPassword, verifyPassword } from "better-auth/crypto";
 import { admin } from "better-auth/plugins";
 import { db } from "~/lib/db/index";
-import { wrapEmail } from "~/lib/email-wrapper";
 import { sendEmail } from "~/lib/email";
+import { wrapEmail } from "~/lib/email-wrapper";
 import { getEmailT } from "~/lib/i18n/email";
 import { passwordStrength } from "~/lib/password-strength";
 
