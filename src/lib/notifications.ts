@@ -1,7 +1,8 @@
 import { sql } from "kysely";
 import { db } from "~/lib/db/index";
 import { sendEmail } from "~/lib/email";
-import { emailT as t } from "~/lib/i18n/email";
+import { wrapEmail } from "~/lib/email-wrapper";
+import { getEmailT } from "~/lib/i18n/email";
 import { log, withLogContext } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 
@@ -20,6 +21,7 @@ export async function sendListingExpiryWarnings(daysAhead = 7): Promise<number> 
 				"listing.expires_at",
 				"user.email",
 				"profile.display_name",
+				"profile.language",
 			])
 			.where("listing.status", "=", "active")
 			.where("listing.expires_at", "is not", null)
@@ -38,15 +40,15 @@ export async function sendListingExpiryWarnings(daysAhead = 7): Promise<number> 
 						return;
 					}
 					const daysLeft = Math.ceil((row.expires_at.getTime() - Date.now()) / 86_400_000);
+					const t = getEmailT(row.language);
 					await sendEmail({
 						to: row.email,
 						subject: t("listingExpiry.subject"),
-						html: `
+						html: wrapEmail(`
 							<p>${t("listingExpiry.greeting", { name: row.display_name })}</p>
 							<p>${t("listingExpiry.body", { title: row.title, days: daysLeft })}</p>
 							<p>${t("listingExpiry.cta")}</p>
-							<p>${t("signature")}</p>
-						`,
+						`),
 						text: `${t("listingExpiry.body", { title: row.title, days: daysLeft })}\n\n${t("listingExpiry.cta")}`,
 						idempotencyKey: `expiry-warning/${row.id}`,
 					});
