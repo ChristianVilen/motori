@@ -28,6 +28,7 @@ export function ensureClientI18n(): void {
 				caches: ["cookie", "localStorage"],
 				cookieOptions: { path: "/", sameSite: "lax" },
 			},
+			showSupportNotice: false,
 		});
 }
 

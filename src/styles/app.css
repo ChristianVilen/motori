@@ -71,3 +71,12 @@
 		transition-duration: 0.01ms !important;
 	}
 }
+
+.rdp-blocked {
+	color: var(--color-destructive);
+	background-color: rgb(239 68 68 / 0.15);
+	text-decoration: line-through;
+}
+.rdp-booked {
+	background-color: rgb(239 68 68 / 0.3);
+}

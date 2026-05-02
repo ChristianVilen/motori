@@ -1,5 +1,5 @@
 import { test as base, type Page } from "@playwright/test";
-import { AUTH_STATE_PATH } from "./global-setup";
+import { AUTH_STATE_PATH, VIEWER_AUTH_STATE_PATH } from "./global-setup";
 
 export { expect } from "@playwright/test";
 
@@ -7,9 +7,16 @@ export { expect } from "@playwright/test";
 // Safe for fullyParallel — contexts are isolated, storageState is read-only.
 export const test = base.extend<{
 	authenticatedPage: Page;
+	authenticatedViewerPage: Page;
 }>({
 	authenticatedPage: async ({ browser }, use) => {
 		const ctx = await browser.newContext({ storageState: AUTH_STATE_PATH });
+		const page = await ctx.newPage();
+		await use(page);
+		await ctx.close();
+	},
+	authenticatedViewerPage: async ({ browser }, use) => {
+		const ctx = await browser.newContext({ storageState: VIEWER_AUTH_STATE_PATH });
 		const page = await ctx.newPage();
 		await use(page);
 		await ctx.close();

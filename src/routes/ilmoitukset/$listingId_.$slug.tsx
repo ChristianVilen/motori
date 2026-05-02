@@ -5,10 +5,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { sql } from "kysely";
 import { ArrowLeft, MapPin, Tag } from "lucide-react";
-import { useState } from "react";
+import { BookingRequestForm } from "~/components/listings/booking-request-form";
 import { ListingGallery } from "~/components/listings/listing-gallery";
 import { ReportButton } from "~/components/report-button";
 import { Button } from "~/components/ui/button";
+import { sendBookingRequestEmail } from "~/lib/booking-emails";
+import { generateBookingShortId } from "~/lib/bookings";
 import {
 	LICENSE_CLASSES,
 	LISTING_STATUSES,
@@ -17,11 +19,18 @@ import {
 	SITE_NAME,
 	SITE_URL,
 } from "~/lib/constants";
+import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
+import { getListingAvailability } from "~/lib/listings-queries";
+import { log } from "~/lib/log";
+import { EVENTS } from "~/lib/log/events";
+import { rateLimitMiddleware } from "~/lib/rate-limit";
+import { requireVerifiedEmail } from "~/lib/require-verified-email";
 import { getSession } from "~/lib/session";
 import { computeListingSlug } from "~/lib/slug";
+import { bookingRequestSchema } from "~/lib/validators";
 
 // In-memory dedup for view count increments (per-process, 60s TTL, 10k cap)
 const VIEW_DEDUP_MAX = 10_000;
@@ -82,40 +91,120 @@ const getListing = createServerFn({ method: "GET" })
 			.orderBy("order", "asc")
 			.execute();
 
-		const ownerRow = await db
-			.selectFrom("profile")
-			.select(["display_name", "city", "phone", "show_phone"])
-			.where("user_id", "=", listing.owner_id)
-			.executeTakeFirst();
-
-		// Gate contact details: only signed-in users get phone (and only if owner opted in),
-		// and the email address is exposed only to the owner themselves.
-		const isOwner = session?.user.id === listing.owner_id;
-		const isSignedIn = !!session;
-		const phone = ownerRow && isSignedIn && ownerRow.show_phone ? ownerRow.phone : null;
-		const owner = ownerRow
-			? { display_name: ownerRow.display_name, city: ownerRow.city, phone }
-			: null;
-
-		let ownerEmail: string | null = null;
-		if (isOwner) {
-			const ownerUser = await db
-				.selectFrom("user")
-				.select(["email"])
-				.where("id", "=", listing.owner_id)
-				.executeTakeFirst();
-			ownerEmail = ownerUser?.email ?? null;
-		}
-
 		return {
 			listing,
 			images,
-			owner,
-			ownerEmail,
 			makeName: makeName ?? null,
 			makeSlug: makeSlug ?? null,
 			modelName: modelName ?? null,
 		};
+	});
+
+export const submitBookingRequest = createServerFn({ method: "POST" })
+	.middleware([
+		csrfMiddleware(),
+		rateLimitMiddleware(5, 300, "submit-booking"),
+		requireVerifiedEmail(),
+	])
+	.inputValidator((data: unknown) => bookingRequestSchema.parse(data))
+	.handler(async ({ data }) => {
+		const session = await getSession();
+		if (!session) {
+			throw new Error("Kirjaudu sisään");
+		}
+
+		const listing = await db
+			.selectFrom("listing")
+			.innerJoin("user", "user.id", "listing.owner_id")
+			.innerJoin("profile", "profile.user_id", "listing.owner_id")
+			.select([
+				"listing.id",
+				"listing.title",
+				"listing.owner_id",
+				"listing.status",
+				"user.email as owner_email",
+				"profile.display_name as owner_display_name",
+				"profile.phone as owner_phone",
+				"profile.show_phone as owner_show_phone",
+			])
+			.where("listing.id", "=", data.listing_id)
+			.executeTakeFirst();
+
+		if (!listing || listing.status !== "active") {
+			throw new Error("Ilmoitus ei ole saatavilla");
+		}
+
+		if (listing.owner_id === session.user.id) {
+			throw new Error("Et voi varata omaa ilmoitustasi");
+		}
+
+		const renterProfile = await db
+			.selectFrom("profile")
+			.select(["display_name", "phone", "show_phone"])
+			.where("user_id", "=", session.user.id)
+			.executeTakeFirst();
+
+		if (!renterProfile) {
+			throw new Error("Profiili puuttuu");
+		}
+
+		const collisions = await db
+			.selectFrom("booking")
+			.select([
+				sql<string>`to_char(start_date, 'YYYY-MM-DD')`.as("start_date"),
+				sql<string>`to_char(end_date, 'YYYY-MM-DD')`.as("end_date"),
+			])
+			.where("listing_id", "=", listing.id)
+			.where("status", "=", "confirmed")
+			.where("start_date", "<=", data.end_date)
+			.where("end_date", ">=", data.start_date)
+			.execute();
+
+		if (collisions.length > 0) {
+			throw new Error("Päivät on jo varattu");
+		}
+
+		const shortId = generateBookingShortId();
+		const inserted = await db
+			.insertInto("booking")
+			.values({
+				short_id: shortId,
+				listing_id: listing.id,
+				renter_user_id: session.user.id,
+				start_date: data.start_date,
+				end_date: data.end_date,
+				message: data.message,
+			})
+			.returning(["id", "short_id"])
+			.executeTakeFirstOrThrow();
+
+		log.event(EVENTS.booking.requested, {
+			bookingId: inserted.id,
+			listingId: listing.id,
+			renterId: session.user.id,
+		});
+
+		void sendBookingRequestEmail({
+			booking: {
+				short_id: inserted.short_id,
+				listing_title: listing.title,
+				start_date: data.start_date,
+				end_date: data.end_date,
+			},
+			owner: {
+				display_name: listing.owner_display_name,
+				email: listing.owner_email,
+				phone: listing.owner_show_phone ? listing.owner_phone : null,
+			},
+			renter: {
+				display_name: renterProfile.display_name,
+				email: session.user.email,
+				phone: renterProfile.show_phone ? renterProfile.phone : null,
+			},
+			message: data.message,
+		});
+
+		return { short_id: inserted.short_id };
 	});
 
 export const Route = createFileRoute("/ilmoitukset/$listingId_/$slug")({
@@ -127,7 +216,8 @@ export const Route = createFileRoute("/ilmoitukset/$listingId_/$slug")({
 		if (!result) {
 			throw notFound();
 		}
-		return { ...result, session };
+		const availability = await getListingAvailability({ data: result.listing.id });
+		return { ...result, session, availability };
 	},
 	head: ({ loaderData }) => {
 		const l = loaderData?.listing;
@@ -227,30 +317,19 @@ function ListingSpecs({
 interface PricingCardProps {
 	pricePerDayCents: number;
 	pricePerWeekCents: number | null;
+	pricePerWeekendCents: number | null;
 	listing: Listing;
-	owner: { display_name: string | null; city: string | null; phone: string | null } | null;
-	ownerEmail: string | null;
 	isOwner: boolean;
-	isSignedIn: boolean;
-	makeSlug: string | null;
-	modelName: string | null;
 }
 
 function PricingCard({
 	pricePerDayCents,
 	pricePerWeekCents,
+	pricePerWeekendCents,
 	listing,
-	owner,
-	ownerEmail,
 	isOwner,
-	isSignedIn,
-	makeSlug,
-	modelName,
 }: PricingCardProps) {
 	const { t } = useTranslation("listings");
-	const [contactVisible, setContactVisible] = useState(false);
-	const slug = computeListingSlug(makeSlug, modelName, listing.city);
-	const redirectPath = `/ilmoitukset/${listing.short_id}/${slug}`;
 
 	return (
 		<div className="rounded-l border border-border bg-card p-5 shadow-sm">
@@ -264,69 +343,15 @@ function PricingCard({
 						{t("detail.pricing.perWeek", { price: formatEur(pricePerWeekCents) })}
 					</div>
 				)}
+				{!!pricePerWeekendCents && (
+					<div data-testid="price-per-weekend" className="mt-1 text-sm text-muted">
+						{t("detail.pricing.perWeekend", { price: formatEur(pricePerWeekendCents) })}
+					</div>
+				)}
 				{!!listing.price_description && (
 					<div className="mt-1 text-xs text-muted">{listing.price_description}</div>
 				)}
 			</div>
-
-			{/* Contact reveal — gated behind sign-in to deter scrapers */}
-			{!isSignedIn ? (
-				<Link
-					data-testid="owner-contact-login"
-					to="/kirjaudu"
-					search={{ redirect: redirectPath }}
-					className="block w-full rounded-md bg-accent px-4 py-2 text-center text-sm font-medium text-white hover:bg-accent-hover"
-				>
-					{t("detail.contact.loginPrompt")}
-				</Link>
-			) : !contactVisible ? (
-				<Button
-					data-testid="owner-contact-reveal"
-					onClick={() => setContactVisible(true)}
-					className="w-full bg-accent text-white hover:bg-accent-hover"
-				>
-					{t("detail.contact.reveal")}
-				</Button>
-			) : (
-				<div
-					data-testid="owner-contact"
-					className="space-y-2 rounded-lg bg-muted-light p-3 text-sm"
-				>
-					<Link
-						data-testid="owner-name"
-						to="/profiili/$userId"
-						params={{ userId: listing.owner_id }}
-						className="block font-medium text-foreground hover:text-accent"
-					>
-						{owner?.display_name ?? t("detail.contact.fallbackName")}
-					</Link>
-					{!!owner?.phone && (
-						<a
-							data-testid="owner-phone"
-							href={`tel:${owner.phone}`}
-							className="block text-accent hover:underline"
-						>
-							{owner.phone}
-						</a>
-					)}
-					{!!ownerEmail && (
-						<a
-							data-testid="owner-email"
-							href={`mailto:${ownerEmail}`}
-							className="block text-accent hover:underline"
-						>
-							{ownerEmail}
-						</a>
-					)}
-					{!!owner?.city && (
-						<p data-testid="owner-city" className="text-muted">
-							{owner.city}
-						</p>
-					)}
-				</div>
-			)}
-
-			{/* Owner actions */}
 			{!!isOwner && (
 				<div className="mt-3 flex gap-2">
 					<Link
@@ -352,7 +377,7 @@ function PricingCard({
 
 function ListingDetailPage() {
 	const { t } = useTranslation("listings");
-	const { listing, images, owner, ownerEmail, session, makeName, makeSlug, modelName } =
+	const { listing, images, session, makeName, makeSlug, modelName, availability } =
 		Route.useLoaderData();
 
 	const isOwner = session?.user.id === listing.owner_id;
@@ -445,19 +470,34 @@ function ListingDetailPage() {
 						</div>
 					</div>
 
-					{/* Pricing — inline below content on mobile, sticky sidebar on desktop */}
-					<div id="pricing" className="space-y-4 lg:sticky lg:top-8 lg:self-start">
+					{/* Right column — price + booking form */}
+					<div id="pricing" className="space-y-4 lg:self-start">
 						<PricingCard
 							pricePerDayCents={listing.price_per_day}
 							pricePerWeekCents={listing.price_per_week ?? null}
+							pricePerWeekendCents={listing.price_per_weekend ?? null}
 							listing={listing}
-							owner={owner}
-							ownerEmail={ownerEmail}
 							isOwner={!!isOwner}
-							isSignedIn={!!session}
-							makeSlug={makeSlug}
-							modelName={modelName}
 						/>
+						{listing.status === "active" && !isOwner && (
+							<div id="booking-form" data-testid="booking-section">
+								<BookingRequestForm
+									listingId={listing.id}
+									availabilityDefault={availability.availability_default}
+									exceptionDates={availability.exception_dates}
+									bookedDates={availability.booked_dates}
+									isLoggedIn={!!session}
+									pricePerDayCents={listing.price_per_day}
+									pricePerWeekCents={listing.price_per_week ?? null}
+									pricePerWeekendCents={listing.price_per_weekend ?? null}
+									onSubmit={async (input) => {
+										await submitBookingRequest({
+											data: { listing_id: listing.id, ...input },
+										});
+									}}
+								/>
+							</div>
+						)}
 						<p className="text-center text-xs text-muted">
 							{t("detail.viewCount", { n: listing.view_count })}
 						</p>
@@ -479,22 +519,24 @@ function ListingDetailPage() {
 						</span>
 						<span className="ml-1 text-xs text-muted">{t("detail.pricing.perDay")}</span>
 					</div>
-					{!session ? (
-						<Link
-							to="/kirjaudu"
-							search={{ redirect: redirectPath }}
-							className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
-						>
-							{t("detail.contact.loginPrompt")}
-						</Link>
-					) : (
-						<a
-							href="#pricing"
-							className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
-						>
-							{t("detail.contact.reveal")}
-						</a>
-					)}
+					{!isOwner &&
+						listing.status === "active" &&
+						(!session ? (
+							<Link
+								to="/kirjaudu"
+								search={{ redirect: redirectPath }}
+								className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
+							>
+								{t("booking.loginRequired")}
+							</Link>
+						) : (
+							<a
+								href="#booking-form"
+								className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
+							>
+								{t("detail.bookingCta")}
+							</a>
+						))}
 				</div>
 			</div>
 		</div>

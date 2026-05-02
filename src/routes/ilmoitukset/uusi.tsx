@@ -52,6 +52,7 @@ const createListing = createServerFn({ method: "POST" })
 				motorcycle_type: data.motorcycle_type,
 				price_per_day: Math.round(data.price_per_day * 100),
 				price_per_week: data.price_per_week ? Math.round(data.price_per_week * 100) : null,
+				price_per_weekend: data.price_per_weekend ? Math.round(data.price_per_weekend * 100) : null,
 				price_description: data.price_description ?? null,
 				city: data.city,
 				region: data.region,

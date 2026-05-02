@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { type SelectQueryBuilder, type SqlBool, sql } from "kysely";
+import { expandDateRange } from "~/lib/bookings";
 import { ADJACENT_REGIONS } from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import type { Database, Listing, ListingImage } from "~/lib/db/schema";
@@ -279,4 +280,45 @@ export const getNeighborRegionCount = createServerFn({ method: "GET" })
 			.executeTakeFirstOrThrow();
 
 		return result.count;
+	});
+
+export const getListingAvailability = createServerFn({ method: "GET" })
+	.inputValidator((listingId: string) => listingId)
+	.handler(async ({ data: listingId }) => {
+		const [listing, exceptions, confirmed] = await Promise.all([
+			db
+				.selectFrom("listing")
+				.select(["availability_default"])
+				.where("id", "=", listingId)
+				.executeTakeFirst(),
+			db
+				.selectFrom("listing_availability_exception")
+				.select([sql<string>`to_char(date, 'YYYY-MM-DD')`.as("date")])
+				.where("listing_id", "=", listingId)
+				.execute(),
+			db
+				.selectFrom("booking")
+				.select([
+					sql<string>`to_char(start_date, 'YYYY-MM-DD')`.as("start_date"),
+					sql<string>`to_char(end_date, 'YYYY-MM-DD')`.as("end_date"),
+				])
+				.where("listing_id", "=", listingId)
+				.where("status", "=", "confirmed")
+				.execute(),
+		]);
+
+		if (!listing) {
+			return { availability_default: "open", exception_dates: [], booked_dates: [] };
+		}
+
+		const bookedDates: string[] = [];
+		for (const row of confirmed) {
+			bookedDates.push(...expandDateRange(row.start_date, row.end_date));
+		}
+
+		return {
+			availability_default: listing.availability_default,
+			exception_dates: exceptions.map((e) => e.date),
+			booked_dates: bookedDates,
+		};
 	});

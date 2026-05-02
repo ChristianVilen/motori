@@ -47,6 +47,7 @@ export function listingFormSchema(t: T = defaultT) {
 		required_license: z.enum(["A1", "A2", "A"]).nullable().optional(),
 		price_per_day: z.number().min(1, t("validation.pricePerDayRequired")).max(10000),
 		price_per_week: z.number().min(1).max(50000).nullable().optional(),
+		price_per_weekend: z.number().min(1).max(50000).nullable().optional(),
 		price_description: z.string().trim().max(200).nullable().optional(),
 		city: z.string().trim().min(1, t("validation.cityRequired")).max(100),
 		region: z.string().trim().min(1, t("validation.regionRequired")),
@@ -88,3 +89,42 @@ export function validateFinnishPhone(raw: string, errorMsg?: string): string {
 	}
 	return phone;
 }
+
+const isoDate = z.iso.date("Virheellinen päivämäärä");
+
+function todayIsoDate(): string {
+	return new Date().toISOString().slice(0, 10);
+}
+
+export const bookingRequestSchema = z
+	.object({
+		listing_id: z.string().uuid(),
+		start_date: isoDate,
+		end_date: isoDate,
+		message: z.string().trim().min(1, "Viesti on pakollinen").max(500, "Viesti on liian pitkä"),
+	})
+	.refine((d) => d.end_date >= d.start_date, {
+		message: "Loppupäivä ennen aloituspäivää",
+		path: ["end_date"],
+	})
+	.refine((d) => d.start_date >= todayIsoDate(), {
+		message: "Aloituspäivä menneisyydessä",
+		path: ["start_date"],
+	});
+
+export type BookingRequestInput = z.infer<typeof bookingRequestSchema>;
+
+export const bookingIdSchema = z.object({ id: z.string().uuid() });
+
+export const bookingRejectSchema = z.object({
+	id: z.string().uuid(),
+	reason: z.string().trim().max(500).optional(),
+});
+
+export const availabilityUpdateSchema = z.object({
+	listing_id: z.string().uuid(),
+	availability_default: z.enum(["open", "closed"]),
+	exception_dates: z.array(isoDate).max(366),
+});
+
+export type AvailabilityUpdateInput = z.infer<typeof availabilityUpdateSchema>;

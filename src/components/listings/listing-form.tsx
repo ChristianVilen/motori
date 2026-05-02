@@ -88,6 +88,7 @@ export function ListingForm({
 			required_license: initialValues?.required_license ?? null,
 			price_per_day: initialValues?.price_per_day ?? ("" as unknown as number), // same as year
 			price_per_week: initialValues?.price_per_week ?? null,
+			price_per_weekend: initialValues?.price_per_weekend ?? null,
 			price_description: initialValues?.price_description ?? "",
 			city: initialValues?.city ?? "",
 			region: initialValues?.region ?? "",
@@ -375,6 +376,31 @@ export function ListingForm({
 							)}
 						</form.Field>
 					</div>
+
+					<form.Field name="price_per_weekend">
+						{(field) => (
+							<div>
+								<label
+									htmlFor="price_per_weekend"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
+									{t("form.fields.pricePerWeekend")}
+								</label>
+								<Input
+									id="price_per_weekend"
+									type="number"
+									min={1}
+									max={50000}
+									value={field.state.value ?? ""}
+									onBlur={field.handleBlur}
+									onChange={(e) =>
+										field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
+									}
+								/>
+								<FieldError errors={field.state.meta.errors} />
+							</div>
+						)}
+					</form.Field>
 
 					<form.Field name="price_description">
 						{(field) => (

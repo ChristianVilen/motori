@@ -71,7 +71,9 @@ export default {
 		pricing: {
 			perDay: "/päivä",
 			perWeek: "{{price}} / viikko",
+			perWeekend: "{{price}} / viikonloppu (pe–su)",
 		},
+		bookingCta: "Tee varauspyyntö",
 		contact: {
 			loginPrompt: "Kirjaudu nähdäksesi yhteystiedot",
 			reveal: "Näytä yhteystiedot",
@@ -94,6 +96,35 @@ export default {
 		notFoundBack: "Omat ilmoitukset",
 		submitLabel: "Tallenna muutokset",
 	},
+	booking: {
+		calendarTitle: "Saatavuus",
+		legend: {
+			available: "Vapaa",
+			blocked: "Varattu",
+			selected: "Valinta",
+		},
+		pickRange: "Valitse aloitus- ja lopetuspäivä",
+		mustBeContiguous: "Päivien pitää olla peräkkäisiä",
+		loginRequired: "Kirjaudu sisään tehdäksesi varauspyynnön",
+		messageLabel: "Viesti omistajalle",
+		messagePlaceholder: "Kerro kuka olet ja mihin tarvitset pyörää",
+		submitButton: "Lähetä varauspyyntö",
+		submitting: "Lähetetään…",
+		successTitle: "Varauspyyntö lähetetty",
+		successBody: "Omistaja saa pyyntösi sähköpostitse. Saat ilmoituksen, kun hän vastaa.",
+		costSummary: "{{days}} pv — {{total}}",
+		costLabelWeekend: "viikonloppu",
+		costLabelWeek: "viikkohinnan mukaan",
+	},
+	availability: {
+		formTitle: "Saatavuus",
+		defaultLabel: "Oletustila",
+		defaultOpen: "Vapaa oletuksena",
+		defaultClosed: "Varattu oletuksena",
+		hint: "Klikkaa päiviä kalenterissa muuttaaksesi yksittäisten päivien tilaa.",
+		saveButton: "Tallenna saatavuus",
+		saved: "Saatavuus tallennettu",
+	},
 	form: {
 		sections: {
 			motorcycle: "Moottoripyörä",
@@ -112,6 +143,7 @@ export default {
 			requiredLicense: "Vaadittu ajokortti",
 			pricePerDay: "Päivähinta (€)",
 			pricePerWeek: "Viikkohinta (€)",
+			pricePerWeekend: "Viikonloppuhinta (€, pe–su)",
 			priceDescription: "Lisätietoja hinnasta",
 			city: "Kaupunki",
 			region: "Maakunta",

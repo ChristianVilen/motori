@@ -28,6 +28,21 @@ export interface Account {
 	userId: string;
 }
 
+export interface Booking {
+	created_at: Generated<Timestamp>;
+	end_date: Timestamp;
+	id: Generated<string>;
+	listing_id: string;
+	message: string;
+	rejection_reason: string | null;
+	renter_user_id: string;
+	responded_at: Timestamp | null;
+	short_id: string;
+	start_date: Timestamp;
+	status: Generated<string>;
+	updated_at: Generated<Timestamp>;
+}
+
 export interface Favorite {
 	created_at: Generated<Timestamp>;
 	listing_id: string;
@@ -35,6 +50,7 @@ export interface Favorite {
 }
 
 export interface Listing {
+	availability_default: Generated<string>;
 	city: string;
 	created_at: Generated<Timestamp>;
 	description: string;
@@ -51,6 +67,7 @@ export interface Listing {
 	price_description: string | null;
 	price_per_day: number;
 	price_per_week: number | null;
+	price_per_weekend: number | null;
 	region: string;
 	required_license: string | null;
 	reviewed_at: Timestamp | null;
@@ -61,6 +78,12 @@ export interface Listing {
 	updated_at: Generated<Timestamp>;
 	view_count: Generated<number>;
 	year: number;
+}
+
+export interface ListingAvailabilityException {
+	created_at: Generated<Timestamp>;
+	date: Timestamp;
+	listing_id: string;
 }
 
 export interface ListingImage {
@@ -95,6 +118,7 @@ export interface Profile {
 	license_class: string | null;
 	phone: string | null;
 	show_phone: Generated<boolean>;
+	terms_accepted_at: Timestamp | null;
 	updated_at: Generated<Timestamp>;
 	user_id: string;
 }
@@ -149,8 +173,10 @@ export interface Verification {
 
 export interface DB {
 	account: Account;
+	booking: Booking;
 	favorite: Favorite;
 	listing: Listing;
+	listing_availability_exception: ListingAvailabilityException;
 	listing_image: ListingImage;
 	motorcycle_make: MotorcycleMake;
 	motorcycle_model: MotorcycleModel;

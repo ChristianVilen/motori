@@ -25,6 +25,7 @@ import { Route as IlmoituksetIndexRouteImport } from './routes/ilmoitukset/index
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ProfiiliAsetuksetRouteImport } from './routes/profiili/asetukset'
 import { Route as ProfiiliUserIdRouteImport } from './routes/profiili/$userId'
+import { Route as OmatVarauksetRouteImport } from './routes/omat/varaukset'
 import { Route as IlmoituksetUusiRouteImport } from './routes/ilmoitukset/uusi'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiCronRouteImport } from './routes/api/cron'
@@ -32,6 +33,7 @@ import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminModerationRouteImport } from './routes/admin/moderation'
 import { Route as AdminMakesRouteImport } from './routes/admin/makes'
 import { Route as AdminListingsRouteImport } from './routes/admin/listings'
+import { Route as OmatVarauksetBookingIdRouteImport } from './routes/omat/varaukset_.$bookingId'
 import { Route as IlmoituksetListingIdMuokkaaRouteImport } from './routes/ilmoitukset/$listingId_.muokkaa'
 import { Route as IlmoituksetListingIdSlugRouteImport } from './routes/ilmoitukset/$listingId_.$slug'
 import { Route as ApiUploadsSplatRouteImport } from './routes/api/uploads/$'
@@ -118,6 +120,11 @@ const ProfiiliUserIdRoute = ProfiiliUserIdRouteImport.update({
   path: '/profiili/$userId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OmatVarauksetRoute = OmatVarauksetRouteImport.update({
+  id: '/omat/varaukset',
+  path: '/omat/varaukset',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IlmoituksetUusiRoute = IlmoituksetUusiRouteImport.update({
   id: '/ilmoitukset/uusi',
   path: '/ilmoitukset/uusi',
@@ -152,6 +159,11 @@ const AdminListingsRoute = AdminListingsRouteImport.update({
   id: '/listings',
   path: '/listings',
   getParentRoute: () => AdminRouteRoute,
+} as any)
+const OmatVarauksetBookingIdRoute = OmatVarauksetBookingIdRouteImport.update({
+  id: '/omat/varaukset_/$bookingId',
+  path: '/omat/varaukset/$bookingId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const IlmoituksetListingIdMuokkaaRoute =
   IlmoituksetListingIdMuokkaaRouteImport.update({
@@ -200,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/api/cron': typeof ApiCronRoute
   '/api/health': typeof ApiHealthRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
+  '/omat/varaukset': typeof OmatVarauksetRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
   '/admin/': typeof AdminIndexRoute
@@ -210,6 +223,7 @@ export interface FileRoutesByFullPath {
   '/api/uploads/$': typeof ApiUploadsSplatRoute
   '/ilmoitukset/$listingId/$slug': typeof IlmoituksetListingIdSlugRoute
   '/ilmoitukset/$listingId/muokkaa': typeof IlmoituksetListingIdMuokkaaRoute
+  '/omat/varaukset/$bookingId': typeof OmatVarauksetBookingIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -229,6 +243,7 @@ export interface FileRoutesByTo {
   '/api/cron': typeof ApiCronRoute
   '/api/health': typeof ApiHealthRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
+  '/omat/varaukset': typeof OmatVarauksetRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
   '/admin': typeof AdminIndexRoute
@@ -239,6 +254,7 @@ export interface FileRoutesByTo {
   '/api/uploads/$': typeof ApiUploadsSplatRoute
   '/ilmoitukset/$listingId/$slug': typeof IlmoituksetListingIdSlugRoute
   '/ilmoitukset/$listingId/muokkaa': typeof IlmoituksetListingIdMuokkaaRoute
+  '/omat/varaukset/$bookingId': typeof OmatVarauksetBookingIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -260,6 +276,7 @@ export interface FileRoutesById {
   '/api/cron': typeof ApiCronRoute
   '/api/health': typeof ApiHealthRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
+  '/omat/varaukset': typeof OmatVarauksetRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
   '/admin/': typeof AdminIndexRoute
@@ -270,6 +287,7 @@ export interface FileRoutesById {
   '/api/uploads/$': typeof ApiUploadsSplatRoute
   '/ilmoitukset/$listingId_/$slug': typeof IlmoituksetListingIdSlugRoute
   '/ilmoitukset/$listingId_/muokkaa': typeof IlmoituksetListingIdMuokkaaRoute
+  '/omat/varaukset_/$bookingId': typeof OmatVarauksetBookingIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -292,6 +310,7 @@ export interface FileRouteTypes {
     | '/api/cron'
     | '/api/health'
     | '/ilmoitukset/uusi'
+    | '/omat/varaukset'
     | '/profiili/$userId'
     | '/profiili/asetukset'
     | '/admin/'
@@ -302,6 +321,7 @@ export interface FileRouteTypes {
     | '/api/uploads/$'
     | '/ilmoitukset/$listingId/$slug'
     | '/ilmoitukset/$listingId/muokkaa'
+    | '/omat/varaukset/$bookingId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -321,6 +341,7 @@ export interface FileRouteTypes {
     | '/api/cron'
     | '/api/health'
     | '/ilmoitukset/uusi'
+    | '/omat/varaukset'
     | '/profiili/$userId'
     | '/profiili/asetukset'
     | '/admin'
@@ -331,6 +352,7 @@ export interface FileRouteTypes {
     | '/api/uploads/$'
     | '/ilmoitukset/$listingId/$slug'
     | '/ilmoitukset/$listingId/muokkaa'
+    | '/omat/varaukset/$bookingId'
   id:
     | '__root__'
     | '/'
@@ -351,6 +373,7 @@ export interface FileRouteTypes {
     | '/api/cron'
     | '/api/health'
     | '/ilmoitukset/uusi'
+    | '/omat/varaukset'
     | '/profiili/$userId'
     | '/profiili/asetukset'
     | '/admin/'
@@ -361,6 +384,7 @@ export interface FileRouteTypes {
     | '/api/uploads/$'
     | '/ilmoitukset/$listingId_/$slug'
     | '/ilmoitukset/$listingId_/muokkaa'
+    | '/omat/varaukset_/$bookingId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -378,6 +402,7 @@ export interface RootRouteChildren {
   ApiCronRoute: typeof ApiCronRoute
   ApiHealthRoute: typeof ApiHealthRoute
   IlmoituksetUusiRoute: typeof IlmoituksetUusiRoute
+  OmatVarauksetRoute: typeof OmatVarauksetRoute
   ProfiiliUserIdRoute: typeof ProfiiliUserIdRoute
   ProfiiliAsetuksetRoute: typeof ProfiiliAsetuksetRoute
   IlmoituksetIndexRoute: typeof IlmoituksetIndexRoute
@@ -387,6 +412,7 @@ export interface RootRouteChildren {
   ApiUploadsSplatRoute: typeof ApiUploadsSplatRoute
   IlmoituksetListingIdSlugRoute: typeof IlmoituksetListingIdSlugRoute
   IlmoituksetListingIdMuokkaaRoute: typeof IlmoituksetListingIdMuokkaaRoute
+  OmatVarauksetBookingIdRoute: typeof OmatVarauksetBookingIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -503,6 +529,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfiiliUserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/omat/varaukset': {
+      id: '/omat/varaukset'
+      path: '/omat/varaukset'
+      fullPath: '/omat/varaukset'
+      preLoaderRoute: typeof OmatVarauksetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ilmoitukset/uusi': {
       id: '/ilmoitukset/uusi'
       path: '/ilmoitukset/uusi'
@@ -551,6 +584,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/listings'
       preLoaderRoute: typeof AdminListingsRouteImport
       parentRoute: typeof AdminRouteRoute
+    }
+    '/omat/varaukset_/$bookingId': {
+      id: '/omat/varaukset_/$bookingId'
+      path: '/omat/varaukset/$bookingId'
+      fullPath: '/omat/varaukset/$bookingId'
+      preLoaderRoute: typeof OmatVarauksetBookingIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/ilmoitukset/$listingId_/muokkaa': {
       id: '/ilmoitukset/$listingId_/muokkaa'
@@ -625,6 +665,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCronRoute: ApiCronRoute,
   ApiHealthRoute: ApiHealthRoute,
   IlmoituksetUusiRoute: IlmoituksetUusiRoute,
+  OmatVarauksetRoute: OmatVarauksetRoute,
   ProfiiliUserIdRoute: ProfiiliUserIdRoute,
   ProfiiliAsetuksetRoute: ProfiiliAsetuksetRoute,
   IlmoituksetIndexRoute: IlmoituksetIndexRoute,
@@ -634,6 +675,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUploadsSplatRoute: ApiUploadsSplatRoute,
   IlmoituksetListingIdSlugRoute: IlmoituksetListingIdSlugRoute,
   IlmoituksetListingIdMuokkaaRoute: IlmoituksetListingIdMuokkaaRoute,
+  OmatVarauksetBookingIdRoute: OmatVarauksetBookingIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
