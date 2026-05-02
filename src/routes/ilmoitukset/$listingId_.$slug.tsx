@@ -317,11 +317,12 @@ function ListingSpecs({
 interface PricingCardProps {
 	pricePerDayCents: number;
 	pricePerWeekCents: number | null;
+	pricePerWeekendCents: number | null;
 	listing: Listing;
 	isOwner: boolean;
 }
 
-function PricingCard({ pricePerDayCents, pricePerWeekCents, listing, isOwner }: PricingCardProps) {
+function PricingCard({ pricePerDayCents, pricePerWeekCents, pricePerWeekendCents, listing, isOwner }: PricingCardProps) {
 	const { t } = useTranslation("listings");
 
 	return (
@@ -334,6 +335,11 @@ function PricingCard({ pricePerDayCents, pricePerWeekCents, listing, isOwner }: 
 				{!!pricePerWeekCents && (
 					<div data-testid="price-per-week" className="mt-1 text-sm text-muted">
 						{t("detail.pricing.perWeek", { price: formatEur(pricePerWeekCents) })}
+					</div>
+				)}
+				{!!pricePerWeekendCents && (
+					<div data-testid="price-per-weekend" className="mt-1 text-sm text-muted">
+						{t("detail.pricing.perWeekend", { price: formatEur(pricePerWeekendCents) })}
 					</div>
 				)}
 				{!!listing.price_description && (
@@ -463,6 +469,7 @@ function ListingDetailPage() {
 						<PricingCard
 							pricePerDayCents={listing.price_per_day}
 							pricePerWeekCents={listing.price_per_week ?? null}
+							pricePerWeekendCents={listing.price_per_weekend ?? null}
 							listing={listing}
 							isOwner={!!isOwner}
 						/>
@@ -474,6 +481,9 @@ function ListingDetailPage() {
 									exceptionDates={availability.exception_dates}
 									bookedDates={availability.booked_dates}
 									isLoggedIn={!!session}
+									pricePerDayCents={listing.price_per_day}
+									pricePerWeekCents={listing.price_per_week ?? null}
+									pricePerWeekendCents={listing.price_per_weekend ?? null}
 									onSubmit={async (input) => {
 										await submitBookingRequest({
 											data: { listing_id: listing.id, ...input },
@@ -503,7 +513,8 @@ function ListingDetailPage() {
 						</span>
 						<span className="ml-1 text-xs text-muted">{t("detail.pricing.perDay")}</span>
 					</div>
-					{!isOwner && listing.status === "active" &&
+					{!isOwner &&
+						listing.status === "active" &&
 						(!session ? (
 							<Link
 								to="/kirjaudu"
