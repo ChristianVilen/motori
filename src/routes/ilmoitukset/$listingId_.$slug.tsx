@@ -322,7 +322,13 @@ interface PricingCardProps {
 	isOwner: boolean;
 }
 
-function PricingCard({ pricePerDayCents, pricePerWeekCents, pricePerWeekendCents, listing, isOwner }: PricingCardProps) {
+function PricingCard({
+	pricePerDayCents,
+	pricePerWeekCents,
+	pricePerWeekendCents,
+	listing,
+	isOwner,
+}: PricingCardProps) {
 	const { t } = useTranslation("listings");
 
 	return (

@@ -55,7 +55,7 @@ export const Route = createFileRoute("/omat/varaukset")({
 	loader: async () => {
 		const session = await getSession();
 		if (!session) {
-			throw redirect({ to: "/kirjaudu", search: { redirect: undefined } });
+			throw redirect({ to: "/kirjaudu", search: { redirect: "/omat/varaukset" } });
 		}
 		return getMyBookings();
 	},

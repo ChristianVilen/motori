@@ -113,7 +113,9 @@ const updateListing = createServerFn({ method: "POST" })
 					motorcycle_type: form.motorcycle_type,
 					price_per_day: Math.round(form.price_per_day * 100),
 					price_per_week: form.price_per_week ? Math.round(form.price_per_week * 100) : null,
-					price_per_weekend: form.price_per_weekend ? Math.round(form.price_per_weekend * 100) : null,
+					price_per_weekend: form.price_per_weekend
+						? Math.round(form.price_per_weekend * 100)
+						: null,
 					price_description: form.price_description ?? null,
 					city: form.city,
 					region: form.region,
