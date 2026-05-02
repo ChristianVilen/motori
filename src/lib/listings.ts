@@ -8,6 +8,7 @@ import type { Database, Listing, ListingImage } from "~/lib/db/schema";
 // db/index.ts imports pg which uses Buffer (Node-only); keeping it out of the
 // static import graph prevents it from being bundled into client chunks.
 const getDb = async () => (await import("~/lib/db/index")).db;
+
 import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { toTsQuery } from "~/lib/search";
 import { generateShortId } from "~/lib/slug";
@@ -399,7 +400,13 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 		.orderBy("order", "asc")
 		.execute();
 
-	return { listing, images, makeName: makeName ?? null, makeSlug: makeSlug ?? null, modelName: modelName ?? null };
+	return {
+		listing,
+		images,
+		makeName: makeName ?? null,
+		makeSlug: makeSlug ?? null,
+		modelName: modelName ?? null,
+	};
 }
 
 export type ListingForEdit = {
