@@ -2,7 +2,7 @@ export default {
 	verification: {
 		subject: "Vahvista sähköpostiosoitteesi — Motori",
 		greeting: "Hei,",
-		body: "Vahvista sähköpostiosoitteesi klikkaamalla alla olevaa linkkiä:",
+		body: "Vahvista sähköpostiosoitteesi tästä linkistä:",
 		expiry: "Linkki vanhenee 24 tunnissa.",
 	},
 	listingExpiry: {
@@ -14,7 +14,7 @@ export default {
 	passwordReset: {
 		subject: "Vaihda salasanasi — Motori",
 		greeting: "Hei,",
-		body: "Vaihda salasanasi klikkaamalla alla olevaa linkkiä:",
+		body: "Vaihda salasanasi tästä linkistä:",
 		expiry: "Linkki vanhenee tunnin kuluttua.",
 	},
 	bookingRequest: {
