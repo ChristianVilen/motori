@@ -5,183 +5,183 @@
 
 import type { ColumnType } from "kysely";
 
-export type Generated<T> =
-	T extends ColumnType<infer S, infer I, infer U>
-		? ColumnType<S, I | undefined, U>
-		: ColumnType<T, T | undefined, T>;
+export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
+  ? ColumnType<S, I | undefined, U>
+  : ColumnType<T, T | undefined, T>;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Account {
-	accessToken: string | null;
-	accessTokenExpiresAt: Timestamp | null;
-	accountId: string;
-	createdAt: Timestamp;
-	id: string;
-	idToken: string | null;
-	password: string | null;
-	providerId: string;
-	refreshToken: string | null;
-	refreshTokenExpiresAt: Timestamp | null;
-	scope: string | null;
-	updatedAt: Timestamp;
-	userId: string;
+  accessToken: string | null;
+  accessTokenExpiresAt: Timestamp | null;
+  accountId: string;
+  createdAt: Timestamp;
+  id: string;
+  idToken: string | null;
+  password: string | null;
+  providerId: string;
+  refreshToken: string | null;
+  refreshTokenExpiresAt: Timestamp | null;
+  scope: string | null;
+  updatedAt: Timestamp;
+  userId: string;
 }
 
 export interface Booking {
-	created_at: Generated<Timestamp>;
-	end_date: Timestamp;
-	id: Generated<string>;
-	listing_id: string;
-	message: string;
-	rejection_reason: string | null;
-	renter_user_id: string;
-	responded_at: Timestamp | null;
-	short_id: string;
-	start_date: Timestamp;
-	status: Generated<string>;
-	updated_at: Generated<Timestamp>;
+  created_at: Generated<Timestamp>;
+  end_date: Timestamp;
+  id: Generated<string>;
+  listing_id: string;
+  message: string;
+  rejection_reason: string | null;
+  renter_user_id: string;
+  responded_at: Timestamp | null;
+  short_id: string;
+  start_date: Timestamp;
+  status: Generated<string>;
+  updated_at: Generated<Timestamp>;
 }
 
 export interface Favorite {
-	created_at: Generated<Timestamp>;
-	listing_id: string;
-	user_id: string;
+  created_at: Generated<Timestamp>;
+  listing_id: string;
+  user_id: string;
 }
 
 export interface Listing {
-	availability_default: Generated<string>;
-	city: string;
-	created_at: Generated<Timestamp>;
-	description: string;
-	engine_cc: number | null;
-	expires_at: Timestamp | null;
-	expiry_notified_at: Timestamp | null;
-	id: string;
-	make_id: string;
-	mileage_limit: number | null;
-	model_id: string | null;
-	motorcycle_type: string;
-	owner_id: string;
-	postal_code: string | null;
-	price_description: string | null;
-	price_per_day: number;
-	price_per_week: number | null;
-	region: string;
-	required_license: string | null;
-	reviewed_at: Timestamp | null;
-	search_vector: string | null;
-	short_id: string;
-	status: Generated<string>;
-	title: string;
-	updated_at: Generated<Timestamp>;
-	view_count: Generated<number>;
-	year: number;
+  availability_default: Generated<string>;
+  city: string;
+  created_at: Generated<Timestamp>;
+  description: string;
+  engine_cc: number | null;
+  expires_at: Timestamp | null;
+  expiry_notified_at: Timestamp | null;
+  id: string;
+  make_id: string;
+  mileage_limit: number | null;
+  model_id: string | null;
+  motorcycle_type: string;
+  owner_id: string;
+  postal_code: string | null;
+  price_description: string | null;
+  price_per_day: number;
+  price_per_week: number | null;
+  price_per_weekend: number | null;
+  region: string;
+  required_license: string | null;
+  reviewed_at: Timestamp | null;
+  search_vector: string | null;
+  short_id: string;
+  status: Generated<string>;
+  title: string;
+  updated_at: Generated<Timestamp>;
+  view_count: Generated<number>;
+  year: number;
 }
 
 export interface ListingAvailabilityException {
-	created_at: Generated<Timestamp>;
-	date: Timestamp;
-	listing_id: string;
+  created_at: Generated<Timestamp>;
+  date: Timestamp;
+  listing_id: string;
 }
 
 export interface ListingImage {
-	id: string;
-	listing_id: string;
-	order: Generated<number>;
-	thumbnail_url: string | null;
-	url: string;
+  id: string;
+  listing_id: string;
+  order: Generated<number>;
+  thumbnail_url: string | null;
+  url: string;
 }
 
 export interface MotorcycleMake {
-	approved: Generated<boolean>;
-	created_at: Generated<Timestamp>;
-	id: string;
-	name: string;
-	slug: string;
+  approved: Generated<boolean>;
+  created_at: Generated<Timestamp>;
+  id: string;
+  name: string;
+  slug: string;
 }
 
 export interface MotorcycleModel {
-	approved: Generated<boolean>;
-	created_at: Generated<Timestamp>;
-	id: string;
-	make_id: string;
-	name: string;
+  approved: Generated<boolean>;
+  created_at: Generated<Timestamp>;
+  id: string;
+  make_id: string;
+  name: string;
 }
 
 export interface Profile {
-	city: string | null;
-	created_at: Generated<Timestamp>;
-	display_name: string;
-	language: Generated<string>;
-	license_class: string | null;
-	phone: string | null;
-	show_phone: Generated<boolean>;
-	terms_accepted_at: Timestamp | null;
-	updated_at: Generated<Timestamp>;
-	user_id: string;
+  city: string | null;
+  created_at: Generated<Timestamp>;
+  display_name: string;
+  language: Generated<string>;
+  license_class: string | null;
+  phone: string | null;
+  show_phone: Generated<boolean>;
+  terms_accepted_at: Timestamp | null;
+  updated_at: Generated<Timestamp>;
+  user_id: string;
 }
 
 export interface Report {
-	admin_note: string | null;
-	created_at: Generated<Timestamp>;
-	id: string;
-	reason: string;
-	reporter_id: string;
-	resolved_at: Timestamp | null;
-	resolved_by: string | null;
-	status: Generated<string>;
-	target_id: string;
-	target_type: string;
+  admin_note: string | null;
+  created_at: Generated<Timestamp>;
+  id: string;
+  reason: string;
+  reporter_id: string;
+  resolved_at: Timestamp | null;
+  resolved_by: string | null;
+  status: Generated<string>;
+  target_id: string;
+  target_type: string;
 }
 
 export interface Session {
-	createdAt: Timestamp;
-	expiresAt: Timestamp;
-	id: string;
-	impersonatedBy: string | null;
-	ipAddress: string | null;
-	token: string;
-	updatedAt: Timestamp;
-	userAgent: string | null;
-	userId: string;
+  createdAt: Timestamp;
+  expiresAt: Timestamp;
+  id: string;
+  impersonatedBy: string | null;
+  ipAddress: string | null;
+  token: string;
+  updatedAt: Timestamp;
+  userAgent: string | null;
+  userId: string;
 }
 
 export interface User {
-	banExpires: Timestamp | null;
-	banned: Generated<boolean>;
-	banReason: string | null;
-	createdAt: Timestamp;
-	email: string;
-	emailVerified: Generated<boolean>;
-	id: string;
-	image: string | null;
-	name: string;
-	role: Generated<string>;
-	updatedAt: Timestamp;
+  banExpires: Timestamp | null;
+  banned: Generated<boolean>;
+  banReason: string | null;
+  createdAt: Timestamp;
+  email: string;
+  emailVerified: Generated<boolean>;
+  id: string;
+  image: string | null;
+  name: string;
+  role: Generated<string>;
+  updatedAt: Timestamp;
 }
 
 export interface Verification {
-	createdAt: Timestamp | null;
-	expiresAt: Timestamp;
-	id: string;
-	identifier: string;
-	updatedAt: Timestamp | null;
-	value: string;
+  createdAt: Timestamp | null;
+  expiresAt: Timestamp;
+  id: string;
+  identifier: string;
+  updatedAt: Timestamp | null;
+  value: string;
 }
 
 export interface DB {
-	account: Account;
-	booking: Booking;
-	favorite: Favorite;
-	listing: Listing;
-	listing_availability_exception: ListingAvailabilityException;
-	listing_image: ListingImage;
-	motorcycle_make: MotorcycleMake;
-	motorcycle_model: MotorcycleModel;
-	profile: Profile;
-	report: Report;
-	session: Session;
-	user: User;
-	verification: Verification;
+  account: Account;
+  booking: Booking;
+  favorite: Favorite;
+  listing: Listing;
+  listing_availability_exception: ListingAvailabilityException;
+  listing_image: ListingImage;
+  motorcycle_make: MotorcycleMake;
+  motorcycle_model: MotorcycleModel;
+  profile: Profile;
+  report: Report;
+  session: Session;
+  user: User;
+  verification: Verification;
 }

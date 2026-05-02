@@ -115,6 +115,7 @@ export interface ListingTable {
 	motorcycle_type: string;
 	price_per_day: number; // EUR cents
 	price_per_week: number | null; // EUR cents
+	price_per_weekend: number | null; // EUR cents — Fri–Sun flat rate
 	price_description: string | null;
 	city: string;
 	region: string;
