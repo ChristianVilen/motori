@@ -74,6 +74,7 @@ export const submitBookingRequest = createServerFn({ method: "POST" })
 				"profile.display_name as owner_display_name",
 				"profile.phone as owner_phone",
 				"profile.show_phone as owner_show_phone",
+				"profile.language as owner_language",
 			])
 			.where("listing.id", "=", data.listing_id)
 			.executeTakeFirst();
@@ -88,7 +89,7 @@ export const submitBookingRequest = createServerFn({ method: "POST" })
 
 		const renterProfile = await db
 			.selectFrom("profile")
-			.select(["display_name", "phone", "show_phone"])
+			.select(["display_name", "phone", "show_phone", "language"])
 			.where("user_id", "=", session.user.id)
 			.executeTakeFirst();
 
@@ -143,11 +144,13 @@ export const submitBookingRequest = createServerFn({ method: "POST" })
 				display_name: listing.owner_display_name,
 				email: listing.owner_email,
 				phone: listing.owner_show_phone ? listing.owner_phone : null,
+				language: listing.owner_language,
 			},
 			renter: {
 				display_name: renterProfile.display_name,
 				email: session.user.email,
 				phone: renterProfile.show_phone ? renterProfile.phone : null,
+				language: renterProfile.language,
 			},
 			message: data.message,
 		});
