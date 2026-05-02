@@ -37,15 +37,19 @@ export async function sendBookingRequestEmail(args: {
 	const url = bookingUrl(booking.short_id);
 	const days = dayCount(booking.start_date, booking.end_date);
 	const t = getEmailT(owner.language);
+	const safeOwnerName = escapeHtml(owner.display_name);
+	const safeTitle = escapeHtml(booking.listing_title);
+	const safeRenterName = escapeHtml(renter.display_name);
+	const safeRenterEmail = escapeHtml(renter.email);
 
 	await sendEmail({
 		to: owner.email,
 		subject: t("bookingRequest.subject", { title: booking.listing_title }),
 		html: wrapEmail(`
-			<p>${t("bookingRequest.greeting", { name: owner.display_name })}</p>
-			<p>${t("bookingRequest.intro", { title: booking.listing_title })}</p>
+			<p>${t("bookingRequest.greeting", { name: safeOwnerName })}</p>
+			<p>${t("bookingRequest.intro", { title: safeTitle })}</p>
 			<p>${t("bookingRequest.dates", { start: booking.start_date, end: booking.end_date, days })}</p>
-			<p>${t("bookingRequest.renter", { name: renter.display_name, email: renter.email })}</p>
+			<p>${t("bookingRequest.renter", { name: safeRenterName, email: safeRenterEmail })}</p>
 			<p><strong>${t("bookingRequest.message")}</strong><br>${escapeHtml(message)}</p>
 			<p>${t("bookingRequest.cta")}<br><a href="${url}">${url}</a></p>
 		`),
@@ -61,15 +65,19 @@ export async function sendBookingConfirmedEmail(args: {
 }): Promise<void> {
 	const { booking, renter, owner } = args;
 	const t = getEmailT(renter.language);
-	const phoneLine = owner.phone ? `<br>${owner.phone}` : "";
+	const safeRenterName = escapeHtml(renter.display_name);
+	const safeTitle = escapeHtml(booking.listing_title);
+	const safeOwnerName = escapeHtml(owner.display_name);
+	const safeOwnerEmail = escapeHtml(owner.email);
+	const phoneLine = owner.phone ? `<br>${escapeHtml(owner.phone)}` : "";
 
 	await sendEmail({
 		to: renter.email,
 		subject: t("bookingConfirmed.subject", { title: booking.listing_title }),
 		html: wrapEmail(`
-			<p>${t("bookingConfirmed.greeting", { name: renter.display_name })}</p>
-			<p>${t("bookingConfirmed.body", { title: booking.listing_title, start: booking.start_date, end: booking.end_date })}</p>
-			<p><strong>${t("bookingConfirmed.ownerContact")}</strong><br>${escapeHtml(owner.display_name)}<br>${owner.email}${phoneLine}</p>
+			<p>${t("bookingConfirmed.greeting", { name: safeRenterName })}</p>
+			<p>${t("bookingConfirmed.body", { title: safeTitle, start: booking.start_date, end: booking.end_date })}</p>
+			<p><strong>${t("bookingConfirmed.ownerContact")}</strong><br>${safeOwnerName}<br>${safeOwnerEmail}${phoneLine}</p>
 			<p>${t("bookingConfirmed.nextSteps")}</p>
 		`),
 		text: `${t("bookingConfirmed.body", { title: booking.listing_title, start: booking.start_date, end: booking.end_date })}\n\n${owner.display_name} <${owner.email}>${owner.phone ? ` ${owner.phone}` : ""}`,
@@ -84,6 +92,8 @@ export async function sendBookingRejectedEmail(args: {
 }): Promise<void> {
 	const { booking, renter, reason } = args;
 	const t = getEmailT(renter.language);
+	const safeRenterName = escapeHtml(renter.display_name);
+	const safeTitle = escapeHtml(booking.listing_title);
 	const reasonBlock = reason
 		? `<p><strong>${t("bookingRejected.reasonLabel")}</strong><br>${escapeHtml(reason)}</p>`
 		: "";
@@ -92,8 +102,8 @@ export async function sendBookingRejectedEmail(args: {
 		to: renter.email,
 		subject: t("bookingRejected.subject", { title: booking.listing_title }),
 		html: wrapEmail(`
-			<p>${t("bookingRejected.greeting", { name: renter.display_name })}</p>
-			<p>${t("bookingRejected.body", { title: booking.listing_title, start: booking.start_date, end: booking.end_date })}</p>
+			<p>${t("bookingRejected.greeting", { name: safeRenterName })}</p>
+			<p>${t("bookingRejected.body", { title: safeTitle, start: booking.start_date, end: booking.end_date })}</p>
 			${reasonBlock}
 			<p>${t("bookingRejected.fallback")}</p>
 		`),
@@ -107,12 +117,13 @@ export async function sendBookingAutoRejectedEmail(args: {
 }): Promise<void> {
 	const { booking, renter } = args;
 	const t = getEmailT(renter.language);
+	const safeRenterName = escapeHtml(renter.display_name);
 
 	await sendEmail({
 		to: renter.email,
 		subject: t("bookingAutoRejected.subject", { title: booking.listing_title }),
 		html: wrapEmail(`
-			<p>${t("bookingAutoRejected.greeting", { name: renter.display_name })}</p>
+			<p>${t("bookingAutoRejected.greeting", { name: safeRenterName })}</p>
 			<p>${t("bookingAutoRejected.body", { start: booking.start_date, end: booking.end_date })}</p>
 			<p>${t("bookingAutoRejected.fallback")}</p>
 		`),
