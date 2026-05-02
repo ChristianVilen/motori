@@ -2,8 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { type SelectQueryBuilder, type SqlBool, sql } from "kysely";
 import { expandDateRange } from "~/lib/bookings";
 import { ADJACENT_REGIONS } from "~/lib/constants";
-import { db } from "~/lib/db/index";
 import type { Database, Listing, ListingImage } from "~/lib/db/schema";
+
+// Lazy-import db so this module is safe to evaluate in client bundles.
+// db/index.ts imports pg which uses Buffer (Node-only); keeping it out of the
+// static import graph prevents it from being bundled into client chunks.
+const getDb = async () => (await import("~/lib/db/index")).db;
 import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { toTsQuery } from "~/lib/search";
 import { generateShortId } from "~/lib/slug";
@@ -91,6 +95,7 @@ async function fetchFirstImages(listingIds: string[]): Promise<Map<string, Listi
 		return imageMap;
 	}
 
+	const db = await getDb();
 	const images = await db
 		.selectFrom("listing_image")
 		.selectAll()
@@ -118,6 +123,7 @@ async function attachMakeModel<T extends Listing>(
 		...new Set(listings.map((l) => l.model_id).filter((id): id is string => id !== null)),
 	];
 
+	const db = await getDb();
 	const [makes, models] = await Promise.all([
 		db.selectFrom("motorcycle_make").select(["id", "slug"]).where("id", "in", makeIds).execute(),
 		modelIds.length > 0
@@ -158,6 +164,7 @@ export const searchListings = createServerFn({ method: "GET" })
 	.middleware([rateLimitMiddleware(60, 60, "search")])
 	.inputValidator((input: BrowseSearchParams) => input)
 	.handler(async ({ data: params }): Promise<SearchResult> => {
+		const db = await getDb();
 		const tsquery = params.q ? toTsQuery(params.q) : null;
 		const sort: SortMode = params.sort ?? (tsquery ? "relevance" : "newest");
 
@@ -219,6 +226,7 @@ export const searchListings = createServerFn({ method: "GET" })
 	});
 
 export const getLatestListings = createServerFn({ method: "GET" }).handler(async () => {
+	const db = await getDb();
 	const listings = await db
 		.selectFrom("listing")
 		.selectAll()
@@ -243,6 +251,7 @@ export const getLatestListings = createServerFn({ method: "GET" }).handler(async
 });
 
 export const getHomepageStats = createServerFn({ method: "GET" }).handler(async () => {
+	const db = await getDb();
 	const result = await db
 		.selectFrom("listing")
 		.select([
@@ -273,6 +282,7 @@ export const getNeighborRegionCount = createServerFn({ method: "GET" })
 			return 0;
 		}
 
+		const db = await getDb();
 		const result = await db
 			.selectFrom("listing")
 			.select(sql<number>`count(*)::int`.as("count"))
@@ -286,6 +296,7 @@ export const getNeighborRegionCount = createServerFn({ method: "GET" })
 export const getListingAvailability = createServerFn({ method: "GET" })
 	.inputValidator((listingId: string) => listingId)
 	.handler(async ({ data: listingId }) => {
+		const db = await getDb();
 		const [listing, exceptions, confirmed] = await Promise.all([
 			db
 				.selectFrom("listing")
@@ -341,11 +352,14 @@ export function recordView(shortId: string, viewerId: string | undefined, ip: st
 		viewedRecently.add(dedupKey);
 		setTimeout(() => viewedRecently.delete(dedupKey), 60_000);
 	}
-	db.updateTable("listing")
-		.set({ view_count: sql`view_count + 1` })
-		.where("short_id", "=", shortId)
-		.execute()
-		.catch(() => {});
+	void getDb().then((db) =>
+		db
+			.updateTable("listing")
+			.set({ view_count: sql`view_count + 1` })
+			.where("short_id", "=", shortId)
+			.execute()
+			.catch(() => {}),
+	);
 }
 
 export type ListingForDisplay = {
@@ -357,6 +371,7 @@ export type ListingForDisplay = {
 };
 
 export async function getListingForDisplay(shortId: string): Promise<ListingForDisplay | null> {
+	const db = await getDb();
 	const row = await db
 		.selectFrom("listing")
 		.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
@@ -384,13 +399,7 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 		.orderBy("order", "asc")
 		.execute();
 
-	return {
-		listing,
-		images,
-		makeName: makeName ?? null,
-		makeSlug: makeSlug ?? null,
-		modelName: modelName ?? null,
-	};
+	return { listing, images, makeName: makeName ?? null, makeSlug: makeSlug ?? null, modelName: modelName ?? null };
 }
 
 export type ListingForEdit = {
@@ -401,6 +410,7 @@ export type ListingForEdit = {
 };
 
 export async function getListingForEdit(shortId: string): Promise<ListingForEdit | null> {
+	const db = await getDb();
 	const row = await db
 		.selectFrom("listing")
 		.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
@@ -437,6 +447,7 @@ export type OwnerListingsResult = {
 };
 
 export async function getOwnerListings(ownerId: string): Promise<OwnerListingsResult> {
+	const db = await getDb();
 	const listings = await db
 		.selectFrom("listing")
 		.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
@@ -474,6 +485,7 @@ export async function createListing(
 	ownerId: string,
 	data: ListingFormData,
 ): Promise<CreateListingResult> {
+	const db = await getDb();
 	const id = crypto.randomUUID();
 	const shortId = generateShortId();
 	const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
@@ -550,6 +562,7 @@ export async function updateListing(
 	ownerId: string,
 	data: ListingFormData,
 ): Promise<void> {
+	const db = await getDb();
 	const existing = await db
 		.selectFrom("listing")
 		.select(["owner_id"])
@@ -612,6 +625,7 @@ export async function setListingStatus(
 	ownerId: string,
 	status: "active" | "paused" | "removed",
 ): Promise<void> {
+	const db = await getDb();
 	const listing = await db
 		.selectFrom("listing")
 		.select(["owner_id"])
