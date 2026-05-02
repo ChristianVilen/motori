@@ -9,6 +9,7 @@ import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
+import { getOwnerListings, setListingStatus } from "~/lib/listings";
 import { requireVerifiedEmail } from "~/lib/require-verified-email";
 import { getSession } from "~/lib/session";
 import { computeListingSlug } from "~/lib/slug";
@@ -20,27 +21,7 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 		throw new Error("Kirjaudu sisään");
 	}
 
-	const listings = await db
-		.selectFrom("listing")
-		.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
-		.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
-		.selectAll("listing")
-		.select(["motorcycle_make.slug as makeSlug", "motorcycle_model.name as modelName"])
-		.where("owner_id", "=", session.user.id)
-		.where("listing.status", "!=", "removed")
-		.orderBy("listing.created_at", "desc")
-		.execute();
-
-	const listingIds = listings.map((l) => l.id);
-	const images =
-		listingIds.length > 0
-			? await db
-					.selectFrom("listing_image")
-					.selectAll()
-					.where("listing_id", "in", listingIds)
-					.orderBy("order", "asc")
-					.execute()
-			: [];
+	const { listings, images } = await getOwnerListings(session.user.id);
 
 	const profile = await db
 		.selectFrom("profile")
@@ -51,7 +32,7 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 	return { listings, images, profile, session };
 });
 
-const setListingStatus = createServerFn({ method: "POST" })
+const setListingStatusFn = createServerFn({ method: "POST" })
 	.middleware([csrfMiddleware(), requireVerifiedEmail()])
 	.inputValidator((data: { id: string; status: "active" | "paused" | "removed" }) => data)
 	.handler(async ({ data }) => {
@@ -60,21 +41,7 @@ const setListingStatus = createServerFn({ method: "POST" })
 			throw new Error("Kirjaudu sisään");
 		}
 
-		const listing = await db
-			.selectFrom("listing")
-			.select(["owner_id"])
-			.where("id", "=", data.id)
-			.executeTakeFirst();
-
-		if (!listing || listing.owner_id !== session.user.id) {
-			throw new Error("Ei oikeuksia");
-		}
-
-		await db
-			.updateTable("listing")
-			.set({ status: data.status, updated_at: new Date() })
-			.where("id", "=", data.id)
-			.execute();
+		await setListingStatus(data.id, session.user.id, data.status);
 	});
 
 export const Route = createFileRoute("/omat/")({
@@ -116,7 +83,7 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 
 	async function handleTogglePause() {
 		const newStatus = listing.status === "active" ? "paused" : "active";
-		await setListingStatus({ data: { id: listing.id, status: newStatus } });
+		await setListingStatusFn({ data: { id: listing.id, status: newStatus } });
 		onStatusChange();
 	}
 
@@ -124,7 +91,7 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 		if (!window.confirm(t("dashboard.row.confirmDelete"))) {
 			return;
 		}
-		await setListingStatus({ data: { id: listing.id, status: "removed" } });
+		await setListingStatusFn({ data: { id: listing.id, status: "removed" } });
 		onStatusChange();
 	}
 

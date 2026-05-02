@@ -10,7 +10,7 @@ import { Button } from "~/components/ui/button";
 import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import { useTranslation } from "~/lib/i18n";
-import { getListingAvailability } from "~/lib/listings-queries";
+import { getListingAvailability, getListingForEdit, updateListing } from "~/lib/listings";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
@@ -20,7 +20,7 @@ import { computeListingSlug } from "~/lib/slug";
 import type { ListingFormData } from "~/lib/validators";
 import { availabilityUpdateSchema, isValidImageUrl, listingFormSchema } from "~/lib/validators";
 
-const getListingForEdit = createServerFn({ method: "GET" })
+const getListingForEditFn = createServerFn({ method: "GET" })
 	.inputValidator((shortId: string) => shortId)
 	.handler(async ({ data: shortId }) => {
 		const session = await getSession();
@@ -28,43 +28,20 @@ const getListingForEdit = createServerFn({ method: "GET" })
 			throw new Error("Kirjaudu sisään");
 		}
 
-		const row = await db
-			.selectFrom("listing")
-			.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
-			.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
-			.selectAll("listing")
-			.select(["motorcycle_make.slug as makeSlug", "motorcycle_model.name as modelName"])
-			.where("listing.short_id", "=", shortId)
-			.executeTakeFirst();
-
-		if (!row) {
+		const result = await getListingForEdit(shortId);
+		if (!result) {
 			return null;
 		}
 
-		const { makeSlug, modelName, ...listing } = row;
-
-		if (listing.owner_id !== session.user.id) {
+		if (result.listing.owner_id !== session.user.id) {
 			throw new Error("Ei oikeuksia");
 		}
 
-		const images = await db
-			.selectFrom("listing_image")
-			.selectAll()
-			.where("listing_id", "=", listing.id)
-			.orderBy("order", "asc")
-			.execute();
-
-		const availability = await getListingAvailability({ data: listing.id });
-		return {
-			listing,
-			images,
-			makeSlug: makeSlug ?? null,
-			modelName: modelName ?? null,
-			availability,
-		};
+		const availability = await getListingAvailability({ data: result.listing.id });
+		return { ...result, availability };
 	});
 
-const updateListing = createServerFn({ method: "POST" })
+const updateListingFn = createServerFn({ method: "POST" })
 	.middleware([
 		csrfMiddleware(),
 		rateLimitMiddleware(5, 60, "update-listing"),
@@ -80,70 +57,11 @@ const updateListing = createServerFn({ method: "POST" })
 			throw new Error("Kirjaudu sisään");
 		}
 
-		// Validate image URLs — must be from our storage (Cloudflare or local dev)
 		if (data.form.images.some((img) => !isValidImageUrl(img.url))) {
 			throw new Error("Virheellinen kuva-URL");
 		}
 
-		const existing = await db
-			.selectFrom("listing")
-			.select(["owner_id"])
-			.where("id", "=", data.id)
-			.executeTakeFirst();
-
-		if (!existing) {
-			throw new Error("Ilmoitusta ei löydy");
-		}
-		if (existing.owner_id !== session.user.id) {
-			throw new Error("Ei oikeuksia");
-		}
-
-		const { form } = data;
-
-		await db.transaction().execute(async (trx) => {
-			await trx
-				.updateTable("listing")
-				.set({
-					title: form.title,
-					make_id: form.make_id,
-					model_id: form.model_id ?? null,
-					year: form.year,
-					engine_cc: form.engine_cc ?? null,
-					required_license: form.required_license ?? null,
-					motorcycle_type: form.motorcycle_type,
-					price_per_day: Math.round(form.price_per_day * 100),
-					price_per_week: form.price_per_week ? Math.round(form.price_per_week * 100) : null,
-					price_per_weekend: form.price_per_weekend
-						? Math.round(form.price_per_weekend * 100)
-						: null,
-					price_description: form.price_description ?? null,
-					city: form.city,
-					region: form.region,
-					postal_code: form.postal_code ?? null,
-					description: form.description,
-					mileage_limit: form.mileage_limit ?? null,
-					updated_at: new Date(),
-				})
-				.where("id", "=", data.id)
-				.execute();
-
-			await trx.deleteFrom("listing_image").where("listing_id", "=", data.id).execute();
-
-			if (form.images.length > 0) {
-				await trx
-					.insertInto("listing_image")
-					.values(
-						form.images.map((img, i) => ({
-							id: crypto.randomUUID(),
-							listing_id: data.id,
-							url: img.url,
-							thumbnail_url: img.thumbnail_url ?? null,
-							order: i,
-						})),
-					)
-					.execute();
-			}
-		});
+		await updateListing(data.id, session.user.id, data.form);
 
 		log.event(EVENTS.listing.updated, {
 			listingId: data.id,
@@ -206,7 +124,7 @@ export const Route = createFileRoute("/ilmoitukset/$listingId_/muokkaa")({
 		if (!session) {
 			throw redirect({ to: "/kirjaudu", search: { redirect: undefined } });
 		}
-		const result = await getListingForEdit({ data: params.listingId });
+		const result = await getListingForEditFn({ data: params.listingId });
 		if (!result) {
 			throw notFound();
 		}
@@ -331,7 +249,7 @@ function EditListingPage() {
 	};
 
 	async function handleSubmit(data: ListingFormData) {
-		await updateListing({ data: { id: listing.id, form: data } });
+		await updateListingFn({ data: { id: listing.id, form: data } });
 		const slug = computeListingSlug(makeSlug, modelName, listing.city);
 		navigate({
 			to: "/ilmoitukset/$listingId/$slug",
