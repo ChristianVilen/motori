@@ -354,7 +354,6 @@ export type ListingForDisplay = {
 	makeName: string | null;
 	makeSlug: string | null;
 	modelName: string | null;
-	ownerProfile: { display_name: string; phone: string | null; show_phone: boolean } | null;
 };
 
 export async function getListingForDisplay(shortId: string): Promise<ListingForDisplay | null> {
@@ -378,19 +377,12 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 
 	const { makeName, makeSlug, modelName, ...listing } = row;
 
-	const [images, ownerProfile] = await Promise.all([
-		db
-			.selectFrom("listing_image")
-			.selectAll()
-			.where("listing_id", "=", listing.id)
-			.orderBy("order", "asc")
-			.execute(),
-		db
-			.selectFrom("profile")
-			.select(["display_name", "phone", "show_phone"])
-			.where("user_id", "=", listing.owner_id)
-			.executeTakeFirst(),
-	]);
+	const images = await db
+		.selectFrom("listing_image")
+		.selectAll()
+		.where("listing_id", "=", listing.id)
+		.orderBy("order", "asc")
+		.execute();
 
 	return {
 		listing,
@@ -398,7 +390,6 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 		makeName: makeName ?? null,
 		makeSlug: makeSlug ?? null,
 		modelName: modelName ?? null,
-		ownerProfile: ownerProfile ?? null,
 	};
 }
 

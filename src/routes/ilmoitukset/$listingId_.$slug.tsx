@@ -45,7 +45,7 @@ const getListing = createServerFn({ method: "GET" })
 		const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
 		recordView(shortId, session?.user.id, ip);
 
-		return { ...result, session };
+		return result;
 	});
 
 export const submitBookingRequest = createServerFn({ method: "POST" })
