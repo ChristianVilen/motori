@@ -23,7 +23,6 @@ dist
 # Uploaded images (local dev)
 /uploads/
 *:Zone.Identifier
-AGENTS.md
 
 # Terraform
 infra/terraform.tfvars
