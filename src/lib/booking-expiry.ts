@@ -41,6 +41,7 @@ export async function expireStaleBookings(): Promise<number> {
 			"listing.title as listing_title",
 			"user.email as renter_email",
 			"profile.display_name as renter_name",
+			"profile.language as renter_language",
 		])
 		.where("booking.id", "in", ids)
 		.execute();
@@ -54,7 +55,12 @@ export async function expireStaleBookings(): Promise<number> {
 				start_date: b.start_date,
 				end_date: b.end_date,
 			},
-			renter: { display_name: b.renter_name, email: b.renter_email, phone: null },
+			renter: {
+				display_name: b.renter_name,
+				email: b.renter_email,
+				phone: null,
+				language: b.renter_language,
+			},
 		});
 	}
 

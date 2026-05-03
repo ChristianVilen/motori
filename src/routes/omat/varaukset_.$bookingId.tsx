@@ -133,10 +133,12 @@ const confirmBooking = createServerFn({ method: "POST" })
 					"listing.owner_id",
 					"renter_user.email as renter_email",
 					"renter_profile.display_name as renter_name",
+					"renter_profile.language as renter_language",
 					"owner_user.email as owner_email",
 					"owner_profile.display_name as owner_name",
 					"owner_profile.phone as owner_phone",
 					"owner_profile.show_phone as owner_show_phone",
+					"owner_profile.language as owner_language",
 				])
 				.where("booking.id", "=", data.id)
 				.executeTakeFirst();
@@ -168,6 +170,7 @@ const confirmBooking = createServerFn({ method: "POST" })
 					sql<string>`to_char(booking.end_date, 'YYYY-MM-DD')`.as("end_date"),
 					"user.email",
 					"profile.display_name",
+					"profile.language",
 				])
 				.where("booking.listing_id", "=", booking.listing_id)
 				.where("booking.id", "!=", booking.id)
@@ -204,11 +207,13 @@ const confirmBooking = createServerFn({ method: "POST" })
 				display_name: result.booking.renter_name,
 				email: result.booking.renter_email,
 				phone: null,
+				language: result.booking.renter_language,
 			},
 			owner: {
 				display_name: result.booking.owner_name,
 				email: result.booking.owner_email,
 				phone: result.booking.owner_show_phone ? result.booking.owner_phone : null,
+				language: result.booking.owner_language,
 			},
 		});
 
@@ -224,7 +229,7 @@ const confirmBooking = createServerFn({ method: "POST" })
 					start_date: o.start_date,
 					end_date: o.end_date,
 				},
-				renter: { display_name: o.display_name, email: o.email, phone: null },
+				renter: { display_name: o.display_name, email: o.email, phone: null, language: o.language },
 			});
 		}
 
@@ -259,6 +264,7 @@ const rejectBooking = createServerFn({ method: "POST" })
 				"listing.owner_id",
 				"user.email as renter_email",
 				"profile.display_name as renter_name",
+				"profile.language as renter_language",
 			])
 			.where("booking.id", "=", data.id)
 			.executeTakeFirst();
@@ -293,7 +299,12 @@ const rejectBooking = createServerFn({ method: "POST" })
 				start_date: booking.start_date,
 				end_date: booking.end_date,
 			},
-			renter: { display_name: booking.renter_name, email: booking.renter_email, phone: null },
+			renter: {
+				display_name: booking.renter_name,
+				email: booking.renter_email,
+				phone: null,
+				language: booking.renter_language,
+			},
 			reason: data.reason ?? null,
 		});
 	});

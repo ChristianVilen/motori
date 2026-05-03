@@ -1,7 +1,8 @@
 import { sql } from "kysely";
 import { db } from "~/lib/db/index";
 import { sendEmail } from "~/lib/email";
-import { emailT as t } from "~/lib/i18n/email";
+import { wrapEmail } from "~/lib/email-wrapper";
+import { getEmailT } from "~/lib/i18n/email";
 import { log, withLogContext } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 
@@ -20,6 +21,7 @@ export async function sendListingExpiryWarnings(daysAhead = 7): Promise<number> 
 				"listing.expires_at",
 				"user.email",
 				"profile.display_name",
+				"profile.language",
 			])
 			.where("listing.status", "=", "active")
 			.where("listing.expires_at", "is not", null)
@@ -38,15 +40,20 @@ export async function sendListingExpiryWarnings(daysAhead = 7): Promise<number> 
 						return;
 					}
 					const daysLeft = Math.ceil((row.expires_at.getTime() - Date.now()) / 86_400_000);
+					const t = getEmailT(row.language);
+					const safeDisplayName = escapeHtml(row.display_name);
+					const safeTitle = escapeHtml(row.title);
 					await sendEmail({
 						to: row.email,
 						subject: t("listingExpiry.subject"),
-						html: `
-							<p>${t("listingExpiry.greeting", { name: row.display_name })}</p>
-							<p>${t("listingExpiry.body", { title: row.title, days: daysLeft })}</p>
+						html: wrapEmail(
+							`
+							<p>${t("listingExpiry.greeting", { name: safeDisplayName })}</p>
+							<p>${t("listingExpiry.body", { title: safeTitle, days: daysLeft })}</p>
 							<p>${t("listingExpiry.cta")}</p>
-							<p>${t("signature")}</p>
 						`,
+							row.language,
+						),
 						text: `${t("listingExpiry.body", { title: row.title, days: daysLeft })}\n\n${t("listingExpiry.cta")}`,
 						idempotencyKey: `expiry-warning/${row.id}`,
 					});
@@ -78,4 +85,10 @@ export async function sendListingExpiryWarnings(daysAhead = 7): Promise<number> 
 
 		return sent;
 	});
+}
+
+function escapeHtml(s: string): string {
+	return s.replace(/[&<>"']/g, (c) =>
+		c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === '"' ? "&quot;" : "&#39;",
+	);
 }
