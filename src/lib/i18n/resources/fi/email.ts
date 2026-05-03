@@ -46,5 +46,4 @@ export default {
 		body: "Päivät {{start}} – {{end}} ehdittiin varata toiselle vuokraajalle.",
 		fallback: "Voit etsiä toisen ajankohdan tai toisen ilmoituksen sivustoltamme.",
 	},
-	signature: "— Motori",
 } as const;

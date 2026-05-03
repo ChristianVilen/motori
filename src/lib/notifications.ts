@@ -46,11 +46,14 @@ export async function sendListingExpiryWarnings(daysAhead = 7): Promise<number> 
 					await sendEmail({
 						to: row.email,
 						subject: t("listingExpiry.subject"),
-						html: wrapEmail(`
+						html: wrapEmail(
+							`
 							<p>${t("listingExpiry.greeting", { name: safeDisplayName })}</p>
 							<p>${t("listingExpiry.body", { title: safeTitle, days: daysLeft })}</p>
 							<p>${t("listingExpiry.cta")}</p>
-						`),
+						`,
+							row.language,
+						),
 						text: `${t("listingExpiry.body", { title: row.title, days: daysLeft })}\n\n${t("listingExpiry.cta")}`,
 						idempotencyKey: `expiry-warning/${row.id}`,
 					});

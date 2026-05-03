@@ -44,12 +44,15 @@ export const auth = betterAuth({
 			void sendEmail({
 				to: user.email,
 				subject: t("passwordReset.subject"),
-				html: wrapEmail(`
+				html: wrapEmail(
+					`
 					<p>${t("passwordReset.greeting")}</p>
 					<p>${t("passwordReset.body")}</p>
-					<p><a href="${url}">${url}</a></p>
+					<p><a href="${url.replace(/&/g, "&amp;")}">${url.replace(/&/g, "&amp;")}</a></p>
 					<p>${t("passwordReset.expiry")}</p>
-				`),
+				`,
+					lang,
+				),
 				text: `${t("passwordReset.body")}\n${url}\n\n${t("passwordReset.expiry")}`,
 			}).catch(() => {});
 		},
@@ -91,12 +94,15 @@ export const auth = betterAuth({
 			void sendEmail({
 				to: user.email,
 				subject: t("verification.subject"),
-				html: wrapEmail(`
+				html: wrapEmail(
+					`
 					<p>${t("verification.greeting")}</p>
 					<p>${t("verification.body")}</p>
-					<p><a href="${url}">${url}</a></p>
+					<p><a href="${url.replace(/&/g, "&amp;")}">${url.replace(/&/g, "&amp;")}</a></p>
 					<p>${t("verification.expiry")}</p>
-				`),
+				`,
+					lang,
+				),
 				text: `${t("verification.body")}\n${url}\n\n${t("verification.expiry")}`,
 			}).catch(() => {});
 		},

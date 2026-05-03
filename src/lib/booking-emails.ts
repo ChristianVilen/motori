@@ -45,14 +45,17 @@ export async function sendBookingRequestEmail(args: {
 	await sendEmail({
 		to: owner.email,
 		subject: t("bookingRequest.subject", { title: booking.listing_title }),
-		html: wrapEmail(`
+		html: wrapEmail(
+			`
 			<p>${t("bookingRequest.greeting", { name: safeOwnerName })}</p>
 			<p>${t("bookingRequest.intro", { title: safeTitle })}</p>
 			<p>${t("bookingRequest.dates", { start: booking.start_date, end: booking.end_date, days })}</p>
 			<p>${t("bookingRequest.renter", { name: safeRenterName, email: safeRenterEmail })}</p>
 			<p><strong>${t("bookingRequest.message")}</strong><br>${escapeHtml(message)}</p>
 			<p>${t("bookingRequest.cta")}<br><a href="${url}">${url}</a></p>
-		`),
+		`,
+			owner.language,
+		),
 		text: `${t("bookingRequest.intro", { title: booking.listing_title })}\n\n${t("bookingRequest.dates", { start: booking.start_date, end: booking.end_date, days })}\n\n${url}`,
 		idempotencyKey: `booking-request/${booking.short_id}`,
 	});
@@ -74,12 +77,15 @@ export async function sendBookingConfirmedEmail(args: {
 	await sendEmail({
 		to: renter.email,
 		subject: t("bookingConfirmed.subject", { title: booking.listing_title }),
-		html: wrapEmail(`
+		html: wrapEmail(
+			`
 			<p>${t("bookingConfirmed.greeting", { name: safeRenterName })}</p>
 			<p>${t("bookingConfirmed.body", { title: safeTitle, start: booking.start_date, end: booking.end_date })}</p>
 			<p><strong>${t("bookingConfirmed.ownerContact")}</strong><br>${safeOwnerName}<br>${safeOwnerEmail}${phoneLine}</p>
 			<p>${t("bookingConfirmed.nextSteps")}</p>
-		`),
+		`,
+			renter.language,
+		),
 		text: `${t("bookingConfirmed.body", { title: booking.listing_title, start: booking.start_date, end: booking.end_date })}\n\n${owner.display_name} <${owner.email}>${owner.phone ? ` ${owner.phone}` : ""}`,
 		idempotencyKey: `booking-confirmed/${booking.short_id}`,
 	});
@@ -101,12 +107,15 @@ export async function sendBookingRejectedEmail(args: {
 	await sendEmail({
 		to: renter.email,
 		subject: t("bookingRejected.subject", { title: booking.listing_title }),
-		html: wrapEmail(`
+		html: wrapEmail(
+			`
 			<p>${t("bookingRejected.greeting", { name: safeRenterName })}</p>
 			<p>${t("bookingRejected.body", { title: safeTitle, start: booking.start_date, end: booking.end_date })}</p>
 			${reasonBlock}
 			<p>${t("bookingRejected.fallback")}</p>
-		`),
+		`,
+			renter.language,
+		),
 		idempotencyKey: `booking-rejected/${booking.short_id}`,
 	});
 }
@@ -122,11 +131,14 @@ export async function sendBookingAutoRejectedEmail(args: {
 	await sendEmail({
 		to: renter.email,
 		subject: t("bookingAutoRejected.subject", { title: booking.listing_title }),
-		html: wrapEmail(`
+		html: wrapEmail(
+			`
 			<p>${t("bookingAutoRejected.greeting", { name: safeRenterName })}</p>
 			<p>${t("bookingAutoRejected.body", { start: booking.start_date, end: booking.end_date })}</p>
 			<p>${t("bookingAutoRejected.fallback")}</p>
-		`),
+		`,
+			renter.language,
+		),
 		idempotencyKey: `booking-auto-rejected/${booking.short_id}`,
 	});
 }

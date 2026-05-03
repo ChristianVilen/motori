@@ -6,7 +6,7 @@
       <mj-all font-family="Manrope, Arial, sans-serif" />
       <mj-text font-size="15px" line-height="1.6" color="#1a1a2e" padding="0" />
     </mj-attributes>
-    <mj-style>
+    <mj-style inline="inline">
       p { margin: 0 0 16px 0; }
       p:last-child { margin-bottom: 0; }
       a { color: #ad5016; }
@@ -23,7 +23,7 @@
     </mj-section>
     <mj-section background-color="#ffffff" padding="32px 32px 24px">
       <mj-column>
-        <mj-raw>{{content}}</mj-raw>
+        <mj-text>{{content}}</mj-text>
       </mj-column>
     </mj-section>
     <mj-section background-color="#f0efed" padding="16px 32px">

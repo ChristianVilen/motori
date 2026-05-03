@@ -46,5 +46,4 @@ export default {
 		body: "The dates {{start}} – {{end}} were booked by someone else.",
 		fallback: "You can search for another date or listing on the site.",
 	},
-	signature: "— Motori",
 } as const;
