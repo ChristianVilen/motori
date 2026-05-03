@@ -1,8 +1,8 @@
 import { createFileRoute, Link, Outlet, useMatchRoute, useRouter } from "@tanstack/react-router";
 import { BarChart3, FileText, LogOut, Shield, Users, Wrench } from "lucide-react";
+import { Logo } from "~/components/logo";
 import { requireAdmin } from "~/lib/admin";
 import { signOut } from "~/lib/auth-client";
-import { SITE_NAME } from "~/lib/constants";
 import { getModerationCounts } from "~/lib/reports";
 
 export const Route = createFileRoute("/admin")({
@@ -58,8 +58,8 @@ function AdminLayout() {
 			<header className="border-b border-border bg-primary px-4 py-3">
 				<div className="mx-auto flex max-w-6xl items-center justify-between">
 					<div className="flex items-center gap-3">
-						<a href="/admin" className="font-heading text-lg font-bold text-white">
-							{SITE_NAME}
+						<a href="/admin" className="flex items-center">
+							<Logo variant="dark" className="h-7 w-auto" />
 						</a>
 						<span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/80">
 							Admin

@@ -2,6 +2,7 @@ import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Logo } from "~/components/logo";
 import { authClient } from "~/lib/auth-client";
 import { SITE_NAME } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
@@ -67,7 +68,7 @@ function ResetPasswordPage() {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-background px-4">
 				<div className="w-full max-w-sm space-y-6 text-center">
-					<h1 className="text-2xl font-bold text-primary">{SITE_NAME}</h1>
+					<Logo variant="light" className="mx-auto h-10 w-auto" />
 					<p className="text-sm text-muted">{t("resetPassword.success")}</p>
 					<Link
 						to="/kirjaudu"
@@ -85,7 +86,7 @@ function ResetPasswordPage() {
 		<div className="flex min-h-screen items-center justify-center bg-background px-4">
 			<div className="w-full max-w-sm space-y-6">
 				<div className="text-center">
-					<h1 className="text-2xl font-bold text-primary">{SITE_NAME}</h1>
+					<Logo variant="light" className="mx-auto h-10 w-auto" />
 					<p className="mt-1 text-sm text-muted">{t("resetPassword.heading")}</p>
 				</div>
 

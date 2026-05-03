@@ -4,7 +4,6 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import { useEffect } from "react";
 import { LoginForm } from "~/components/auth/login-form";
-import { SITE_NAME } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { useFocusTrap } from "~/lib/use-focus-trap";
 
@@ -61,12 +60,9 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 				role="document"
 			>
 				<div className="mb-5 flex items-start justify-between">
-					<div>
-						<h2 id="login-modal-title" className="text-lg font-bold text-primary">
-							{t("modal.heading")}
-						</h2>
-						<p className="mt-0.5 text-xs text-muted">{SITE_NAME}</p>
-					</div>
+					<h2 id="login-modal-title" className="text-lg font-bold text-primary">
+						{t("modal.heading")}
+					</h2>
 					<button
 						type="button"
 						onClick={onClose}

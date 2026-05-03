@@ -13,6 +13,7 @@ import { I18nextProvider, useTranslation } from "react-i18next";
 import { LoginModal } from "~/components/auth/login-modal";
 import { UserMenu } from "~/components/auth/user-menu";
 import { LanguageSelector } from "~/components/language-selector";
+import { Logo } from "~/components/logo";
 import { authClient, signOut, useSession } from "~/lib/auth-client";
 import { SITE_NAME, SITE_URL } from "~/lib/constants";
 import { i18n as clientI18n, ensureClientI18n } from "~/lib/i18n/client";
@@ -24,6 +25,7 @@ import { useEmailVerified } from "~/lib/use-email-verified";
 import appCss from "~/styles/app.css?url";
 
 import "@fontsource-variable/manrope/index.css";
+import "@fontsource-variable/space-grotesk/index.css";
 import "@fontsource/jetbrains-mono/index.css";
 
 export const Route = createRootRoute({
@@ -68,9 +70,8 @@ export const Route = createRootRoute({
 		links: [
 			{ rel: "stylesheet", href: appCss },
 			{ rel: "manifest", href: "/manifest.webmanifest" },
-			{ rel: "icon", href: "/favicon.ico", sizes: "any" },
-			{ rel: "icon", href: "/favicon-96x96.png", type: "image/png", sizes: "96x96" },
-			{ rel: "apple-touch-icon", href: "/icon-192.png" },
+			{ rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+			{ rel: "apple-touch-icon", href: "/app-icon.svg" },
 			...supportedLngs.map((lng) => ({ rel: "alternate", hrefLang: lng, href: `${SITE_URL}/` })),
 			{ rel: "alternate", hrefLang: "x-default", href: `${SITE_URL}/` },
 		],
@@ -221,8 +222,8 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 				{!isAdmin && (
 					<nav className="border-b border-border bg-primary px-4 py-3">
 						<div className="mx-auto flex max-w-6xl items-center justify-between">
-							<Link to="/" className="font-heading text-lg font-bold text-white">
-								{SITE_NAME}
+							<Link to="/" className="flex items-center">
+								<Logo variant="dark" className="h-8 w-auto" />
 							</Link>
 							<div className="flex items-center gap-4 sm:gap-6">
 								<Link to="/ilmoitukset" className="text-sm text-white/70 hover:text-white">
