@@ -23,7 +23,7 @@ import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
-import { getListingAvailability } from "~/lib/listings-queries";
+import { getListingAvailability, getListingForDisplay, recordView } from "~/lib/listings";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
@@ -32,72 +32,20 @@ import { getSession } from "~/lib/session";
 import { computeListingSlug } from "~/lib/slug";
 import { bookingRequestSchema } from "~/lib/validators";
 
-// In-memory dedup for view count increments (per-process, 60s TTL, 10k cap)
-const VIEW_DEDUP_MAX = 10_000;
-const viewedRecently = new Set<string>();
-
-function maybeIncrementViewCount(shortId: string, userId: string | undefined) {
-	const request = getRequest();
-	const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-	// When the set is full, dedup stops and every view is counted (fail-open).
-	const dedupKey = userId ? `view:${shortId}:${userId}` : `view:${shortId}:${ip}`;
-	if (viewedRecently.size < VIEW_DEDUP_MAX && viewedRecently.has(dedupKey)) {
-		return;
-	}
-	if (viewedRecently.size < VIEW_DEDUP_MAX) {
-		viewedRecently.add(dedupKey);
-		setTimeout(() => viewedRecently.delete(dedupKey), 60_000);
-	}
-	// updated_at intentionally omitted — view bumps should not surface listings
-	// as "recently updated" in sorting or the sitemap lastmod.
-	db.updateTable("listing")
-		.set({ view_count: sql`view_count + 1` })
-		.where("short_id", "=", shortId)
-		.execute()
-		.catch(() => {});
-}
-
 const getListing = createServerFn({ method: "GET" })
 	.inputValidator((shortId: string) => shortId)
 	.handler(async ({ data: shortId }) => {
 		const session = await getSession();
-
-		const row = await db
-			.selectFrom("listing")
-			.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
-			.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
-			.selectAll("listing")
-			.select([
-				"motorcycle_make.name as makeName",
-				"motorcycle_make.slug as makeSlug",
-				"motorcycle_model.name as modelName",
-			])
-			.where("listing.short_id", "=", shortId)
-			.where("listing.status", "!=", "removed")
-			.executeTakeFirst();
-
-		if (!row) {
+		const result = await getListingForDisplay(shortId);
+		if (!result) {
 			return null;
 		}
 
-		const { makeName, makeSlug, modelName, ...listing } = row;
+		const request = getRequest();
+		const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+		recordView(shortId, session?.user.id, ip);
 
-		maybeIncrementViewCount(shortId, session?.user.id);
-
-		const images = await db
-			.selectFrom("listing_image")
-			.selectAll()
-			.where("listing_id", "=", listing.id)
-			.orderBy("order", "asc")
-			.execute();
-
-		return {
-			listing,
-			images,
-			makeName: makeName ?? null,
-			makeSlug: makeSlug ?? null,
-			modelName: modelName ?? null,
-		};
+		return result;
 	});
 
 export const submitBookingRequest = createServerFn({ method: "POST" })
@@ -498,9 +446,6 @@ function ListingDetailPage() {
 								/>
 							</div>
 						)}
-						<p className="text-center text-xs text-muted">
-							{t("detail.viewCount", { n: listing.view_count })}
-						</p>
 						{!!session && !isOwner && (
 							<div className="text-center">
 								<ReportButton targetType="listing" targetId={listing.id} />

@@ -2,11 +2,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { type SelectQueryBuilder, type SqlBool, sql } from "kysely";
 import { expandDateRange } from "~/lib/bookings";
 import { ADJACENT_REGIONS } from "~/lib/constants";
-import { db } from "~/lib/db/index";
 import type { Database, Listing, ListingImage } from "~/lib/db/schema";
+
+// Lazy-import db so this module is safe to evaluate in client bundles.
+// db/index.ts imports pg which uses Buffer (Node-only); keeping it out of the
+// static import graph prevents it from being bundled into client chunks.
+const getDb = async () => (await import("~/lib/db/index")).db;
+
 import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { toTsQuery } from "~/lib/search";
-import type { BrowseSearchParams } from "~/lib/validators";
+import { generateShortId } from "~/lib/slug";
+import type { BrowseSearchParams, ListingFormData } from "~/lib/validators";
 
 const PAGE_SIZE = 12;
 
@@ -90,6 +96,7 @@ async function fetchFirstImages(listingIds: string[]): Promise<Map<string, Listi
 		return imageMap;
 	}
 
+	const db = await getDb();
 	const images = await db
 		.selectFrom("listing_image")
 		.selectAll()
@@ -117,6 +124,7 @@ async function attachMakeModel<T extends Listing>(
 		...new Set(listings.map((l) => l.model_id).filter((id): id is string => id !== null)),
 	];
 
+	const db = await getDb();
 	const [makes, models] = await Promise.all([
 		db.selectFrom("motorcycle_make").select(["id", "slug"]).where("id", "in", makeIds).execute(),
 		modelIds.length > 0
@@ -157,6 +165,7 @@ export const searchListings = createServerFn({ method: "GET" })
 	.middleware([rateLimitMiddleware(60, 60, "search")])
 	.inputValidator((input: BrowseSearchParams) => input)
 	.handler(async ({ data: params }): Promise<SearchResult> => {
+		const db = await getDb();
 		const tsquery = params.q ? toTsQuery(params.q) : null;
 		const sort: SortMode = params.sort ?? (tsquery ? "relevance" : "newest");
 
@@ -218,6 +227,7 @@ export const searchListings = createServerFn({ method: "GET" })
 	});
 
 export const getLatestListings = createServerFn({ method: "GET" }).handler(async () => {
+	const db = await getDb();
 	const listings = await db
 		.selectFrom("listing")
 		.selectAll()
@@ -242,6 +252,7 @@ export const getLatestListings = createServerFn({ method: "GET" }).handler(async
 });
 
 export const getHomepageStats = createServerFn({ method: "GET" }).handler(async () => {
+	const db = await getDb();
 	const result = await db
 		.selectFrom("listing")
 		.select([
@@ -272,6 +283,7 @@ export const getNeighborRegionCount = createServerFn({ method: "GET" })
 			return 0;
 		}
 
+		const db = await getDb();
 		const result = await db
 			.selectFrom("listing")
 			.select(sql<number>`count(*)::int`.as("count"))
@@ -285,6 +297,7 @@ export const getNeighborRegionCount = createServerFn({ method: "GET" })
 export const getListingAvailability = createServerFn({ method: "GET" })
 	.inputValidator((listingId: string) => listingId)
 	.handler(async ({ data: listingId }) => {
+		const db = await getDb();
 		const [listing, exceptions, confirmed] = await Promise.all([
 			db
 				.selectFrom("listing")
@@ -322,3 +335,317 @@ export const getListingAvailability = createServerFn({ method: "GET" })
 			booked_dates: bookedDates,
 		};
 	});
+
+// ─── Module functions ────────────────────────────────────────────────────────
+
+// In-memory dedup for view count increments (per-process, 60s TTL, 10k cap)
+const VIEW_DEDUP_MAX = 10_000;
+const viewedRecently = new Set<string>();
+
+// updated_at intentionally omitted — view bumps should not surface listings
+// as "recently updated" in sorting or the sitemap lastmod.
+export function recordView(shortId: string, viewerId: string | undefined, ip: string): void {
+	const dedupKey = viewerId ? `view:${shortId}:${viewerId}` : `view:${shortId}:${ip}`;
+	if (viewedRecently.size < VIEW_DEDUP_MAX && viewedRecently.has(dedupKey)) {
+		return;
+	}
+	if (viewedRecently.size < VIEW_DEDUP_MAX) {
+		viewedRecently.add(dedupKey);
+		setTimeout(() => viewedRecently.delete(dedupKey), 60_000);
+	}
+	void getDb().then((db) =>
+		db
+			.updateTable("listing")
+			.set({ view_count: sql`view_count + 1` })
+			.where("short_id", "=", shortId)
+			.execute()
+			.catch(() => {}),
+	);
+}
+
+export type ListingForDisplay = {
+	listing: Listing;
+	images: ListingImage[];
+	makeName: string | null;
+	makeSlug: string | null;
+	modelName: string | null;
+};
+
+export async function getListingForDisplay(shortId: string): Promise<ListingForDisplay | null> {
+	const db = await getDb();
+	const row = await db
+		.selectFrom("listing")
+		.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
+		.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
+		.selectAll("listing")
+		.select([
+			"motorcycle_make.name as makeName",
+			"motorcycle_make.slug as makeSlug",
+			"motorcycle_model.name as modelName",
+		])
+		.where("listing.short_id", "=", shortId)
+		.where("listing.status", "!=", "removed")
+		.executeTakeFirst();
+
+	if (!row) {
+		return null;
+	}
+
+	const { makeName, makeSlug, modelName, ...listing } = row;
+
+	const images = await db
+		.selectFrom("listing_image")
+		.selectAll()
+		.where("listing_id", "=", listing.id)
+		.orderBy("order", "asc")
+		.execute();
+
+	return {
+		listing,
+		images,
+		makeName: makeName ?? null,
+		makeSlug: makeSlug ?? null,
+		modelName: modelName ?? null,
+	};
+}
+
+export type ListingForEdit = {
+	listing: Listing;
+	images: ListingImage[];
+	makeSlug: string | null;
+	modelName: string | null;
+};
+
+export async function getListingForEdit(shortId: string): Promise<ListingForEdit | null> {
+	const db = await getDb();
+	const row = await db
+		.selectFrom("listing")
+		.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
+		.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
+		.selectAll("listing")
+		.select(["motorcycle_make.slug as makeSlug", "motorcycle_model.name as modelName"])
+		.where("listing.short_id", "=", shortId)
+		.executeTakeFirst();
+
+	if (!row) {
+		return null;
+	}
+
+	const { makeSlug, modelName, ...listing } = row;
+
+	const images = await db
+		.selectFrom("listing_image")
+		.selectAll()
+		.where("listing_id", "=", listing.id)
+		.orderBy("order", "asc")
+		.execute();
+
+	return {
+		listing,
+		images,
+		makeSlug: makeSlug ?? null,
+		modelName: modelName ?? null,
+	};
+}
+
+export type OwnerListingsResult = {
+	listings: Array<Listing & { makeSlug: string | null; modelName: string | null }>;
+	images: ListingImage[];
+};
+
+export async function getOwnerListings(ownerId: string): Promise<OwnerListingsResult> {
+	const db = await getDb();
+	const listings = await db
+		.selectFrom("listing")
+		.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
+		.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
+		.selectAll("listing")
+		.select(["motorcycle_make.slug as makeSlug", "motorcycle_model.name as modelName"])
+		.where("owner_id", "=", ownerId)
+		.where("listing.status", "!=", "removed")
+		.orderBy("listing.created_at", "desc")
+		.execute();
+
+	const listingIds = listings.map((l) => l.id);
+	const images =
+		listingIds.length > 0
+			? await db
+					.selectFrom("listing_image")
+					.selectAll()
+					.where("listing_id", "in", listingIds)
+					.orderBy("order", "asc")
+					.execute()
+			: [];
+
+	return { listings, images };
+}
+
+export type CreateListingResult = {
+	id: string;
+	shortId: string;
+	makeSlug: string | null;
+	modelName: string | null;
+	city: string;
+};
+
+export async function createListing(
+	ownerId: string,
+	data: ListingFormData,
+): Promise<CreateListingResult> {
+	const db = await getDb();
+	const id = crypto.randomUUID();
+	const shortId = generateShortId();
+	const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+
+	await db
+		.insertInto("listing")
+		.values({
+			id,
+			short_id: shortId,
+			owner_id: ownerId,
+			title: data.title,
+			make_id: data.make_id,
+			model_id: data.model_id ?? null,
+			year: data.year,
+			engine_cc: data.engine_cc ?? null,
+			required_license: data.required_license ?? null,
+			motorcycle_type: data.motorcycle_type,
+			price_per_day: Math.round(data.price_per_day * 100),
+			price_per_week: data.price_per_week ? Math.round(data.price_per_week * 100) : null,
+			price_per_weekend: data.price_per_weekend ? Math.round(data.price_per_weekend * 100) : null,
+			price_description: data.price_description ?? null,
+			city: data.city,
+			region: data.region,
+			postal_code: data.postal_code ?? null,
+			description: data.description,
+			mileage_limit: data.mileage_limit ?? null,
+			expires_at: expiresAt,
+			created_at: new Date(),
+			updated_at: new Date(),
+		})
+		.execute();
+
+	if (data.images.length > 0) {
+		await db
+			.insertInto("listing_image")
+			.values(
+				data.images.map((img, i) => ({
+					id: crypto.randomUUID(),
+					listing_id: id,
+					url: img.url,
+					thumbnail_url: img.thumbnail_url ?? null,
+					order: i,
+				})),
+			)
+			.execute();
+	}
+
+	const [make, model] = await Promise.all([
+		db
+			.selectFrom("motorcycle_make")
+			.select(["slug"])
+			.where("id", "=", data.make_id)
+			.executeTakeFirst(),
+		data.model_id
+			? db
+					.selectFrom("motorcycle_model")
+					.select(["name"])
+					.where("id", "=", data.model_id)
+					.executeTakeFirst()
+			: Promise.resolve(null),
+	]);
+
+	return {
+		id,
+		shortId,
+		makeSlug: make?.slug ?? null,
+		modelName: model?.name ?? null,
+		city: data.city,
+	};
+}
+
+export async function updateListing(
+	id: string,
+	ownerId: string,
+	data: ListingFormData,
+): Promise<void> {
+	const db = await getDb();
+	const existing = await db
+		.selectFrom("listing")
+		.select(["owner_id"])
+		.where("id", "=", id)
+		.executeTakeFirst();
+
+	if (!existing) {
+		throw new Error("Ilmoitusta ei löydy");
+	}
+	if (existing.owner_id !== ownerId) {
+		throw new Error("Ei oikeuksia");
+	}
+
+	await db.transaction().execute(async (trx) => {
+		await trx
+			.updateTable("listing")
+			.set({
+				title: data.title,
+				make_id: data.make_id,
+				model_id: data.model_id ?? null,
+				year: data.year,
+				engine_cc: data.engine_cc ?? null,
+				required_license: data.required_license ?? null,
+				motorcycle_type: data.motorcycle_type,
+				price_per_day: Math.round(data.price_per_day * 100),
+				price_per_week: data.price_per_week ? Math.round(data.price_per_week * 100) : null,
+				price_per_weekend: data.price_per_weekend ? Math.round(data.price_per_weekend * 100) : null,
+				price_description: data.price_description ?? null,
+				city: data.city,
+				region: data.region,
+				postal_code: data.postal_code ?? null,
+				description: data.description,
+				mileage_limit: data.mileage_limit ?? null,
+				updated_at: new Date(),
+			})
+			.where("id", "=", id)
+			.execute();
+
+		await trx.deleteFrom("listing_image").where("listing_id", "=", id).execute();
+
+		if (data.images.length > 0) {
+			await trx
+				.insertInto("listing_image")
+				.values(
+					data.images.map((img, i) => ({
+						id: crypto.randomUUID(),
+						listing_id: id,
+						url: img.url,
+						thumbnail_url: img.thumbnail_url ?? null,
+						order: i,
+					})),
+				)
+				.execute();
+		}
+	});
+}
+
+export async function setListingStatus(
+	id: string,
+	ownerId: string,
+	status: "active" | "paused" | "removed",
+): Promise<void> {
+	const db = await getDb();
+	const listing = await db
+		.selectFrom("listing")
+		.select(["owner_id"])
+		.where("id", "=", id)
+		.executeTakeFirst();
+
+	if (!listing || listing.owner_id !== ownerId) {
+		throw new Error("Ei oikeuksia");
+	}
+
+	await db
+		.updateTable("listing")
+		.set({ status, updated_at: new Date() })
+		.where("id", "=", id)
+		.execute();
+}
