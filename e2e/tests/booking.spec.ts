@@ -51,7 +51,7 @@ test.describe("Booking flow", () => {
 		//    number is fragile because numberOfMonths={2} duplicates each number across
 		//    the two visible months.
 		const form = page.getByTestId("booking-request-form");
-		const enabledDays = form.locator("button.rdp-day_button:not([disabled])");
+		const enabledDays = form.locator("button[data-date]:not([disabled])");
 		await enabledDays.nth(0).click();
 		await enabledDays.nth(1).click();
 

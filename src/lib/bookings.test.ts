@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeBookingCost } from "~/components/listings/booking-request-form";
+import { computeBookingCost } from "~/lib/booking-cost";
 import { expandDateRange } from "./bookings";
 
 describe("expandDateRange", () => {

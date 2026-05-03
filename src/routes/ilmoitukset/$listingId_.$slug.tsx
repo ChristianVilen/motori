@@ -5,6 +5,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { sql } from "kysely";
 import { ArrowLeft, MapPin, Tag } from "lucide-react";
+import { useState } from "react";
+import { MobileBookingModal } from "~/components/listings/booking-calendar";
 import { BookingRequestForm } from "~/components/listings/booking-request-form";
 import { ListingGallery } from "~/components/listings/listing-gallery";
 import { ReportButton } from "~/components/report-button";
@@ -327,10 +329,143 @@ function PricingCard({
 	);
 }
 
+function MobileBottomBar({
+	pricePerDayCents,
+	pricePerWeekCents,
+	pricePerWeekendCents,
+	isOwner,
+	isActive,
+	isLoggedIn,
+	redirectPath,
+	onBookClick,
+	t,
+}: {
+	pricePerDayCents: number;
+	pricePerWeekCents: number | null;
+	pricePerWeekendCents: number | null;
+	isOwner: boolean;
+	isActive: boolean;
+	isLoggedIn: boolean;
+	redirectPath: string;
+	onBookClick: () => void;
+	t: (key: string, opts?: Record<string, unknown>) => string;
+}) {
+	return (
+		<div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-4 py-3 backdrop-blur-md lg:hidden">
+			<div className="flex items-center justify-between gap-4">
+				<div>
+					<div>
+						<span className="text-lg font-bold text-accent">{formatEur(pricePerDayCents)}</span>
+						<span className="ml-1 text-xs text-muted">{t("detail.pricing.perDay")}</span>
+					</div>
+					{(pricePerWeekCents ?? pricePerWeekendCents) ? (
+						<div className="mt-0.5 flex flex-wrap gap-x-2 text-xs text-muted">
+							{pricePerWeekCents ? (
+								<span>{t("detail.pricing.perWeek", { price: formatEur(pricePerWeekCents) })}</span>
+							) : null}
+							{pricePerWeekendCents ? (
+								<span>
+									{t("detail.pricing.perWeekend", { price: formatEur(pricePerWeekendCents) })}
+								</span>
+							) : null}
+						</div>
+					) : null}
+				</div>
+				{!isOwner && isActive && !isLoggedIn && (
+					<Link
+						to="/kirjaudu"
+						search={{ redirect: redirectPath }}
+						className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
+					>
+						{t("booking.loginRequired")}
+					</Link>
+				)}
+				{!isOwner && isActive && isLoggedIn && (
+					<button
+						type="button"
+						onClick={onBookClick}
+						className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
+					>
+						{t("detail.bookingCta")}
+					</button>
+				)}
+			</div>
+		</div>
+	);
+}
+
+function BookingSidebar({
+	listing,
+	availability,
+	session,
+	images,
+}: {
+	listing: Listing;
+	availability: {
+		availability_default: "open" | "closed";
+		exception_dates: string[];
+		booked_dates: string[];
+	};
+	session: { user: { id: string } } | null;
+	images: { thumbnail_url?: string | null; url: string }[];
+}) {
+	const isOwner = session?.user.id === listing.owner_id;
+
+	if (isOwner) {
+		return (
+			<div id="pricing" className="space-y-4 lg:self-start">
+				<PricingCard
+					pricePerDayCents={listing.price_per_day}
+					pricePerWeekCents={listing.price_per_week ?? null}
+					pricePerWeekendCents={listing.price_per_weekend ?? null}
+					listing={listing}
+					isOwner={true}
+				/>
+			</div>
+		);
+	}
+
+	if (listing.status !== "active") {
+		return null;
+	}
+
+	const bookingFormProps = {
+		listingId: listing.id,
+		availabilityDefault: availability.availability_default,
+		exceptionDates: availability.exception_dates,
+		bookedDates: availability.booked_dates,
+		isLoggedIn: !!session,
+		pricePerDayCents: listing.price_per_day,
+		pricePerWeekCents: listing.price_per_week ?? null,
+		pricePerWeekendCents: listing.price_per_weekend ?? null,
+		heroImageUrl: images[0]?.thumbnail_url ?? images[0]?.url ?? null,
+		onSubmit: async (input: { start_date: string; end_date: string; message: string }) => {
+			await submitBookingRequest({
+				data: { listing_id: listing.id, ...input },
+			});
+		},
+	};
+
+	return (
+		<div id="pricing" className="space-y-4 lg:self-start">
+			<div className="hidden lg:block" data-testid="booking-section">
+				<BookingRequestForm {...bookingFormProps} />
+			</div>
+			{!!session && (
+				<div className="text-center">
+					<ReportButton targetType="listing" targetId={listing.id} />
+				</div>
+			)}
+		</div>
+	);
+}
+
 function ListingDetailPage() {
 	const { t } = useTranslation("listings");
 	const { listing, images, session, makeName, makeSlug, modelName, availability } =
 		Route.useLoaderData();
+
+	const [bookingModalOpen, setBookingModalOpen] = useState(false);
 
 	const isOwner = session?.user.id === listing.owner_id;
 	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
@@ -422,72 +557,48 @@ function ListingDetailPage() {
 						</div>
 					</div>
 
-					{/* Right column — price + booking form */}
-					<div id="pricing" className="space-y-4 lg:self-start">
-						<PricingCard
-							pricePerDayCents={listing.price_per_day}
-							pricePerWeekCents={listing.price_per_week ?? null}
-							pricePerWeekendCents={listing.price_per_weekend ?? null}
-							listing={listing}
-							isOwner={!!isOwner}
-						/>
-						{listing.status === "active" && !isOwner && (
-							<div id="booking-form" data-testid="booking-section">
-								<BookingRequestForm
-									listingId={listing.id}
-									availabilityDefault={availability.availability_default}
-									exceptionDates={availability.exception_dates}
-									bookedDates={availability.booked_dates}
-									isLoggedIn={!!session}
-									pricePerDayCents={listing.price_per_day}
-									pricePerWeekCents={listing.price_per_week ?? null}
-									pricePerWeekendCents={listing.price_per_weekend ?? null}
-									onSubmit={async (input) => {
-										await submitBookingRequest({
-											data: { listing_id: listing.id, ...input },
-										});
-									}}
-								/>
-							</div>
-						)}
-						{!!session && !isOwner && (
-							<div className="text-center">
-								<ReportButton targetType="listing" targetId={listing.id} />
-							</div>
-						)}
-					</div>
+					{/* Right column — booking */}
+					<BookingSidebar
+						listing={listing}
+						availability={availability}
+						session={session}
+						images={images}
+					/>
 				</div>
 			</div>
 
-			{/* Sticky bottom bar on mobile — quick price + CTA */}
-			<div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-4 py-3 backdrop-blur-md lg:hidden">
-				<div className="flex items-center justify-between gap-4">
-					<div>
-						<span className="text-lg font-bold text-accent">
-							{formatEur(listing.price_per_day)}
-						</span>
-						<span className="ml-1 text-xs text-muted">{t("detail.pricing.perDay")}</span>
-					</div>
-					{!isOwner &&
-						listing.status === "active" &&
-						(!session ? (
-							<Link
-								to="/kirjaudu"
-								search={{ redirect: redirectPath }}
-								className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
-							>
-								{t("booking.loginRequired")}
-							</Link>
-						) : (
-							<a
-								href="#booking-form"
-								className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
-							>
-								{t("detail.bookingCta")}
-							</a>
-						))}
-				</div>
-			</div>
+			<MobileBottomBar
+				pricePerDayCents={listing.price_per_day}
+				pricePerWeekCents={listing.price_per_week ?? null}
+				pricePerWeekendCents={listing.price_per_weekend ?? null}
+				isOwner={!!isOwner}
+				isActive={listing.status === "active"}
+				isLoggedIn={!!session}
+				redirectPath={redirectPath}
+				onBookClick={() => setBookingModalOpen(true)}
+				t={t}
+			/>
+
+			{/* Mobile booking modal */}
+			<MobileBookingModal open={bookingModalOpen} onClose={() => setBookingModalOpen(false)}>
+				<BookingRequestForm
+					listingId={listing.id}
+					availabilityDefault={availability.availability_default}
+					exceptionDates={availability.exception_dates}
+					bookedDates={availability.booked_dates}
+					isLoggedIn={!!session}
+					pricePerDayCents={listing.price_per_day}
+					pricePerWeekCents={listing.price_per_week ?? null}
+					pricePerWeekendCents={listing.price_per_weekend ?? null}
+					heroImageUrl={images[0]?.thumbnail_url ?? images[0]?.url ?? null}
+					onClose={() => setBookingModalOpen(false)}
+					onSubmit={async (input) => {
+						await submitBookingRequest({
+							data: { listing_id: listing.id, ...input },
+						});
+					}}
+				/>
+			</MobileBookingModal>
 		</div>
 	);
 }

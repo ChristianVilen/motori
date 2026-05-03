@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { AvailabilityCalendar } from "~/components/listings/availability-calendar";
+import { BookingCalendar } from "~/components/listings/booking-calendar";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
-import { formatEur, useTranslation } from "~/lib/i18n";
+import { useTranslation } from "~/lib/i18n";
 
 interface Props {
 	listingId: string;
@@ -13,44 +13,9 @@ interface Props {
 	pricePerDayCents: number;
 	pricePerWeekCents: number | null;
 	pricePerWeekendCents: number | null;
+	heroImageUrl?: string | null;
+	onClose?: () => void;
 	onSubmit: (input: { start_date: string; end_date: string; message: string }) => Promise<void>;
-}
-
-export interface BookingCost {
-	totalCents: number;
-	days: number;
-	label: "weekend" | "week" | null;
-}
-
-export function computeBookingCost(
-	from: string,
-	to: string,
-	pricePerDayCents: number,
-	pricePerWeekCents: number | null,
-	pricePerWeekendCents: number | null,
-): BookingCost {
-	const start = new Date(`${from}T00:00:00Z`);
-	const end = new Date(`${to}T00:00:00Z`);
-	const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1;
-
-	// Fri=5, Sun=0 in UTC
-	const startDay = start.getUTCDay();
-	const endDay = end.getUTCDay();
-	if (days === 3 && startDay === 5 && endDay === 0 && pricePerWeekendCents) {
-		return { totalCents: pricePerWeekendCents, days, label: "weekend" };
-	}
-
-	if (days >= 7 && pricePerWeekCents) {
-		const fullWeeks = Math.floor(days / 7);
-		const remainingDays = days % 7;
-		return {
-			totalCents: fullWeeks * pricePerWeekCents + remainingDays * pricePerDayCents,
-			days,
-			label: "week",
-		};
-	}
-
-	return { totalCents: days * pricePerDayCents, days, label: null };
 }
 
 export function BookingRequestForm(props: Props) {
@@ -60,16 +25,6 @@ export function BookingRequestForm(props: Props) {
 	const [submitting, setSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState(false);
-
-	const cost = range
-		? computeBookingCost(
-				range.from,
-				range.to,
-				props.pricePerDayCents,
-				props.pricePerWeekCents,
-				props.pricePerWeekendCents,
-			)
-		: null;
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
@@ -90,10 +45,10 @@ export function BookingRequestForm(props: Props) {
 			try {
 				const parsed = JSON.parse(msg);
 				if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].message) {
-					msg = parsed.map((p) => p.message).join(", ");
+					msg = parsed.map((p: { message: string }) => p.message).join(", ");
 				}
 			} catch {
-				// Not JSON, use original message
+				// not JSON
 			}
 			setError(msg);
 		} finally {
@@ -115,28 +70,18 @@ export function BookingRequestForm(props: Props) {
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4" data-testid="booking-request-form">
-			<h3 className="font-semibold">{t("booking.calendarTitle")}</h3>
-			<AvailabilityCalendar
+			<BookingCalendar
 				bookedDates={props.bookedDates}
 				exceptionDates={props.exceptionDates}
 				availabilityDefault={props.availabilityDefault}
-				mode={props.isLoggedIn ? "select-range" : "view-only"}
+				pricePerDayCents={props.pricePerDayCents}
+				pricePerWeekCents={props.pricePerWeekCents}
+				pricePerWeekendCents={props.pricePerWeekendCents}
+				heroImageUrl={props.heroImageUrl}
 				selectedRange={range}
 				onSelectRange={setRange}
+				onClose={props.onClose}
 			/>
-			{cost ? (
-				<div data-testid="booking-cost" className="flex items-baseline gap-2">
-					<span className="font-semibold">
-						{t("booking.costSummary", { days: cost.days, total: formatEur(cost.totalCents) })}
-					</span>
-					{cost.label === "weekend" && (
-						<span className="text-xs text-muted">{t("booking.costLabelWeekend")}</span>
-					)}
-					{cost.label === "week" && (
-						<span className="text-xs text-muted">{t("booking.costLabelWeek")}</span>
-					)}
-				</div>
-			) : null}
 			{!props.isLoggedIn ? (
 				<p className="text-sm text-muted">{t("booking.loginRequired")}</p>
 			) : (
