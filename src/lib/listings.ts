@@ -209,6 +209,17 @@ function applyFilters(
 	return q;
 }
 
+async function hydrateListings(listings: Listing[]): Promise<ListingWithImages[]> {
+	if (listings.length === 0) {
+		return [];
+	}
+	const [withMakeModel, imageMap] = await Promise.all([
+		attachMakeModel(listings),
+		fetchFirstImages(listings.map((l) => l.id)),
+	]);
+	return withMakeModel.map((l) => ({ ...l, images: imageMap.get(l.id) ?? [] }));
+}
+
 export const searchListings = createServerFn({ method: "GET" })
 	.middleware([rateLimitMiddleware(60, 60, "search")])
 	.inputValidator((input: BrowseSearchParams) => input)
@@ -232,18 +243,8 @@ export const searchListings = createServerFn({ method: "GET" })
 
 		const listings = await query.execute();
 
-		const [withMakeModel, imageMap] = await Promise.all([
-			attachMakeModel(listings),
-			fetchFirstImages(listings.map((l) => l.id)),
-		]);
-
-		const listingsWithImages: ListingWithImages[] = withMakeModel.map((l) => ({
-			...l,
-			images: imageMap.get(l.id) ?? [],
-		}));
-
 		return {
-			listings: listingsWithImages,
+			listings: await hydrateListings(listings),
 			nextCursor: buildNextCursor(listings, sort),
 			totalCount: countResult.count,
 		};
@@ -263,15 +264,7 @@ export const getLatestListings = createServerFn({ method: "GET" }).handler(async
 		return [] as ListingWithImages[];
 	}
 
-	const [withMakeModel, imageMap] = await Promise.all([
-		attachMakeModel(listings),
-		fetchFirstImages(listings.map((l) => l.id)),
-	]);
-
-	return withMakeModel.map((l) => ({
-		...l,
-		images: imageMap.get(l.id) ?? [],
-	})) as ListingWithImages[];
+	return hydrateListings(listings);
 });
 
 export const getHomepageStats = createServerFn({ method: "GET" }).handler(async () => {
