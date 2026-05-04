@@ -163,3 +163,78 @@ test.describe("Listing detail (unauthenticated)", () => {
 		await expect(page).toHaveURL(/\/kirjaudu/);
 	});
 });
+
+test.describe("Map view", () => {
+	test("view toggle switches to map view and updates URL", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		await listings.goto();
+		await listings.viewToggle.click();
+		await expect(page).toHaveURL(/view=map/);
+		// Map container should be visible (leaflet creates .leaflet-container)
+		await expect(page.locator(".leaflet-container")).toBeVisible();
+	});
+
+	test("view toggle switches back to list view", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		await listings.goto({ view: "map" });
+		await expect(page.locator(".leaflet-container")).toBeVisible();
+		await listings.viewToggle.click();
+		await expect(page).not.toHaveURL(/view=map/);
+		await expect(listings.grid).toBeVisible();
+	});
+
+	test("city param shows city panel in map view", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		await listings.goto({ view: "map", city: "Helsinki" });
+		await expect(listings.mapCityPanel).toBeVisible();
+		await expect(listings.mapCityPanel).toContainText("Helsinki");
+		// City panel should contain listing cards
+		await expect(listings.mapCityPanel.getByTestId("listing-card").first()).toBeVisible();
+	});
+
+	test("closing city panel removes city from URL", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		await listings.goto({ view: "map", city: "Helsinki" });
+		await expect(listings.mapCityPanel).toBeVisible();
+		await listings.mapCityPanelClose.click();
+		await expect(page).not.toHaveURL(/city=Helsinki/);
+		await expect(listings.mapCityPanel).not.toBeVisible();
+	});
+
+	test("back navigation preserves map view with city selection", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		// 1. Start on list view
+		await listings.goto();
+		// 2. Switch to map
+		await listings.viewToggle.click();
+		await expect(page).toHaveURL(/view=map/);
+		// 3. Navigate to map with city
+		await page.goto("/ilmoitukset?view=map&city=Helsinki");
+		await expect(listings.mapCityPanel).toBeVisible();
+		// 4. Click a listing card to go to detail page
+		const firstCard = listings.mapCityPanel.getByTestId("listing-card").first();
+		await firstCard.scrollIntoViewIfNeeded();
+		await firstCard.click();
+		await page.waitForURL(/\/ilmoitukset\/.+\/.+/);
+		// 5. Go back — should return to map view with Helsinki selected
+		await page.goBack();
+		await expect(page).toHaveURL(/view=map/);
+		await expect(page).toHaveURL(/city=Helsinki/);
+		await expect(listings.mapCityPanel).toBeVisible();
+		await expect(listings.mapCityPanel).toContainText("Helsinki");
+	});
+
+	test("back from map view returns to list view", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		// 1. Start on list view
+		await listings.goto();
+		await expect(listings.grid).toBeVisible();
+		// 2. Switch to map
+		await listings.viewToggle.click();
+		await expect(page).toHaveURL(/view=map/);
+		// 3. Go back — should return to list view
+		await page.goBack();
+		await expect(page).not.toHaveURL(/view=map/);
+		await expect(listings.grid).toBeVisible();
+	});
+});

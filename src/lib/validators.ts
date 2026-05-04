@@ -2,6 +2,7 @@
 import { z } from "zod";
 import { CURRENT_YEAR } from "~/lib/constants";
 import fiCommon from "~/lib/i18n/resources/fi/common";
+import { MUNICIPALITY_NAME_SET } from "~/lib/municipalities";
 
 type T = (key: string) => string;
 
@@ -49,7 +50,11 @@ export function listingFormSchema(t: T = defaultT) {
 		price_per_week: z.number().min(1).max(50000).nullable().optional(),
 		price_per_weekend: z.number().min(1).max(50000).nullable().optional(),
 		price_description: z.string().trim().max(200).nullable().optional(),
-		city: z.string().trim().min(1, t("validation.cityRequired")).max(100),
+		city: z
+			.string()
+			.trim()
+			.min(1, t("validation.cityRequired"))
+			.refine((v) => MUNICIPALITY_NAME_SET.has(v), t("validation.cityInvalid")),
 		region: z.string().trim().min(1, t("validation.regionRequired")),
 		postal_code: z.string().trim().max(10).nullable().optional(),
 		description: z.string().trim().min(20, t("validation.descriptionTooShort")).max(5000),
@@ -79,6 +84,8 @@ export const browseSearchSchema = z.object({
 	make: z.string().trim().max(100).optional(),
 	sort: z.enum(["newest", "price_asc", "price_desc", "relevance"]).optional(),
 	cursor: z.string().max(200).optional(),
+	view: z.enum(["list", "map"]).optional(),
+	city: z.string().trim().max(100).optional(),
 });
 
 export type BrowseSearchParams = z.infer<typeof browseSearchSchema>;

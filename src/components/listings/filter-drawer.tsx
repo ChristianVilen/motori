@@ -48,7 +48,7 @@ export function FilterDrawer({
 	}
 
 	return (
-		<div className="fixed inset-0 z-50 flex flex-col justify-end">
+		<div className="fixed inset-0 z-[1000] flex flex-col justify-end">
 			{/* Backdrop */}
 			<button
 				type="button"

@@ -4,7 +4,9 @@ import { getNonce } from "~/lib/nonce";
 const storagePublicUrl = process.env.STORAGE_PUBLIC_URL ?? "";
 const isProd = process.env.NODE_ENV === "production";
 
-const imgSrc = storagePublicUrl ? `'self' blob: data: ${storagePublicUrl}` : "'self' blob: data:";
+const imgSrc = storagePublicUrl
+	? `'self' blob: data: ${storagePublicUrl} https://*.basemaps.cartocdn.com`
+	: "'self' blob: data: https://*.basemaps.cartocdn.com";
 
 function buildCsp(nonce: string | undefined): string {
 	// In dev, Vite injects HMR/refresh inline scripts without nonces, so we fall

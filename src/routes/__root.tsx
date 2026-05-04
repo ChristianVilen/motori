@@ -219,7 +219,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 					{t("nav.skipToContent")}
 				</a>
 				{!isAdmin && (
-					<nav className="border-b border-border bg-primary px-4 py-3">
+					<nav className="bg-primary px-4 py-3">
 						<div className="mx-auto flex max-w-6xl items-center justify-between">
 							<Link to="/" className="font-heading text-lg font-bold text-white">
 								{SITE_NAME}

@@ -13,6 +13,9 @@ export class ListingsPage {
 	readonly loadMoreButton: Locator;
 	readonly emptyState: Locator;
 	readonly filterDrawerToggle: Locator;
+	readonly viewToggle: Locator;
+	readonly mapCityPanel: Locator;
+	readonly mapCityPanelClose: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
@@ -26,6 +29,9 @@ export class ListingsPage {
 		this.loadMoreButton = page.getByTestId("listings-load-more");
 		this.emptyState = page.getByTestId("listings-empty-state");
 		this.filterDrawerToggle = page.getByTestId("listings-filter-drawer-toggle");
+		this.viewToggle = page.getByTestId("listings-view-toggle");
+		this.mapCityPanel = page.getByTestId("map-city-panel");
+		this.mapCityPanelClose = page.getByTestId("map-city-panel-close");
 	}
 
 	async goto(params?: Record<string, string>) {
