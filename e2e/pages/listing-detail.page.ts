@@ -11,6 +11,7 @@ export class ListingDetailPage {
 	readonly pricePerDay: Locator;
 	readonly locationInfo: Locator;
 	readonly bookingSection: Locator;
+	readonly mobileBookButton: Locator;
 	readonly notFound: Locator;
 
 	constructor(page: Page) {
@@ -23,6 +24,7 @@ export class ListingDetailPage {
 		this.pricePerDay = page.getByTestId("price-per-day");
 		this.locationInfo = page.getByTestId("location-info");
 		this.bookingSection = page.getByTestId("booking-section");
+		this.mobileBookButton = page.getByTestId("mobile-book-button");
 		this.notFound = page.getByTestId("listing-not-found");
 	}
 

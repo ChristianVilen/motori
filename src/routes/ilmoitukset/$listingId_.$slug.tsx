@@ -383,6 +383,7 @@ function MobileBottomBar({
 				{!isOwner && isActive && isLoggedIn && (
 					<button
 						type="button"
+						data-testid="mobile-book-button"
 						onClick={onBookClick}
 						className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
 					>
@@ -585,22 +586,24 @@ function ListingDetailPage() {
 				onClose={() => setBookingModalOpen(false)}
 				title={t("booking.calendarTitle")}
 			>
-				<BookingRequestForm
-					listingId={listing.id}
-					availabilityDefault={availability.availability_default}
-					exceptionDates={availability.exception_dates}
-					bookedDates={availability.booked_dates}
-					isLoggedIn={!!session}
-					pricePerDayCents={listing.price_per_day}
-					pricePerWeekCents={listing.price_per_week ?? null}
-					pricePerWeekendCents={listing.price_per_weekend ?? null}
-					heroImageUrl={images[0]?.thumbnail_url ?? images[0]?.url ?? null}
-					onSubmit={async (input) => {
-						await submitBookingRequest({
-							data: { listing_id: listing.id, ...input },
-						});
-					}}
-				/>
+				<div data-testid="booking-section">
+					<BookingRequestForm
+						listingId={listing.id}
+						availabilityDefault={availability.availability_default}
+						exceptionDates={availability.exception_dates}
+						bookedDates={availability.booked_dates}
+						isLoggedIn={!!session}
+						pricePerDayCents={listing.price_per_day}
+						pricePerWeekCents={listing.price_per_week ?? null}
+						pricePerWeekendCents={listing.price_per_weekend ?? null}
+						heroImageUrl={images[0]?.thumbnail_url ?? images[0]?.url ?? null}
+						onSubmit={async (input) => {
+							await submitBookingRequest({
+								data: { listing_id: listing.id, ...input },
+							});
+						}}
+					/>
+				</div>
 			</MobileFullscreenModal>
 		</div>
 	);

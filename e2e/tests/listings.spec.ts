@@ -144,9 +144,15 @@ test.describe("Listing detail", () => {
 
 	test("booking form is visible for authenticated non-owner", async ({
 		authenticatedViewerPage,
-	}) => {
+	}, testInfo) => {
 		const detail = new ListingDetailPage(authenticatedViewerPage);
 		await detail.goto(SEEDED_LISTING_ID, SEEDED_LISTING_SLUG);
+
+		// On mobile, the booking form is inside a fullscreen modal triggered by a bottom bar button
+		if (testInfo.project.name === "mobile") {
+			await detail.mobileBookButton.click();
+		}
+
 		await expect(detail.bookingSection).toBeVisible();
 	});
 

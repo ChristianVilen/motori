@@ -45,11 +45,11 @@ export function MobileFullscreenModal({
 		return () => document.removeEventListener("keydown", handleKey);
 	}, [open, onClose]);
 
+	const { t } = useTranslation("listings");
+
 	if (!mounted || !open) {
 		return null;
 	}
-
-	const { t } = useTranslation("listings");
 
 	return createPortal(
 		<div
