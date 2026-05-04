@@ -167,7 +167,7 @@ function BrowsePage() {
 	return (
 		<div className="min-h-screen bg-background">
 			{/* Search header */}
-			<div className="bg-primary px-4 py-6">
+			<div className={`bg-primary px-4 ${view === "map" ? "py-3" : "py-6"}`}>
 				<div className="mx-auto max-w-6xl">
 					<form onSubmit={handleSearch} data-testid="listings-search-form" className="flex gap-2">
 						<input
