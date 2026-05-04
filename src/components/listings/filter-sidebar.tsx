@@ -8,14 +8,22 @@ import {
 	TYPE_EMOJI,
 } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
-import type { BrowseSearchParams } from "~/lib/validators";
+import { type BrowseSearchParams, countActiveFilters } from "~/lib/validators";
+import { RangeInput } from "./range-input";
+
+interface Make {
+	id: string;
+	name: string;
+	slug: string;
+}
 
 interface FilterSidebarProps {
 	search: BrowseSearchParams;
 	hasQuery: boolean;
+	makes: Make[];
 }
 
-export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
+export function FilterSidebar({ search, hasQuery, makes }: FilterSidebarProps) {
 	const { t } = useTranslation("listings");
 	const navigate = useNavigate();
 
@@ -45,12 +53,7 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 		});
 	}
 
-	const activeFilterCount =
-		(search.region ? 1 : 0) +
-		(search.type?.length ?? 0) +
-		(search.license?.length ?? 0) +
-		(search.price_min != null ? 1 : 0) +
-		(search.price_max != null ? 1 : 0);
+	const activeFilterCount = countActiveFilters(search);
 
 	return (
 		<aside className="w-[260px] shrink-0 space-y-6">
@@ -140,38 +143,91 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 			<div>
 				<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.pricePerDay")}</p>
 				<div className="flex items-center gap-2">
-					<input
-						type="number"
+					<RangeInput
+						key={`${search.price_min}`}
+						name="filter-price-min"
+						value={search.price_min}
 						placeholder={t("filters.priceMinPlaceholder")}
-						defaultValue={search.price_min ?? ""}
-						onBlur={(e) =>
-							updateFilter({
-								price_min: e.target.value ? Number(e.target.value) : undefined,
-							})
-						}
-						onKeyDown={(e) => {
-							if (e.key === "Enter") {
-								e.currentTarget.blur();
-							}
-						}}
 						className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+						onChange={(v) => updateFilter({ price_min: v })}
 					/>
 					<span className="text-muted">–</span>
-					<input
-						type="number"
+					<RangeInput
+						key={`${search.price_max}`}
+						name="filter-price-max"
+						value={search.price_max}
 						placeholder={t("filters.priceMaxPlaceholder")}
-						defaultValue={search.price_max ?? ""}
-						onBlur={(e) =>
-							updateFilter({
-								price_max: e.target.value ? Number(e.target.value) : undefined,
-							})
-						}
-						onKeyDown={(e) => {
-							if (e.key === "Enter") {
-								e.currentTarget.blur();
-							}
-						}}
 						className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+						onChange={(v) => updateFilter({ price_max: v })}
+					/>
+				</div>
+			</div>
+
+			{/* Brand */}
+			<div>
+				<label htmlFor="filter-make" className="mb-1.5 block text-xs font-medium text-muted">
+					{t("filters.make")}
+				</label>
+				<select
+					id="filter-make"
+					data-testid="filter-make"
+					value={search.make ?? ""}
+					onChange={(e) => updateFilter({ make: e.target.value || undefined })}
+					className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+				>
+					<option value="">{t("filters.makeAll")}</option>
+					{makes.map((m) => (
+						<option key={m.id} value={m.slug}>
+							{m.name}
+						</option>
+					))}
+				</select>
+			</div>
+
+			{/* Engine cc range */}
+			<div>
+				<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.engineCc")}</p>
+				<div className="flex items-center gap-2">
+					<RangeInput
+						key={`${search.cc_min}`}
+						name="filter-cc-min"
+						value={search.cc_min}
+						placeholder={t("filters.ccMinPlaceholder")}
+						className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+						onChange={(v) => updateFilter({ cc_min: v })}
+					/>
+					<span className="text-muted">–</span>
+					<RangeInput
+						key={`${search.cc_max}`}
+						name="filter-cc-max"
+						value={search.cc_max}
+						placeholder={t("filters.ccMaxPlaceholder")}
+						className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+						onChange={(v) => updateFilter({ cc_max: v })}
+					/>
+				</div>
+			</div>
+
+			{/* Year range */}
+			<div>
+				<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.yearRange")}</p>
+				<div className="flex items-center gap-2">
+					<RangeInput
+						key={`${search.year_min}`}
+						name="filter-year-min"
+						value={search.year_min}
+						placeholder={t("filters.yearMinPlaceholder")}
+						className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+						onChange={(v) => updateFilter({ year_min: v })}
+					/>
+					<span className="text-muted">–</span>
+					<RangeInput
+						key={`${search.year_max}`}
+						name="filter-year-max"
+						value={search.year_max}
+						placeholder={t("filters.yearMaxPlaceholder")}
+						className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+						onChange={(v) => updateFilter({ year_max: v })}
 					/>
 				</div>
 			</div>
@@ -203,6 +259,7 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 			{activeFilterCount > 0 && (
 				<ActiveFilterChips
 					search={search}
+					makes={makes}
 					onUpdateFilter={updateFilter}
 					onToggleArrayFilter={toggleArrayFilter}
 				/>
@@ -213,10 +270,12 @@ export function FilterSidebar({ search, hasQuery }: FilterSidebarProps) {
 
 function ActiveFilterChips({
 	search,
+	makes,
 	onUpdateFilter,
 	onToggleArrayFilter,
 }: {
 	search: BrowseSearchParams;
+	makes: Make[];
 	onUpdateFilter: (updates: Partial<BrowseSearchParams>) => void;
 	onToggleArrayFilter: (key: "type" | "license", value: string) => void;
 }) {
@@ -248,6 +307,36 @@ function ActiveFilterChips({
 				<FilterChip
 					label={`Max ${search.price_max}€`}
 					onRemove={() => onUpdateFilter({ price_max: undefined })}
+				/>
+			)}
+			{!!search.make && (
+				<FilterChip
+					label={makes.find((m) => m.slug === search.make)?.name ?? search.make}
+					onRemove={() => onUpdateFilter({ make: undefined })}
+				/>
+			)}
+			{search.cc_min != null && (
+				<FilterChip
+					label={`≥${search.cc_min}cc`}
+					onRemove={() => onUpdateFilter({ cc_min: undefined })}
+				/>
+			)}
+			{search.cc_max != null && (
+				<FilterChip
+					label={`≤${search.cc_max}cc`}
+					onRemove={() => onUpdateFilter({ cc_max: undefined })}
+				/>
+			)}
+			{search.year_min != null && (
+				<FilterChip
+					label={`≥${search.year_min}`}
+					onRemove={() => onUpdateFilter({ year_min: undefined })}
+				/>
+			)}
+			{search.year_max != null && (
+				<FilterChip
+					label={`≤${search.year_max}`}
+					onRemove={() => onUpdateFilter({ year_max: undefined })}
 				/>
 			)}
 		</div>

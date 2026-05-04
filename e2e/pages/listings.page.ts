@@ -51,4 +51,59 @@ export class ListingsPage {
 	async loadMore() {
 		await this.loadMoreButton.click();
 	}
+
+	// ── Filter helpers (desktop sidebar) ──
+
+	sidebarMakeSelect(): Locator {
+		return this.page.getByTestId("filter-make");
+	}
+
+	sidebarCcMin(): Locator {
+		return this.page.getByTestId("filter-cc-min");
+	}
+
+	sidebarCcMax(): Locator {
+		return this.page.getByTestId("filter-cc-max");
+	}
+
+	sidebarYearMin(): Locator {
+		return this.page.getByTestId("filter-year-min");
+	}
+
+	sidebarYearMax(): Locator {
+		return this.page.getByTestId("filter-year-max");
+	}
+
+	// ── Filter helpers (mobile drawer) ──
+
+	drawerMakeSelect(): Locator {
+		return this.page.getByTestId("drawer-make");
+	}
+
+	drawerCcMin(): Locator {
+		return this.page.getByTestId("drawer-cc-min");
+	}
+
+	drawerCcMax(): Locator {
+		return this.page.getByTestId("drawer-cc-max");
+	}
+
+	drawerYearMin(): Locator {
+		return this.page.getByTestId("drawer-year-min");
+	}
+
+	drawerYearMax(): Locator {
+		return this.page.getByTestId("drawer-year-max");
+	}
+
+	async openDrawer() {
+		await this.filterDrawerToggle.click();
+		await this.drawerMakeSelect().waitFor();
+	}
+
+	async fillAndBlur(locator: Locator, value: string) {
+		await locator.fill(value);
+		await locator.blur();
+		await this.resultCount.waitFor();
+	}
 }

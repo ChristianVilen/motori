@@ -11,6 +11,7 @@ import {
 import { useTranslation } from "~/lib/i18n";
 import { useFocusTrap } from "~/lib/use-focus-trap";
 import type { BrowseSearchParams } from "~/lib/validators";
+import { RangeInput } from "./range-input";
 
 interface FilterDrawerProps {
 	search: BrowseSearchParams;
@@ -18,9 +19,17 @@ interface FilterDrawerProps {
 	totalCount: number;
 	open: boolean;
 	onClose: () => void;
+	makes: { id: string; name: string; slug: string }[];
 }
 
-export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: FilterDrawerProps) {
+export function FilterDrawer({
+	search,
+	hasQuery,
+	totalCount,
+	open,
+	onClose,
+	makes,
+}: FilterDrawerProps) {
 	const { t } = useTranslation("listings");
 	const navigate = useNavigate();
 	const trapRef = useFocusTrap(open);
@@ -175,38 +184,91 @@ export function FilterDrawer({ search, hasQuery, totalCount, open, onClose }: Fi
 					<div>
 						<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.pricePerDay")}</p>
 						<div className="flex items-center gap-2">
-							<input
-								type="number"
+							<RangeInput
+								key={`${search.price_min}`}
+								name="drawer-price-min"
+								value={search.price_min}
 								placeholder={t("filters.priceMinPlaceholder")}
-								defaultValue={search.price_min ?? ""}
-								onBlur={(e) =>
-									updateFilter({
-										price_min: e.target.value ? Number(e.target.value) : undefined,
-									})
-								}
-								onKeyDown={(e) => {
-									if (e.key === "Enter") {
-										e.currentTarget.blur();
-									}
-								}}
 								className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+								onChange={(v) => updateFilter({ price_min: v })}
 							/>
 							<span className="text-muted">–</span>
-							<input
-								type="number"
+							<RangeInput
+								key={`${search.price_max}`}
+								name="drawer-price-max"
+								value={search.price_max}
 								placeholder={t("filters.priceMaxPlaceholder")}
-								defaultValue={search.price_max ?? ""}
-								onBlur={(e) =>
-									updateFilter({
-										price_max: e.target.value ? Number(e.target.value) : undefined,
-									})
-								}
-								onKeyDown={(e) => {
-									if (e.key === "Enter") {
-										e.currentTarget.blur();
-									}
-								}}
 								className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+								onChange={(v) => updateFilter({ price_max: v })}
+							/>
+						</div>
+					</div>
+
+					{/* Brand */}
+					<div>
+						<label htmlFor="drawer-make" className="mb-1.5 block text-xs font-medium text-muted">
+							{t("filters.make")}
+						</label>
+						<select
+							id="drawer-make"
+							data-testid="drawer-make"
+							value={search.make ?? ""}
+							onChange={(e) => updateFilter({ make: e.target.value || undefined })}
+							className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+						>
+							<option value="">{t("filters.makeAll")}</option>
+							{makes.map((m) => (
+								<option key={m.id} value={m.slug}>
+									{m.name}
+								</option>
+							))}
+						</select>
+					</div>
+
+					{/* Engine cc range */}
+					<div>
+						<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.engineCc")}</p>
+						<div className="flex items-center gap-2">
+							<RangeInput
+								key={`${search.cc_min}`}
+								name="drawer-cc-min"
+								value={search.cc_min}
+								placeholder={t("filters.ccMinPlaceholder")}
+								className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+								onChange={(v) => updateFilter({ cc_min: v })}
+							/>
+							<span className="text-muted">–</span>
+							<RangeInput
+								key={`${search.cc_max}`}
+								name="drawer-cc-max"
+								value={search.cc_max}
+								placeholder={t("filters.ccMaxPlaceholder")}
+								className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+								onChange={(v) => updateFilter({ cc_max: v })}
+							/>
+						</div>
+					</div>
+
+					{/* Year range */}
+					<div>
+						<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.yearRange")}</p>
+						<div className="flex items-center gap-2">
+							<RangeInput
+								key={`${search.year_min}`}
+								name="drawer-year-min"
+								value={search.year_min}
+								placeholder={t("filters.yearMinPlaceholder")}
+								className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+								onChange={(v) => updateFilter({ year_min: v })}
+							/>
+							<span className="text-muted">–</span>
+							<RangeInput
+								key={`${search.year_max}`}
+								name="drawer-year-max"
+								value={search.year_max}
+								placeholder={t("filters.yearMaxPlaceholder")}
+								className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+								onChange={(v) => updateFilter({ year_max: v })}
 							/>
 						</div>
 					</div>

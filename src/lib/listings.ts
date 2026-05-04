@@ -161,6 +161,53 @@ function buildNextCursor(listings: Listing[], sort: SortMode): string | null {
 	return `${new Date(last.created_at).toISOString()}__${last.id}`;
 }
 
+function applyFilters(
+	query: SelectQueryBuilder<Database, "listing", object>,
+	params: BrowseSearchParams,
+	tsquery: string | null,
+) {
+	let q = query.where("listing.status", "=", "active");
+
+	if (tsquery) {
+		q = q.where(
+			sql<SqlBool>`listing.search_vector @@ websearch_to_tsquery('finnish_unaccent', ${tsquery})`,
+		);
+	}
+	if (params.region) {
+		q = q.where("listing.region", "=", params.region);
+	}
+	if (params.type?.length) {
+		q = q.where("listing.motorcycle_type", "in", params.type);
+	}
+	if (params.license?.length) {
+		q = q.where("listing.required_license", "in", params.license as ("A1" | "A2" | "A")[]);
+	}
+	if (params.price_min != null) {
+		q = q.where("listing.price_per_day", ">=", params.price_min * 100);
+	}
+	if (params.price_max != null) {
+		q = q.where("listing.price_per_day", "<=", params.price_max * 100);
+	}
+	if (params.cc_min != null) {
+		q = q.where("listing.engine_cc", ">=", params.cc_min);
+	}
+	if (params.cc_max != null) {
+		q = q.where("listing.engine_cc", "<=", params.cc_max);
+	}
+	if (params.year_min != null) {
+		q = q.where("listing.year", ">=", params.year_min);
+	}
+	if (params.year_max != null) {
+		q = q.where("listing.year", "<=", params.year_max);
+	}
+	if (params.make) {
+		q = q
+			.innerJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
+			.where("motorcycle_make.slug", "=", params.make);
+	}
+	return q;
+}
+
 export const searchListings = createServerFn({ method: "GET" })
 	.middleware([rateLimitMiddleware(60, 60, "search")])
 	.inputValidator((input: BrowseSearchParams) => input)
@@ -169,32 +216,7 @@ export const searchListings = createServerFn({ method: "GET" })
 		const tsquery = params.q ? toTsQuery(params.q) : null;
 		const sort: SortMode = params.sort ?? (tsquery ? "relevance" : "newest");
 
-		let baseQuery = db.selectFrom("listing").where("listing.status", "=", "active");
-
-		if (tsquery) {
-			baseQuery = baseQuery.where(
-				sql<SqlBool>`listing.search_vector @@ websearch_to_tsquery('finnish_unaccent', ${tsquery})`,
-			);
-		}
-		if (params.region) {
-			baseQuery = baseQuery.where("listing.region", "=", params.region);
-		}
-		if (params.type && params.type.length > 0) {
-			baseQuery = baseQuery.where("listing.motorcycle_type", "in", params.type);
-		}
-		if (params.license && params.license.length > 0) {
-			baseQuery = baseQuery.where(
-				"listing.required_license",
-				"in",
-				params.license as ("A1" | "A2" | "A")[],
-			);
-		}
-		if (params.price_min != null) {
-			baseQuery = baseQuery.where("listing.price_per_day", ">=", params.price_min * 100);
-		}
-		if (params.price_max != null) {
-			baseQuery = baseQuery.where("listing.price_per_day", "<=", params.price_max * 100);
-		}
+		const baseQuery = applyFilters(db.selectFrom("listing"), params, tsquery);
 
 		const countResult = await baseQuery
 			.select(sql<number>`count(*)::int`.as("count"))

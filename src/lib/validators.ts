@@ -67,11 +67,36 @@ export const browseSearchSchema = z.object({
 	license: z.array(z.string().trim().max(10)).optional(),
 	price_min: z.number().optional(),
 	price_max: z.number().optional(),
+	cc_min: z.number().int().min(1).optional(),
+	cc_max: z.number().int().min(1).optional(),
+	year_min: z.number().int().min(1970).optional(),
+	year_max: z
+		.number()
+		.int()
+		.min(1970)
+		.max(CURRENT_YEAR + 1)
+		.optional(),
+	make: z.string().trim().max(100).optional(),
 	sort: z.enum(["newest", "price_asc", "price_desc", "relevance"]).optional(),
 	cursor: z.string().max(200).optional(),
 });
 
 export type BrowseSearchParams = z.infer<typeof browseSearchSchema>;
+
+export function countActiveFilters(search: BrowseSearchParams): number {
+	return (
+		(search.region ? 1 : 0) +
+		(search.type?.length ?? 0) +
+		(search.license?.length ?? 0) +
+		(search.price_min != null ? 1 : 0) +
+		(search.price_max != null ? 1 : 0) +
+		(search.cc_min != null ? 1 : 0) +
+		(search.cc_max != null ? 1 : 0) +
+		(search.year_min != null ? 1 : 0) +
+		(search.year_max != null ? 1 : 0) +
+		(search.make ? 1 : 0)
+	);
+}
 
 const FINNISH_PHONE_RE = /^(\+358|0)\d{6,9}$/;
 

@@ -45,6 +45,93 @@ test.describe("Listings browse", () => {
 	});
 });
 
+// Desktop sidebar filter tests — skipped on mobile where sidebar is hidden
+test.describe("Desktop sidebar filters", () => {
+	test.beforeEach(({ page: _page }, testInfo) => {
+		test.skip(testInfo.project.name === "mobile", "desktop only");
+	});
+
+	test("make filter updates URL and filters results", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		await listings.goto();
+		await listings.sidebarMakeSelect().selectOption("honda-e2e");
+		await expect(page).toHaveURL(/make=honda-e2e/);
+		await expect(listings.resultCount).toBeVisible();
+	});
+
+	test("cc range filter updates URL", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		await listings.goto();
+		await listings.fillAndBlur(listings.sidebarCcMin(), "400");
+		await expect(page).toHaveURL(/cc_min=400/);
+		await listings.fillAndBlur(listings.sidebarCcMax(), "600");
+		await expect(page).toHaveURL(/cc_max=600/);
+	});
+
+	test("year range filter updates URL", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		await listings.goto();
+		await listings.fillAndBlur(listings.sidebarYearMin(), "2020");
+		await expect(page).toHaveURL(/year_min=2020/);
+		await listings.fillAndBlur(listings.sidebarYearMax(), "2024");
+		await expect(page).toHaveURL(/year_max=2024/);
+	});
+
+	test("cc range that excludes seeded listing shows empty or fewer results", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		// Seeded listing has 471cc — filter for 50-100cc should exclude it
+		await listings.goto({ cc_min: "50", cc_max: "100" });
+		const seeded = listings.cardById(SEEDED_LISTING_ID);
+		await expect(seeded).not.toBeVisible();
+	});
+
+	test("year range that includes seeded listing shows it", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		// Seeded listing is year 2022
+		await listings.goto({ year_min: "2020", year_max: "2024" });
+		const seeded = listings.cardById(SEEDED_LISTING_ID);
+		await expect(seeded).toBeVisible();
+	});
+});
+
+// Mobile filter drawer tests — only run on mobile project
+test.describe("Mobile filter drawer", () => {
+	test.beforeEach(({ page: _page }, testInfo) => {
+		test.skip(testInfo.project.name !== "mobile", "mobile only");
+	});
+
+	test("drawer opens and shows make filter", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		await listings.goto();
+		await listings.openDrawer();
+		await expect(listings.drawerMakeSelect()).toBeVisible();
+	});
+
+	test("make filter in drawer updates URL", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		await listings.goto();
+		await listings.openDrawer();
+		await listings.drawerMakeSelect().selectOption("honda-e2e");
+		await expect(page).toHaveURL(/make=honda-e2e/);
+	});
+
+	test("cc range in drawer updates URL", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		await listings.goto();
+		await listings.openDrawer();
+		await listings.fillAndBlur(listings.drawerCcMin(), "400");
+		await expect(page).toHaveURL(/cc_min=400/);
+	});
+
+	test("year range in drawer updates URL", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		await listings.goto();
+		await listings.openDrawer();
+		await listings.fillAndBlur(listings.drawerYearMin(), "2020");
+		await expect(page).toHaveURL(/year_min=2020/);
+	});
+});
+
 test.describe("Listing detail", () => {
 	test("renders seeded listing details", async ({ authenticatedPage }) => {
 		const detail = new ListingDetailPage(authenticatedPage);
