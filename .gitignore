@@ -14,6 +14,7 @@ dist
 .tanstack
 .superpowers/
 .claude/worktrees/
+.pi
 
 # Raw image originals — optimized output goes to public/images/
 /images/
@@ -22,7 +23,6 @@ dist
 # Uploaded images (local dev)
 /uploads/
 *:Zone.Identifier
-AGENTS.md
 
 # Terraform
 infra/terraform.tfvars

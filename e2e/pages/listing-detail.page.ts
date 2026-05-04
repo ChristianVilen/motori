@@ -11,6 +11,8 @@ export class ListingDetailPage {
 	readonly pricePerDay: Locator;
 	readonly locationInfo: Locator;
 	readonly bookingSection: Locator;
+	readonly bookingDialog: Locator;
+	readonly mobileBookButton: Locator;
 	readonly notFound: Locator;
 
 	constructor(page: Page) {
@@ -22,7 +24,9 @@ export class ListingDetailPage {
 		this.priceInfo = page.getByTestId("price-info");
 		this.pricePerDay = page.getByTestId("price-per-day");
 		this.locationInfo = page.getByTestId("location-info");
-		this.bookingSection = page.getByTestId("booking-section");
+		this.bookingSection = this.root.getByTestId("booking-section");
+		this.bookingDialog = page.getByRole("dialog", { name: /Saatavuus|Availability/ });
+		this.mobileBookButton = page.getByTestId("mobile-book-button");
 		this.notFound = page.getByTestId("listing-not-found");
 	}
 

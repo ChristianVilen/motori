@@ -1,8 +1,11 @@
-import { useState } from "react";
-import { AvailabilityCalendar } from "~/components/listings/availability-calendar";
+import { useMemo, useState } from "react";
+import { BookingCalendar } from "~/components/listings/booking-calendar";
+import { BookingPricing } from "~/components/listings/booking-pricing";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
-import { formatEur, useTranslation } from "~/lib/i18n";
+import { type BookingCost, computeBookingCost } from "~/lib/booking-cost";
+import { fromIso } from "~/lib/calendar-helpers";
+import { useTranslation } from "~/lib/i18n";
 
 interface Props {
 	listingId: string;
@@ -13,63 +16,40 @@ interface Props {
 	pricePerDayCents: number;
 	pricePerWeekCents: number | null;
 	pricePerWeekendCents: number | null;
+	heroImageUrl?: string | null;
 	onSubmit: (input: { start_date: string; end_date: string; message: string }) => Promise<void>;
-}
-
-export interface BookingCost {
-	totalCents: number;
-	days: number;
-	label: "weekend" | "week" | null;
-}
-
-export function computeBookingCost(
-	from: string,
-	to: string,
-	pricePerDayCents: number,
-	pricePerWeekCents: number | null,
-	pricePerWeekendCents: number | null,
-): BookingCost {
-	const start = new Date(`${from}T00:00:00Z`);
-	const end = new Date(`${to}T00:00:00Z`);
-	const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1;
-
-	// Fri=5, Sun=0 in UTC
-	const startDay = start.getUTCDay();
-	const endDay = end.getUTCDay();
-	if (days === 3 && startDay === 5 && endDay === 0 && pricePerWeekendCents) {
-		return { totalCents: pricePerWeekendCents, days, label: "weekend" };
-	}
-
-	if (days >= 7 && pricePerWeekCents) {
-		const fullWeeks = Math.floor(days / 7);
-		const remainingDays = days % 7;
-		return {
-			totalCents: fullWeeks * pricePerWeekCents + remainingDays * pricePerDayCents,
-			days,
-			label: "week",
-		};
-	}
-
-	return { totalCents: days * pricePerDayCents, days, label: null };
 }
 
 export function BookingRequestForm(props: Props) {
 	const { t } = useTranslation("listings");
 	const [range, setRange] = useState<{ from: string; to: string } | null>(null);
+	const [maxStayError, setMaxStayError] = useState(false);
 	const [message, setMessage] = useState("");
 	const [submitting, setSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState(false);
 
-	const cost = range
-		? computeBookingCost(
-				range.from,
-				range.to,
-				props.pricePerDayCents,
-				props.pricePerWeekCents,
-				props.pricePerWeekendCents,
-			)
-		: null;
+	const cost: BookingCost | null = useMemo(
+		() =>
+			range
+				? computeBookingCost(
+						range.from,
+						range.to,
+						props.pricePerDayCents,
+						props.pricePerWeekCents,
+						props.pricePerWeekendCents,
+					)
+				: null,
+		[range, props.pricePerDayCents, props.pricePerWeekCents, props.pricePerWeekendCents],
+	);
+
+	const fromDate = range ? fromIso(range.from) : null;
+	const toDate = range ? fromIso(range.to) : null;
+
+	function handleSelectRange(r: { from: string; to: string } | null, wasClamped?: boolean) {
+		setRange(r);
+		setMaxStayError(!!wasClamped);
+	}
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
@@ -90,10 +70,10 @@ export function BookingRequestForm(props: Props) {
 			try {
 				const parsed = JSON.parse(msg);
 				if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].message) {
-					msg = parsed.map((p) => p.message).join(", ");
+					msg = parsed.map((p: { message: string }) => p.message).join(", ");
 				}
 			} catch {
-				// Not JSON, use original message
+				// not JSON
 			}
 			setError(msg);
 		} finally {
@@ -115,28 +95,28 @@ export function BookingRequestForm(props: Props) {
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4" data-testid="booking-request-form">
-			<h3 className="font-semibold">{t("booking.calendarTitle")}</h3>
-			<AvailabilityCalendar
+			<BookingPricing
+				cost={cost}
+				maxStayError={maxStayError}
+				heroImageUrl={props.heroImageUrl}
+				fromDate={fromDate}
+				toDate={toDate}
+				from={range?.from ?? null}
+				to={range?.to ?? null}
+				pricePerDayCents={props.pricePerDayCents}
+				pricePerWeekCents={props.pricePerWeekCents}
+				pricePerWeekendCents={props.pricePerWeekendCents}
+				t={t}
+			/>
+
+			<BookingCalendar
 				bookedDates={props.bookedDates}
 				exceptionDates={props.exceptionDates}
 				availabilityDefault={props.availabilityDefault}
-				mode={props.isLoggedIn ? "select-range" : "view-only"}
 				selectedRange={range}
-				onSelectRange={setRange}
+				onSelectRange={handleSelectRange}
 			/>
-			{cost ? (
-				<div data-testid="booking-cost" className="flex items-baseline gap-2">
-					<span className="font-semibold">
-						{t("booking.costSummary", { days: cost.days, total: formatEur(cost.totalCents) })}
-					</span>
-					{cost.label === "weekend" && (
-						<span className="text-xs text-muted">{t("booking.costLabelWeekend")}</span>
-					)}
-					{cost.label === "week" && (
-						<span className="text-xs text-muted">{t("booking.costLabelWeek")}</span>
-					)}
-				</div>
-			) : null}
+
 			{!props.isLoggedIn ? (
 				<p className="text-sm text-muted">{t("booking.loginRequired")}</p>
 			) : (

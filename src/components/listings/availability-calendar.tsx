@@ -2,6 +2,7 @@ import { fi } from "date-fns/locale";
 import { useMemo } from "react";
 import { DayPicker, type Matcher } from "react-day-picker";
 import "react-day-picker/dist/style.css";
+import { fromIso, toIso } from "~/lib/calendar-helpers";
 import { useTranslation } from "~/lib/i18n";
 
 export interface AvailabilityCalendarProps {
@@ -17,18 +18,6 @@ export interface AvailabilityCalendarProps {
 	onSelectRange?: (range: { from: string; to: string } | null) => void;
 	/** When mode === "toggle-exceptions". */
 	onToggleException?: (date: string) => void;
-}
-
-function toIso(d: Date): string {
-	const y = d.getFullYear();
-	const m = String(d.getMonth() + 1).padStart(2, "0");
-	const day = String(d.getDate()).padStart(2, "0");
-	return `${y}-${m}-${day}`;
-}
-
-function fromIso(iso: string): Date {
-	const [y, m, d] = iso.split("-").map(Number);
-	return new Date(y, m - 1, d);
 }
 
 export function AvailabilityCalendar(props: AvailabilityCalendarProps) {
