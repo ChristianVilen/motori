@@ -155,6 +155,7 @@ export default {
 			pricePerWeekend: "Weekend price (€, Fri–Sun)",
 			priceDescription: "Additional pricing info",
 			city: "City",
+			cityPlaceholder: "Search municipality...",
 			region: "Region",
 			regionPlaceholder: "Select region",
 			postalCode: "Postal code",

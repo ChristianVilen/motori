@@ -154,6 +154,7 @@ export default {
 			pricePerWeekend: "Viikonloppuhinta (€, pe–su)",
 			priceDescription: "Lisätietoja hinnasta",
 			city: "Kaupunki",
+			cityPlaceholder: "Hae kuntaa...",
 			region: "Maakunta",
 			regionPlaceholder: "Valitse maakunta",
 			postalCode: "Postinumero",

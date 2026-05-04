@@ -49,6 +49,7 @@ export default {
 		typeRequired: "Valitse tyyppi",
 		pricePerDayRequired: "Päivähinta on pakollinen",
 		cityRequired: "Kaupunki on pakollinen",
+		cityInvalid: "Valitse kunta luettelosta",
 		regionRequired: "Valitse alue",
 		descriptionTooShort: "Kuvaus on liian lyhyt (min 20 merkkiä)",
 		invalidImageUrl: "Virheellinen kuva-URL",

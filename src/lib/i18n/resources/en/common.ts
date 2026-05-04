@@ -49,6 +49,7 @@ export default {
 		typeRequired: "Select a type",
 		pricePerDayRequired: "Price per day is required",
 		cityRequired: "City is required",
+		cityInvalid: "Select a municipality from the list",
 		regionRequired: "Select a region",
 		descriptionTooShort: "Description is too short (min 20 characters)",
 		invalidImageUrl: "Invalid image URL",

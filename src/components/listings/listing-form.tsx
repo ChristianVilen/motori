@@ -3,6 +3,7 @@
 import { useForm } from "@tanstack/react-form";
 import { X } from "lucide-react";
 import { useState } from "react";
+import { CitySelect } from "~/components/listings/city-select";
 import { MakeModelSelect } from "~/components/listings/make-model-select";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -462,12 +463,15 @@ export function ListingForm({
 									<label htmlFor="city" className="mb-1 block text-sm font-medium text-foreground">
 										{t("form.fields.city")} <span className="text-destructive">*</span>
 									</label>
-									<Input
+									<CitySelect
 										id="city"
-										autoComplete="address-level2"
 										value={field.state.value}
+										placeholder={t("form.fields.cityPlaceholder")}
 										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
+										onChange={(city, region) => {
+											field.handleChange(city);
+											form.setFieldValue("region", region);
+										}}
 									/>
 									<FieldError errors={field.state.meta.errors} />
 								</div>
