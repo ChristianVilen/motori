@@ -213,8 +213,9 @@ test.describe("Map view", () => {
 		await expect(listings.mapCityPanel).toBeVisible();
 		// 4. Click a listing card to go to detail page
 		const firstCard = listings.mapCityPanel.getByTestId("listing-card").first();
+		await firstCard.scrollIntoViewIfNeeded();
 		await firstCard.click();
-		await expect(page).toHaveURL(/\/ilmoitukset\/.+\/.+/);
+		await page.waitForURL(/\/ilmoitukset\/.+\/.+/);
 		// 5. Go back — should return to map view with Helsinki selected
 		await page.goBack();
 		await expect(page).toHaveURL(/view=map/);

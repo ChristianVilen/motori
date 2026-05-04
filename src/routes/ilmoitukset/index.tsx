@@ -355,7 +355,7 @@ function BrowsePage() {
 					{selectedCity && cityListings.length > 0 && (
 						<div
 							data-testid="map-city-panel"
-							className="w-full shrink-0 overflow-y-auto border-b border-border bg-background p-4 lg:w-[360px] lg:border-r lg:border-b-0"
+							className="max-h-[40vh] w-full shrink-0 overflow-y-auto border-b border-border bg-background p-4 lg:max-h-none lg:w-[360px] lg:border-r lg:border-b-0"
 						>
 							<div className="mb-3 flex items-center justify-between">
 								<h3 className="text-sm font-semibold text-foreground">

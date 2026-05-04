@@ -64,7 +64,7 @@ export class ListingFormPage {
 		await this.selectMotorcycleType(data.motorcycleType);
 		await this.pricePerDayInput.fill(String(data.pricePerDay));
 		await this.cityInput.fill(data.city);
-		await this.selectRegion(data.region);
+		await this.page.getByRole("option", { name: data.city, exact: true }).first().click();
 		await this.descriptionInput.fill(data.description);
 	}
 }
