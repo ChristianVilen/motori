@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { type SelectQueryBuilder, type SqlBool, sql } from "kysely";
 import { expandDateRange } from "~/lib/bookings";
 import { ADJACENT_REGIONS } from "~/lib/constants";
+import { centsToEuros, eurosToCents } from "~/lib/currency";
 import type { Database, Listing, ListingImage } from "~/lib/db/schema";
 
 // Lazy-import db so this module is safe to evaluate in client bundles.
@@ -183,10 +184,10 @@ function applyFilters(
 		q = q.where("listing.required_license", "in", params.license as ("A1" | "A2" | "A")[]);
 	}
 	if (params.price_min != null) {
-		q = q.where("listing.price_per_day", ">=", params.price_min * 100);
+		q = q.where("listing.price_per_day", ">=", eurosToCents(params.price_min));
 	}
 	if (params.price_max != null) {
-		q = q.where("listing.price_per_day", "<=", params.price_max * 100);
+		q = q.where("listing.price_per_day", "<=", eurosToCents(params.price_max));
 	}
 	if (params.cc_min != null) {
 		q = q.where("listing.engine_cc", ">=", params.cc_min);
@@ -288,7 +289,7 @@ export const getHomepageStats = createServerFn({ method: "GET" }).handler(async 
 	return {
 		totalListings: result.total,
 		regionCount: result.regions,
-		minPricePerDay: Math.round(result.min_price / 100),
+		minPricePerDay: Math.round(centsToEuros(result.min_price)),
 	};
 });
 
@@ -532,9 +533,9 @@ export async function createListing(
 			engine_cc: data.engine_cc ?? null,
 			required_license: data.required_license ?? null,
 			motorcycle_type: data.motorcycle_type,
-			price_per_day: Math.round(data.price_per_day * 100),
-			price_per_week: data.price_per_week ? Math.round(data.price_per_week * 100) : null,
-			price_per_weekend: data.price_per_weekend ? Math.round(data.price_per_weekend * 100) : null,
+			price_per_day: eurosToCents(data.price_per_day),
+			price_per_week: data.price_per_week ? eurosToCents(data.price_per_week) : null,
+			price_per_weekend: data.price_per_weekend ? eurosToCents(data.price_per_weekend) : null,
 			price_description: data.price_description ?? null,
 			city: data.city,
 			region: data.region,
@@ -616,9 +617,9 @@ export async function updateListing(
 				engine_cc: data.engine_cc ?? null,
 				required_license: data.required_license ?? null,
 				motorcycle_type: data.motorcycle_type,
-				price_per_day: Math.round(data.price_per_day * 100),
-				price_per_week: data.price_per_week ? Math.round(data.price_per_week * 100) : null,
-				price_per_weekend: data.price_per_weekend ? Math.round(data.price_per_weekend * 100) : null,
+				price_per_day: eurosToCents(data.price_per_day),
+				price_per_week: data.price_per_week ? eurosToCents(data.price_per_week) : null,
+				price_per_weekend: data.price_per_weekend ? eurosToCents(data.price_per_weekend) : null,
 				price_description: data.price_description ?? null,
 				city: data.city,
 				region: data.region,
