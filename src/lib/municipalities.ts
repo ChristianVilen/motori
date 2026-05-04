@@ -331,3 +331,6 @@ export function findMunicipality(name: string): Municipality | undefined {
 
 /** All municipality names, sorted alphabetically. */
 export const MUNICIPALITY_NAMES = MUNICIPALITIES.map((m) => m.name);
+
+/** Set of valid municipality names for O(1) validation. */
+export const MUNICIPALITY_NAME_SET = new Set(MUNICIPALITY_NAMES);

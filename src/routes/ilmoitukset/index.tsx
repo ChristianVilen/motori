@@ -1,13 +1,8 @@
 import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
-import {
-	Grid3x3,
-	Map as MapIcon,
-	PanelLeftClose,
-	PanelLeftOpen,
-	SlidersHorizontal,
-	X,
-} from "lucide-react";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Grid3x3, Map as MapIcon, SlidersHorizontal, X } from "lucide-react";
+import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
+import { ClientOnly } from "~/components/client-only";
+import { CollapsibleSidebar } from "~/components/listings/collapsible-sidebar";
 import { EmptyState, LowResultNudge } from "~/components/listings/empty-state";
 import { FilterDrawer } from "~/components/listings/filter-drawer";
 import { FilterSidebar } from "~/components/listings/filter-sidebar";
@@ -23,19 +18,6 @@ import { type BrowseSearchParams, browseSearchSchema, countActiveFilters } from 
 const ListingsMap = lazy(() =>
 	import("~/components/listings/listings-map").then((m) => ({ default: m.ListingsMap })),
 );
-
-/** Renders children only on the client (avoids SSR of Leaflet which requires window). */
-function ClientOnly({
-	children,
-	fallback,
-}: {
-	children: React.ReactNode;
-	fallback: React.ReactNode;
-}) {
-	const [mounted, setMounted] = useState(false);
-	useEffect(() => setMounted(true), []);
-	return mounted ? children : fallback;
-}
 
 export const Route = createFileRoute("/ilmoitukset/")({
 	validateSearch: (search) => browseSearchSchema.parse(search),
@@ -248,28 +230,9 @@ function BrowsePage() {
 							<div
 								className={`overflow-hidden transition-all duration-300 ${sidebarOpen ? "w-[280px]" : "w-10"}`}
 							>
-								{sidebarOpen ? (
-									<>
-										<FilterSidebar search={search} hasQuery={hasQuery} makes={makes} />
-										<button
-											type="button"
-											onClick={() => setSidebarOpen(false)}
-											className="mt-4 flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-muted transition-colors hover:bg-muted-light hover:text-foreground"
-										>
-											<PanelLeftClose className="h-4 w-4 shrink-0" />
-											{t("browse.collapseSidebar")}
-										</button>
-									</>
-								) : (
-									<button
-										type="button"
-										onClick={() => setSidebarOpen(true)}
-										className="flex h-screen w-10 items-start justify-center border-r border-border pt-4 text-muted transition-colors hover:bg-muted-light hover:text-foreground"
-										aria-label={t("browse.showFilters")}
-									>
-										<PanelLeftOpen className="h-4 w-4" />
-									</button>
-								)}
+								<CollapsibleSidebar open={sidebarOpen} onToggle={setSidebarOpen}>
+									<FilterSidebar search={search} hasQuery={hasQuery} makes={makes} />
+								</CollapsibleSidebar>
 							</div>
 						</div>
 					</div>
@@ -326,28 +289,13 @@ function BrowsePage() {
 						<div
 							className={`flex-1 overflow-y-auto border-r border-border bg-background transition-all duration-300 ${sidebarOpen ? "w-[280px] p-4" : "w-10 p-0"}`}
 						>
-							{sidebarOpen ? (
-								<>
-									<FilterSidebar search={search} hasQuery={hasQuery} makes={makes} />
-									<button
-										type="button"
-										onClick={() => setSidebarOpen(false)}
-										className="mt-4 flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-muted transition-colors hover:bg-muted-light hover:text-foreground"
-									>
-										<PanelLeftClose className="h-4 w-4 shrink-0" />
-										{t("browse.collapseSidebar")}
-									</button>
-								</>
-							) : (
-								<button
-									type="button"
-									onClick={() => setSidebarOpen(true)}
-									className="flex h-full w-10 items-start justify-center border-r border-border pt-4 text-muted transition-colors hover:bg-muted-light hover:text-foreground"
-									aria-label={t("browse.showFilters")}
-								>
-									<PanelLeftOpen className="h-4 w-4" />
-								</button>
-							)}
+							<CollapsibleSidebar
+								open={sidebarOpen}
+								onToggle={setSidebarOpen}
+								collapsedHeight="full"
+							>
+								<FilterSidebar search={search} hasQuery={hasQuery} makes={makes} />
+							</CollapsibleSidebar>
 						</div>
 					</div>
 
@@ -355,7 +303,7 @@ function BrowsePage() {
 					{selectedCity && cityListings.length > 0 && (
 						<div
 							data-testid="map-city-panel"
-							className="max-h-[40vh] w-full shrink-0 overflow-y-auto border-b border-border bg-background p-4 lg:max-h-none lg:w-[360px] lg:border-r lg:border-b-0"
+							className="relative z-[500] max-h-[40vh] w-full shrink-0 overflow-y-auto border-b border-border bg-background p-4 lg:max-h-none lg:w-[360px] lg:border-r lg:border-b-0"
 						>
 							<div className="mb-3 flex items-center justify-between">
 								<h3 className="text-sm font-semibold text-foreground">

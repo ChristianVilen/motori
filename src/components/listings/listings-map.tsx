@@ -1,6 +1,7 @@
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo } from "react";
+import { MapContainer, Marker, TileLayer, Tooltip, useMap } from "react-leaflet";
 import { findMunicipality } from "~/lib/municipalities";
 
 export interface MapPin {
@@ -22,6 +23,10 @@ const FINLAND_BOUNDS: L.LatLngBoundsExpression = [
 	[59.7, 19.5],
 	[70.1, 31.6],
 ];
+
+const TILE_URL = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+const TILE_ATTR =
+	'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>';
 
 export function groupByCity(listings: ListingsMapProps["listings"]): MapPin[] {
 	const map = new Map<string, MapPin>();
@@ -52,78 +57,76 @@ function createCountIcon(count: number, active: boolean): L.DivIcon {
 	return L.divIcon({
 		html: `<div class="${cls}">${count}</div>`,
 		className: "",
-		iconSize: [32, 32],
-		iconAnchor: [16, 16],
+		iconSize: active ? [38, 38] : [32, 32],
+		iconAnchor: active ? [19, 19] : [16, 16],
 	});
 }
 
-export function ListingsMap({ listings, onCityClick, selectedCity, className }: ListingsMapProps) {
-	const containerRef = useRef<HTMLDivElement>(null);
-	const mapRef = useRef<L.Map | null>(null);
-	const markersRef = useRef<L.Marker[]>([]);
+/** Fits map bounds to pins when no city is selected. */
+function FitBounds({ pins, selectedCity }: { pins: MapPin[]; selectedCity?: string | null }) {
+	const map = useMap();
 
 	useEffect(() => {
-		if (!containerRef.current || mapRef.current) {
+		if (selectedCity || pins.length === 0) {
 			return;
 		}
-		const map = L.map(containerRef.current, {
-			zoomControl: true,
-			scrollWheelZoom: true,
-		}).fitBounds(FINLAND_BOUNDS);
+		const bounds = L.latLngBounds(pins.map((p) => [p.lat, p.lng] as L.LatLngTuple));
+		map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
+	}, [selectedCity, map, pins]);
 
-		L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-			attribution:
-				'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-			maxZoom: 19,
-			subdomains: "abcd",
-		}).addTo(map);
+	return null;
+}
 
-		mapRef.current = map;
-		return () => {
-			map.remove();
-			mapRef.current = null;
-		};
-	}, []);
+function CityMarker({
+	pin,
+	active,
+	onCityClick,
+}: {
+	pin: MapPin;
+	active: boolean;
+	onCityClick?: (city: string, listingIds: string[]) => void;
+}) {
+	const map = useMap();
+	const icon = useMemo(() => createCountIcon(pin.count, active), [pin.count, active]);
 
-	// Update markers when listings or selectedCity change
-	useEffect(() => {
-		const map = mapRef.current;
-		if (!map) {
-			return;
-		}
-
-		// Clear existing markers
-		for (const m of markersRef.current) {
-			map.removeLayer(m);
-		}
-		markersRef.current = [];
-
-		const pins = groupByCity(listings);
-		for (const pin of pins) {
-			const isActive = pin.city === selectedCity;
-			const marker = L.marker([pin.lat, pin.lng], {
-				icon: createCountIcon(pin.count, isActive),
-				zIndexOffset: isActive ? 1000 : 0,
-			})
-				.addTo(map)
-				.bindTooltip(`${pin.city} (${pin.count})`, { direction: "top" });
-
-			if (onCityClick) {
-				marker.on("click", () => {
-					onCityClick(pin.city, pin.listingIds);
-					map.setView([pin.lat, pin.lng], 9, { animate: true });
-				});
+	return (
+		<Marker
+			position={[pin.lat, pin.lng]}
+			icon={icon}
+			zIndexOffset={active ? 1000 : 0}
+			eventHandlers={
+				onCityClick
+					? {
+							click: () => {
+								onCityClick(pin.city, pin.listingIds);
+								map.setView([pin.lat, pin.lng], 9, { animate: true });
+							},
+						}
+					: undefined
 			}
+		>
+			<Tooltip direction="top">
+				{pin.city} ({pin.count})
+			</Tooltip>
+		</Marker>
+	);
+}
 
-			markersRef.current.push(marker);
-		}
+export function ListingsMap({ listings, onCityClick, selectedCity, className }: ListingsMapProps) {
+	const pins = useMemo(() => groupByCity(listings), [listings]);
 
-		// Fit bounds to pins if no city is selected
-		if (!selectedCity && pins.length > 0) {
-			const bounds = L.latLngBounds(pins.map((p) => [p.lat, p.lng] as L.LatLngTuple));
-			map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
-		}
-	}, [listings, onCityClick, selectedCity]);
-
-	return <div ref={containerRef} className={className ?? "h-full w-full"} />;
+	return (
+		<MapContainer bounds={FINLAND_BOUNDS} scrollWheelZoom className={className ?? "h-full w-full"}>
+			<TileLayer url={TILE_URL} attribution={TILE_ATTR} maxZoom={19} subdomains="abcd" />
+			<FitBounds pins={pins} selectedCity={selectedCity} />
+			{pins.map((pin) => (
+				<CityMarker
+					key={pin.city}
+					pin={pin}
+					active={pin.city === selectedCity}
+					onCityClick={onCityClick}
+				/>
+			))}
+		</MapContainer>
+	);
 }
