@@ -1,9 +1,8 @@
-import { useNavigate } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import { MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { type BrowseSearchParams, countActiveFilters } from "~/lib/validators";
-import { FilterControls, type FilterMake } from "./filter-controls";
+import { FilterControls, type FilterMake, useFilterActions } from "./filter-controls";
 
 interface FilterSidebarProps {
 	search: BrowseSearchParams;
@@ -13,26 +12,8 @@ interface FilterSidebarProps {
 
 export function FilterSidebar({ search, hasQuery, makes }: FilterSidebarProps) {
 	const { t } = useTranslation("listings");
-	const navigate = useNavigate();
 	const activeFilterCount = countActiveFilters(search);
-
-	function updateFilter(updates: Partial<BrowseSearchParams>) {
-		navigate({
-			to: "/ilmoitukset",
-			search: (prev) => ({ ...prev, ...updates, cursor: undefined }),
-			replace: true,
-		});
-	}
-
-	function toggleArrayFilter(key: "type" | "license", value: string) {
-		const current = search[key] ?? [];
-		const next = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
-		updateFilter({ [key]: next.length > 0 ? next : undefined });
-	}
-
-	function clearAll() {
-		navigate({ to: "/ilmoitukset", search: {}, replace: true });
-	}
+	const { updateFilter, toggleArrayFilter, clearAll } = useFilterActions(search);
 
 	return (
 		<aside className="w-[260px] shrink-0 space-y-6">

@@ -16,6 +16,30 @@ export interface FilterMake {
 	slug: string;
 }
 
+export function useFilterActions(search: BrowseSearchParams) {
+	const navigate = useNavigate();
+
+	function updateFilter(updates: Partial<BrowseSearchParams>) {
+		navigate({
+			to: "/ilmoitukset",
+			search: (prev) => ({ ...prev, ...updates, cursor: undefined }),
+			replace: true,
+		});
+	}
+
+	function toggleArrayFilter(key: "type" | "license", value: string) {
+		const current = search[key] ?? [];
+		const next = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
+		updateFilter({ [key]: next.length > 0 ? next : undefined });
+	}
+
+	function clearAll() {
+		navigate({ to: "/ilmoitukset", search: {}, replace: true });
+	}
+
+	return { updateFilter, toggleArrayFilter, clearAll };
+}
+
 interface FilterControlsProps {
 	search: BrowseSearchParams;
 	hasQuery: boolean;
@@ -34,21 +58,7 @@ export function FilterControls({
 	inputHeight,
 }: FilterControlsProps) {
 	const { t } = useTranslation("listings");
-	const navigate = useNavigate();
-
-	function updateFilter(updates: Partial<BrowseSearchParams>) {
-		navigate({
-			to: "/ilmoitukset",
-			search: (prev) => ({ ...prev, ...updates, cursor: undefined }),
-			replace: true,
-		});
-	}
-
-	function toggleArrayFilter(key: "type" | "license", value: string) {
-		const current = search[key] ?? [];
-		const next = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
-		updateFilter({ [key]: next.length > 0 ? next : undefined });
-	}
+	const { updateFilter, toggleArrayFilter } = useFilterActions(search);
 
 	const selectClass = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm text-foreground`;
 	const rangeClass = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm`;
@@ -84,13 +94,13 @@ export function FilterControls({
 			<div>
 				<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.type")}</p>
 				<div className="grid grid-cols-2 gap-1.5">
-					{MOTORCYCLE_TYPES.filter((t) => t.value !== "custom").map((t) => {
-						const isActive = search.type?.includes(t.value);
+					{MOTORCYCLE_TYPES.filter((mt) => mt.value !== "custom").map((mt) => {
+						const isActive = search.type?.includes(mt.value);
 						return (
 							<button
-								key={t.value}
+								key={mt.value}
 								type="button"
-								onClick={() => toggleArrayFilter("type", t.value)}
+								onClick={() => toggleArrayFilter("type", mt.value)}
 								aria-pressed={isActive}
 								className={`rounded-md px-2 ${typeBtnPy} text-xs font-medium transition-colors ${
 									isActive
@@ -98,7 +108,7 @@ export function FilterControls({
 										: "bg-muted-light text-foreground hover:bg-border"
 								}`}
 							>
-								{TYPE_EMOJI[t.value]} {t.label}
+								{TYPE_EMOJI[mt.value]} {mt.label}
 							</button>
 						);
 					})}

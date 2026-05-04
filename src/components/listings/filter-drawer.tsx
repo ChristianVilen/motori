@@ -1,10 +1,9 @@
-import { useNavigate } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "~/lib/i18n";
 import { useFocusTrap } from "~/lib/use-focus-trap";
 import type { BrowseSearchParams } from "~/lib/validators";
-import { FilterControls, type FilterMake } from "./filter-controls";
+import { FilterControls, type FilterMake, useFilterActions } from "./filter-controls";
 
 interface FilterDrawerProps {
 	search: BrowseSearchParams;
@@ -24,7 +23,7 @@ export function FilterDrawer({
 	makes,
 }: FilterDrawerProps) {
 	const { t } = useTranslation("listings");
-	const navigate = useNavigate();
+	const { clearAll } = useFilterActions(search);
 	const trapRef = useFocusTrap(open);
 
 	useEffect(() => {
@@ -43,10 +42,6 @@ export function FilterDrawer({
 		}
 		document.body.style.overflow = "";
 	}, [open, onClose]);
-
-	function clearAll() {
-		navigate({ to: "/ilmoitukset", search: {}, replace: true });
-	}
 
 	if (!open) {
 		return null;

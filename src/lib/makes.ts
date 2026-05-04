@@ -16,6 +16,10 @@ type MakeRow = { id: string; name: string; slug: string };
 let makesCache: { data: MakeRow[]; expiresAt: number } | null = null;
 const MAKES_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+export function invalidateMakesCache() {
+	makesCache = null;
+}
+
 export const getMakes = createServerFn({ method: "GET" }).handler(() => {
 	if (makesCache && Date.now() < makesCache.expiresAt) {
 		return makesCache.data;
