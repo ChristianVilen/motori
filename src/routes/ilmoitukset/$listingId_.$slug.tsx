@@ -6,11 +6,11 @@ import { getRequest } from "@tanstack/react-start/server";
 import { sql } from "kysely";
 import { ArrowLeft, MapPin, Tag } from "lucide-react";
 import { useState } from "react";
-import { MobileBookingModal } from "~/components/listings/booking-calendar";
 import { BookingRequestForm } from "~/components/listings/booking-request-form";
 import { ListingGallery } from "~/components/listings/listing-gallery";
 import { ReportButton } from "~/components/report-button";
 import { Button } from "~/components/ui/button";
+import { MobileFullscreenModal } from "~/components/ui/mobile-fullscreen-modal";
 import { sendBookingRequestEmail } from "~/lib/booking-emails";
 import { generateBookingShortId } from "~/lib/bookings";
 import {
@@ -580,7 +580,11 @@ function ListingDetailPage() {
 			/>
 
 			{/* Mobile booking modal */}
-			<MobileBookingModal open={bookingModalOpen} onClose={() => setBookingModalOpen(false)}>
+			<MobileFullscreenModal
+				open={bookingModalOpen}
+				onClose={() => setBookingModalOpen(false)}
+				title={t("booking.calendarTitle")}
+			>
 				<BookingRequestForm
 					listingId={listing.id}
 					availabilityDefault={availability.availability_default}
@@ -591,14 +595,13 @@ function ListingDetailPage() {
 					pricePerWeekCents={listing.price_per_week ?? null}
 					pricePerWeekendCents={listing.price_per_weekend ?? null}
 					heroImageUrl={images[0]?.thumbnail_url ?? images[0]?.url ?? null}
-					onClose={() => setBookingModalOpen(false)}
 					onSubmit={async (input) => {
 						await submitBookingRequest({
 							data: { listing_id: listing.id, ...input },
 						});
 					}}
 				/>
-			</MobileBookingModal>
+			</MobileFullscreenModal>
 		</div>
 	);
 }

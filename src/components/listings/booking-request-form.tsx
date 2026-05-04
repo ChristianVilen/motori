@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { BookingCalendar } from "~/components/listings/booking-calendar";
+import { BookingPricing } from "~/components/listings/booking-pricing";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
+import { type BookingCost, computeBookingCost } from "~/lib/booking-cost";
+import { fromIso } from "~/lib/calendar-helpers";
 import { useTranslation } from "~/lib/i18n";
 
 interface Props {
@@ -14,17 +17,39 @@ interface Props {
 	pricePerWeekCents: number | null;
 	pricePerWeekendCents: number | null;
 	heroImageUrl?: string | null;
-	onClose?: () => void;
 	onSubmit: (input: { start_date: string; end_date: string; message: string }) => Promise<void>;
 }
 
 export function BookingRequestForm(props: Props) {
 	const { t } = useTranslation("listings");
 	const [range, setRange] = useState<{ from: string; to: string } | null>(null);
+	const [maxStayError, setMaxStayError] = useState(false);
 	const [message, setMessage] = useState("");
 	const [submitting, setSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState(false);
+
+	const cost: BookingCost | null = useMemo(
+		() =>
+			range
+				? computeBookingCost(
+						range.from,
+						range.to,
+						props.pricePerDayCents,
+						props.pricePerWeekCents,
+						props.pricePerWeekendCents,
+					)
+				: null,
+		[range, props.pricePerDayCents, props.pricePerWeekCents, props.pricePerWeekendCents],
+	);
+
+	const fromDate = range ? fromIso(range.from) : null;
+	const toDate = range ? fromIso(range.to) : null;
+
+	function handleSelectRange(r: { from: string; to: string } | null, wasClamped?: boolean) {
+		setRange(r);
+		setMaxStayError(!!wasClamped);
+	}
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
@@ -70,18 +95,28 @@ export function BookingRequestForm(props: Props) {
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4" data-testid="booking-request-form">
+			<BookingPricing
+				cost={cost}
+				maxStayError={maxStayError}
+				heroImageUrl={props.heroImageUrl}
+				fromDate={fromDate}
+				toDate={toDate}
+				from={range?.from ?? null}
+				to={range?.to ?? null}
+				pricePerDayCents={props.pricePerDayCents}
+				pricePerWeekCents={props.pricePerWeekCents}
+				pricePerWeekendCents={props.pricePerWeekendCents}
+				t={t}
+			/>
+
 			<BookingCalendar
 				bookedDates={props.bookedDates}
 				exceptionDates={props.exceptionDates}
 				availabilityDefault={props.availabilityDefault}
-				pricePerDayCents={props.pricePerDayCents}
-				pricePerWeekCents={props.pricePerWeekCents}
-				pricePerWeekendCents={props.pricePerWeekendCents}
-				heroImageUrl={props.heroImageUrl}
 				selectedRange={range}
-				onSelectRange={setRange}
-				onClose={props.onClose}
+				onSelectRange={handleSelectRange}
 			/>
+
 			{!props.isLoggedIn ? (
 				<p className="text-sm text-muted">{t("booking.loginRequired")}</p>
 			) : (
