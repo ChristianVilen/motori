@@ -9,15 +9,20 @@ import { ListingCardSkeleton } from "~/components/listings/listing-card-skeleton
 import { REGIONS, SITE_NAME, SITE_URL } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { type SearchResult, searchListings } from "~/lib/listings";
+import { getMakes } from "~/lib/makes";
 import { getSession } from "~/lib/session";
-import { type BrowseSearchParams, browseSearchSchema } from "~/lib/validators";
+import { type BrowseSearchParams, browseSearchSchema, countActiveFilters } from "~/lib/validators";
 
 export const Route = createFileRoute("/ilmoitukset/")({
 	validateSearch: (search) => browseSearchSchema.parse(search),
 	loaderDeps: ({ search }) => search,
 	loader: async ({ deps }) => {
-		const [result, session] = await Promise.all([searchListings({ data: deps }), getSession()]);
-		return { ...result, currentUserId: session?.user.id ?? null };
+		const [result, session, makes] = await Promise.all([
+			searchListings({ data: deps }),
+			getSession(),
+			getMakes(),
+		]);
+		return { ...result, currentUserId: session?.user.id ?? null, makes };
 	},
 	head: () => ({
 		meta: [
@@ -66,7 +71,7 @@ function BrowsePage() {
 	const initialData = Route.useLoaderData();
 	const navigate = useNavigate();
 
-	const { currentUserId } = initialData;
+	const { currentUserId, makes } = initialData;
 	const { allListings, totalCount, nextCursor, remaining } = useAccumulatedPages(
 		initialData,
 		search,
@@ -162,7 +167,7 @@ function BrowsePage() {
 				{/* Desktop sidebar */}
 				<div className="hidden lg:block">
 					<div className="sticky top-6">
-						<FilterSidebar search={search} hasQuery={hasQuery} />
+						<FilterSidebar search={search} hasQuery={hasQuery} makes={makes} />
 					</div>
 				</div>
 
@@ -218,18 +223,9 @@ function BrowsePage() {
 				totalCount={totalCount}
 				open={drawerOpen}
 				onClose={() => setDrawerOpen(false)}
+				makes={makes}
 			/>
 		</div>
-	);
-}
-
-function countActiveFilters(search: BrowseSearchParams): number {
-	return (
-		(search.region ? 1 : 0) +
-		(search.type?.length ?? 0) +
-		(search.license?.length ?? 0) +
-		(search.price_min != null ? 1 : 0) +
-		(search.price_max != null ? 1 : 0)
 	);
 }
 

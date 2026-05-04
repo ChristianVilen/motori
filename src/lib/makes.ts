@@ -12,12 +12,27 @@ export function toSlug(name: string): string {
 		.replace(/[^a-z0-9-]/g, "");
 }
 
+type MakeRow = { id: string; name: string; slug: string };
+let makesCache: { data: MakeRow[]; expiresAt: number } | null = null;
+const MAKES_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+export function invalidateMakesCache() {
+	makesCache = null;
+}
+
 export const getMakes = createServerFn({ method: "GET" }).handler(() => {
+	if (makesCache && Date.now() < makesCache.expiresAt) {
+		return makesCache.data;
+	}
 	return db
 		.selectFrom("motorcycle_make")
 		.select(["id", "name", "slug"])
 		.orderBy("name", "asc")
-		.execute();
+		.execute()
+		.then((rows) => {
+			makesCache = { data: rows, expiresAt: Date.now() + MAKES_CACHE_TTL };
+			return rows;
+		});
 });
 
 export const getModels = createServerFn({ method: "GET" })
@@ -45,11 +60,13 @@ export const createMake = createServerFn({ method: "POST" })
 		if (trimmedName.length === 0 || trimmedName.length > MAX_NAME_LENGTH) {
 			throw new Error("Merkin nimi on liian pitkä tai tyhjä");
 		}
-		return db
+		const result = await db
 			.insertInto("motorcycle_make")
 			.values({ id: crypto.randomUUID(), name: trimmedName, slug: toSlug(trimmedName) })
 			.returningAll()
 			.executeTakeFirstOrThrow();
+		makesCache = null;
+		return result;
 	});
 
 export const createModel = createServerFn({ method: "POST" })

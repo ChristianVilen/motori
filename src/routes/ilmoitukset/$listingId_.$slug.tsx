@@ -20,6 +20,7 @@ import {
 	SITE_URL,
 } from "~/lib/constants";
 import { csrfMiddleware } from "~/lib/csrf";
+import { centsToEuros } from "~/lib/currency";
 import { db } from "~/lib/db/index";
 import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
@@ -178,7 +179,7 @@ export const Route = createFileRoute("/ilmoitukset/$listingId_/$slug")({
 		const make = loaderData?.makeName ?? "";
 		const model = loaderData?.modelName ?? "";
 		const title = `${l.title} — ${SITE_NAME}`;
-		const desc = `Vuokraa ${make} ${model} (${l.year}) — ${l.city}. Alkaen ${(l.price_per_day / 100).toFixed(0)} €/pv.`;
+		const desc = `Vuokraa ${make} ${model} (${l.year}) — ${l.city}. Alkaen ${centsToEuros(l.price_per_day).toFixed(0)} €/pv.`;
 		const slug = computeListingSlug(
 			loaderData?.makeSlug ?? null,
 			loaderData?.modelName ?? null,

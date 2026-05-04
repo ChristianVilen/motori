@@ -3,7 +3,7 @@ import { sql } from "kysely";
 import { requireAdmin } from "~/lib/admin";
 import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
-import { toSlug } from "~/lib/makes";
+import { invalidateMakesCache, toSlug } from "~/lib/makes";
 
 export interface AdminMake {
 	id: string;
@@ -83,6 +83,7 @@ export const renameMake = createServerFn({ method: "POST" })
 			.set({ name, slug: toSlug(name) })
 			.where("id", "=", data.id)
 			.execute();
+		invalidateMakesCache();
 	});
 
 export const renameModel = createServerFn({ method: "POST" })
@@ -117,6 +118,7 @@ export const deleteMake = createServerFn({ method: "POST" })
 			throw new Error("Cannot delete a make that has models or listings");
 		}
 		await db.deleteFrom("motorcycle_make").where("id", "=", id).execute();
+		invalidateMakesCache();
 	});
 
 export const deleteModel = createServerFn({ method: "POST" })
@@ -158,6 +160,7 @@ export const mergeMakes = createServerFn({ method: "POST" })
 				.execute();
 			await trx.deleteFrom("motorcycle_make").where("id", "=", data.sourceId).execute();
 		});
+		invalidateMakesCache();
 	});
 
 export const mergeModels = createServerFn({ method: "POST" })

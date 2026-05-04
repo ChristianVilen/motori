@@ -8,6 +8,7 @@ import { AvailabilityCalendar } from "~/components/listings/availability-calenda
 import { ListingForm } from "~/components/listings/listing-form";
 import { Button } from "~/components/ui/button";
 import { csrfMiddleware } from "~/lib/csrf";
+import { centsToEuros } from "~/lib/currency";
 import { db } from "~/lib/db/index";
 import { useTranslation } from "~/lib/i18n";
 import { getListingAvailability, getListingForEdit, updateListing } from "~/lib/listings";
@@ -237,9 +238,9 @@ function EditListingPage() {
 		engine_cc: listing.engine_cc,
 		motorcycle_type: listing.motorcycle_type,
 		required_license: listing.required_license,
-		price_per_day: listing.price_per_day / 100,
-		price_per_week: listing.price_per_week ? listing.price_per_week / 100 : null,
-		price_per_weekend: listing.price_per_weekend ? listing.price_per_weekend / 100 : null,
+		price_per_day: centsToEuros(listing.price_per_day),
+		price_per_week: listing.price_per_week ? centsToEuros(listing.price_per_week) : null,
+		price_per_weekend: listing.price_per_weekend ? centsToEuros(listing.price_per_weekend) : null,
 		price_description: listing.price_description ?? "",
 		city: listing.city,
 		region: listing.region,

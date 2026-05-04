@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { type SelectQueryBuilder, type SqlBool, sql } from "kysely";
 import { expandDateRange } from "~/lib/bookings";
 import { ADJACENT_REGIONS } from "~/lib/constants";
+import { centsToEuros, eurosToCents } from "~/lib/currency";
 import type { Database, Listing, ListingImage } from "~/lib/db/schema";
 
 // Lazy-import db so this module is safe to evaluate in client bundles.
@@ -161,6 +162,64 @@ function buildNextCursor(listings: Listing[], sort: SortMode): string | null {
 	return `${new Date(last.created_at).toISOString()}__${last.id}`;
 }
 
+function applyFilters(
+	query: SelectQueryBuilder<Database, "listing", object>,
+	params: BrowseSearchParams,
+	tsquery: string | null,
+) {
+	let q = query.where("listing.status", "=", "active");
+
+	if (tsquery) {
+		q = q.where(
+			sql<SqlBool>`listing.search_vector @@ websearch_to_tsquery('finnish_unaccent', ${tsquery})`,
+		);
+	}
+	if (params.region) {
+		q = q.where("listing.region", "=", params.region);
+	}
+	if (params.type?.length) {
+		q = q.where("listing.motorcycle_type", "in", params.type);
+	}
+	if (params.license?.length) {
+		q = q.where("listing.required_license", "in", params.license as ("A1" | "A2" | "A")[]);
+	}
+	if (params.price_min != null) {
+		q = q.where("listing.price_per_day", ">=", eurosToCents(params.price_min));
+	}
+	if (params.price_max != null) {
+		q = q.where("listing.price_per_day", "<=", eurosToCents(params.price_max));
+	}
+	if (params.cc_min != null) {
+		q = q.where("listing.engine_cc", ">=", params.cc_min);
+	}
+	if (params.cc_max != null) {
+		q = q.where("listing.engine_cc", "<=", params.cc_max);
+	}
+	if (params.year_min != null) {
+		q = q.where("listing.year", ">=", params.year_min);
+	}
+	if (params.year_max != null) {
+		q = q.where("listing.year", "<=", params.year_max);
+	}
+	if (params.make) {
+		q = q
+			.innerJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
+			.where("motorcycle_make.slug", "=", params.make);
+	}
+	return q;
+}
+
+async function hydrateListings(listings: Listing[]): Promise<ListingWithImages[]> {
+	if (listings.length === 0) {
+		return [];
+	}
+	const [withMakeModel, imageMap] = await Promise.all([
+		attachMakeModel(listings),
+		fetchFirstImages(listings.map((l) => l.id)),
+	]);
+	return withMakeModel.map((l) => ({ ...l, images: imageMap.get(l.id) ?? [] }));
+}
+
 export const searchListings = createServerFn({ method: "GET" })
 	.middleware([rateLimitMiddleware(60, 60, "search")])
 	.inputValidator((input: BrowseSearchParams) => input)
@@ -169,32 +228,7 @@ export const searchListings = createServerFn({ method: "GET" })
 		const tsquery = params.q ? toTsQuery(params.q) : null;
 		const sort: SortMode = params.sort ?? (tsquery ? "relevance" : "newest");
 
-		let baseQuery = db.selectFrom("listing").where("listing.status", "=", "active");
-
-		if (tsquery) {
-			baseQuery = baseQuery.where(
-				sql<SqlBool>`listing.search_vector @@ websearch_to_tsquery('finnish_unaccent', ${tsquery})`,
-			);
-		}
-		if (params.region) {
-			baseQuery = baseQuery.where("listing.region", "=", params.region);
-		}
-		if (params.type && params.type.length > 0) {
-			baseQuery = baseQuery.where("listing.motorcycle_type", "in", params.type);
-		}
-		if (params.license && params.license.length > 0) {
-			baseQuery = baseQuery.where(
-				"listing.required_license",
-				"in",
-				params.license as ("A1" | "A2" | "A")[],
-			);
-		}
-		if (params.price_min != null) {
-			baseQuery = baseQuery.where("listing.price_per_day", ">=", params.price_min * 100);
-		}
-		if (params.price_max != null) {
-			baseQuery = baseQuery.where("listing.price_per_day", "<=", params.price_max * 100);
-		}
+		const baseQuery = applyFilters(db.selectFrom("listing"), params, tsquery);
 
 		const countResult = await baseQuery
 			.select(sql<number>`count(*)::int`.as("count"))
@@ -209,18 +243,8 @@ export const searchListings = createServerFn({ method: "GET" })
 
 		const listings = await query.execute();
 
-		const [withMakeModel, imageMap] = await Promise.all([
-			attachMakeModel(listings),
-			fetchFirstImages(listings.map((l) => l.id)),
-		]);
-
-		const listingsWithImages: ListingWithImages[] = withMakeModel.map((l) => ({
-			...l,
-			images: imageMap.get(l.id) ?? [],
-		}));
-
 		return {
-			listings: listingsWithImages,
+			listings: await hydrateListings(listings),
 			nextCursor: buildNextCursor(listings, sort),
 			totalCount: countResult.count,
 		};
@@ -240,15 +264,7 @@ export const getLatestListings = createServerFn({ method: "GET" }).handler(async
 		return [] as ListingWithImages[];
 	}
 
-	const [withMakeModel, imageMap] = await Promise.all([
-		attachMakeModel(listings),
-		fetchFirstImages(listings.map((l) => l.id)),
-	]);
-
-	return withMakeModel.map((l) => ({
-		...l,
-		images: imageMap.get(l.id) ?? [],
-	})) as ListingWithImages[];
+	return hydrateListings(listings);
 });
 
 export const getHomepageStats = createServerFn({ method: "GET" }).handler(async () => {
@@ -266,7 +282,7 @@ export const getHomepageStats = createServerFn({ method: "GET" }).handler(async 
 	return {
 		totalListings: result.total,
 		regionCount: result.regions,
-		minPricePerDay: Math.round(result.min_price / 100),
+		minPricePerDay: Math.round(centsToEuros(result.min_price)),
 	};
 });
 
@@ -510,9 +526,9 @@ export async function createListing(
 			engine_cc: data.engine_cc ?? null,
 			required_license: data.required_license ?? null,
 			motorcycle_type: data.motorcycle_type,
-			price_per_day: Math.round(data.price_per_day * 100),
-			price_per_week: data.price_per_week ? Math.round(data.price_per_week * 100) : null,
-			price_per_weekend: data.price_per_weekend ? Math.round(data.price_per_weekend * 100) : null,
+			price_per_day: eurosToCents(data.price_per_day),
+			price_per_week: data.price_per_week ? eurosToCents(data.price_per_week) : null,
+			price_per_weekend: data.price_per_weekend ? eurosToCents(data.price_per_weekend) : null,
 			price_description: data.price_description ?? null,
 			city: data.city,
 			region: data.region,
@@ -594,9 +610,9 @@ export async function updateListing(
 				engine_cc: data.engine_cc ?? null,
 				required_license: data.required_license ?? null,
 				motorcycle_type: data.motorcycle_type,
-				price_per_day: Math.round(data.price_per_day * 100),
-				price_per_week: data.price_per_week ? Math.round(data.price_per_week * 100) : null,
-				price_per_weekend: data.price_per_weekend ? Math.round(data.price_per_weekend * 100) : null,
+				price_per_day: eurosToCents(data.price_per_day),
+				price_per_week: data.price_per_week ? eurosToCents(data.price_per_week) : null,
+				price_per_weekend: data.price_per_weekend ? eurosToCents(data.price_per_weekend) : null,
 				price_description: data.price_description ?? null,
 				city: data.city,
 				region: data.region,
