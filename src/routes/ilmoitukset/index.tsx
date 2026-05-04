@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
-import { SlidersHorizontal } from "lucide-react";
-import { useRef, useState } from "react";
+import { Map as MapIcon, SlidersHorizontal } from "lucide-react";
+import { lazy, Suspense, useCallback, useRef, useState } from "react";
 import { EmptyState, LowResultNudge } from "~/components/listings/empty-state";
 import { FilterDrawer } from "~/components/listings/filter-drawer";
 import { FilterSidebar } from "~/components/listings/filter-sidebar";
@@ -12,6 +12,10 @@ import { type SearchResult, searchListings } from "~/lib/listings";
 import { getMakes } from "~/lib/makes";
 import { getSession } from "~/lib/session";
 import { type BrowseSearchParams, browseSearchSchema, countActiveFilters } from "~/lib/validators";
+
+const ListingsMap = lazy(() =>
+	import("~/components/listings/listings-map").then((m) => ({ default: m.ListingsMap })),
+);
 
 export const Route = createFileRoute("/ilmoitukset/")({
 	validateSearch: (search) => browseSearchSchema.parse(search),
@@ -83,9 +87,23 @@ function BrowsePage() {
 		: t("browse.regionAll");
 
 	const [drawerOpen, setDrawerOpen] = useState(false);
+	const [mapVisible, setMapVisible] = useState(false);
 	const isLoading = useRouterState({ select: (s) => s.isLoading });
 
 	const activeFilterCount = countActiveFilters(search);
+
+	const scrollToCard = useCallback((shortId: string) => {
+		const el = document.querySelector(`[data-listing-id="${shortId}"]`);
+		if (el) {
+			// On mobile, switch to list view first
+			setMapVisible(false);
+			setTimeout(() => {
+				el.scrollIntoView({ behavior: "smooth", block: "center" });
+				el.classList.add("ring-2", "ring-accent");
+				setTimeout(() => el.classList.remove("ring-2", "ring-accent"), 2000);
+			}, 100);
+		}
+	}, []);
 
 	function loadMore() {
 		if (!nextCursor) {
@@ -145,6 +163,15 @@ function BrowsePage() {
 								</span>
 							)}
 						</button>
+						{/* Mobile map toggle */}
+						<button
+							type="button"
+							onClick={() => setMapVisible((v) => !v)}
+							className="h-11 rounded-lg bg-white/10 px-3 text-white lg:hidden"
+							aria-label={t("browse.mapToggle")}
+						>
+							<MapIcon className="h-5 w-5" />
+						</button>
 					</form>
 					<p
 						data-testid="listings-result-count"
@@ -163,7 +190,7 @@ function BrowsePage() {
 			</div>
 
 			{/* Main content */}
-			<div className="mx-auto flex max-w-6xl gap-8 px-4 py-6">
+			<div className="mx-auto flex max-w-7xl gap-6 px-4 py-6">
 				{/* Desktop sidebar */}
 				<div className="hidden lg:block">
 					<div className="sticky top-6">
@@ -172,14 +199,14 @@ function BrowsePage() {
 				</div>
 
 				{/* Results area */}
-				<div className="min-w-0 flex-1">
+				<div className={`min-w-0 flex-1 ${mapVisible ? "hidden lg:block" : ""}`}>
 					{allListings.length === 0 ? (
 						<EmptyState search={search} />
 					) : (
 						<>
 							<div
 								data-testid="listings-grid"
-								className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+								className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2"
 							>
 								{allListings.map((listing) => (
 									<ListingCard
@@ -213,6 +240,21 @@ function BrowsePage() {
 							)}
 						</>
 					)}
+				</div>
+
+				{/* Map panel — desktop: sticky right column, mobile: full-width when toggled */}
+				<div className={`${mapVisible ? "block" : "hidden"} lg:block lg:w-[420px] lg:shrink-0`}>
+					<div className="sticky top-6 h-[70vh] lg:h-[calc(100vh-8rem)] overflow-hidden rounded-lg border border-border">
+						<Suspense
+							fallback={
+								<div className="flex h-full items-center justify-center bg-muted-light text-sm text-muted">
+									{t("browse.mapLoading")}
+								</div>
+							}
+						>
+							<ListingsMap listings={allListings} onPinClick={scrollToCard} />
+						</Suspense>
+					</div>
 				</div>
 			</div>
 

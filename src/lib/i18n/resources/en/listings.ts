@@ -7,6 +7,8 @@ export default {
 		resultCountQuery: "for '{{query}}'",
 		regionAll: "All Finland",
 		loadMore: "Show more · {{remaining}} remaining",
+		mapToggle: "Show map",
+		mapLoading: "Loading map...",
 	},
 	filters: {
 		heading: "Filters",

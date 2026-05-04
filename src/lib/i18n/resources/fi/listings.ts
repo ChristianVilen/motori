@@ -7,6 +7,8 @@ export default {
 		resultCountQuery: "haulle '{{query}}'",
 		regionAll: "Koko Suomi",
 		loadMore: "Näytä lisää · {{remaining}} jäljellä",
+		mapToggle: "Näytä kartta",
+		mapLoading: "Ladataan karttaa...",
 	},
 	filters: {
 		heading: "Suodattimet",
