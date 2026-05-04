@@ -1,6 +1,13 @@
 import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Map as MapIcon, SlidersHorizontal } from "lucide-react";
-import { lazy, Suspense, useCallback, useRef, useState } from "react";
+import {
+	Grid3x3,
+	Map as MapIcon,
+	PanelLeftClose,
+	PanelLeftOpen,
+	SlidersHorizontal,
+	X,
+} from "lucide-react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EmptyState, LowResultNudge } from "~/components/listings/empty-state";
 import { FilterDrawer } from "~/components/listings/filter-drawer";
 import { FilterSidebar } from "~/components/listings/filter-sidebar";
@@ -17,9 +24,25 @@ const ListingsMap = lazy(() =>
 	import("~/components/listings/listings-map").then((m) => ({ default: m.ListingsMap })),
 );
 
+/** Renders children only on the client (avoids SSR of Leaflet which requires window). */
+function ClientOnly({
+	children,
+	fallback,
+}: {
+	children: React.ReactNode;
+	fallback: React.ReactNode;
+}) {
+	const [mounted, setMounted] = useState(false);
+	useEffect(() => setMounted(true), []);
+	return mounted ? children : fallback;
+}
+
 export const Route = createFileRoute("/ilmoitukset/")({
 	validateSearch: (search) => browseSearchSchema.parse(search),
-	loaderDeps: ({ search }) => search,
+	loaderDeps: ({ search }) => {
+		const { view, city, ...deps } = search;
+		return deps;
+	},
 	loader: async ({ deps }) => {
 		const [result, session, makes] = await Promise.all([
 			searchListings({ data: deps }),
@@ -69,6 +92,7 @@ function useAccumulatedPages(initialData: SearchResult, search: BrowseSearchPara
 	return { allListings, totalCount, nextCursor, remaining };
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: page component with conditional view rendering
 function BrowsePage() {
 	const { t } = useTranslation("listings");
 	const search = Route.useSearch();
@@ -87,23 +111,36 @@ function BrowsePage() {
 		: t("browse.regionAll");
 
 	const [drawerOpen, setDrawerOpen] = useState(false);
-	const [mapVisible, setMapVisible] = useState(false);
+	const [sidebarOpen, setSidebarOpen] = useState(true);
+	const view = search.view ?? "list";
+	const selectedCity = search.city ?? null;
 	const isLoading = useRouterState({ select: (s) => s.isLoading });
 
 	const activeFilterCount = countActiveFilters(search);
 
-	const scrollToCard = useCallback((shortId: string) => {
-		const el = document.querySelector(`[data-listing-id="${shortId}"]`);
-		if (el) {
-			// On mobile, switch to list view first
-			setMapVisible(false);
-			setTimeout(() => {
-				el.scrollIntoView({ behavior: "smooth", block: "center" });
-				el.classList.add("ring-2", "ring-accent");
-				setTimeout(() => el.classList.remove("ring-2", "ring-accent"), 2000);
-			}, 100);
+	const cityListings = useMemo(() => {
+		if (!selectedCity) {
+			return [];
 		}
-	}, []);
+		return allListings.filter((l) => l.city === selectedCity);
+	}, [allListings, selectedCity]);
+
+	const handleCityClick = useCallback(
+		(city: string, _listingIds: string[]) => {
+			navigate({
+				to: "/ilmoitukset",
+				search: (prev) => ({ ...prev, view: "map" as const, city }),
+			});
+		},
+		[navigate],
+	);
+
+	const clearCitySelection = useCallback(() => {
+		navigate({
+			to: "/ilmoitukset",
+			search: (prev) => ({ ...prev, city: undefined }),
+		});
+	}, [navigate]);
 
 	function loadMore() {
 		if (!nextCursor) {
@@ -148,7 +185,7 @@ function BrowsePage() {
 						>
 							{t("browse.searchButton")}
 						</button>
-						{/* Mobile filter button */}
+						{/* Filter button (mobile only) */}
 						<button
 							data-testid="listings-filter-drawer-toggle"
 							type="button"
@@ -163,14 +200,27 @@ function BrowsePage() {
 								</span>
 							)}
 						</button>
-						{/* Mobile map toggle */}
+						{/* View toggle */}
 						<button
 							type="button"
-							onClick={() => setMapVisible((v) => !v)}
-							className="h-11 rounded-lg bg-white/10 px-3 text-white lg:hidden"
-							aria-label={t("browse.mapToggle")}
+							onClick={() => {
+								navigate({
+									to: "/ilmoitukset",
+									search: (prev) => ({
+										...prev,
+										view: view === "list" ? ("map" as const) : undefined,
+										city: undefined,
+									}),
+								});
+							}}
+							className="flex h-11 items-center gap-1.5 rounded-lg bg-white/10 px-3 text-sm text-white hover:bg-white/15"
+							aria-label={view === "list" ? t("browse.mapToggle") : t("browse.listToggle")}
+							data-testid="listings-view-toggle"
 						>
-							<MapIcon className="h-5 w-5" />
+							{view === "list" ? <MapIcon className="h-5 w-5" /> : <Grid3x3 className="h-5 w-5" />}
+							<span className="hidden sm:inline">
+								{view === "list" ? t("browse.mapToggle") : t("browse.listToggle")}
+							</span>
 						</button>
 					</form>
 					<p
@@ -190,25 +240,140 @@ function BrowsePage() {
 			</div>
 
 			{/* Main content */}
-			<div className="mx-auto flex max-w-7xl gap-6 px-4 py-6">
-				{/* Desktop sidebar */}
-				<div className="hidden lg:block">
-					<div className="sticky top-6">
-						<FilterSidebar search={search} hasQuery={hasQuery} makes={makes} />
+			{view === "list" ? (
+				<div className="mx-auto flex max-w-6xl gap-8 px-4 py-6">
+					{/* Desktop sidebar */}
+					<div className="hidden lg:block">
+						<div className="sticky top-6">
+							<div
+								className={`overflow-hidden transition-all duration-300 ${sidebarOpen ? "w-[280px]" : "w-10"}`}
+							>
+								{sidebarOpen ? (
+									<>
+										<FilterSidebar search={search} hasQuery={hasQuery} makes={makes} />
+										<button
+											type="button"
+											onClick={() => setSidebarOpen(false)}
+											className="mt-4 flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-muted transition-colors hover:bg-muted-light hover:text-foreground"
+										>
+											<PanelLeftClose className="h-4 w-4 shrink-0" />
+											{t("browse.collapseSidebar")}
+										</button>
+									</>
+								) : (
+									<button
+										type="button"
+										onClick={() => setSidebarOpen(true)}
+										className="flex h-screen w-10 items-start justify-center border-r border-border pt-4 text-muted transition-colors hover:bg-muted-light hover:text-foreground"
+										aria-label={t("browse.showFilters")}
+									>
+										<PanelLeftOpen className="h-4 w-4" />
+									</button>
+								)}
+							</div>
+						</div>
+					</div>
+
+					{/* Results grid */}
+					<div className="min-w-0 flex-1">
+						{allListings.length === 0 ? (
+							<EmptyState search={search} />
+						) : (
+							<>
+								<div
+									data-testid="listings-grid"
+									className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+								>
+									{allListings.map((listing) => (
+										<ListingCard
+											key={listing.id}
+											listing={listing}
+											images={listing.images}
+											makeSlug={listing.makeSlug}
+											modelName={listing.modelName}
+											isOwn={currentUserId !== null && listing.owner_id === currentUserId}
+										/>
+									))}
+									{isLoading
+										? ["skel-a", "skel-b", "skel-c"].map((key) => <ListingCardSkeleton key={key} />)
+										: null}
+								</div>
+
+								{totalCount > 0 && totalCount <= 5 && <LowResultNudge />}
+
+								{nextCursor && remaining > 0 && (
+									<div className="mt-8 text-center">
+										<button
+											data-testid="listings-load-more"
+											type="button"
+											onClick={loadMore}
+											disabled={isLoading}
+											className="rounded-lg border border-border px-6 py-3 text-sm font-medium text-foreground transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
+										>
+											{t("browse.loadMore", { remaining })}
+										</button>
+									</div>
+								)}
+							</>
+						)}
 					</div>
 				</div>
+			) : (
+				/* Map view */
+				<div className="flex h-[calc(100vh-10rem)] flex-col lg:flex-row">
+					{/* Collapsible filter sidebar — desktop only */}
+					<div className="hidden shrink-0 lg:flex lg:flex-col">
+						<div
+							className={`flex-1 overflow-y-auto border-r border-border bg-background transition-all duration-300 ${sidebarOpen ? "w-[280px] p-4" : "w-10 p-0"}`}
+						>
+							{sidebarOpen ? (
+								<>
+									<FilterSidebar search={search} hasQuery={hasQuery} makes={makes} />
+									<button
+										type="button"
+										onClick={() => setSidebarOpen(false)}
+										className="mt-4 flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-muted transition-colors hover:bg-muted-light hover:text-foreground"
+									>
+										<PanelLeftClose className="h-4 w-4 shrink-0" />
+										{t("browse.collapseSidebar")}
+									</button>
+								</>
+							) : (
+								<button
+									type="button"
+									onClick={() => setSidebarOpen(true)}
+									className="flex h-full w-10 items-start justify-center border-r border-border pt-4 text-muted transition-colors hover:bg-muted-light hover:text-foreground"
+									aria-label={t("browse.showFilters")}
+								>
+									<PanelLeftOpen className="h-4 w-4" />
+								</button>
+							)}
+						</div>
+					</div>
 
-				{/* Results area */}
-				<div className={`min-w-0 flex-1 ${mapVisible ? "hidden lg:block" : ""}`}>
-					{allListings.length === 0 ? (
-						<EmptyState search={search} />
-					) : (
-						<>
-							<div
-								data-testid="listings-grid"
-								className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2"
-							>
-								{allListings.map((listing) => (
+					{/* City listings panel — shows when a pin is clicked */}
+					{selectedCity && cityListings.length > 0 && (
+						<div
+							data-testid="map-city-panel"
+							className="w-full shrink-0 overflow-y-auto border-b border-border bg-background p-4 lg:w-[360px] lg:border-r lg:border-b-0"
+						>
+							<div className="mb-3 flex items-center justify-between">
+								<h3 className="text-sm font-semibold text-foreground">
+									{selectedCity}{" "}
+									<span className="font-normal text-muted">({cityListings.length})</span>
+								</h3>
+								<button
+									type="button"
+									onClick={clearCitySelection}
+									className="rounded-md p-1 text-muted hover:bg-muted-light hover:text-foreground"
+									aria-label={t("browse.closeCityPanel")}
+									data-testid="map-city-panel-close"
+								>
+									<X className="h-4 w-4" />
+								</button>
+							</div>
+							<div className="flex flex-col gap-3">
+								{cityListings.map((listing) => (
 									<ListingCard
 										key={listing.id}
 										listing={listing}
@@ -218,45 +383,36 @@ function BrowsePage() {
 										isOwn={currentUserId !== null && listing.owner_id === currentUserId}
 									/>
 								))}
-								{isLoading
-									? ["skel-a", "skel-b", "skel-c"].map((key) => <ListingCardSkeleton key={key} />)
-									: null}
 							</div>
-
-							{totalCount > 0 && totalCount <= 5 && <LowResultNudge />}
-
-							{nextCursor && remaining > 0 && (
-								<div className="mt-8 text-center">
-									<button
-										data-testid="listings-load-more"
-										type="button"
-										onClick={loadMore}
-										disabled={isLoading}
-										className="rounded-lg border border-border px-6 py-3 text-sm font-medium text-foreground transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
-									>
-										{t("browse.loadMore", { remaining })}
-									</button>
-								</div>
-							)}
-						</>
+						</div>
 					)}
-				</div>
 
-				{/* Map panel — desktop: sticky right column, mobile: full-width when toggled */}
-				<div className={`${mapVisible ? "block" : "hidden"} lg:block lg:w-[420px] lg:shrink-0`}>
-					<div className="sticky top-6 h-[70vh] lg:h-[calc(100vh-8rem)] overflow-hidden rounded-lg border border-border">
-						<Suspense
+					{/* Map */}
+					<div className="min-h-[50vh] flex-1">
+						<ClientOnly
 							fallback={
 								<div className="flex h-full items-center justify-center bg-muted-light text-sm text-muted">
 									{t("browse.mapLoading")}
 								</div>
 							}
 						>
-							<ListingsMap listings={allListings} onPinClick={scrollToCard} />
-						</Suspense>
+							<Suspense
+								fallback={
+									<div className="flex h-full items-center justify-center bg-muted-light text-sm text-muted">
+										{t("browse.mapLoading")}
+									</div>
+								}
+							>
+								<ListingsMap
+									listings={allListings}
+									onCityClick={handleCityClick}
+									selectedCity={selectedCity}
+								/>
+							</Suspense>
+						</ClientOnly>
 					</div>
 				</div>
-			</div>
+			)}
 
 			{/* Mobile filter drawer */}
 			<FilterDrawer

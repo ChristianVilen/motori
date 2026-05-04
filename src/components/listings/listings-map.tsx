@@ -1,15 +1,9 @@
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import iconUrl from "leaflet/dist/images/marker-icon.png";
-// Fix default marker icons (Leaflet + bundlers issue)
-import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
-import shadowUrl from "leaflet/dist/images/marker-shadow.png";
 import { useEffect, useRef } from "react";
 import { findMunicipality } from "~/lib/municipalities";
 
-L.Icon.Default.mergeOptions({ iconRetinaUrl, iconUrl, shadowUrl });
-
-interface MapPin {
+export interface MapPin {
 	city: string;
 	lat: number;
 	lng: number;
@@ -19,17 +13,17 @@ interface MapPin {
 
 interface ListingsMapProps {
 	listings: { id: string; city: string; short_id: string }[];
-	onPinClick?: (listingId: string) => void;
+	onCityClick?: (city: string, listingIds: string[]) => void;
+	selectedCity?: string | null;
 	className?: string;
 }
 
-/** Finland bounding box */
 const FINLAND_BOUNDS: L.LatLngBoundsExpression = [
 	[59.7, 19.5],
 	[70.1, 31.6],
 ];
 
-function groupByCity(listings: ListingsMapProps["listings"]): MapPin[] {
+export function groupByCity(listings: ListingsMapProps["listings"]): MapPin[] {
 	const map = new Map<string, MapPin>();
 	for (const l of listings) {
 		const m = findMunicipality(l.city);
@@ -41,27 +35,32 @@ function groupByCity(listings: ListingsMapProps["listings"]): MapPin[] {
 			existing.count++;
 			existing.listingIds.push(l.short_id);
 		} else {
-			map.set(m.name, { city: m.name, lat: m.lat, lng: m.lng, count: 1, listingIds: [l.short_id] });
+			map.set(m.name, {
+				city: m.name,
+				lat: m.lat,
+				lng: m.lng,
+				count: 1,
+				listingIds: [l.short_id],
+			});
 		}
 	}
 	return Array.from(map.values());
 }
 
-function createCountIcon(count: number): L.DivIcon {
-	if (count === 1) {
-		return new L.Icon.Default();
-	}
+function createCountIcon(count: number, active: boolean): L.DivIcon {
+	const cls = active ? "motori-map-badge motori-map-badge--active" : "motori-map-badge";
 	return L.divIcon({
-		html: `<div style="background:#e85d04;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,.3)">${count}</div>`,
+		html: `<div class="${cls}">${count}</div>`,
 		className: "",
 		iconSize: [32, 32],
 		iconAnchor: [16, 16],
 	});
 }
 
-export function ListingsMap({ listings, onPinClick, className }: ListingsMapProps) {
+export function ListingsMap({ listings, onCityClick, selectedCity, className }: ListingsMapProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const mapRef = useRef<L.Map | null>(null);
+	const markersRef = useRef<L.Marker[]>([]);
 
 	useEffect(() => {
 		if (!containerRef.current || mapRef.current) {
@@ -72,9 +71,11 @@ export function ListingsMap({ listings, onPinClick, className }: ListingsMapProp
 			scrollWheelZoom: true,
 		}).fitBounds(FINLAND_BOUNDS);
 
-		L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-			maxZoom: 18,
+		L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+			attribution:
+				'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+			maxZoom: 19,
+			subdomains: "abcd",
 		}).addTo(map);
 
 		mapRef.current = map;
@@ -84,7 +85,7 @@ export function ListingsMap({ listings, onPinClick, className }: ListingsMapProp
 		};
 	}, []);
 
-	// Update markers when listings change
+	// Update markers when listings or selectedCity change
 	useEffect(() => {
 		const map = mapRef.current;
 		if (!map) {
@@ -92,29 +93,37 @@ export function ListingsMap({ listings, onPinClick, className }: ListingsMapProp
 		}
 
 		// Clear existing markers
-		map.eachLayer((layer) => {
-			if (layer instanceof L.Marker) {
-				map.removeLayer(layer);
-			}
-		});
+		for (const m of markersRef.current) {
+			map.removeLayer(m);
+		}
+		markersRef.current = [];
 
 		const pins = groupByCity(listings);
 		for (const pin of pins) {
-			const marker = L.marker([pin.lat, pin.lng], { icon: createCountIcon(pin.count) })
+			const isActive = pin.city === selectedCity;
+			const marker = L.marker([pin.lat, pin.lng], {
+				icon: createCountIcon(pin.count, isActive),
+				zIndexOffset: isActive ? 1000 : 0,
+			})
 				.addTo(map)
 				.bindTooltip(`${pin.city} (${pin.count})`, { direction: "top" });
 
-			if (onPinClick) {
-				marker.on("click", () => onPinClick(pin.listingIds[0]));
+			if (onCityClick) {
+				marker.on("click", () => {
+					onCityClick(pin.city, pin.listingIds);
+					map.setView([pin.lat, pin.lng], 9, { animate: true });
+				});
 			}
+
+			markersRef.current.push(marker);
 		}
 
-		// Fit bounds to pins if any
-		if (pins.length > 0) {
+		// Fit bounds to pins if no city is selected
+		if (!selectedCity && pins.length > 0) {
 			const bounds = L.latLngBounds(pins.map((p) => [p.lat, p.lng] as L.LatLngTuple));
 			map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
 		}
-	}, [listings, onPinClick]);
+	}, [listings, onCityClick, selectedCity]);
 
 	return <div ref={containerRef} className={className ?? "h-full w-full"} />;
 }

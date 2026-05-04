@@ -34,7 +34,11 @@ export function useFilterActions(search: BrowseSearchParams) {
 	}
 
 	function clearAll() {
-		navigate({ to: "/ilmoitukset", search: {}, replace: true });
+		navigate({
+			to: "/ilmoitukset",
+			search: (prev) => ({ view: prev.view, city: prev.city }),
+			replace: true,
+		});
 	}
 
 	return { updateFilter, toggleArrayFilter, clearAll };
@@ -145,7 +149,7 @@ export function FilterControls({
 				<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.pricePerDay")}</p>
 				<div className="flex items-center gap-2">
 					<RangeInput
-						key={`${search.price_min}`}
+						key={`price-min-${search.price_min}`}
 						name={`${idPrefix}-price-min`}
 						value={search.price_min}
 						placeholder={t("filters.priceMinPlaceholder")}
@@ -154,7 +158,7 @@ export function FilterControls({
 					/>
 					<span className="text-muted">–</span>
 					<RangeInput
-						key={`${search.price_max}`}
+						key={`price-max-${search.price_max}`}
 						name={`${idPrefix}-price-max`}
 						value={search.price_max}
 						placeholder={t("filters.priceMaxPlaceholder")}
@@ -190,7 +194,7 @@ export function FilterControls({
 				<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.engineCc")}</p>
 				<div className="flex items-center gap-2">
 					<RangeInput
-						key={`${search.cc_min}`}
+						key={`cc-min-${search.cc_min}`}
 						name={`${idPrefix}-cc-min`}
 						value={search.cc_min}
 						placeholder={t("filters.ccMinPlaceholder")}
@@ -199,7 +203,7 @@ export function FilterControls({
 					/>
 					<span className="text-muted">–</span>
 					<RangeInput
-						key={`${search.cc_max}`}
+						key={`cc-max-${search.cc_max}`}
 						name={`${idPrefix}-cc-max`}
 						value={search.cc_max}
 						placeholder={t("filters.ccMaxPlaceholder")}
@@ -214,7 +218,7 @@ export function FilterControls({
 				<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.yearRange")}</p>
 				<div className="flex items-center gap-2">
 					<RangeInput
-						key={`${search.year_min}`}
+						key={`year-min-${search.year_min}`}
 						name={`${idPrefix}-year-min`}
 						value={search.year_min}
 						placeholder={t("filters.yearMinPlaceholder")}
@@ -223,7 +227,7 @@ export function FilterControls({
 					/>
 					<span className="text-muted">–</span>
 					<RangeInput
-						key={`${search.year_max}`}
+						key={`year-max-${search.year_max}`}
 						name={`${idPrefix}-year-max`}
 						value={search.year_max}
 						placeholder={t("filters.yearMaxPlaceholder")}

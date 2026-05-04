@@ -34,7 +34,7 @@ export function EmptyState({ search }: EmptyStateProps) {
 	function clearAll() {
 		navigate({
 			to: "/ilmoitukset",
-			search: {},
+			search: (prev) => ({ view: prev.view, city: prev.city }),
 			replace: true,
 		});
 	}

@@ -16,7 +16,7 @@ export function FilterSidebar({ search, hasQuery, makes }: FilterSidebarProps) {
 	const { updateFilter, toggleArrayFilter, clearAll } = useFilterActions(search);
 
 	return (
-		<aside className="w-[260px] shrink-0 space-y-6">
+		<aside className="w-full shrink-0 space-y-6">
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<h2 className="font-heading text-sm font-semibold text-foreground">

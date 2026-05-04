@@ -84,6 +84,8 @@ export const browseSearchSchema = z.object({
 	make: z.string().trim().max(100).optional(),
 	sort: z.enum(["newest", "price_asc", "price_desc", "relevance"]).optional(),
 	cursor: z.string().max(200).optional(),
+	view: z.enum(["list", "map"]).optional(),
+	city: z.string().trim().max(100).optional(),
 });
 
 export type BrowseSearchParams = z.infer<typeof browseSearchSchema>;
