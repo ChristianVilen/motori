@@ -151,9 +151,11 @@ test.describe("Listing detail", () => {
 		// On mobile, the booking form is inside a fullscreen modal triggered by a bottom bar button
 		if (testInfo.project.name === "mobile") {
 			await detail.mobileBookButton.click();
+			await expect(detail.bookingDialog).toBeVisible();
+			await expect(detail.bookingDialog.getByTestId("booking-section")).toBeVisible();
+		} else {
+			await expect(detail.bookingSection).toBeVisible();
 		}
-
-		await expect(detail.bookingSection).toBeVisible();
 	});
 
 	test("shows 404 for nonexistent listing", async ({ page }) => {
