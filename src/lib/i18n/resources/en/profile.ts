@@ -74,6 +74,7 @@ export default {
 		submitted:
 			"Review submitted! It will be visible once both parties have reviewed or 14 days have passed.",
 		windowClosed: "The review window has closed.",
+		revealed: "The review window has ended — your review is now visible on the profile.",
 		waitingReveal:
 			"Your review is not visible yet — waiting for the other party's review or the 14-day deadline.",
 		noReviews: "No reviews yet.",

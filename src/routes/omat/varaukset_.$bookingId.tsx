@@ -18,6 +18,7 @@ import { protectedMutation } from "~/lib/middleware";
 import { isReviewEligible } from "~/lib/reviews";
 import {
 	getReviewStatusForBooking,
+	type ReviewStatus,
 	submitReview as submitReviewAction,
 } from "~/lib/reviews.server";
 import { getSession } from "~/lib/session";
@@ -291,7 +292,7 @@ function OwnerActions(props: {
 
 function ReviewSection(props: {
 	bookingId: string;
-	reviewStatus: { userHasReviewed: boolean; counterpartyHasReviewed: boolean; windowOpen: boolean };
+	reviewStatus: ReviewStatus;
 	onRefresh: () => void;
 }) {
 	const { t } = useTranslation("profile");
@@ -302,7 +303,15 @@ function ReviewSection(props: {
 	const submitted = localSubmitted || props.reviewStatus.userHasReviewed;
 	const [error, setError] = useState<string | null>(null);
 
-	if (!props.reviewStatus.windowOpen && !submitted) {
+	if (submitted && !props.reviewStatus.windowOpen) {
+		return (
+			<div className="mt-6 rounded-l border border-border bg-card p-4">
+				<p className="text-sm text-muted">{t("reviews.revealed")}</p>
+			</div>
+		);
+	}
+
+	if (!props.reviewStatus.windowOpen) {
 		return (
 			<div className="mt-6 rounded-l border border-border bg-card p-4">
 				<p className="text-sm text-muted">{t("reviews.windowClosed")}</p>

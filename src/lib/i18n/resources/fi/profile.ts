@@ -74,6 +74,7 @@ export default {
 		submitted:
 			"Arvostelu lähetetty! Näkyy kun molemmat ovat arvostelleet tai 14 päivää on kulunut.",
 		windowClosed: "Arvosteluaika on umpeutunut.",
+		revealed: "Arvosteluaika on päättynyt — arvostelusi on nyt näkyvissä profiilissa.",
 		waitingReveal:
 			"Arvosteluasi ei näytetä vielä — odottaa toisen osapuolen arvostelua tai 14 päivän määräaikaa.",
 		noReviews: "Ei vielä arvosteluja.",

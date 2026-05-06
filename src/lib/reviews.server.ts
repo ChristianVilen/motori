@@ -40,6 +40,7 @@ export async function submitReview(args: {
 		throw new Error("Ei oikeuksia");
 	}
 
+	// toISOString() returns UTC date — both today and end_date are UTC-anchored (YYYY-MM-DD)
 	const today = new Date().toISOString().slice(0, 10);
 	if (booking.end_date >= today) {
 		throw new Error("Vuokra-aika ei ole päättynyt");
@@ -57,7 +58,7 @@ export async function submitReview(args: {
 			reviewer_id: args.userId,
 			target_user_id: targetUserId,
 			rating: args.rating,
-			comment: args.comment?.trim() || null,
+			comment: args.comment || null,
 		})
 		.execute();
 
@@ -85,32 +86,15 @@ export async function getReviewsForUser(targetUserId: string): Promise<ReviewFor
 			"review.created_at",
 			"profile.display_name as reviewer_display_name",
 			sql<string>`to_char(booking.end_date, 'YYYY-MM-DD')`.as("end_date"),
+			sql<number>`count(*) OVER (PARTITION BY review.booking_id)::int`.as("booking_review_count"),
 		])
 		.where("review.target_user_id", "=", targetUserId)
 		.orderBy("review.created_at", "desc")
 		.execute();
 
-	// Filter to only revealed reviews
-	const bookingIds = [...new Set(reviews.map((r) => r.booking_id))];
-	if (bookingIds.length === 0) {
-		return [];
-	}
-
-	const reviewCounts = await db
-		.selectFrom("review")
-		.select(["booking_id", sql<number>`count(*)::int`.as("cnt")])
-		.where("booking_id", "in", bookingIds)
-		.groupBy("booking_id")
-		.execute();
-
-	const countMap = new Map(reviewCounts.map((r) => [r.booking_id, r.cnt]));
-
 	return reviews
-		.filter((r) => {
-			const bothSubmitted = (countMap.get(r.booking_id) ?? 0) >= 2;
-			return isReviewRevealed(bothSubmitted, r.end_date);
-		})
-		.map(({ booking_id: _, end_date: __, ...rest }) => rest);
+		.filter((r) => isReviewRevealed(r.booking_review_count >= 2, r.end_date))
+		.map(({ booking_id: _, end_date: __, booking_review_count: ___, ...rest }) => rest);
 }
 
 export interface ReviewSummary {
@@ -132,7 +116,6 @@ export function computeReviewSummary(reviews: ReviewForDisplay[]): ReviewSummary
 
 export interface ReviewStatus {
 	userHasReviewed: boolean;
-	counterpartyHasReviewed: boolean;
 	windowOpen: boolean;
 }
 
@@ -148,11 +131,9 @@ export async function getReviewStatusForBooking(
 		.execute();
 
 	const userHasReviewed = reviews.some((r) => r.reviewer_id === userId);
-	const counterpartyHasReviewed = reviews.some((r) => r.reviewer_id !== userId);
 
 	return {
 		userHasReviewed,
-		counterpartyHasReviewed,
 		windowOpen: isReviewWindowOpen(endDate),
 	};
 }
