@@ -34,6 +34,9 @@ export const EVENTS = {
 		expired: "booking.expired",
 		auto_rejected_overlap: "booking.auto_rejected_overlap",
 	},
+	review: {
+		submitted: "review.submitted",
+	},
 } as const;
 
 export type EventName =
@@ -43,4 +46,5 @@ export type EventName =
 	| (typeof EVENTS.image)[keyof typeof EVENTS.image]
 	| (typeof EVENTS.email)[keyof typeof EVENTS.email]
 	| (typeof EVENTS.notification)[keyof typeof EVENTS.notification]
-	| (typeof EVENTS.booking)[keyof typeof EVENTS.booking];
+	| (typeof EVENTS.booking)[keyof typeof EVENTS.booking]
+	| (typeof EVENTS.review)[keyof typeof EVENTS.review];

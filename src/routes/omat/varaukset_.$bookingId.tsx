@@ -15,8 +15,13 @@ import type { BookingStatus } from "~/lib/db/schema";
 import { AppError } from "~/lib/errors";
 import { useTranslation } from "~/lib/i18n";
 import { protectedMutation } from "~/lib/middleware";
+import { isReviewEligible } from "~/lib/reviews";
+import {
+	getReviewStatusForBooking,
+	submitReview as submitReviewAction,
+} from "~/lib/reviews.server";
 import { getSession } from "~/lib/session";
-import { bookingIdSchema, bookingRejectSchema } from "~/lib/validators";
+import { bookingIdSchema, bookingRejectSchema, submitReviewSchema } from "~/lib/validators";
 
 const getBooking = createServerFn({ method: "GET" })
 	.inputValidator((shortId: string) => shortId)
@@ -79,6 +84,11 @@ const getBooking = createServerFn({ method: "GET" })
 				? { name: row.owner_name, email: row.owner_email, phone: ownerPhone }
 				: null;
 
+		const eligible = isReviewEligible(row.status as BookingStatus, row.end_date);
+		const reviewStatus = eligible
+			? await getReviewStatusForBooking(row.id, session.user.id, row.end_date)
+			: null;
+
 		return {
 			booking: {
 				id: row.id,
@@ -95,6 +105,7 @@ const getBooking = createServerFn({ method: "GET" })
 			role: isOwner ? ("owner" as const) : ("renter" as const),
 			renterContact,
 			ownerContact,
+			reviewStatus,
 		};
 	});
 
@@ -136,6 +147,23 @@ const cancelBooking = createServerFn({ method: "POST" })
 		}
 
 		await cancelBookingAction({ bookingId: data.id, userId: session.user.id });
+	});
+
+const submitReview = createServerFn({ method: "POST" })
+	.middleware(protectedMutation("submit-review", 10, 60))
+	.inputValidator((data: unknown) => submitReviewSchema.parse(data))
+	.handler(async ({ data }) => {
+		const session = await getSession();
+		if (!session) {
+			throw new Error("Kirjaudu sisään");
+		}
+
+		await submitReviewAction({
+			bookingId: data.booking_id,
+			userId: session.user.id,
+			rating: data.rating,
+			comment: data.comment,
+		});
 	});
 
 export const Route = createFileRoute("/omat/varaukset_/$bookingId")({
@@ -261,8 +289,98 @@ function OwnerActions(props: {
 	);
 }
 
+function ReviewSection(props: {
+	bookingId: string;
+	reviewStatus: { userHasReviewed: boolean; counterpartyHasReviewed: boolean; windowOpen: boolean };
+	onRefresh: () => void;
+}) {
+	const { t } = useTranslation("profile");
+	const [rating, setRating] = useState(0);
+	const [comment, setComment] = useState("");
+	const [busy, setBusy] = useState(false);
+	const [submitted, setSubmitted] = useState(props.reviewStatus.userHasReviewed);
+	const [error, setError] = useState<string | null>(null);
+
+	if (!props.reviewStatus.windowOpen && !submitted) {
+		return (
+			<div className="mt-6 rounded-l border border-border bg-card p-4">
+				<p className="text-sm text-muted">{t("reviews.windowClosed")}</p>
+			</div>
+		);
+	}
+
+	if (submitted) {
+		return (
+			<div className="mt-6 rounded-l border border-border bg-card p-4">
+				<p className="text-sm text-muted">{t("reviews.waitingReveal")}</p>
+			</div>
+		);
+	}
+
+	async function handleSubmit(e: React.FormEvent) {
+		e.preventDefault();
+		if (rating === 0) {
+			return;
+		}
+		setBusy(true);
+		setError(null);
+		try {
+			await submitReview({
+				data: { booking_id: props.bookingId, rating, comment: comment.trim() || undefined },
+			});
+			setSubmitted(true);
+			props.onRefresh();
+		} catch (err) {
+			setError(err instanceof Error ? err.message : t("reviews.submitError"));
+		} finally {
+			setBusy(false);
+		}
+	}
+
+	return (
+		<div data-testid="review-section" className="mt-6 rounded-l border border-border bg-card p-4">
+			<h3 className="mb-3 font-semibold">{t("reviews.submitHeading")}</h3>
+			<form onSubmit={handleSubmit} data-testid="review-form">
+				<fieldset className="mb-3">
+					<legend className="mb-1 block text-sm text-muted">{t("reviews.ratingLabel")}</legend>
+					<div className="flex gap-1">
+						{[1, 2, 3, 4, 5].map((star) => (
+							<button
+								key={star}
+								type="button"
+								onClick={() => setRating(star)}
+								className={`text-2xl ${star <= rating ? "text-yellow-500" : "text-gray-300"}`}
+								aria-label={`${star} / 5`}
+							>
+								★
+							</button>
+						))}
+					</div>
+				</fieldset>
+				<div className="mb-3">
+					<label htmlFor="review-comment" className="mb-1 block text-sm text-muted">
+						{t("reviews.commentLabel")}
+					</label>
+					<Textarea
+						id="review-comment"
+						value={comment}
+						onChange={(e) => setComment(e.target.value)}
+						placeholder={t("reviews.commentPlaceholder")}
+						maxLength={1000}
+						rows={3}
+					/>
+				</div>
+				<Button type="submit" disabled={busy || rating === 0} data-testid="review-submit">
+					{busy ? t("reviews.submitting") : t("reviews.submitButton")}
+				</Button>
+				{!!error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+			</form>
+		</div>
+	);
+}
+
 function BookingDetailPage() {
-	const { booking, role, renterContact, ownerContact } = Route.useLoaderData();
+	const { booking, role, renterContact, ownerContact, reviewStatus } = Route.useLoaderData();
 	const router = useRouter();
 	const { t } = useTranslation("profile");
 	const [busy, setBusy] = useState(false);
@@ -355,6 +473,14 @@ function BookingDetailPage() {
 						{t("bookings.detail.cancelButton")}
 					</Button>
 				</div>
+			) : null}
+
+			{reviewStatus ? (
+				<ReviewSection
+					bookingId={booking.id}
+					reviewStatus={reviewStatus}
+					onRefresh={() => router.invalidate()}
+				/>
 			) : null}
 		</div>
 	);

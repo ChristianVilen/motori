@@ -160,3 +160,9 @@ export const availabilityUpdateSchema = z.object({
 });
 
 export type AvailabilityUpdateInput = z.infer<typeof availabilityUpdateSchema>;
+
+export const submitReviewSchema = z.object({
+	booking_id: z.string().uuid(),
+	rating: z.number().int().min(1).max(5),
+	comment: z.string().trim().max(1000).optional(),
+});
