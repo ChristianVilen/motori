@@ -1,28 +1,35 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
-import { TEST_PASSWORD } from "../global-setup";
+import { BASE_URL, TEST_PASSWORD } from "../global-setup";
 import { uniqueEmail, uniqueName, waitForHydration } from "../helpers";
-import { RegisterPage } from "../pages/register.page";
 
 test.describe("Unverified user flow", () => {
 	test.describe.configure({ mode: "serial" });
 
 	let page: Page;
-	const email = uniqueEmail();
 
 	test.beforeAll(async ({ browser }) => {
-		page = await browser.newPage();
+		// Register via API — user stays unverified (emailVerified=false)
+		const email = uniqueEmail();
+		const ctx = await browser.newContext();
+		const signUp = await ctx.request.post(`${BASE_URL}/api/auth/sign-up/email`, {
+			data: { name: uniqueName(), email, password: TEST_PASSWORD },
+			headers: { Origin: BASE_URL },
+		});
+		if (!signUp.ok()) {
+			throw new Error(`Unverified setup: sign-up failed: ${await signUp.text()}`);
+		}
+		const signIn = await ctx.request.post(`${BASE_URL}/api/auth/sign-in/email`, {
+			data: { email, password: TEST_PASSWORD },
+			headers: { Origin: BASE_URL },
+		});
+		if (!signIn.ok()) {
+			throw new Error(`Unverified setup: sign-in failed: ${await signIn.text()}`);
+		}
+		page = await ctx.newPage();
 	});
 	test.afterAll(async () => {
 		await page.close();
-	});
-
-	test("register creates an unverified account", async () => {
-		const register = new RegisterPage(page);
-		await register.goto();
-		await register.register(uniqueName(), email, TEST_PASSWORD);
-		await page.waitForURL(/\/taydenna-profiili/, { timeout: 10000 });
-		await waitForHydration(page);
 	});
 
 	test("nav add-listing link is disabled for unverified user", async () => {

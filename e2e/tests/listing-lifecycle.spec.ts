@@ -1,11 +1,11 @@
 import type { Page } from "@playwright/test";
-import { expect, test } from "@playwright/test";
-import { uniqueEmail, uniqueName, waitForHydration } from "../helpers";
+import { expect, test } from "../fixtures";
+import { LIFECYCLE_AUTH_STATE_PATH } from "../global-setup";
+import { waitForHydration } from "../helpers";
 import { DashboardPage } from "../pages/dashboard.page";
 import { ListingDetailPage } from "../pages/listing-detail.page";
 import { ListingFormPage } from "../pages/listing-form.page";
 import { ListingsPage } from "../pages/listings.page";
-import { RegisterPage } from "../pages/register.page";
 
 const LISTING_TITLE = "E2E Lifecycle Yamaha MT-07 2021";
 const LISTING_TITLE_EDITED = "E2E Lifecycle Yamaha MT-07 2021 – muokattu";
@@ -15,35 +15,13 @@ test.describe("Listing lifecycle", () => {
 
 	let page: Page;
 	let listingId: string;
-	const email = uniqueEmail();
-	const password = "Password123!";
 
 	test.beforeAll(async ({ browser }) => {
-		page = await browser.newPage();
+		const ctx = await browser.newContext({ storageState: LIFECYCLE_AUTH_STATE_PATH });
+		page = await ctx.newPage();
 	});
 	test.afterAll(async () => {
 		await page.close();
-	});
-
-	test("register and verify account", async () => {
-		const register = new RegisterPage(page);
-		await register.goto();
-		await register.register(uniqueName(), email, password);
-		await page.waitForURL(/\/taydenna-profiili/, { timeout: 10000 });
-		await waitForHydration(page);
-
-		// DISABLE_EMAIL_VERIFICATION=true allows sign-in but does not set emailVerified.
-		// Flip the flag directly so the user can create listings.
-		const { db } = await import("../../src/lib/db/index");
-		await db
-			.updateTable("user")
-			.set({ emailVerified: true, updatedAt: new Date() })
-			.where("email", "=", email)
-			.execute();
-
-		// Reload so the server session re-reads emailVerified from DB.
-		await page.reload();
-		await waitForHydration(page);
 	});
 
 	test("create listing and assert detail page", async () => {

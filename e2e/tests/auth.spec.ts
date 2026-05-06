@@ -4,6 +4,7 @@ import { uniqueEmail, uniqueName, waitForHydration } from "../helpers";
 import { HomePage } from "../pages/home.page";
 import { LoginPage } from "../pages/login.page";
 import { RegisterPage } from "../pages/register.page";
+import { SettingsPage } from "../pages/settings.page";
 
 test.describe("Auth flow", () => {
 	test.describe.configure({ mode: "serial" });
@@ -88,6 +89,46 @@ test.describe("Auth flow", () => {
 		await modalLogin.login(email, password);
 		await expect(home.loginModal).not.toBeVisible({ timeout: 10000 });
 		await expect(home.navDashboardLink).toBeVisible();
+	});
+
+	// Delete account — continues the serial chain with the same user
+	test("settings delete dialog opens and submit is disabled", async () => {
+		const settings = new SettingsPage(page);
+		await settings.goto();
+		await settings.deleteTrigger.click();
+		await expect(settings.confirmInput).toBeVisible();
+		await expect(settings.deleteSubmit).toBeDisabled();
+	});
+
+	test("delete submit stays disabled until POISTA is typed", async () => {
+		const settings = new SettingsPage(page);
+		await settings.confirmInput.fill("wrong");
+		await expect(settings.deleteSubmit).toBeDisabled();
+		await settings.confirmInput.fill("POISTA");
+		await expect(settings.deleteSubmit).toBeEnabled();
+	});
+
+	test("delete cancel hides the confirmation form", async () => {
+		const settings = new SettingsPage(page);
+		await settings.deleteCancel.click();
+		await expect(settings.confirmInput).not.toBeVisible();
+		await expect(settings.deleteTrigger).toBeVisible();
+	});
+
+	test("confirming account deletion redirects to homepage", async () => {
+		const settings = new SettingsPage(page);
+		await settings.deleteTrigger.click();
+		await settings.confirmInput.fill("POISTA");
+		await settings.deleteSubmit.click();
+		await expect(page).toHaveURL("/", { timeout: 10000 });
+		await waitForHydration(page);
+	});
+
+	test("deleted account cannot log in", async () => {
+		const login = new LoginPage(page);
+		await login.goto();
+		await login.login(email, password);
+		await expect(login.errorMessage).toBeVisible();
 	});
 });
 
