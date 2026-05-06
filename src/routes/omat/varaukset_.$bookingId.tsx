@@ -154,10 +154,13 @@ const submitReview = createServerFn({ method: "POST" })
 	.inputValidator((data: unknown) => submitReviewSchema.parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();
+		if (!session) {
+			throw new Error("Kirjaudu sisään");
+		}
 
 		await submitReviewAction({
 			bookingId: data.booking_id,
-			userId: session?.user.id,
+			userId: session.user.id,
 			rating: data.rating,
 			comment: data.comment,
 		});
