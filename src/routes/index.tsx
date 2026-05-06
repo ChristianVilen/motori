@@ -54,7 +54,7 @@ function HomePage() {
 					className="absolute inset-0 h-full w-full object-cover lg:left-1/2 lg:w-1/2"
 				/>
 				{/* Mobile darken */}
-				<div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/60 to-primary/80 lg:hidden" />
+				<div className="absolute inset-0 bg-gradient-to-b from-primary/90 via-primary/75 to-primary/90 lg:hidden" />
 				{/* Desktop left-edge fade */}
 				<div className="absolute inset-y-0 left-1/2 hidden w-32 bg-gradient-to-r from-primary to-transparent lg:block" />
 
@@ -68,7 +68,7 @@ function HomePage() {
 									<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
 									<span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
 								</span>
-								<span className="text-sm text-white/80">{t("hero.seasonTag")}</span>
+								<span className="text-sm text-white/90">{t("hero.seasonTag")}</span>
 							</div>
 						)}
 
@@ -79,7 +79,7 @@ function HomePage() {
 							{t("hero.heading")} <span className="text-accent">{t("hero.headingAccent")}</span>
 						</h1>
 
-						<p className="mt-4 max-w-md text-lg text-white/70">{t("hero.subheading")}</p>
+						<p className="mt-4 max-w-md text-lg text-white/80">{t("hero.subheading")}</p>
 
 						{/* Search bar */}
 						<form
@@ -92,7 +92,7 @@ function HomePage() {
 								name="q"
 								type="text"
 								placeholder={t("hero.searchPlaceholder")}
-								className="h-10 flex-1 rounded-lg bg-transparent px-4 text-white placeholder:text-white/50 focus:outline-none"
+								className="h-10 flex-1 rounded-lg bg-transparent px-4 text-white placeholder:text-white/60 focus:outline-none"
 							/>
 							<button
 								data-testid="home-search-submit"
@@ -148,13 +148,13 @@ function HomePage() {
 						<div className="mt-10 flex gap-8">
 							<div>
 								<p className="font-heading text-2xl font-bold text-accent">{stats.totalListings}</p>
-								<p className="text-xs tracking-wide text-white/70 uppercase">
+								<p className="text-xs tracking-wide text-white/80 uppercase">
 									{t("hero.statsListings")}
 								</p>
 							</div>
 							<div>
 								<p className="font-heading text-2xl font-bold text-accent">{stats.regionCount}</p>
-								<p className="text-xs tracking-wide text-white/70 uppercase">
+								<p className="text-xs tracking-wide text-white/80 uppercase">
 									{t("hero.statsRegions")}
 								</p>
 							</div>
@@ -163,7 +163,7 @@ function HomePage() {
 									<p className="font-heading text-2xl font-bold text-accent">
 										{stats.minPricePerDay} €
 									</p>
-									<p className="text-xs tracking-wide text-white/70 uppercase">
+									<p className="text-xs tracking-wide text-white/80 uppercase">
 										{t("hero.statsPrice")}
 									</p>
 								</div>

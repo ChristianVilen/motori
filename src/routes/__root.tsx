@@ -49,13 +49,7 @@ export const Route = createRootRoute({
 			},
 			{
 				name: "theme-color",
-				content: "#fafaf9",
-				media: "(prefers-color-scheme: light)",
-			},
-			{
-				name: "theme-color",
 				content: "#1a1a2e",
-				media: "(prefers-color-scheme: dark)",
 			},
 			{ property: "og:type", content: "website" },
 			{ property: "og:site_name", content: SITE_NAME },
