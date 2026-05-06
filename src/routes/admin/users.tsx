@@ -5,7 +5,7 @@ import { ShieldBan, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { requireAdmin } from "~/lib/admin";
 import { auth } from "~/lib/auth";
-import { csrfMiddleware } from "~/lib/csrf";
+import { csrfOnly } from "~/lib/middleware";
 
 const PAGE_SIZE = 25;
 
@@ -44,7 +44,7 @@ const getAdminUsers = createServerFn({ method: "GET" })
 	});
 
 const banUser = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware()])
+	.middleware(csrfOnly())
 	.inputValidator((input: { userId: string; reason?: string }) => input)
 	.handler(async ({ data }) => {
 		const request = getRequest();
@@ -56,7 +56,7 @@ const banUser = createServerFn({ method: "POST" })
 	});
 
 const unbanUser = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware()])
+	.middleware(csrfOnly())
 	.inputValidator((input: { userId: string }) => input)
 	.handler(async ({ data }) => {
 		const request = getRequest();

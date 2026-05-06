@@ -5,9 +5,9 @@ import { sql } from "kysely";
 import { Pause, Play, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { requireAdmin } from "~/lib/admin";
-import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import type { Database } from "~/lib/db/schema";
+import { csrfOnly } from "~/lib/middleware";
 
 const PAGE_SIZE = 25;
 const MAX_BULK_IDS = 100;
@@ -80,7 +80,7 @@ const getAdminListings = createServerFn({ method: "GET" })
 	});
 
 const updateListingStatuses = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware()])
+	.middleware(csrfOnly())
 	.inputValidator((input: { ids: string[]; status: ListingStatus }) => {
 		if (!VALID_STATUSES.includes(input.status)) {
 			throw new Error("Invalid status");

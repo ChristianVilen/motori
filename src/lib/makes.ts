@@ -1,16 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
-import { rateLimitMiddleware } from "~/lib/rate-limit";
-import { requireVerifiedEmail } from "~/lib/require-verified-email";
-
-export function toSlug(name: string): string {
-	return name
-		.toLowerCase()
-		.trim()
-		.replace(/\s+/g, "-")
-		.replace(/[^a-z0-9-]/g, "");
-}
+import { protectedMutation } from "~/lib/middleware";
+import { slugify } from "~/lib/slug";
 
 type MakeRow = { id: string; name: string; slug: string };
 let makesCache: { data: MakeRow[]; expiresAt: number } | null = null;
@@ -49,11 +40,7 @@ export const getModels = createServerFn({ method: "GET" })
 const MAX_NAME_LENGTH = 100;
 
 export const createMake = createServerFn({ method: "POST" })
-	.middleware([
-		csrfMiddleware(),
-		rateLimitMiddleware(10, 60, "create-make"),
-		requireVerifiedEmail(),
-	])
+	.middleware(protectedMutation("create-make", 10, 60))
 	.inputValidator((name: string) => name)
 	.handler(async ({ data: name }) => {
 		const trimmedName = name.trim();
@@ -62,7 +49,7 @@ export const createMake = createServerFn({ method: "POST" })
 		}
 		const result = await db
 			.insertInto("motorcycle_make")
-			.values({ id: crypto.randomUUID(), name: trimmedName, slug: toSlug(trimmedName) })
+			.values({ id: crypto.randomUUID(), name: trimmedName, slug: slugify(trimmedName) })
 			.returningAll()
 			.executeTakeFirstOrThrow();
 		makesCache = null;
@@ -70,11 +57,7 @@ export const createMake = createServerFn({ method: "POST" })
 	});
 
 export const createModel = createServerFn({ method: "POST" })
-	.middleware([
-		csrfMiddleware(),
-		rateLimitMiddleware(10, 60, "create-model"),
-		requireVerifiedEmail(),
-	])
+	.middleware(protectedMutation("create-model", 10, 60))
 	.inputValidator((data: { makeId: string; name: string }) => data)
 	.handler(async ({ data }) => {
 		const trimmedName = data.name.trim();

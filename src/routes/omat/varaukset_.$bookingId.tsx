@@ -5,19 +5,15 @@ import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
 import {
-	sendBookingAutoRejectedEmail,
-	sendBookingConfirmedEmail,
-	sendBookingRejectedEmail,
-} from "~/lib/booking-emails";
+	cancelBooking as cancelBookingAction,
+	confirmBooking as confirmBookingAction,
+	rejectBooking as rejectBookingAction,
+} from "~/lib/bookings.server";
 import { SITE_NAME } from "~/lib/constants";
-import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import type { BookingStatus } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
-import { log } from "~/lib/log";
-import { EVENTS } from "~/lib/log/events";
-import { rateLimitMiddleware } from "~/lib/rate-limit";
-import { requireVerifiedEmail } from "~/lib/require-verified-email";
+import { protectedMutation } from "~/lib/middleware";
 import { getSession } from "~/lib/session";
 import { bookingIdSchema, bookingRejectSchema } from "~/lib/validators";
 
@@ -102,11 +98,7 @@ const getBooking = createServerFn({ method: "GET" })
 	});
 
 const confirmBooking = createServerFn({ method: "POST" })
-	.middleware([
-		csrfMiddleware(),
-		rateLimitMiddleware(10, 60, "confirm-booking"),
-		requireVerifiedEmail(),
-	])
+	.middleware(protectedMutation("confirm-booking", 10, 60))
 	.inputValidator((data: unknown) => bookingIdSchema.parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();
@@ -114,134 +106,11 @@ const confirmBooking = createServerFn({ method: "POST" })
 			throw new Error("Kirjaudu sisään");
 		}
 
-		const result = await db.transaction().execute(async (trx) => {
-			const booking = await trx
-				.selectFrom("booking")
-				.innerJoin("listing", "listing.id", "booking.listing_id")
-				.innerJoin("user as renter_user", "renter_user.id", "booking.renter_user_id")
-				.innerJoin("profile as renter_profile", "renter_profile.user_id", "booking.renter_user_id")
-				.innerJoin("user as owner_user", "owner_user.id", "listing.owner_id")
-				.innerJoin("profile as owner_profile", "owner_profile.user_id", "listing.owner_id")
-				.select([
-					"booking.id",
-					"booking.short_id",
-					"booking.status",
-					"booking.listing_id",
-					sql<string>`to_char(booking.start_date, 'YYYY-MM-DD')`.as("start_date"),
-					sql<string>`to_char(booking.end_date, 'YYYY-MM-DD')`.as("end_date"),
-					"listing.title as listing_title",
-					"listing.owner_id",
-					"renter_user.email as renter_email",
-					"renter_profile.display_name as renter_name",
-					"renter_profile.language as renter_language",
-					"owner_user.email as owner_email",
-					"owner_profile.display_name as owner_name",
-					"owner_profile.phone as owner_phone",
-					"owner_profile.show_phone as owner_show_phone",
-					"owner_profile.language as owner_language",
-				])
-				.where("booking.id", "=", data.id)
-				.executeTakeFirst();
-
-			if (!booking) {
-				throw new Error("Varaus ei löytynyt");
-			}
-			if (booking.owner_id !== session.user.id) {
-				throw new Error("Ei oikeuksia");
-			}
-			if (booking.status !== "pending") {
-				throw new Error("Varaus ei ole odottamassa");
-			}
-
-			await trx
-				.updateTable("booking")
-				.set({ status: "confirmed", responded_at: new Date(), updated_at: new Date() })
-				.where("id", "=", booking.id)
-				.execute();
-
-			const overlaps = await trx
-				.selectFrom("booking")
-				.innerJoin("user", "user.id", "booking.renter_user_id")
-				.innerJoin("profile", "profile.user_id", "booking.renter_user_id")
-				.select([
-					"booking.id",
-					"booking.short_id",
-					sql<string>`to_char(booking.start_date, 'YYYY-MM-DD')`.as("start_date"),
-					sql<string>`to_char(booking.end_date, 'YYYY-MM-DD')`.as("end_date"),
-					"user.email",
-					"profile.display_name",
-					"profile.language",
-				])
-				.where("booking.listing_id", "=", booking.listing_id)
-				.where("booking.id", "!=", booking.id)
-				.where("booking.status", "=", "pending")
-				.where("booking.start_date", "<=", booking.end_date)
-				.where("booking.end_date", ">=", booking.start_date)
-				.execute();
-
-			if (overlaps.length > 0) {
-				await trx
-					.updateTable("booking")
-					.set({ status: "rejected", responded_at: new Date(), updated_at: new Date() })
-					.where(
-						"id",
-						"in",
-						overlaps.map((o) => o.id),
-					)
-					.execute();
-			}
-
-			return { booking, overlaps };
-		});
-
-		log.event(EVENTS.booking.confirmed, { bookingId: result.booking.id });
-
-		void sendBookingConfirmedEmail({
-			booking: {
-				short_id: result.booking.short_id,
-				listing_title: result.booking.listing_title,
-				start_date: result.booking.start_date,
-				end_date: result.booking.end_date,
-			},
-			renter: {
-				display_name: result.booking.renter_name,
-				email: result.booking.renter_email,
-				phone: null,
-				language: result.booking.renter_language,
-			},
-			owner: {
-				display_name: result.booking.owner_name,
-				email: result.booking.owner_email,
-				phone: result.booking.owner_show_phone ? result.booking.owner_phone : null,
-				language: result.booking.owner_language,
-			},
-		});
-
-		for (const o of result.overlaps) {
-			log.event(EVENTS.booking.auto_rejected_overlap, {
-				bookingId: o.id,
-				confirmedBookingId: result.booking.id,
-			});
-			void sendBookingAutoRejectedEmail({
-				booking: {
-					short_id: o.short_id,
-					listing_title: result.booking.listing_title,
-					start_date: o.start_date,
-					end_date: o.end_date,
-				},
-				renter: { display_name: o.display_name, email: o.email, phone: null, language: o.language },
-			});
-		}
-
-		return { autoRejectedCount: result.overlaps.length };
+		return confirmBookingAction({ bookingId: data.id, userId: session.user.id });
 	});
 
 const rejectBooking = createServerFn({ method: "POST" })
-	.middleware([
-		csrfMiddleware(),
-		rateLimitMiddleware(10, 60, "reject-booking"),
-		requireVerifiedEmail(),
-	])
+	.middleware(protectedMutation("reject-booking", 10, 60))
 	.inputValidator((data: unknown) => bookingRejectSchema.parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();
@@ -249,72 +118,15 @@ const rejectBooking = createServerFn({ method: "POST" })
 			throw new Error("Kirjaudu sisään");
 		}
 
-		const booking = await db
-			.selectFrom("booking")
-			.innerJoin("listing", "listing.id", "booking.listing_id")
-			.innerJoin("user", "user.id", "booking.renter_user_id")
-			.innerJoin("profile", "profile.user_id", "booking.renter_user_id")
-			.select([
-				"booking.id",
-				"booking.short_id",
-				"booking.status",
-				sql<string>`to_char(booking.start_date, 'YYYY-MM-DD')`.as("start_date"),
-				sql<string>`to_char(booking.end_date, 'YYYY-MM-DD')`.as("end_date"),
-				"listing.title as listing_title",
-				"listing.owner_id",
-				"user.email as renter_email",
-				"profile.display_name as renter_name",
-				"profile.language as renter_language",
-			])
-			.where("booking.id", "=", data.id)
-			.executeTakeFirst();
-
-		if (!booking) {
-			throw new Error("Varaus ei löytynyt");
-		}
-		if (booking.owner_id !== session.user.id) {
-			throw new Error("Ei oikeuksia");
-		}
-		if (booking.status !== "pending") {
-			throw new Error("Varaus ei ole odottamassa");
-		}
-
-		await db
-			.updateTable("booking")
-			.set({
-				status: "rejected",
-				rejection_reason: data.reason ?? null,
-				responded_at: new Date(),
-				updated_at: new Date(),
-			})
-			.where("id", "=", booking.id)
-			.execute();
-
-		log.event(EVENTS.booking.rejected, { bookingId: booking.id });
-
-		void sendBookingRejectedEmail({
-			booking: {
-				short_id: booking.short_id,
-				listing_title: booking.listing_title,
-				start_date: booking.start_date,
-				end_date: booking.end_date,
-			},
-			renter: {
-				display_name: booking.renter_name,
-				email: booking.renter_email,
-				phone: null,
-				language: booking.renter_language,
-			},
-			reason: data.reason ?? null,
+		await rejectBookingAction({
+			bookingId: data.id,
+			userId: session.user.id,
+			reason: data.reason,
 		});
 	});
 
 const cancelBooking = createServerFn({ method: "POST" })
-	.middleware([
-		csrfMiddleware(),
-		rateLimitMiddleware(10, 60, "cancel-booking"),
-		requireVerifiedEmail(),
-	])
+	.middleware(protectedMutation("cancel-booking", 10, 60))
 	.inputValidator((data: unknown) => bookingIdSchema.parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();
@@ -322,29 +134,7 @@ const cancelBooking = createServerFn({ method: "POST" })
 			throw new Error("Kirjaudu sisään");
 		}
 
-		const booking = await db
-			.selectFrom("booking")
-			.select(["id", "renter_user_id", "status"])
-			.where("id", "=", data.id)
-			.executeTakeFirst();
-
-		if (!booking) {
-			throw new Error("Varaus ei löytynyt");
-		}
-		if (booking.renter_user_id !== session.user.id) {
-			throw new Error("Ei oikeuksia");
-		}
-		if (booking.status !== "pending") {
-			throw new Error("Varaus ei ole odottamassa");
-		}
-
-		await db
-			.updateTable("booking")
-			.set({ status: "cancelled", updated_at: new Date() })
-			.where("id", "=", booking.id)
-			.execute();
-
-		log.event(EVENTS.booking.cancelled, { bookingId: booking.id });
+		await cancelBookingAction({ bookingId: data.id, userId: session.user.id });
 	});
 
 export const Route = createFileRoute("/omat/varaukset_/$bookingId")({

@@ -1,20 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { toSlug } from "./makes";
+import { slugify } from "./slug";
 
-describe("toSlug", () => {
+describe("slugify (make names)", () => {
 	it("lowercases and replaces spaces with hyphens", () => {
-		expect(toSlug("Moto Guzzi")).toBe("moto-guzzi");
+		expect(slugify("Moto Guzzi")).toBe("moto-guzzi");
 	});
 	it("preserves existing hyphens", () => {
-		expect(toSlug("Harley-Davidson")).toBe("harley-davidson");
+		expect(slugify("Harley-Davidson")).toBe("harley-davidson");
 	});
 	it("trims whitespace", () => {
-		expect(toSlug("  Honda  ")).toBe("honda");
+		expect(slugify("  Honda  ")).toBe("honda");
 	});
-	it("collapses multiple spaces to a single hyphen", () => {
-		expect(toSlug("Royal  Enfield")).toBe("royal-enfield");
+	it("collapses multiple non-alphanumeric chars to a single hyphen", () => {
+		expect(slugify("Royal  Enfield")).toBe("royal-enfield");
 	});
-	it("strips non-alphanumeric characters except hyphens", () => {
-		expect(toSlug("Can/Am")).toBe("canam");
+	it("handles Finnish characters (ä, ö)", () => {
+		expect(slugify("Öhlins")).toBe("ohlins");
+		expect(slugify("Pähkinä")).toBe("pahkina");
 	});
 });

@@ -7,15 +7,14 @@ import { useState } from "react";
 import { AvailabilityCalendar } from "~/components/listings/availability-calendar";
 import { ListingForm } from "~/components/listings/listing-form";
 import { Button } from "~/components/ui/button";
-import { csrfMiddleware } from "~/lib/csrf";
 import { centsToEuros } from "~/lib/currency";
 import { db } from "~/lib/db/index";
 import { useTranslation } from "~/lib/i18n";
-import { getListingAvailability, getListingForEdit, updateListing } from "~/lib/listings";
+import { updateListing } from "~/lib/listings-commands";
+import { getListingAvailability, getListingForEdit } from "~/lib/listings-queries";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
-import { rateLimitMiddleware } from "~/lib/rate-limit";
-import { requireVerifiedEmail } from "~/lib/require-verified-email";
+import { protectedMutation } from "~/lib/middleware";
 import { getSession } from "~/lib/session";
 import { computeListingSlug } from "~/lib/slug";
 import type { ListingFormData } from "~/lib/validators";
@@ -43,11 +42,7 @@ const getListingForEditFn = createServerFn({ method: "GET" })
 	});
 
 const updateListingFn = createServerFn({ method: "POST" })
-	.middleware([
-		csrfMiddleware(),
-		rateLimitMiddleware(5, 60, "update-listing"),
-		requireVerifiedEmail(),
-	])
+	.middleware(protectedMutation("update-listing", 5, 60))
 	.inputValidator((data: { id: string; form: ListingFormData }) => ({
 		id: data.id,
 		form: listingFormSchema().parse(data.form),
@@ -71,11 +66,7 @@ const updateListingFn = createServerFn({ method: "POST" })
 	});
 
 const updateAvailability = createServerFn({ method: "POST" })
-	.middleware([
-		csrfMiddleware(),
-		rateLimitMiddleware(20, 60, "update-availability"),
-		requireVerifiedEmail(),
-	])
+	.middleware(protectedMutation("update-availability", 20, 60))
 	.inputValidator((data: unknown) => availabilityUpdateSchema.parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();

@@ -3,7 +3,7 @@ import { BookingCalendar } from "~/components/listings/booking-calendar";
 import { BookingPricing } from "~/components/listings/booking-pricing";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
-import { type BookingCost, computeBookingCost } from "~/lib/booking-cost";
+import { type BookingCost, computeBookingCost } from "~/lib/bookings";
 import { fromIso } from "~/lib/calendar-helpers";
 import { useTranslation } from "~/lib/i18n";
 

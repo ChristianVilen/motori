@@ -10,7 +10,7 @@ import { ListingCard } from "~/components/listings/listing-card";
 import { ListingCardSkeleton } from "~/components/listings/listing-card-skeleton";
 import { REGIONS, SITE_NAME, SITE_URL } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
-import { type SearchResult, searchListings } from "~/lib/listings";
+import { type SearchResult, searchListings } from "~/lib/listings-queries";
 import { getMakes } from "~/lib/makes";
 import { getSession } from "~/lib/session";
 import { type BrowseSearchParams, browseSearchSchema, countActiveFilters } from "~/lib/validators";

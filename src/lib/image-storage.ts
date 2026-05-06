@@ -122,3 +122,35 @@ export function getImageStorage(): ImageStorage {
 	_storage = process.env.STORAGE_ENDPOINT ? new HetznerStorage() : new LocalStorage();
 	return _storage;
 }
+
+// ── Image optimization + upload ────────────────────────────────────────────
+
+const TARGET_WIDTH = 1600;
+const THUMB_WIDTH = 400;
+
+export async function optimizeAndUpload(
+	raw: Buffer,
+	key: string,
+	thumbKey: string,
+): Promise<{ url: string; thumbnailUrl: string; optimizedSize: number }> {
+	const { default: sharp } = await import("sharp");
+
+	const [optimized, thumbnail] = await Promise.all([
+		sharp(raw)
+			.resize(TARGET_WIDTH, undefined, { withoutEnlargement: true })
+			.webp({ quality: 80 })
+			.toBuffer(),
+		sharp(raw)
+			.resize(THUMB_WIDTH, undefined, { withoutEnlargement: true })
+			.webp({ quality: 70 })
+			.toBuffer(),
+	]);
+
+	const storage = getImageStorage();
+	const [url, thumbnailUrl] = await Promise.all([
+		storage.upload(optimized, key, "image/webp"),
+		storage.upload(thumbnail, thumbKey, "image/webp"),
+	]);
+
+	return { url, thumbnailUrl, optimizedSize: optimized.length };
+}

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeBookingCost } from "~/lib/booking-cost";
-import { expandDateRange } from "./bookings";
+import { computeBookingCost, expandDateRange } from "./bookings";
 
 describe("expandDateRange", () => {
 	it("expands a single-day range to one date", () => {

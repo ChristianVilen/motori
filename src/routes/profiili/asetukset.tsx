@@ -7,11 +7,11 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { authClient } from "~/lib/auth-client";
 import { LICENSE_CLASSES, type LicenseClass, SITE_NAME } from "~/lib/constants";
-import { csrfMiddleware } from "~/lib/csrf";
 import { exportMyData } from "~/lib/data-export";
 import { db } from "~/lib/db/index";
 import { deleteAccount } from "~/lib/delete-account";
 import { useTranslation } from "~/lib/i18n";
+import { csrfOnly } from "~/lib/middleware";
 import { passwordStrength } from "~/lib/password-strength";
 import { getSession } from "~/lib/session";
 import { validateFinnishPhone } from "~/lib/validators";
@@ -32,7 +32,7 @@ const loadSettings = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 const saveSettings = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware()])
+	.middleware(csrfOnly())
 	.inputValidator(
 		(data: {
 			displayName: string;

@@ -1,4 +1,4 @@
-import type { BookingCost } from "~/lib/booking-cost";
+import type { BookingCost } from "~/lib/bookings";
 import { FI_DOW_TICKET, FI_MONTH_SHORT } from "~/lib/calendar-helpers";
 import { cn } from "~/lib/cn";
 import { formatEur } from "~/lib/i18n";

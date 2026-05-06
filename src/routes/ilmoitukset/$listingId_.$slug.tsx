@@ -3,7 +3,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
-import { sql } from "kysely";
 import { ArrowLeft, MapPin, Tag } from "lucide-react";
 import { useState } from "react";
 import { BookingRequestForm } from "~/components/listings/booking-request-form";
@@ -11,8 +10,7 @@ import { ListingGallery } from "~/components/listings/listing-gallery";
 import { ReportButton } from "~/components/report-button";
 import { Button } from "~/components/ui/button";
 import { MobileFullscreenModal } from "~/components/ui/mobile-fullscreen-modal";
-import { sendBookingRequestEmail } from "~/lib/booking-emails";
-import { generateBookingShortId } from "~/lib/bookings";
+import { createBookingRequest } from "~/lib/bookings.server";
 import {
 	LICENSE_CLASSES,
 	LISTING_STATUSES,
@@ -21,16 +19,11 @@ import {
 	SITE_NAME,
 	SITE_URL,
 } from "~/lib/constants";
-import { csrfMiddleware } from "~/lib/csrf";
 import { centsToEuros } from "~/lib/currency";
-import { db } from "~/lib/db/index";
 import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
-import { getListingAvailability, getListingForDisplay, recordView } from "~/lib/listings";
-import { log } from "~/lib/log";
-import { EVENTS } from "~/lib/log/events";
-import { rateLimitMiddleware } from "~/lib/rate-limit";
-import { requireVerifiedEmail } from "~/lib/require-verified-email";
+import { getListingAvailability, getListingForDisplay, recordView } from "~/lib/listings-queries";
+import { protectedMutation } from "~/lib/middleware";
 import { getSession } from "~/lib/session";
 import { computeListingSlug } from "~/lib/slug";
 import { bookingRequestSchema } from "~/lib/validators";
@@ -52,11 +45,7 @@ const getListing = createServerFn({ method: "GET" })
 	});
 
 export const submitBookingRequest = createServerFn({ method: "POST" })
-	.middleware([
-		csrfMiddleware(),
-		rateLimitMiddleware(5, 300, "submit-booking"),
-		requireVerifiedEmail(),
-	])
+	.middleware(protectedMutation("submit-booking", 5, 300))
 	.inputValidator((data: unknown) => bookingRequestSchema.parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();
@@ -64,101 +53,14 @@ export const submitBookingRequest = createServerFn({ method: "POST" })
 			throw new Error("Kirjaudu sisään");
 		}
 
-		const listing = await db
-			.selectFrom("listing")
-			.innerJoin("user", "user.id", "listing.owner_id")
-			.innerJoin("profile", "profile.user_id", "listing.owner_id")
-			.select([
-				"listing.id",
-				"listing.title",
-				"listing.owner_id",
-				"listing.status",
-				"user.email as owner_email",
-				"profile.display_name as owner_display_name",
-				"profile.phone as owner_phone",
-				"profile.show_phone as owner_show_phone",
-				"profile.language as owner_language",
-			])
-			.where("listing.id", "=", data.listing_id)
-			.executeTakeFirst();
-
-		if (!listing || listing.status !== "active") {
-			throw new Error("Ilmoitus ei ole saatavilla");
-		}
-
-		if (listing.owner_id === session.user.id) {
-			throw new Error("Et voi varata omaa ilmoitustasi");
-		}
-
-		const renterProfile = await db
-			.selectFrom("profile")
-			.select(["display_name", "phone", "show_phone", "language"])
-			.where("user_id", "=", session.user.id)
-			.executeTakeFirst();
-
-		if (!renterProfile) {
-			throw new Error("Profiili puuttuu");
-		}
-
-		const collisions = await db
-			.selectFrom("booking")
-			.select([
-				sql<string>`to_char(start_date, 'YYYY-MM-DD')`.as("start_date"),
-				sql<string>`to_char(end_date, 'YYYY-MM-DD')`.as("end_date"),
-			])
-			.where("listing_id", "=", listing.id)
-			.where("status", "=", "confirmed")
-			.where("start_date", "<=", data.end_date)
-			.where("end_date", ">=", data.start_date)
-			.execute();
-
-		if (collisions.length > 0) {
-			throw new Error("Päivät on jo varattu");
-		}
-
-		const shortId = generateBookingShortId();
-		const inserted = await db
-			.insertInto("booking")
-			.values({
-				short_id: shortId,
-				listing_id: listing.id,
-				renter_user_id: session.user.id,
-				start_date: data.start_date,
-				end_date: data.end_date,
-				message: data.message,
-			})
-			.returning(["id", "short_id"])
-			.executeTakeFirstOrThrow();
-
-		log.event(EVENTS.booking.requested, {
-			bookingId: inserted.id,
-			listingId: listing.id,
-			renterId: session.user.id,
-		});
-
-		void sendBookingRequestEmail({
-			booking: {
-				short_id: inserted.short_id,
-				listing_title: listing.title,
-				start_date: data.start_date,
-				end_date: data.end_date,
-			},
-			owner: {
-				display_name: listing.owner_display_name,
-				email: listing.owner_email,
-				phone: listing.owner_show_phone ? listing.owner_phone : null,
-				language: listing.owner_language,
-			},
-			renter: {
-				display_name: renterProfile.display_name,
-				email: session.user.email,
-				phone: renterProfile.show_phone ? renterProfile.phone : null,
-				language: renterProfile.language,
-			},
+		return createBookingRequest({
+			listingId: data.listing_id,
+			startDate: data.start_date,
+			endDate: data.end_date,
 			message: data.message,
+			userId: session.user.id,
+			userEmail: session.user.email,
 		});
-
-		return { short_id: inserted.short_id };
 	});
 
 export const Route = createFileRoute("/ilmoitukset/$listingId_/$slug")({

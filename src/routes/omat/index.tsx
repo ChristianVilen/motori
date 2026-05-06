@@ -5,12 +5,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { MapPin, Pencil, Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, SITE_NAME } from "~/lib/constants";
-import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
-import { getOwnerListings, setListingStatus } from "~/lib/listings";
-import { requireVerifiedEmail } from "~/lib/require-verified-email";
+import { setListingStatus } from "~/lib/listings-commands";
+import { getOwnerListings } from "~/lib/listings-queries";
+import { protectedMutation } from "~/lib/middleware";
 import { getSession } from "~/lib/session";
 import { computeListingSlug } from "~/lib/slug";
 import { useEmailVerified } from "~/lib/use-email-verified";
@@ -33,7 +33,7 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 const setListingStatusFn = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware(), requireVerifiedEmail()])
+	.middleware(protectedMutation("set-listing-status", 20, 60))
 	.inputValidator((data: { id: string; status: "active" | "paused" | "removed" }) => data)
 	.handler(async ({ data }) => {
 		const session = await getSession();

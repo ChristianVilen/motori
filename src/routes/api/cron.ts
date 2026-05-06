@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { createFileRoute } from "@tanstack/react-router";
 import { sql } from "kysely";
-import { expireStaleBookings } from "~/lib/booking-expiry";
+import { expireStaleBookings } from "~/lib/bookings.server";
 import { db } from "~/lib/db/index";
 import { log } from "~/lib/log";
 import { sendListingExpiryWarnings } from "~/lib/notifications";

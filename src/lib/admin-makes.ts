@@ -1,9 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { sql } from "kysely";
 import { requireAdmin } from "~/lib/admin";
-import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
-import { invalidateMakesCache, toSlug } from "~/lib/makes";
+import { invalidateMakesCache } from "~/lib/makes";
+import { csrfOnly } from "~/lib/middleware";
+import { slugify } from "~/lib/slug";
 
 export interface AdminMake {
 	id: string;
@@ -70,7 +71,7 @@ export const getAdminModels = createServerFn({ method: "GET" })
 	});
 
 export const renameMake = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware()])
+	.middleware(csrfOnly())
 	.inputValidator((data: { id: string; name: string }) => data)
 	.handler(async ({ data }) => {
 		await requireAdmin();
@@ -80,14 +81,14 @@ export const renameMake = createServerFn({ method: "POST" })
 		}
 		await db
 			.updateTable("motorcycle_make")
-			.set({ name, slug: toSlug(name) })
+			.set({ name, slug: slugify(name) })
 			.where("id", "=", data.id)
 			.execute();
 		invalidateMakesCache();
 	});
 
 export const renameModel = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware()])
+	.middleware(csrfOnly())
 	.inputValidator((data: { id: string; name: string }) => data)
 	.handler(async ({ data }) => {
 		await requireAdmin();
@@ -99,7 +100,7 @@ export const renameModel = createServerFn({ method: "POST" })
 	});
 
 export const deleteMake = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware()])
+	.middleware(csrfOnly())
 	.inputValidator((id: string) => id)
 	.handler(async ({ data: id }) => {
 		await requireAdmin();
@@ -122,7 +123,7 @@ export const deleteMake = createServerFn({ method: "POST" })
 	});
 
 export const deleteModel = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware()])
+	.middleware(csrfOnly())
 	.inputValidator((id: string) => id)
 	.handler(async ({ data: id }) => {
 		await requireAdmin();
@@ -140,7 +141,7 @@ export const deleteModel = createServerFn({ method: "POST" })
 	});
 
 export const mergeMakes = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware()])
+	.middleware(csrfOnly())
 	.inputValidator((data: { sourceId: string; targetId: string }) => data)
 	.handler(async ({ data }) => {
 		await requireAdmin();
@@ -164,7 +165,7 @@ export const mergeMakes = createServerFn({ method: "POST" })
 	});
 
 export const mergeModels = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware()])
+	.middleware(csrfOnly())
 	.inputValidator((data: { sourceId: string; targetId: string }) => data)
 	.handler(async ({ data }) => {
 		await requireAdmin();

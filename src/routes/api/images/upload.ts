@@ -2,17 +2,14 @@
 // POST /api/images/upload — receives multipart file, optimizes with sharp, stores via abstraction.
 
 import { createFileRoute } from "@tanstack/react-router";
-import sharp from "sharp";
 import { auth } from "~/lib/auth";
-import { getImageStorage } from "~/lib/image-storage";
+import { optimizeAndUpload } from "~/lib/image-storage";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB raw input
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const TARGET_WIDTH = 1600;
-const THUMB_WIDTH = 400;
 
 function jsonError(error: string, status: number) {
 	return new Response(JSON.stringify({ error }), {
@@ -71,34 +68,18 @@ export const Route = createFileRoute("/api/images/upload")({
 					return jsonError("Tiedosto on liian suuri (max 10 MB)", 400);
 				}
 
-				// ── Optimize ───────────────────────────────────────────────
+				// ── Optimize + store ───────────────────────────────────────
 				const raw = Buffer.from(await file.arrayBuffer());
 				const id = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
 				const key = `listings/${session.user.id}/${id}.webp`;
 				const thumbKey = `listings/${session.user.id}/${id}_thumb.webp`;
 
-				const [optimized, thumbnail] = await Promise.all([
-					sharp(raw)
-						.resize(TARGET_WIDTH, undefined, { withoutEnlargement: true })
-						.webp({ quality: 80 })
-						.toBuffer(),
-					sharp(raw)
-						.resize(THUMB_WIDTH, undefined, { withoutEnlargement: true })
-						.webp({ quality: 70 })
-						.toBuffer(),
-				]);
-
-				// ── Store ──────────────────────────────────────────────────
-				const storage = getImageStorage();
-				const [url, thumbnailUrl] = await Promise.all([
-					storage.upload(optimized, key, "image/webp"),
-					storage.upload(thumbnail, thumbKey, "image/webp"),
-				]);
+				const { url, thumbnailUrl, optimizedSize } = await optimizeAndUpload(raw, key, thumbKey);
 
 				log.event(EVENTS.image.uploaded, {
 					key,
 					originalSize: file.size,
-					optimizedSize: optimized.length,
+					optimizedSize,
 				});
 
 				return new Response(JSON.stringify({ url, thumbnailUrl }), {

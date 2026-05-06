@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { ListingCard } from "~/components/listings/listing-card";
 import { useTranslation } from "~/lib/i18n";
-import { getHomepageStats, getLatestListings } from "~/lib/listings";
+import { getHomepageStats, getLatestListings } from "~/lib/listings-queries";
 import { getSession } from "~/lib/session";
 
 export const Route = createFileRoute("/")({
