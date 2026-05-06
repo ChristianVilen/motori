@@ -258,7 +258,10 @@ function ProfilePage() {
 						</p>
 					</div>
 					<div className="flex items-center gap-3">
-						<Link to="/omat/varaukset" className="text-sm text-muted hover:text-accent">
+						<Link
+							to="/omat/varaukset"
+							className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-accent hover:text-accent"
+						>
 							{t("bookings.navTitle")}
 						</Link>
 						{verified ? (
