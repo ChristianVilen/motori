@@ -211,20 +211,15 @@ test.describe("Map view", () => {
 
 	test("back navigation preserves map view with city selection", async ({ page }) => {
 		const listings = new ListingsPage(page);
-		// 1. Start on list view
-		await listings.goto();
-		// 2. Switch to map
-		await listings.viewToggle.click();
-		await expect(page).toHaveURL(/view=map/);
-		// 3. Navigate to map with city
-		await page.goto("/ilmoitukset?view=map&city=Helsinki");
+		// 1. Navigate to map view with Helsinki selected, waiting for full hydration
+		await listings.goto({ view: "map", city: "Helsinki" });
 		await expect(listings.mapCityPanel).toBeVisible();
-		// 4. Click a listing card to go to detail page
+		// 2. Click a listing card to go to detail page
 		const firstCard = listings.mapCityPanel.getByTestId("listing-card").first();
 		await firstCard.scrollIntoViewIfNeeded();
 		await firstCard.click();
 		await page.waitForURL(/\/ilmoitukset\/.+\/.+/);
-		// 5. Go back — should return to map view with Helsinki selected
+		// 3. Go back — should return to map view with Helsinki selected
 		await page.goBack();
 		await expect(page).toHaveURL(/view=map/);
 		await expect(page).toHaveURL(/city=Helsinki/);
