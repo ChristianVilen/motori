@@ -154,13 +154,10 @@ const submitReview = createServerFn({ method: "POST" })
 	.inputValidator((data: unknown) => submitReviewSchema.parse(data))
 	.handler(async ({ data }) => {
 		const session = await getSession();
-		if (!session) {
-			throw new Error("Kirjaudu sisään");
-		}
 
 		await submitReviewAction({
 			bookingId: data.booking_id,
-			userId: session.user.id,
+			userId: session!.user.id,
 			rating: data.rating,
 			comment: data.comment,
 		});
@@ -298,7 +295,8 @@ function ReviewSection(props: {
 	const [rating, setRating] = useState(0);
 	const [comment, setComment] = useState("");
 	const [busy, setBusy] = useState(false);
-	const [submitted, setSubmitted] = useState(props.reviewStatus.userHasReviewed);
+	const [localSubmitted, setLocalSubmitted] = useState(false);
+	const submitted = localSubmitted || props.reviewStatus.userHasReviewed;
 	const [error, setError] = useState<string | null>(null);
 
 	if (!props.reviewStatus.windowOpen && !submitted) {
@@ -328,10 +326,10 @@ function ReviewSection(props: {
 			await submitReview({
 				data: { booking_id: props.bookingId, rating, comment: comment.trim() || undefined },
 			});
-			setSubmitted(true);
+			setLocalSubmitted(true);
 			props.onRefresh();
-		} catch (err) {
-			setError(err instanceof Error ? err.message : t("reviews.submitError"));
+		} catch {
+			setError(t("reviews.submitError"));
 		} finally {
 			setBusy(false);
 		}

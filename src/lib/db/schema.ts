@@ -211,7 +211,7 @@ export interface ReviewTable {
 	target_user_id: string;
 	rating: number;
 	comment: string | null;
-	created_at: ColumnType<Date, Date | undefined, Date>;
+	created_at: ColumnType<Date, Date | undefined, never>;
 }
 
 export type Review = Selectable<ReviewTable>;

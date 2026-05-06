@@ -369,6 +369,7 @@ function BookingSidebar({
 
 function ListingDetailPage() {
 	const { t } = useTranslation("listings");
+	const { t: tProfile } = useTranslation("profile");
 	const {
 		listing,
 		images,
@@ -462,7 +463,14 @@ function ListingDetailPage() {
 										params={{ userId: listing.owner_id }}
 										className="rounded-full bg-muted-light px-2.5 py-0.5 text-xs text-muted hover:text-accent"
 									>
-										★ {ownerReviewSummary.averageRating} ({ownerReviewSummary.reviewCount})
+										{ownerReviewSummary.reviewCount === 1
+											? tProfile("reviews.summaryOne", {
+													rating: ownerReviewSummary.averageRating,
+												})
+											: tProfile("reviews.summary", {
+													rating: ownerReviewSummary.averageRating,
+													count: ownerReviewSummary.reviewCount,
+												})}
 									</Link>
 								)}
 							</div>
