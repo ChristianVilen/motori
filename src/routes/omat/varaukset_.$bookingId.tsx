@@ -157,7 +157,7 @@ const submitReview = createServerFn({ method: "POST" })
 
 		await submitReviewAction({
 			bookingId: data.booking_id,
-			userId: session!.user.id,
+			userId: session?.user.id,
 			rating: data.rating,
 			comment: data.comment,
 		});
