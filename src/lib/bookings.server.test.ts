@@ -65,10 +65,10 @@ vi.mock("~/lib/log/events", () => ({
 	},
 }));
 
-const mockSendBookingRequestEmail = vi.fn();
-const mockSendBookingConfirmedEmail = vi.fn();
-const mockSendBookingRejectedEmail = vi.fn();
-const mockSendBookingAutoRejectedEmail = vi.fn();
+const mockSendBookingRequestEmail = vi.fn().mockResolvedValue(undefined);
+const mockSendBookingConfirmedEmail = vi.fn().mockResolvedValue(undefined);
+const mockSendBookingRejectedEmail = vi.fn().mockResolvedValue(undefined);
+const mockSendBookingAutoRejectedEmail = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("~/lib/booking-emails", () => ({
 	sendBookingRequestEmail: (...args: unknown[]) => mockSendBookingRequestEmail(...args),
@@ -151,6 +151,21 @@ describe("createBookingRequest", () => {
 		await expect(createBookingRequest(baseArgs)).rejects.toThrow("Päivät on jo varattu");
 	});
 
+	it("throws when dates are blocked by availability exception", async () => {
+		executeTakeFirstQueue.push({ id: "listing-1", status: "active", owner_id: "owner-1" });
+		executeTakeFirstQueue.push({
+			display_name: "Renter",
+			phone: null,
+			show_phone: false,
+			language: "fi",
+		});
+		executeQueue.push([]); // no confirmed collisions
+		executeTakeFirstQueue.push({ availability_default: "open" }); // default open
+		executeQueue.push([{ date: "2026-06-02" }]); // exception blocks Jun 2
+
+		await expect(createBookingRequest(baseArgs)).rejects.toThrow("Päivät on jo varattu");
+	});
+
 	it("creates booking and sends email on success", async () => {
 		executeTakeFirstQueue.push({
 			id: "listing-1",
@@ -170,6 +185,8 @@ describe("createBookingRequest", () => {
 			language: "fi",
 		});
 		executeQueue.push([]); // no collisions
+		executeTakeFirstQueue.push({ availability_default: "open" }); // availability default
+		executeQueue.push([]); // no exception dates
 		executeTakeFirstOrThrowQueue.push({ id: "booking-1", short_id: "abc123XY" });
 
 		const result = await createBookingRequest(baseArgs);

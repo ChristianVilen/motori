@@ -32,9 +32,9 @@ export function computeBookingCost(
 	const end = new Date(`${to}T00:00:00Z`);
 	const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1;
 
-	// Fri=5, Sun=0 in UTC
-	const startDay = start.getUTCDay();
-	const endDay = end.getUTCDay();
+	// Use noon UTC so any calendar date maps to its correct weekday regardless of local offset
+	const startDay = new Date(`${from}T12:00:00Z`).getUTCDay();
+	const endDay = new Date(`${to}T12:00:00Z`).getUTCDay();
 	if (days === 3 && startDay === 5 && endDay === 0 && pricePerWeekendCents) {
 		return { totalCents: pricePerWeekendCents, days, label: "weekend" };
 	}

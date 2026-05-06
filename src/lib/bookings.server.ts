@@ -10,6 +10,7 @@ import {
 	sendBookingRejectedEmail,
 	sendBookingRequestEmail,
 } from "~/lib/booking-emails";
+import { expandDateRange } from "~/lib/bookings";
 import { db } from "~/lib/db/index";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
@@ -73,6 +74,31 @@ export async function createBookingRequest(args: {
 		throw new Error("Päivät on jo varattu");
 	}
 
+	const [availRow, exceptions] = await Promise.all([
+		db
+			.selectFrom("listing")
+			.select("availability_default")
+			.where("id", "=", listing.id)
+			.executeTakeFirst(),
+		db
+			.selectFrom("listing_availability_exception")
+			.select(sql<string>`to_char(date, 'YYYY-MM-DD')`.as("date"))
+			.where("listing_id", "=", listing.id)
+			.execute(),
+	]);
+
+	const availDefault = availRow?.availability_default ?? "open";
+	const exceptionSet = new Set(exceptions.map((e) => e.date));
+	const requestedDates = expandDateRange(args.startDate, args.endDate);
+
+	for (const date of requestedDates) {
+		const inException = exceptionSet.has(date);
+		const blocked = availDefault === "open" ? inException : !inException;
+		if (blocked) {
+			throw new Error("Päivät on jo varattu");
+		}
+	}
+
 	const shortId = generateShortId();
 	const inserted = await db
 		.insertInto("booking")
@@ -93,7 +119,7 @@ export async function createBookingRequest(args: {
 		renterId: args.userId,
 	});
 
-	void sendBookingRequestEmail({
+	sendBookingRequestEmail({
 		booking: {
 			short_id: inserted.short_id,
 			listing_title: listing.title,
@@ -113,7 +139,7 @@ export async function createBookingRequest(args: {
 			language: renterProfile.language,
 		},
 		message: args.message,
-	});
+	}).catch((err) => log.error("email send failed", { err }));
 
 	return { short_id: inserted.short_id };
 }
@@ -206,7 +232,7 @@ export async function confirmBooking(args: {
 
 	log.event(EVENTS.booking.confirmed, { bookingId: result.booking.id });
 
-	void sendBookingConfirmedEmail({
+	sendBookingConfirmedEmail({
 		booking: {
 			short_id: result.booking.short_id,
 			listing_title: result.booking.listing_title,
@@ -225,14 +251,14 @@ export async function confirmBooking(args: {
 			phone: result.booking.owner_show_phone ? result.booking.owner_phone : null,
 			language: result.booking.owner_language,
 		},
-	});
+	}).catch((err) => log.error("email send failed", { err }));
 
 	for (const o of result.overlaps) {
 		log.event(EVENTS.booking.auto_rejected_overlap, {
 			bookingId: o.id,
 			confirmedBookingId: result.booking.id,
 		});
-		void sendBookingAutoRejectedEmail({
+		sendBookingAutoRejectedEmail({
 			booking: {
 				short_id: o.short_id,
 				listing_title: result.booking.listing_title,
@@ -240,7 +266,7 @@ export async function confirmBooking(args: {
 				end_date: o.end_date,
 			},
 			renter: { display_name: o.display_name, email: o.email, phone: null, language: o.language },
-		});
+		}).catch((err) => log.error("email send failed", { err }));
 	}
 
 	return { autoRejectedCount: result.overlaps.length };
@@ -296,7 +322,7 @@ export async function rejectBooking(args: {
 
 	log.event(EVENTS.booking.rejected, { bookingId: booking.id });
 
-	void sendBookingRejectedEmail({
+	sendBookingRejectedEmail({
 		booking: {
 			short_id: booking.short_id,
 			listing_title: booking.listing_title,
@@ -310,7 +336,7 @@ export async function rejectBooking(args: {
 			language: booking.renter_language,
 		},
 		reason: args.reason ?? null,
-	});
+	}).catch((err) => log.error("email send failed", { err }));
 }
 
 // --- Cancel ---
@@ -387,7 +413,7 @@ export async function expireStaleBookings(): Promise<number> {
 
 	for (const b of expired) {
 		log.event(EVENTS.booking.expired, { bookingId: b.id });
-		void sendBookingAutoRejectedEmail({
+		sendBookingAutoRejectedEmail({
 			booking: {
 				short_id: b.short_id,
 				listing_title: b.listing_title,
@@ -400,7 +426,7 @@ export async function expireStaleBookings(): Promise<number> {
 				phone: null,
 				language: b.renter_language,
 			},
-		});
+		}).catch((err) => log.error("email send failed", { err }));
 	}
 
 	return result.length;

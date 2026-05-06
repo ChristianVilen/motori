@@ -453,7 +453,10 @@ export type ListingForEdit = {
 	modelName: string | null;
 };
 
-export async function getListingForEdit(shortId: string): Promise<ListingForEdit | null> {
+export async function getListingForEdit(
+	shortId: string,
+	ownerId: string,
+): Promise<ListingForEdit | null> {
 	const db = await getDb();
 	const row = await db
 		.selectFrom("listing")
@@ -462,6 +465,7 @@ export async function getListingForEdit(shortId: string): Promise<ListingForEdit
 		.selectAll("listing")
 		.select(["motorcycle_make.slug as makeSlug", "motorcycle_model.name as modelName"])
 		.where("listing.short_id", "=", shortId)
+		.where("listing.owner_id", "=", ownerId)
 		.executeTakeFirst();
 
 	if (!row) {

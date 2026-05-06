@@ -28,12 +28,8 @@ const getListingForEditFn = createServerFn({ method: "GET" })
 			throw new Error("Kirjaudu sisään");
 		}
 
-		const result = await getListingForEdit(shortId);
+		const result = await getListingForEdit(shortId, session.user.id);
 		if (!result) {
-			return null;
-		}
-
-		if (result.listing.owner_id !== session.user.id) {
 			throw new Error("Ei oikeuksia");
 		}
 

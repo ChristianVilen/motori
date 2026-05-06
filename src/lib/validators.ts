@@ -1,6 +1,6 @@
 // src/lib/validators.ts
 import { z } from "zod";
-import { CURRENT_YEAR } from "~/lib/constants";
+import { CURRENT_YEAR, LICENSE_CLASSES, MOTORCYCLE_TYPES } from "~/lib/constants";
 import fiCommon from "~/lib/i18n/resources/fi/common";
 import { MUNICIPALITY_NAME_SET } from "~/lib/municipalities";
 
@@ -68,8 +68,8 @@ export type ListingFormData = z.infer<ReturnType<typeof listingFormSchema>>;
 export const browseSearchSchema = z.object({
 	q: z.string().trim().max(200).optional(),
 	region: z.string().trim().max(100).optional(),
-	type: z.array(z.string().trim().max(50)).optional(),
-	license: z.array(z.string().trim().max(10)).optional(),
+	type: z.array(z.enum(MOTORCYCLE_TYPES.map((t) => t.value) as [string, ...string[]])).optional(),
+	license: z.array(z.enum(LICENSE_CLASSES.map((l) => l.value) as [string, ...string[]])).optional(),
 	price_min: z.number().optional(),
 	price_max: z.number().optional(),
 	cc_min: z.number().int().min(1).optional(),
