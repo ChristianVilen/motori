@@ -20,6 +20,7 @@ import { Route as KirjauduRouteImport } from './routes/kirjaudu'
 import { Route as KayttoehdotRouteImport } from './routes/kayttoehdot'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ToriIndexRouteImport } from './routes/tori/index'
 import { Route as OmatIndexRouteImport } from './routes/omat/index'
 import { Route as IlmoituksetIndexRouteImport } from './routes/ilmoitukset/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
@@ -93,6 +94,11 @@ const AdminRouteRoute = AdminRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToriIndexRoute = ToriIndexRouteImport.update({
+  id: '/tori/',
+  path: '/tori/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OmatIndexRoute = OmatIndexRouteImport.update({
@@ -218,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/ilmoitukset/': typeof IlmoituksetIndexRoute
   '/omat/': typeof OmatIndexRoute
+  '/tori/': typeof ToriIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/images/upload': typeof ApiImagesUploadRoute
   '/api/uploads/$': typeof ApiUploadsSplatRoute
@@ -249,6 +256,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/ilmoitukset': typeof IlmoituksetIndexRoute
   '/omat': typeof OmatIndexRoute
+  '/tori': typeof ToriIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/images/upload': typeof ApiImagesUploadRoute
   '/api/uploads/$': typeof ApiUploadsSplatRoute
@@ -282,6 +290,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/ilmoitukset/': typeof IlmoituksetIndexRoute
   '/omat/': typeof OmatIndexRoute
+  '/tori/': typeof ToriIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/images/upload': typeof ApiImagesUploadRoute
   '/api/uploads/$': typeof ApiUploadsSplatRoute
@@ -316,6 +325,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/ilmoitukset/'
     | '/omat/'
+    | '/tori/'
     | '/api/auth/$'
     | '/api/images/upload'
     | '/api/uploads/$'
@@ -347,6 +357,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/ilmoitukset'
     | '/omat'
+    | '/tori'
     | '/api/auth/$'
     | '/api/images/upload'
     | '/api/uploads/$'
@@ -379,6 +390,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/ilmoitukset/'
     | '/omat/'
+    | '/tori/'
     | '/api/auth/$'
     | '/api/images/upload'
     | '/api/uploads/$'
@@ -407,6 +419,7 @@ export interface RootRouteChildren {
   ProfiiliAsetuksetRoute: typeof ProfiiliAsetuksetRoute
   IlmoituksetIndexRoute: typeof IlmoituksetIndexRoute
   OmatIndexRoute: typeof OmatIndexRoute
+  ToriIndexRoute: typeof ToriIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiImagesUploadRoute: typeof ApiImagesUploadRoute
   ApiUploadsSplatRoute: typeof ApiUploadsSplatRoute
@@ -492,6 +505,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tori/': {
+      id: '/tori/'
+      path: '/tori'
+      fullPath: '/tori/'
+      preLoaderRoute: typeof ToriIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/omat/': {
@@ -670,6 +690,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfiiliAsetuksetRoute: ProfiiliAsetuksetRoute,
   IlmoituksetIndexRoute: IlmoituksetIndexRoute,
   OmatIndexRoute: OmatIndexRoute,
+  ToriIndexRoute: ToriIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiImagesUploadRoute: ApiImagesUploadRoute,
   ApiUploadsSplatRoute: ApiUploadsSplatRoute,
