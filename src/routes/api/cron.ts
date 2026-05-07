@@ -4,7 +4,7 @@ import { sql } from "kysely";
 import { expireStaleBookings } from "~/lib/bookings.server";
 import { db } from "~/lib/db/index";
 import { log } from "~/lib/log";
-import { sendListingExpiryWarnings } from "~/lib/notifications";
+import { sendListingExpiryWarnings, sendToriExpiryWarnings } from "~/lib/notifications";
 
 const TASKS: Record<string, () => Promise<Record<string, unknown>>> = {
 	"purge-sessions": async () => {
@@ -25,6 +25,22 @@ const TASKS: Record<string, () => Promise<Record<string, unknown>>> = {
 		const expired = await expireStaleBookings();
 		log.info("cron: bookings expired", { expired });
 		return { expired };
+	},
+	"expire-tori-items": async () => {
+		const result = await db
+			.updateTable("tori_item")
+			.set({ status: "expired", updated_at: new Date() })
+			.where("status", "=", "active")
+			.where("expires_at", "<", sql<Date>`now()`)
+			.executeTakeFirst();
+		const expired = Number(result.numUpdatedRows);
+		log.info("cron: tori items expired", { expired });
+		return { expired };
+	},
+	"notify-tori-expiry": async () => {
+		const sent = await sendToriExpiryWarnings();
+		log.info("cron: tori expiry warnings complete", { sent });
+		return { sent };
 	},
 };
 
