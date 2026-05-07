@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { eurosToCents } from "~/lib/currency";
 import type { ToriItemStatus } from "~/lib/db/schema";
 import { AppError } from "~/lib/errors";
+import { log } from "~/lib/log";
+import { EVENTS } from "~/lib/log/events";
 import { protectedMutation } from "~/lib/middleware";
 import { getSession } from "~/lib/session";
 import { generateShortId } from "~/lib/slug";
@@ -74,6 +76,7 @@ export const createToriItem = createServerFn({ method: "POST" })
 				.execute();
 		}
 
+		log.event(EVENTS.tori.created, { itemId: id, category: data.category });
 		return { id, shortId };
 	});
 
@@ -136,6 +139,8 @@ export const updateToriItem = createServerFn({ method: "POST" })
 					.execute();
 			}
 		});
+
+		log.event(EVENTS.tori.updated, { itemId: id });
 	});
 
 export const setToriItemStatus = createServerFn({ method: "POST" })
@@ -167,4 +172,6 @@ export const setToriItemStatus = createServerFn({ method: "POST" })
 		}
 
 		await db.updateTable("tori_item").set(updates).where("id", "=", id).execute();
+
+		log.event(EVENTS.tori.status_changed, { itemId: id, status });
 	});

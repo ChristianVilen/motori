@@ -5,6 +5,16 @@ export default {
 		newListing: "Uusi ilmoitus",
 		emptyState: "Sinulla ei ole vielä ilmoituksia.",
 		createFirst: "Luo ensimmäinen ilmoitus",
+		tori: {
+			heading: "Tori",
+			newItem: "Luo uusi",
+			emptyState: "Ei Tori-ilmoituksia.",
+			createFirst: "Luo ensimmäinen",
+			edit: "Muokkaa",
+			pause: "Tauko",
+			activate: "Aktivoi",
+			markSold: "Myyty",
+		},
 		row: {
 			pricePerDay: "€/pv",
 			viewCount: "{{n}} näyttökertaa",

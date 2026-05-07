@@ -37,6 +37,11 @@ export const EVENTS = {
 	review: {
 		submitted: "review.submitted",
 	},
+	tori: {
+		created: "tori.created",
+		updated: "tori.updated",
+		status_changed: "tori.status_changed",
+	},
 } as const;
 
 export type EventName =
@@ -47,4 +52,5 @@ export type EventName =
 	| (typeof EVENTS.email)[keyof typeof EVENTS.email]
 	| (typeof EVENTS.notification)[keyof typeof EVENTS.notification]
 	| (typeof EVENTS.booking)[keyof typeof EVENTS.booking]
-	| (typeof EVENTS.review)[keyof typeof EVENTS.review];
+	| (typeof EVENTS.review)[keyof typeof EVENTS.review]
+	| (typeof EVENTS.tori)[keyof typeof EVENTS.tori];

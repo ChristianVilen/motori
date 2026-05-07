@@ -126,16 +126,16 @@ export async function sendToriExpiryWarnings(daysAhead = 7): Promise<number> {
 					const safeTitle = escapeHtml(row.title);
 					await sendEmail({
 						to: row.email,
-						subject: t("listingExpiry.subject"),
+						subject: t("toriExpiry.subject"),
 						html: wrapEmail(
 							`
-							<p>${t("listingExpiry.greeting", { name: safeDisplayName })}</p>
-							<p>${t("listingExpiry.body", { title: safeTitle, days: daysLeft })}</p>
-							<p>${t("listingExpiry.cta")}</p>
+							<p>${t("toriExpiry.greeting", { name: safeDisplayName })}</p>
+							<p>${t("toriExpiry.body", { title: safeTitle, days: daysLeft })}</p>
+							<p>${t("toriExpiry.cta")}</p>
 						`,
 							row.language,
 						),
-						text: `${t("listingExpiry.body", { title: row.title, days: daysLeft })}\n\n${t("listingExpiry.cta")}`,
+						text: `${t("toriExpiry.body", { title: row.title, days: daysLeft })}\n\n${t("toriExpiry.cta")}`,
 						idempotencyKey: `tori-expiry-warning/${row.id}`,
 					});
 					await db

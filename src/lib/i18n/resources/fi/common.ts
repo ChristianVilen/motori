@@ -1,6 +1,7 @@
 export default {
 	nav: {
 		browse: "Selaa",
+		tori: "Tori",
 		listMotorcycle: "Ilmoita pyörä",
 		myListings: "Omat",
 		signIn: "Kirjaudu",

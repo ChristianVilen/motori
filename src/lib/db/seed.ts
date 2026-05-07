@@ -361,11 +361,20 @@ async function main() {
 	await db.deleteFrom("tori_item_image").execute();
 	await db.deleteFrom("tori_item").execute();
 
-	const toriItems = [
+	const toriItems: Array<{
+		title: string;
+		category: "gear" | "parts" | "tools";
+		condition: "new" | "excellent" | "good" | "fair";
+		price_cents: number;
+		city: string;
+		region: string;
+		description: string;
+		status?: "active" | "sold";
+	}> = [
 		{
 			title: "Alpinestars GP Plus -nahkatakki, koko 52",
-			category: "gear" as const,
-			condition: "excellent" as const,
+			category: "gear",
+			condition: "excellent",
 			price_cents: 28000,
 			city: "Helsinki",
 			region: "uusimaa",
@@ -374,8 +383,8 @@ async function main() {
 		},
 		{
 			title: "Shoei NXR2 -kypärä, musta matta M",
-			category: "gear" as const,
-			condition: "good" as const,
+			category: "gear",
+			condition: "good",
 			price_cents: 22000,
 			city: "Tampere",
 			region: "pirkanmaa",
@@ -383,8 +392,8 @@ async function main() {
 		},
 		{
 			title: "Kawasaki Z650 alkuperäinen pakoputki",
-			category: "parts" as const,
-			condition: "good" as const,
+			category: "parts",
+			condition: "good",
 			price_cents: 8000,
 			city: "Turku",
 			region: "varsinais-suomi",
@@ -393,8 +402,8 @@ async function main() {
 		},
 		{
 			title: "Oxford Kriega US-20 -tankkilaukku",
-			category: "parts" as const,
-			condition: "new" as const,
+			category: "parts",
+			condition: "new",
 			price_cents: 9500,
 			city: "Espoo",
 			region: "uusimaa",
@@ -402,8 +411,8 @@ async function main() {
 		},
 		{
 			title: "Rev'it Sand 4 -ajohousut, koko L",
-			category: "gear" as const,
-			condition: "fair" as const,
+			category: "gear",
+			condition: "fair",
 			price_cents: 12000,
 			city: "Oulu",
 			region: "pohjois-pohjanmaa",
@@ -412,8 +421,8 @@ async function main() {
 		},
 		{
 			title: "Moottoripyörän pesuvälineet -setti",
-			category: "tools" as const,
-			condition: "new" as const,
+			category: "tools",
+			condition: "new",
 			price_cents: 3500,
 			city: "Jyväskylä",
 			region: "keski-suomi",
@@ -422,18 +431,18 @@ async function main() {
 		},
 		{
 			title: "Dainese Axial D1 -saappaat, koko 43",
-			category: "gear" as const,
-			condition: "excellent" as const,
+			category: "gear",
+			condition: "excellent",
 			price_cents: 35000,
 			city: "Helsinki",
 			region: "uusimaa",
 			description: "Ratakäyttöön ostetut, käytetty 3 ratapäivää. Magnesiumliukurit ehjät.",
-			status: "sold" as const,
+			status: "sold",
 		},
 		{
 			title: "Paddock-teline, etu + taka",
-			category: "tools" as const,
-			condition: "good" as const,
+			category: "tools",
+			condition: "good",
 			price_cents: 6000,
 			city: "Lahti",
 			region: "paijat-hame",
@@ -456,7 +465,7 @@ async function main() {
 				city: item.city,
 				region: item.region,
 				postal_code: null,
-				status: ((item as { status?: string }).status ?? "active") as "active" | "sold",
+				status: item.status ?? "active",
 				expires_at: expiresAt,
 				created_at: new Date(),
 				updated_at: new Date(),

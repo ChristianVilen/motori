@@ -225,7 +225,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 									{t("nav.browse")}
 								</Link>
 								<Link to="/tori" className="text-sm text-white/70 hover:text-white">
-									Tori
+									{t("nav.tori")}
 								</Link>
 								{verified ? (
 									<Link

@@ -76,9 +76,9 @@ test.describe("Tori item lifecycle", () => {
 		await waitForHydration(page);
 
 		const row = page.locator(`[data-testid="tori-item-row"][data-item-id="${itemId}"]`);
-		await row.getByRole("button", { name: "Myyty" }).click();
+		await row.getByTestId("tori-item-mark-sold").click();
 
-		// Verify status badge changes to "Myyty"
-		await expect(row.locator("span", { hasText: "Myyty" })).toBeVisible({ timeout: 10000 });
+		// Verify status changes to sold
+		await expect(row.getByTestId("tori-item-status")).toHaveText("Myyty", { timeout: 10000 });
 	});
 });

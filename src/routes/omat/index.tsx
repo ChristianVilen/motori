@@ -25,7 +25,7 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 
 	const { listings, images } = await getOwnerListings(session.user.id);
 
-	const [profile, toriItems, toriImages] = await Promise.all([
+	const [profile, toriItems] = await Promise.all([
 		db.selectFrom("profile").selectAll().where("user_id", "=", session.user.id).executeTakeFirst(),
 		db
 			.selectFrom("tori_item")
@@ -34,21 +34,18 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 			.where("status", "!=", "expired")
 			.orderBy("created_at", "desc")
 			.execute(),
-		db
-			.selectFrom("tori_item_image")
-			.selectAll()
-			.where(
-				"item_id",
-				"in",
-				db
-					.selectFrom("tori_item")
-					.select("id")
-					.where("owner_id", "=", session.user.id)
-					.where("status", "!=", "expired"),
-			)
-			.where("order", "=", 0)
-			.execute(),
 	]);
+
+	const toriItemIds = toriItems.map((i) => i.id);
+	const toriImages =
+		toriItemIds.length > 0
+			? await db
+					.selectFrom("tori_item_image")
+					.selectAll()
+					.where("item_id", "in", toriItemIds)
+					.where("order", "=", 0)
+					.execute()
+			: [];
 
 	return { listings, images, profile, session, toriItems, toriImages };
 });
@@ -67,7 +64,13 @@ const setListingStatusFn = createServerFn({ method: "POST" })
 
 const setToriStatusFn = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("set-tori-status", 20, 60))
-	.inputValidator((data: { id: string; status: string }) => data)
+	.inputValidator((data: { id: string; status: string }) => {
+		const allowed = ["active", "paused", "sold"] as const;
+		if (!allowed.includes(data.status as (typeof allowed)[number])) {
+			throw new Error("Invalid status");
+		}
+		return data;
+	})
 	.handler(async ({ data }) => {
 		await setToriItemStatus({ data });
 	});
@@ -261,6 +264,7 @@ interface ToriItemRowProps {
 }
 
 function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRowProps) {
+	const { t } = useTranslation("profile");
 	const slug = slugify(item.title);
 	const statusLabel = TORI_STATUSES[item.status] ?? item.status;
 	const statusStyle = TORI_STATUS_STYLES[item.status] ?? "bg-muted-light text-muted";
@@ -311,7 +315,10 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 					>
 						{item.title}
 					</Link>
-					<span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${statusStyle}`}>
+					<span
+						className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${statusStyle}`}
+						data-testid="tori-item-status"
+					>
 						{statusLabel}
 					</span>
 				</div>
@@ -331,7 +338,7 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 						<Link to="/tori/$itemId/muokkaa" params={{ itemId: item.short_id }}>
 							<Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs">
 								<Pencil className="h-3 w-3" />
-								Muokkaa
+								{t("dashboard.tori.edit")}
 							</Button>
 						</Link>
 					) : null}
@@ -342,8 +349,9 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 							className="h-7 px-2 text-xs"
 							onClick={handleTogglePause}
 							disabled={!verified}
+							data-testid="tori-item-toggle-pause"
 						>
-							{item.status === "active" ? "Tauko" : "Aktivoi"}
+							{item.status === "active" ? t("dashboard.tori.pause") : t("dashboard.tori.activate")}
 						</Button>
 					)}
 					{item.status === "active" && (
@@ -353,8 +361,9 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 							className="h-7 px-2 text-xs"
 							onClick={handleMarkSold}
 							disabled={!verified}
+							data-testid="tori-item-mark-sold"
 						>
-							Myyty
+							{t("dashboard.tori.markSold")}
 						</Button>
 					)}
 				</div>
@@ -473,29 +482,29 @@ function ProfilePage() {
 				{/* Tori section */}
 				<div className="mt-12">
 					<div className="mb-4 flex items-center justify-between">
-						<h2 className="text-lg font-bold text-primary">Tori</h2>
+						<h2 className="text-lg font-bold text-primary">{t("dashboard.tori.heading")}</h2>
 						{verified ? (
 							<Link to="/tori/uusi">
 								<Button size="sm" className="gap-2 bg-accent text-white hover:bg-accent-hover">
 									<Plus className="h-4 w-4" />
-									Luo uusi
+									{t("dashboard.tori.newItem")}
 								</Button>
 							</Link>
 						) : (
 							<Button size="sm" disabled title={tAuth("unverifiedTooltip")} className="gap-2">
 								<Plus className="h-4 w-4" />
-								Luo uusi
+								{t("dashboard.tori.newItem")}
 							</Button>
 						)}
 					</div>
 
 					{toriItems.length === 0 ? (
 						<div className="flex flex-col items-center gap-4 rounded-l border border-dashed border-border py-12 text-center">
-							<p className="text-muted">Ei Tori-ilmoituksia.</p>
+							<p className="text-muted">{t("dashboard.tori.emptyState")}</p>
 							{verified ? (
 								<Link to="/tori/uusi">
 									<Button className="bg-accent text-white hover:bg-accent-hover">
-										Luo ensimmäinen
+										{t("dashboard.tori.createFirst")}
 									</Button>
 								</Link>
 							) : null}

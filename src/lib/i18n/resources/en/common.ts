@@ -1,6 +1,7 @@
 export default {
 	nav: {
 		browse: "Browse",
+		tori: "Marketplace",
 		listMotorcycle: "List a bike",
 		myListings: "My listings",
 		signIn: "Sign in",
