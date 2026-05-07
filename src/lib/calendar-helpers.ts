@@ -124,9 +124,6 @@ export interface RangeResult {
 export function computeNewRange(iso: string, existingFrom: string): RangeResult | null {
 	const a = iso < existingFrom ? iso : existingFrom;
 	const b = iso < existingFrom ? existingFrom : iso;
-	if (a === b) {
-		return null;
-	}
 	if (diffDays(a, b) > MAX_STAY) {
 		return { from: a, to: addDaysToIso(a, MAX_STAY), clamped: true };
 	}

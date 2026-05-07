@@ -68,8 +68,12 @@ describe("computeNewRange", () => {
 		expect(result).toEqual({ from: "2026-05-01", to: "2026-05-10", clamped: false });
 	});
 
-	it("returns null when clicking same date", () => {
-		expect(computeNewRange("2026-05-01", "2026-05-01")).toBeNull();
+	it("returns single-day range when clicking same date", () => {
+		expect(computeNewRange("2026-05-01", "2026-05-01")).toEqual({
+			from: "2026-05-01",
+			to: "2026-05-01",
+			clamped: false,
+		});
 	});
 
 	it("clamps to MAX_STAY (30 days)", () => {
