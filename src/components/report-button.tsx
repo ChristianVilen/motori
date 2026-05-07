@@ -1,5 +1,6 @@
 import { Flag } from "lucide-react";
 import { useState } from "react";
+import { parseAppError } from "~/lib/errors-client";
 import { useTranslation } from "~/lib/i18n";
 import { submitReport } from "~/lib/reports";
 import { useFocusTrap } from "~/lib/use-focus-trap";
@@ -30,7 +31,8 @@ export function ReportButton({ targetType, targetId }: ReportButtonProps) {
 			});
 			setStatus("done");
 		} catch (err: unknown) {
-			setStatus((err as Error).message === "ALREADY_REPORTED" ? "duplicate" : "error");
+			const parsed = parseAppError(err);
+			setStatus(parsed?.code === "report.already_reported" ? "duplicate" : "error");
 		}
 	}
 

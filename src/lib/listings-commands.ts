@@ -1,4 +1,5 @@
 import { eurosToCents } from "~/lib/currency";
+import { AppError } from "~/lib/errors";
 import { generateShortId } from "~/lib/slug";
 import type { ListingFormData } from "~/lib/validators";
 
@@ -101,14 +102,14 @@ export async function updateListing(
 		.executeTakeFirst();
 
 	if (!existing) {
-		throw new Error("Ilmoitusta ei löydy");
+		throw new AppError("listing.not_found");
 	}
 	if (existing.owner_id !== ownerId) {
-		throw new Error("Ei oikeuksia");
+		throw new AppError("listing.forbidden");
 	}
 
 	await db.transaction().execute(async (trx) => {
-		await trx
+		const updateResult = await trx
 			.updateTable("listing")
 			.set({
 				title: data.title,
@@ -130,7 +131,12 @@ export async function updateListing(
 				updated_at: new Date(),
 			})
 			.where("id", "=", id)
-			.execute();
+			.where("owner_id", "=", ownerId)
+			.executeTakeFirst();
+
+		if (updateResult.numUpdatedRows === 0n) {
+			throw new AppError("listing.forbidden");
+		}
 
 		await trx.deleteFrom("listing_image").where("listing_id", "=", id).execute();
 
@@ -164,12 +170,17 @@ export async function setListingStatus(
 		.executeTakeFirst();
 
 	if (!listing || listing.owner_id !== ownerId) {
-		throw new Error("Ei oikeuksia");
+		throw new AppError("listing.forbidden");
 	}
 
-	await db
+	const result = await db
 		.updateTable("listing")
 		.set({ status, updated_at: new Date() })
 		.where("id", "=", id)
-		.execute();
+		.where("owner_id", "=", ownerId)
+		.executeTakeFirst();
+
+	if (result.numUpdatedRows === 0n) {
+		throw new AppError("listing.forbidden");
+	}
 }

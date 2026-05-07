@@ -1,5 +1,6 @@
 import { createMiddleware } from "@tanstack/react-start";
 import { setResponseStatus } from "@tanstack/react-start/server";
+import { AppError } from "~/lib/errors";
 import { getSession } from "~/lib/session";
 
 export function requireVerifiedEmail() {
@@ -7,7 +8,7 @@ export function requireVerifiedEmail() {
 		const session = await getSession();
 		if (!session) {
 			setResponseStatus(401);
-			throw new Error("UNAUTHORIZED");
+			throw new AppError("auth.unauthorized");
 		}
 
 		if (session.user.emailVerified) {
@@ -15,6 +16,6 @@ export function requireVerifiedEmail() {
 		}
 
 		setResponseStatus(403);
-		throw new Error("EMAIL_NOT_VERIFIED");
+		throw new AppError("auth.email_not_verified");
 	});
 }

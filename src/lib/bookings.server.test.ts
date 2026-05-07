@@ -116,26 +116,26 @@ describe("createBookingRequest", () => {
 	it("throws when listing not found", async () => {
 		executeTakeFirstQueue.push(null);
 
-		await expect(createBookingRequest(baseArgs)).rejects.toThrow("Ilmoitus ei ole saatavilla");
+		await expect(createBookingRequest(baseArgs)).rejects.toThrow("booking.listing_unavailable");
 	});
 
 	it("throws when listing is not active", async () => {
 		executeTakeFirstQueue.push({ id: "listing-1", status: "draft", owner_id: "owner-1" });
 
-		await expect(createBookingRequest(baseArgs)).rejects.toThrow("Ilmoitus ei ole saatavilla");
+		await expect(createBookingRequest(baseArgs)).rejects.toThrow("booking.listing_unavailable");
 	});
 
 	it("throws when user tries to book own listing", async () => {
 		executeTakeFirstQueue.push({ id: "listing-1", status: "active", owner_id: "user-renter" });
 
-		await expect(createBookingRequest(baseArgs)).rejects.toThrow("Et voi varata omaa ilmoitustasi");
+		await expect(createBookingRequest(baseArgs)).rejects.toThrow("booking.own_listing");
 	});
 
 	it("throws when renter profile is missing", async () => {
 		executeTakeFirstQueue.push({ id: "listing-1", status: "active", owner_id: "owner-1" });
 		executeTakeFirstQueue.push(null); // no profile
 
-		await expect(createBookingRequest(baseArgs)).rejects.toThrow("Profiili puuttuu");
+		await expect(createBookingRequest(baseArgs)).rejects.toThrow("auth.profile_missing");
 	});
 
 	it("throws when dates collide with confirmed booking", async () => {
@@ -148,7 +148,7 @@ describe("createBookingRequest", () => {
 		});
 		executeQueue.push([{ id: "existing-booking" }]); // collisions
 
-		await expect(createBookingRequest(baseArgs)).rejects.toThrow("Päivät on jo varattu");
+		await expect(createBookingRequest(baseArgs)).rejects.toThrow("booking.dates_unavailable");
 	});
 
 	it("throws when dates are blocked by availability exception", async () => {
@@ -163,7 +163,7 @@ describe("createBookingRequest", () => {
 		executeTakeFirstQueue.push({ availability_default: "open" }); // default open
 		executeQueue.push([{ date: "2026-06-02" }]); // exception blocks Jun 2
 
-		await expect(createBookingRequest(baseArgs)).rejects.toThrow("Päivät on jo varattu");
+		await expect(createBookingRequest(baseArgs)).rejects.toThrow("booking.dates_unavailable");
 	});
 
 	it("creates booking and sends email on success", async () => {
@@ -207,7 +207,7 @@ describe("confirmBooking", () => {
 		executeTakeFirstQueue.push(null);
 
 		await expect(confirmBooking({ bookingId: "b-1", userId: "owner-1" })).rejects.toThrow(
-			"Varaus ei löytynyt",
+			"booking.not_found",
 		);
 	});
 
@@ -215,7 +215,7 @@ describe("confirmBooking", () => {
 		executeTakeFirstQueue.push({ id: "b-1", status: "pending", owner_id: "other-owner" });
 
 		await expect(confirmBooking({ bookingId: "b-1", userId: "owner-1" })).rejects.toThrow(
-			"Ei oikeuksia",
+			"booking.forbidden",
 		);
 	});
 
@@ -223,7 +223,7 @@ describe("confirmBooking", () => {
 		executeTakeFirstQueue.push({ id: "b-1", status: "confirmed", owner_id: "owner-1" });
 
 		await expect(confirmBooking({ bookingId: "b-1", userId: "owner-1" })).rejects.toThrow(
-			"Varaus ei ole odottamassa",
+			"booking.not_pending",
 		);
 	});
 
@@ -247,7 +247,7 @@ describe("confirmBooking", () => {
 			owner_language: "fi",
 		});
 		// update confirmed
-		executeQueue.push(undefined);
+		executeTakeFirstQueue.push({ numUpdatedRows: 1n });
 		// overlapping bookings
 		executeQueue.push([
 			{
@@ -276,7 +276,7 @@ describe("rejectBooking", () => {
 		executeTakeFirstQueue.push(null);
 
 		await expect(rejectBooking({ bookingId: "b-1", userId: "owner-1" })).rejects.toThrow(
-			"Varaus ei löytynyt",
+			"booking.not_found",
 		);
 	});
 
@@ -284,7 +284,7 @@ describe("rejectBooking", () => {
 		executeTakeFirstQueue.push({ id: "b-1", status: "pending", owner_id: "other-owner" });
 
 		await expect(rejectBooking({ bookingId: "b-1", userId: "owner-1" })).rejects.toThrow(
-			"Ei oikeuksia",
+			"booking.forbidden",
 		);
 	});
 
@@ -292,7 +292,7 @@ describe("rejectBooking", () => {
 		executeTakeFirstQueue.push({ id: "b-1", status: "confirmed", owner_id: "owner-1" });
 
 		await expect(rejectBooking({ bookingId: "b-1", userId: "owner-1" })).rejects.toThrow(
-			"Varaus ei ole odottamassa",
+			"booking.not_pending",
 		);
 	});
 
@@ -309,7 +309,7 @@ describe("rejectBooking", () => {
 			renter_name: "Renter",
 			renter_language: "fi",
 		});
-		executeQueue.push(undefined); // update
+		executeTakeFirstQueue.push({ numUpdatedRows: 1n }); // update
 
 		await rejectBooking({ bookingId: "b-1", userId: "owner-1", reason: "Ei sovi" });
 
@@ -327,7 +327,7 @@ describe("cancelBooking", () => {
 		executeTakeFirstQueue.push(null);
 
 		await expect(cancelBooking({ bookingId: "b-1", userId: "renter-1" })).rejects.toThrow(
-			"Varaus ei löytynyt",
+			"booking.not_found",
 		);
 	});
 
@@ -335,7 +335,7 @@ describe("cancelBooking", () => {
 		executeTakeFirstQueue.push({ id: "b-1", status: "pending", renter_user_id: "other-renter" });
 
 		await expect(cancelBooking({ bookingId: "b-1", userId: "renter-1" })).rejects.toThrow(
-			"Ei oikeuksia",
+			"booking.forbidden",
 		);
 	});
 
@@ -343,13 +343,13 @@ describe("cancelBooking", () => {
 		executeTakeFirstQueue.push({ id: "b-1", status: "confirmed", renter_user_id: "renter-1" });
 
 		await expect(cancelBooking({ bookingId: "b-1", userId: "renter-1" })).rejects.toThrow(
-			"Varaus ei ole odottamassa",
+			"booking.not_pending",
 		);
 	});
 
 	it("cancels booking successfully", async () => {
 		executeTakeFirstQueue.push({ id: "b-1", status: "pending", renter_user_id: "renter-1" });
-		executeQueue.push(undefined); // update
+		executeTakeFirstQueue.push({ numUpdatedRows: 1n }); // update
 
 		await cancelBooking({ bookingId: "b-1", userId: "renter-1" });
 

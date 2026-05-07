@@ -4,6 +4,7 @@ import { sql } from "kysely";
 import { requireAdmin } from "~/lib/admin";
 import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
+import { AppError } from "~/lib/errors";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { requireVerifiedEmail } from "~/lib/require-verified-email";
 import { getSession } from "~/lib/session";
@@ -39,7 +40,7 @@ export const submitReport = createServerFn({ method: "POST" })
 		// Can't report yourself
 		if (data.targetType === "user" && data.targetId === session.user.id) {
 			setResponseStatus(400);
-			throw new Error("CANNOT_REPORT_SELF");
+			throw new AppError("report.cannot_report_self");
 		}
 
 		// Validate target exists and check ownership
@@ -51,11 +52,11 @@ export const submitReport = createServerFn({ method: "POST" })
 				.executeTakeFirst();
 			if (!listing) {
 				setResponseStatus(404);
-				throw new Error("TARGET_NOT_FOUND");
+				throw new AppError("report.target_not_found");
 			}
 			if (listing.owner_id === session.user.id) {
 				setResponseStatus(400);
-				throw new Error("CANNOT_REPORT_OWN");
+				throw new AppError("report.cannot_report_own");
 			}
 		} else {
 			const user = await db
@@ -65,7 +66,7 @@ export const submitReport = createServerFn({ method: "POST" })
 				.executeTakeFirst();
 			if (!user) {
 				setResponseStatus(404);
-				throw new Error("TARGET_NOT_FOUND");
+				throw new AppError("report.target_not_found");
 			}
 		}
 
@@ -84,7 +85,7 @@ export const submitReport = createServerFn({ method: "POST" })
 		} catch (e: unknown) {
 			if ((e as { code?: string }).code === "23505") {
 				setResponseStatus(409);
-				throw new Error("ALREADY_REPORTED");
+				throw new AppError("report.already_reported");
 			}
 			throw e;
 		}

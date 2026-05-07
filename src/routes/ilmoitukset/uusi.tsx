@@ -3,6 +3,7 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ListingForm } from "~/components/listings/listing-form";
 import { SITE_NAME } from "~/lib/constants";
+import { AppError } from "~/lib/errors";
 import { useTranslation } from "~/lib/i18n";
 import { createListing } from "~/lib/listings-commands";
 import { log } from "~/lib/log";
@@ -19,11 +20,11 @@ const createListingFn = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const session = await getSession();
 		if (!session) {
-			throw new Error("Kirjaudu sisään ensin");
+			throw new AppError("auth.unauthorized");
 		}
 
 		if (data.images.some((img) => !isValidImageUrl(img.url))) {
-			throw new Error("Virheellinen kuva-URL");
+			throw new AppError("listing.invalid_image", { field: "images" });
 		}
 
 		const result = await createListing(session.user.id, data);

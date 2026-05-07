@@ -9,6 +9,7 @@ import { ListingForm } from "~/components/listings/listing-form";
 import { Button } from "~/components/ui/button";
 import { centsToEuros } from "~/lib/currency";
 import { db } from "~/lib/db/index";
+import { AppError } from "~/lib/errors";
 import { useTranslation } from "~/lib/i18n";
 import { updateListing } from "~/lib/listings-commands";
 import { getListingAvailability, getListingForEdit } from "~/lib/listings-queries";
@@ -30,7 +31,7 @@ const getListingForEditFn = createServerFn({ method: "GET" })
 
 		const result = await getListingForEdit(shortId, session.user.id);
 		if (!result) {
-			throw new Error("Ei oikeuksia");
+			throw new AppError("listing.forbidden");
 		}
 
 		const availability = await getListingAvailability({ data: result.listing.id });
@@ -50,7 +51,7 @@ const updateListingFn = createServerFn({ method: "POST" })
 		}
 
 		if (data.form.images.some((img) => !isValidImageUrl(img.url))) {
-			throw new Error("Virheellinen kuva-URL");
+			throw new AppError("listing.invalid_image", { field: "images" });
 		}
 
 		await updateListing(data.id, session.user.id, data.form);
@@ -77,15 +78,20 @@ const updateAvailability = createServerFn({ method: "POST" })
 			.executeTakeFirst();
 
 		if (!listing || listing.owner_id !== session.user.id) {
-			throw new Error("Ei oikeuksia");
+			throw new AppError("listing.forbidden");
 		}
 
 		await db.transaction().execute(async (trx) => {
-			await trx
+			const availResult = await trx
 				.updateTable("listing")
 				.set({ availability_default: data.availability_default, updated_at: new Date() })
 				.where("id", "=", data.listing_id)
-				.execute();
+				.where("owner_id", "=", session.user.id)
+				.executeTakeFirst();
+
+			if (availResult.numUpdatedRows === 0n) {
+				throw new AppError("listing.forbidden");
+			}
 
 			await trx
 				.deleteFrom("listing_availability_exception")

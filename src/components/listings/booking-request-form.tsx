@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
 import { type BookingCost, computeBookingCost } from "~/lib/bookings";
 import { fromIso } from "~/lib/calendar-helpers";
+import { handleAppError } from "~/lib/errors-client";
 import { useTranslation } from "~/lib/i18n";
 
 interface Props {
@@ -66,16 +67,11 @@ export function BookingRequestForm(props: Props) {
 			});
 			setSuccess(true);
 		} catch (err) {
-			let msg = err instanceof Error ? err.message : String(err);
-			try {
-				const parsed = JSON.parse(msg);
-				if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].message) {
-					msg = parsed.map((p: { message: string }) => p.message).join(", ");
-				}
-			} catch {
-				// not JSON
+			setError(null);
+			const fieldError = handleAppError(err, t);
+			if (fieldError) {
+				setError(fieldError.message);
 			}
-			setError(msg);
 		} finally {
 			setSubmitting(false);
 		}

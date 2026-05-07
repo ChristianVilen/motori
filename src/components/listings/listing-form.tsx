@@ -16,6 +16,7 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { CURRENT_YEAR, LICENSE_CLASSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
+import { handleAppError } from "~/lib/errors-client";
 import { useTranslation } from "~/lib/i18n";
 import type { ListingFormData, ListingImageInput } from "~/lib/validators";
 import { listingFormSchema } from "~/lib/validators";
@@ -119,7 +120,11 @@ export function ListingForm({
 				}
 				await onSubmit(parsed.data);
 			} catch (err) {
-				setSubmitError(err instanceof Error ? err.message : t("form.submit.genericError"));
+				setSubmitError(null);
+				const fieldError = handleAppError(err, t);
+				if (fieldError) {
+					setSubmitError(fieldError.message);
+				}
 			}
 		},
 	});

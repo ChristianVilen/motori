@@ -12,6 +12,7 @@ import {
 } from "~/lib/booking-emails";
 import { expandDateRange } from "~/lib/bookings";
 import { db } from "~/lib/db/index";
+import { AppError } from "~/lib/errors";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { generateShortId } from "~/lib/slug";
@@ -45,10 +46,10 @@ export async function createBookingRequest(args: {
 		.executeTakeFirst();
 
 	if (!listing || listing.status !== "active") {
-		throw new Error("Ilmoitus ei ole saatavilla");
+		throw new AppError("booking.listing_unavailable");
 	}
 	if (listing.owner_id === args.userId) {
-		throw new Error("Et voi varata omaa ilmoitustasi");
+		throw new AppError("booking.own_listing");
 	}
 
 	const renterProfile = await db
@@ -58,7 +59,7 @@ export async function createBookingRequest(args: {
 		.executeTakeFirst();
 
 	if (!renterProfile) {
-		throw new Error("Profiili puuttuu");
+		throw new AppError("auth.profile_missing");
 	}
 
 	const collisions = await db
@@ -71,7 +72,7 @@ export async function createBookingRequest(args: {
 		.execute();
 
 	if (collisions.length > 0) {
-		throw new Error("Päivät on jo varattu");
+		throw new AppError("booking.dates_unavailable");
 	}
 
 	const [availRow, exceptions] = await Promise.all([
@@ -95,7 +96,7 @@ export async function createBookingRequest(args: {
 		const inException = exceptionSet.has(date);
 		const blocked = availDefault === "open" ? inException : !inException;
 		if (blocked) {
-			throw new Error("Päivät on jo varattu");
+			throw new AppError("booking.dates_unavailable");
 		}
 	}
 
@@ -180,20 +181,25 @@ export async function confirmBooking(args: {
 			.executeTakeFirst();
 
 		if (!booking) {
-			throw new Error("Varaus ei löytynyt");
+			throw new AppError("booking.not_found");
 		}
 		if (booking.owner_id !== args.userId) {
-			throw new Error("Ei oikeuksia");
+			throw new AppError("booking.forbidden");
 		}
 		if (booking.status !== "pending") {
-			throw new Error("Varaus ei ole odottamassa");
+			throw new AppError("booking.not_pending");
 		}
 
-		await trx
+		const confirmResult = await trx
 			.updateTable("booking")
 			.set({ status: "confirmed", responded_at: new Date(), updated_at: new Date() })
 			.where("id", "=", booking.id)
-			.execute();
+			.where("status", "=", "pending")
+			.executeTakeFirst();
+
+		if (confirmResult.numUpdatedRows === 0n) {
+			throw new AppError("booking.not_pending");
+		}
 
 		const overlaps = await trx
 			.selectFrom("booking")
@@ -279,46 +285,55 @@ export async function rejectBooking(args: {
 	userId: string;
 	reason?: string;
 }): Promise<void> {
-	const booking = await db
-		.selectFrom("booking")
-		.innerJoin("listing", "listing.id", "booking.listing_id")
-		.innerJoin("user", "user.id", "booking.renter_user_id")
-		.innerJoin("profile", "profile.user_id", "booking.renter_user_id")
-		.select([
-			"booking.id",
-			"booking.short_id",
-			"booking.status",
-			sql<string>`to_char(booking.start_date, 'YYYY-MM-DD')`.as("start_date"),
-			sql<string>`to_char(booking.end_date, 'YYYY-MM-DD')`.as("end_date"),
-			"listing.title as listing_title",
-			"listing.owner_id",
-			"user.email as renter_email",
-			"profile.display_name as renter_name",
-			"profile.language as renter_language",
-		])
-		.where("booking.id", "=", args.bookingId)
-		.executeTakeFirst();
+	const booking = await db.transaction().execute(async (trx) => {
+		const row = await trx
+			.selectFrom("booking")
+			.innerJoin("listing", "listing.id", "booking.listing_id")
+			.innerJoin("user", "user.id", "booking.renter_user_id")
+			.innerJoin("profile", "profile.user_id", "booking.renter_user_id")
+			.select([
+				"booking.id",
+				"booking.short_id",
+				"booking.status",
+				sql<string>`to_char(booking.start_date, 'YYYY-MM-DD')`.as("start_date"),
+				sql<string>`to_char(booking.end_date, 'YYYY-MM-DD')`.as("end_date"),
+				"listing.title as listing_title",
+				"listing.owner_id",
+				"user.email as renter_email",
+				"profile.display_name as renter_name",
+				"profile.language as renter_language",
+			])
+			.where("booking.id", "=", args.bookingId)
+			.executeTakeFirst();
 
-	if (!booking) {
-		throw new Error("Varaus ei löytynyt");
-	}
-	if (booking.owner_id !== args.userId) {
-		throw new Error("Ei oikeuksia");
-	}
-	if (booking.status !== "pending") {
-		throw new Error("Varaus ei ole odottamassa");
-	}
+		if (!row) {
+			throw new AppError("booking.not_found");
+		}
+		if (row.owner_id !== args.userId) {
+			throw new AppError("booking.forbidden");
+		}
+		if (row.status !== "pending") {
+			throw new AppError("booking.not_pending");
+		}
 
-	await db
-		.updateTable("booking")
-		.set({
-			status: "rejected",
-			rejection_reason: args.reason ?? null,
-			responded_at: new Date(),
-			updated_at: new Date(),
-		})
-		.where("id", "=", booking.id)
-		.execute();
+		const result = await trx
+			.updateTable("booking")
+			.set({
+				status: "rejected",
+				rejection_reason: args.reason ?? null,
+				responded_at: new Date(),
+				updated_at: new Date(),
+			})
+			.where("id", "=", row.id)
+			.where("status", "=", "pending")
+			.executeTakeFirst();
+
+		if (result.numUpdatedRows === 0n) {
+			throw new AppError("booking.not_pending");
+		}
+
+		return row;
+	});
 
 	log.event(EVENTS.booking.rejected, { bookingId: booking.id });
 
@@ -342,29 +357,37 @@ export async function rejectBooking(args: {
 // --- Cancel ---
 
 export async function cancelBooking(args: { bookingId: string; userId: string }): Promise<void> {
-	const booking = await db
-		.selectFrom("booking")
-		.select(["id", "renter_user_id", "status"])
-		.where("id", "=", args.bookingId)
-		.executeTakeFirst();
+	await db.transaction().execute(async (trx) => {
+		const booking = await trx
+			.selectFrom("booking")
+			.select(["id", "renter_user_id", "status"])
+			.where("id", "=", args.bookingId)
+			.executeTakeFirst();
 
-	if (!booking) {
-		throw new Error("Varaus ei löytynyt");
-	}
-	if (booking.renter_user_id !== args.userId) {
-		throw new Error("Ei oikeuksia");
-	}
-	if (booking.status !== "pending") {
-		throw new Error("Varaus ei ole odottamassa");
-	}
+		if (!booking) {
+			throw new AppError("booking.not_found");
+		}
+		if (booking.renter_user_id !== args.userId) {
+			throw new AppError("booking.forbidden");
+		}
+		if (booking.status !== "pending") {
+			throw new AppError("booking.not_pending");
+		}
 
-	await db
-		.updateTable("booking")
-		.set({ status: "cancelled", updated_at: new Date() })
-		.where("id", "=", booking.id)
-		.execute();
+		const cancelResult = await trx
+			.updateTable("booking")
+			.set({ status: "cancelled", updated_at: new Date() })
+			.where("id", "=", booking.id)
+			.where("renter_user_id", "=", args.userId)
+			.where("status", "=", "pending")
+			.executeTakeFirst();
 
-	log.event(EVENTS.booking.cancelled, { bookingId: booking.id });
+		if (cancelResult.numUpdatedRows === 0n) {
+			throw new AppError("booking.not_pending");
+		}
+	});
+
+	log.event(EVENTS.booking.cancelled, { bookingId: args.bookingId });
 }
 
 // --- Expire ---

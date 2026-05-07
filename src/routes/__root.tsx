@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useState } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
+import { Toaster } from "sonner";
 import { LoginModal } from "~/components/auth/login-modal";
 import { UserMenu } from "~/components/auth/user-menu";
 import { LanguageSelector } from "~/components/language-selector";
@@ -305,6 +306,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 					</footer>
 				)}
 				{!isAdmin && <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />}
+				<Toaster position="top-right" richColors />
 				<Scripts />
 
 				<script

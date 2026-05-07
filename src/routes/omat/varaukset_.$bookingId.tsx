@@ -12,6 +12,7 @@ import {
 import { SITE_NAME } from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import type { BookingStatus } from "~/lib/db/schema";
+import { AppError } from "~/lib/errors";
 import { useTranslation } from "~/lib/i18n";
 import { protectedMutation } from "~/lib/middleware";
 import { getSession } from "~/lib/session";
@@ -22,7 +23,7 @@ const getBooking = createServerFn({ method: "GET" })
 	.handler(async ({ data: shortId }) => {
 		const session = await getSession();
 		if (!session) {
-			throw new Error("Kirjaudu sisään");
+			throw new AppError("auth.unauthorized");
 		}
 
 		const row = await db
@@ -65,7 +66,7 @@ const getBooking = createServerFn({ method: "GET" })
 		const isOwner = row.owner_id === session.user.id;
 		const isRenter = row.renter_id === session.user.id;
 		if (!isOwner && !isRenter) {
-			throw new Error("Ei oikeuksia");
+			throw new AppError("listing.forbidden");
 		}
 
 		const renterPhone = row.renter_show_phone ? row.renter_phone : null;
@@ -103,7 +104,7 @@ const confirmBooking = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const session = await getSession();
 		if (!session) {
-			throw new Error("Kirjaudu sisään");
+			throw new AppError("auth.unauthorized");
 		}
 
 		return confirmBookingAction({ bookingId: data.id, userId: session.user.id });
@@ -115,7 +116,7 @@ const rejectBooking = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const session = await getSession();
 		if (!session) {
-			throw new Error("Kirjaudu sisään");
+			throw new AppError("auth.unauthorized");
 		}
 
 		await rejectBookingAction({
@@ -131,7 +132,7 @@ const cancelBooking = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const session = await getSession();
 		if (!session) {
-			throw new Error("Kirjaudu sisään");
+			throw new AppError("auth.unauthorized");
 		}
 
 		await cancelBookingAction({ bookingId: data.id, userId: session.user.id });
