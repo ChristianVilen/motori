@@ -277,7 +277,11 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 	}
 
 	return (
-		<div className="flex gap-4 rounded-l border border-border bg-card p-4">
+		<div
+			className="flex gap-4 rounded-l border border-border bg-card p-4"
+			data-testid="tori-item-row"
+			data-item-id={item.short_id}
+		>
 			{/* Thumbnail */}
 			<Link
 				to="/tori/$itemId/$slug"

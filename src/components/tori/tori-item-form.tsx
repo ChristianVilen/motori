@@ -353,7 +353,12 @@ export function ToriItemForm({
 			)}
 			{!!uploadProgress && <p className="text-sm text-muted">{uploadProgress}</p>}
 
-			<Button type="submit" disabled={form.state.isSubmitting} className="w-full">
+			<Button
+				type="submit"
+				disabled={form.state.isSubmitting}
+				className="w-full"
+				data-testid="tori-form-submit"
+			>
 				{form.state.isSubmitting === true ? "Tallennetaan..." : (submitLabel ?? "Julkaise")}
 			</Button>
 		</form>

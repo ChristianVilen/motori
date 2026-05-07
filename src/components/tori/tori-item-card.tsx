@@ -31,6 +31,8 @@ export function ToriItemCard({ item, images }: ToriItemCardProps) {
 		<Link
 			to="/tori/$itemId/$slug"
 			params={{ itemId: item.short_id, slug }}
+			data-testid="tori-item-card"
+			data-item-id={item.short_id}
 			className={`group block overflow-hidden rounded-xl border border-border bg-card card-hover hover:card-hover-active ${isSold ? "opacity-60" : ""}`}
 		>
 			{/* Image */}

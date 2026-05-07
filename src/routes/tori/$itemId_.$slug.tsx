@@ -141,7 +141,12 @@ function ToriItemDetailPage() {
 						{/* Title + badges */}
 						<div>
 							<div className="flex items-start justify-between gap-3">
-								<h1 className="text-xl font-bold text-primary md:text-2xl">{item.title}</h1>
+								<h1
+									className="text-xl font-bold text-primary md:text-2xl"
+									data-testid="tori-detail-title"
+								>
+									{item.title}
+								</h1>
 								{isSold && (
 									<span className="rounded bg-black/80 px-2.5 py-1 text-xs font-semibold text-white">
 										Myyty
