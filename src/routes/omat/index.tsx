@@ -1,18 +1,20 @@
 // src/routes/omat/index.tsx
-// User dashboard — my listings, with quick actions
+// User dashboard — my listings + tori items, with quick actions
 import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { MapPin, Pencil, Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, SITE_NAME } from "~/lib/constants";
 import { db } from "~/lib/db/index";
-import type { Listing, ListingImage } from "~/lib/db/schema";
+import type { Listing, ListingImage, ToriItem, ToriItemImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { setListingStatus } from "~/lib/listings-commands";
 import { getOwnerListings } from "~/lib/listings-queries";
 import { protectedMutation } from "~/lib/middleware";
 import { getSession } from "~/lib/session";
-import { computeListingSlug } from "~/lib/slug";
+import { computeListingSlug, slugify } from "~/lib/slug";
+import { TORI_STATUSES } from "~/lib/tori/constants";
+import { setToriItemStatus } from "~/lib/tori/tori-commands";
 import { useEmailVerified } from "~/lib/use-email-verified";
 
 const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
@@ -23,13 +25,32 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 
 	const { listings, images } = await getOwnerListings(session.user.id);
 
-	const profile = await db
-		.selectFrom("profile")
-		.selectAll()
-		.where("user_id", "=", session.user.id)
-		.executeTakeFirst();
+	const [profile, toriItems, toriImages] = await Promise.all([
+		db.selectFrom("profile").selectAll().where("user_id", "=", session.user.id).executeTakeFirst(),
+		db
+			.selectFrom("tori_item")
+			.selectAll()
+			.where("owner_id", "=", session.user.id)
+			.where("status", "!=", "expired")
+			.orderBy("created_at", "desc")
+			.execute(),
+		db
+			.selectFrom("tori_item_image")
+			.selectAll()
+			.where(
+				"item_id",
+				"in",
+				db
+					.selectFrom("tori_item")
+					.select("id")
+					.where("owner_id", "=", session.user.id)
+					.where("status", "!=", "expired"),
+			)
+			.where("order", "=", 0)
+			.execute(),
+	]);
 
-	return { listings, images, profile, session };
+	return { listings, images, profile, session, toriItems, toriImages };
 });
 
 const setListingStatusFn = createServerFn({ method: "POST" })
@@ -42,6 +63,13 @@ const setListingStatusFn = createServerFn({ method: "POST" })
 		}
 
 		await setListingStatus(data.id, session.user.id, data.status);
+	});
+
+const setToriStatusFn = createServerFn({ method: "POST" })
+	.middleware(protectedMutation("set-tori-status", 20, 60))
+	.inputValidator((data: { id: string; status: string }) => data)
+	.handler(async ({ data }) => {
+		await setToriItemStatus({ data });
 	});
 
 export const Route = createFileRoute("/omat/")({
@@ -218,8 +246,121 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 	);
 }
 
+const TORI_STATUS_STYLES: Record<string, string> = {
+	active: "bg-success/10 text-success",
+	paused: "bg-warning/10 text-warning",
+	sold: "bg-primary/10 text-primary",
+	expired: "bg-muted-light text-muted",
+};
+
+interface ToriItemRowProps {
+	item: ToriItem;
+	firstImage: ToriItemImage | undefined;
+	onStatusChange: () => void;
+	verified: boolean | null;
+}
+
+function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRowProps) {
+	const slug = slugify(item.title);
+	const statusLabel = TORI_STATUSES[item.status] ?? item.status;
+	const statusStyle = TORI_STATUS_STYLES[item.status] ?? "bg-muted-light text-muted";
+
+	async function handleTogglePause() {
+		const newStatus = item.status === "active" ? "paused" : "active";
+		await setToriStatusFn({ data: { id: item.id, status: newStatus } });
+		onStatusChange();
+	}
+
+	async function handleMarkSold() {
+		await setToriStatusFn({ data: { id: item.id, status: "sold" } });
+		onStatusChange();
+	}
+
+	return (
+		<div className="flex gap-4 rounded-l border border-border bg-card p-4">
+			{/* Thumbnail */}
+			<Link
+				to="/tori/$itemId/$slug"
+				params={{ itemId: item.short_id, slug }}
+				className="h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-muted-light"
+			>
+				{firstImage ? (
+					<img
+						src={firstImage.thumbnail_url ?? firstImage.url}
+						alt=""
+						className="h-full w-full object-cover"
+					/>
+				) : (
+					<div className="flex h-full items-center justify-center text-border">
+						<Plus className="h-6 w-6" />
+					</div>
+				)}
+			</Link>
+
+			{/* Info */}
+			<div className="min-w-0 flex-1">
+				<div className="flex flex-wrap items-start justify-between gap-2">
+					<Link
+						to="/tori/$itemId/$slug"
+						params={{ itemId: item.short_id, slug }}
+						className="text-sm font-semibold text-foreground hover:text-accent"
+					>
+						{item.title}
+					</Link>
+					<span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${statusStyle}`}>
+						{statusLabel}
+					</span>
+				</div>
+
+				<div className="mt-1 flex flex-wrap gap-2 text-xs text-muted">
+					<span className="flex items-center gap-0.5">
+						<MapPin className="h-3 w-3" />
+						{item.city}
+					</span>
+					<span>·</span>
+					<span className="font-medium text-accent">{formatEur(item.price_cents)}</span>
+				</div>
+
+				{/* Actions */}
+				<div className="mt-3 flex flex-wrap gap-2">
+					{verified ? (
+						<Link to="/tori/$itemId/muokkaa" params={{ itemId: item.short_id }}>
+							<Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs">
+								<Pencil className="h-3 w-3" />
+								Muokkaa
+							</Button>
+						</Link>
+					) : null}
+					{item.status !== "sold" && (
+						<Button
+							variant="outline"
+							size="sm"
+							className="h-7 px-2 text-xs"
+							onClick={handleTogglePause}
+							disabled={!verified}
+						>
+							{item.status === "active" ? "Tauko" : "Aktivoi"}
+						</Button>
+					)}
+					{item.status === "active" && (
+						<Button
+							variant="outline"
+							size="sm"
+							className="h-7 px-2 text-xs"
+							onClick={handleMarkSold}
+							disabled={!verified}
+						>
+							Myyty
+						</Button>
+					)}
+				</div>
+			</div>
+		</div>
+	);
+}
+
 function ProfilePage() {
-	const { listings, images, profile } = Route.useLoaderData();
+	const { listings, images, profile, toriItems, toriImages } = Route.useLoaderData();
 	const router = useRouter();
 	const { t } = useTranslation("profile");
 	const { t: tAuth } = useTranslation("auth");
@@ -237,6 +378,13 @@ function ProfilePage() {
 	for (const img of images) {
 		if (!firstImageByListing.has(img.listing_id)) {
 			firstImageByListing.set(img.listing_id, img);
+		}
+	}
+
+	const firstToriImageByItem = new Map<string, ToriItemImage>();
+	for (const img of toriImages) {
+		if (!firstToriImageByItem.has(img.item_id)) {
+			firstToriImageByItem.set(img.item_id, img);
 		}
 	}
 
@@ -317,6 +465,51 @@ function ProfilePage() {
 						))}
 					</div>
 				)}
+
+				{/* Tori section */}
+				<div className="mt-12">
+					<div className="mb-4 flex items-center justify-between">
+						<h2 className="text-lg font-bold text-primary">Tori</h2>
+						{verified ? (
+							<Link to="/tori/uusi">
+								<Button size="sm" className="gap-2 bg-accent text-white hover:bg-accent-hover">
+									<Plus className="h-4 w-4" />
+									Luo uusi
+								</Button>
+							</Link>
+						) : (
+							<Button size="sm" disabled title={tAuth("unverifiedTooltip")} className="gap-2">
+								<Plus className="h-4 w-4" />
+								Luo uusi
+							</Button>
+						)}
+					</div>
+
+					{toriItems.length === 0 ? (
+						<div className="flex flex-col items-center gap-4 rounded-l border border-dashed border-border py-12 text-center">
+							<p className="text-muted">Ei Tori-ilmoituksia.</p>
+							{verified ? (
+								<Link to="/tori/uusi">
+									<Button className="bg-accent text-white hover:bg-accent-hover">
+										Luo ensimmäinen
+									</Button>
+								</Link>
+							) : null}
+						</div>
+					) : (
+						<div className="space-y-3">
+							{toriItems.map((item) => (
+								<ToriItemRow
+									key={item.id}
+									item={item}
+									firstImage={firstToriImageByItem.get(item.id)}
+									onStatusChange={refresh}
+									verified={verified}
+								/>
+							))}
+						</div>
+					)}
+				</div>
 			</div>
 		</div>
 	);
