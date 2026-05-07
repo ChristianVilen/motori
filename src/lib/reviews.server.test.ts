@@ -80,7 +80,7 @@ describe("submitReview", () => {
 
 		await expect(
 			submitReview({ bookingId: "booking-1", userId: "renter-1", rating: 5 }),
-		).rejects.toThrow("Varaus ei löytynyt");
+		).rejects.toThrow(/booking\.not_found/);
 	});
 
 	it("throws when booking is not confirmed", async () => {
@@ -88,7 +88,7 @@ describe("submitReview", () => {
 
 		await expect(
 			submitReview({ bookingId: "booking-1", userId: "renter-1", rating: 5 }),
-		).rejects.toThrow("Varaus ei ole vahvistettu");
+		).rejects.toThrow(/review\.booking_not_confirmed/);
 	});
 
 	it("throws when user is neither renter nor owner", async () => {
@@ -96,7 +96,7 @@ describe("submitReview", () => {
 
 		await expect(
 			submitReview({ bookingId: "booking-1", userId: "stranger-1", rating: 5 }),
-		).rejects.toThrow("Ei oikeuksia");
+		).rejects.toThrow(/booking\.forbidden/);
 	});
 
 	it("throws when end_date has not passed", async () => {
@@ -104,7 +104,7 @@ describe("submitReview", () => {
 
 		await expect(
 			submitReview({ bookingId: "booking-1", userId: "renter-1", rating: 5 }),
-		).rejects.toThrow("Vuokra-aika ei ole päättynyt");
+		).rejects.toThrow(/review\.rental_not_ended/);
 	});
 
 	it("throws when review window closed (14 days after end)", async () => {
@@ -112,7 +112,7 @@ describe("submitReview", () => {
 
 		await expect(
 			submitReview({ bookingId: "booking-1", userId: "renter-1", rating: 5 }),
-		).rejects.toThrow("Arvosteluaika on umpeutunut");
+		).rejects.toThrow(/review\.window_closed/);
 	});
 
 	it("submits review for renter (target is owner)", async () => {

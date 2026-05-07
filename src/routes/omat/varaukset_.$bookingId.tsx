@@ -13,6 +13,7 @@ import { SITE_NAME } from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import type { BookingStatus } from "~/lib/db/schema";
 import { AppError } from "~/lib/errors";
+import { handleAppError } from "~/lib/errors-client";
 import { useTranslation } from "~/lib/i18n";
 import { protectedMutation } from "~/lib/middleware";
 import { isReviewEligible } from "~/lib/reviews";
@@ -156,7 +157,7 @@ const submitReview = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const session = await getSession();
 		if (!session) {
-			throw new Error("Kirjaudu sisään");
+			throw new AppError("auth.unauthorized");
 		}
 
 		await submitReviewAction({
@@ -340,8 +341,9 @@ function ReviewSection(props: {
 			});
 			setLocalSubmitted(true);
 			props.onRefresh();
-		} catch {
-			setError(t("reviews.submitError"));
+		} catch (err) {
+			const fieldError = handleAppError(err, t);
+			setError(fieldError ? fieldError.message : t("reviews.submitError"));
 		} finally {
 			setBusy(false);
 		}

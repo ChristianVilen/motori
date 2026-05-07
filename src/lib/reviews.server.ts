@@ -4,6 +4,7 @@
  */
 import { sql } from "kysely";
 import { db } from "~/lib/db/index";
+import { AppError } from "~/lib/errors";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { isReviewRevealed, isReviewWindowOpen } from "~/lib/reviews";
@@ -28,25 +29,25 @@ export async function submitReview(args: {
 		.executeTakeFirst();
 
 	if (!booking) {
-		throw new Error("Varaus ei löytynyt");
+		throw new AppError("booking.not_found");
 	}
 	if (booking.status !== "confirmed") {
-		throw new Error("Varaus ei ole vahvistettu");
+		throw new AppError("review.booking_not_confirmed");
 	}
 
 	const isRenter = booking.renter_user_id === args.userId;
 	const isOwner = booking.owner_id === args.userId;
 	if (!isRenter && !isOwner) {
-		throw new Error("Ei oikeuksia");
+		throw new AppError("booking.forbidden");
 	}
 
 	// toISOString() returns UTC date — both today and end_date are UTC-anchored (YYYY-MM-DD)
 	const today = new Date().toISOString().slice(0, 10);
 	if (booking.end_date >= today) {
-		throw new Error("Vuokra-aika ei ole päättynyt");
+		throw new AppError("review.rental_not_ended");
 	}
 	if (!isReviewWindowOpen(booking.end_date)) {
-		throw new Error("Arvosteluaika on umpeutunut");
+		throw new AppError("review.window_closed");
 	}
 
 	const targetUserId = isRenter ? booking.owner_id : booking.renter_user_id;
