@@ -136,6 +136,16 @@ export interface Report {
 	target_type: string;
 }
 
+export interface Review {
+	booking_id: string;
+	comment: string | null;
+	created_at: Generated<Timestamp>;
+	id: Generated<string>;
+	rating: number;
+	reviewer_id: string;
+	target_user_id: string;
+}
+
 export interface Session {
 	createdAt: Timestamp;
 	expiresAt: Timestamp;
@@ -182,6 +192,7 @@ export interface DB {
 	motorcycle_model: MotorcycleModel;
 	profile: Profile;
 	report: Report;
+	review: Review;
 	session: Session;
 	user: User;
 	verification: Verification;

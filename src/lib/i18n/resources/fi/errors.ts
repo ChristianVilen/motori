@@ -16,5 +16,8 @@ export default {
 	"report.cannot_report_own": "Et voi ilmiantaa omaa ilmoitustasi.",
 	"report.target_not_found": "Kohdetta ei löytynyt.",
 	"report.already_reported": "Olet jo ilmiantanut tämän kohteen.",
+	"review.booking_not_confirmed": "Varausta ei ole vahvistettu.",
+	"review.rental_not_ended": "Vuokra-aika ei ole päättynyt.",
+	"review.window_closed": "Arvosteluaika on umpeutunut.",
 	"rate_limit.exceeded": "Liian monta yritystä. Yritä uudelleen {{seconds}} sekunnin kuluttua.",
 } as const;

@@ -15,6 +15,7 @@ dist
 .superpowers/
 .claude/worktrees/
 .pi
+.idea
 
 # Raw image originals — optimized output goes to public/images/
 /images/

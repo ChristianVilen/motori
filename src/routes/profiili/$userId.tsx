@@ -9,6 +9,7 @@ import { LICENSE_CLASSES, SITE_NAME } from "~/lib/constants";
 import { db } from "~/lib/db/index";
 import type { ListingImage } from "~/lib/db/schema";
 import { formatDate, useTranslation } from "~/lib/i18n";
+import { computeReviewSummary, getReviewsForUser } from "~/lib/reviews.server";
 import { getSession } from "~/lib/session";
 
 const getPublicProfile = createServerFn({ method: "GET" })
@@ -46,7 +47,10 @@ const getPublicProfile = createServerFn({ method: "GET" })
 						.execute()
 				: [];
 
-		return { profile, listings, images };
+		const reviews = await getReviewsForUser(userId);
+		const reviewSummary = computeReviewSummary(reviews);
+
+		return { profile, listings, images, reviewSummary, reviews };
 	});
 
 function NotFoundProfile() {
@@ -84,7 +88,7 @@ export const Route = createFileRoute("/profiili/$userId")({
 
 function PublicProfilePage() {
 	const { t } = useTranslation("profile");
-	const { profile, listings, images, session } = Route.useLoaderData();
+	const { profile, listings, images, session, reviewSummary, reviews } = Route.useLoaderData();
 	const isOwnProfile = session?.user.id === profile.user_id;
 	const licenseLabel =
 		LICENSE_CLASSES.find((l) => l.value === profile.license_class)?.label ?? null;
@@ -128,6 +132,16 @@ function PublicProfilePage() {
 							</span>
 						)}
 						<span>{t("publicProfile.memberSince", { date: memberSince })}</span>
+						{reviewSummary.averageRating !== null && (
+							<span className="font-medium text-foreground">
+								{reviewSummary.reviewCount === 1
+									? t("reviews.summaryOne", { rating: reviewSummary.averageRating })
+									: t("reviews.summary", {
+											rating: reviewSummary.averageRating,
+											count: reviewSummary.reviewCount,
+										})}
+							</span>
+						)}
 					</div>
 					{!!session && !isOwnProfile && (
 						<div className="mt-3">
@@ -135,6 +149,36 @@ function PublicProfilePage() {
 						</div>
 					)}
 				</div>
+
+				{/* Reviews */}
+				{reviews.length > 0 && (
+					<div data-testid="reviews-section" className="mb-8">
+						<h2 className="mb-4 text-sm font-semibold text-foreground">{t("reviews.heading")}</h2>
+						<div className="space-y-3">
+							{reviews.map((review) => (
+								<div key={review.id} className="rounded-l border border-border bg-card p-4">
+									<div className="flex items-center justify-between">
+										<span className="text-sm font-medium">{review.reviewer_display_name}</span>
+										<span className="text-xs text-muted">
+											{formatDate(new Date(review.created_at), {
+												year: "numeric",
+												month: "short",
+												day: "numeric",
+											})}
+										</span>
+									</div>
+									<div className="mt-1 text-yellow-500">
+										{"★".repeat(review.rating)}
+										<span className="text-gray-300">{"★".repeat(5 - review.rating)}</span>
+									</div>
+									{!!review.comment && (
+										<p className="mt-2 text-sm text-foreground">{review.comment}</p>
+									)}
+								</div>
+							))}
+						</div>
+					</div>
+				)}
 
 				{/* Listings */}
 				<h2 className="mb-4 text-sm font-semibold text-foreground">

@@ -204,6 +204,19 @@ export interface ListingAvailabilityExceptionTable {
 export type ListingAvailabilityException = Selectable<ListingAvailabilityExceptionTable>;
 export type NewListingAvailabilityException = Insertable<ListingAvailabilityExceptionTable>;
 
+export interface ReviewTable {
+	id: Generated<string>;
+	booking_id: string;
+	reviewer_id: string;
+	target_user_id: string;
+	rating: number;
+	comment: string | null;
+	created_at: ColumnType<Date, Date | undefined, never>;
+}
+
+export type Review = Selectable<ReviewTable>;
+export type NewReview = Insertable<ReviewTable>;
+
 // ─── Database interface ───────────────────────────────────────────────────────
 
 export interface Database {
@@ -220,4 +233,5 @@ export interface Database {
 	report: ReportTable;
 	booking: BookingTable;
 	listing_availability_exception: ListingAvailabilityExceptionTable;
+	review: ReviewTable;
 }

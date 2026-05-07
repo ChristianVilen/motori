@@ -24,6 +24,7 @@ import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { getListingAvailability, getListingForDisplay, recordView } from "~/lib/listings-queries";
 import { protectedMutation } from "~/lib/middleware";
+import { getReviewSummaryForUser } from "~/lib/reviews.server";
 import { getSession } from "~/lib/session";
 import { computeListingSlug } from "~/lib/slug";
 import { bookingRequestSchema } from "~/lib/validators";
@@ -41,7 +42,9 @@ const getListing = createServerFn({ method: "GET" })
 		const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
 		recordView(shortId, session?.user.id, ip);
 
-		return result;
+		const ownerReviewSummary = await getReviewSummaryForUser(result.listing.owner_id);
+
+		return { ...result, ownerReviewSummary };
 	});
 
 export const submitBookingRequest = createServerFn({ method: "POST" })
@@ -365,8 +368,17 @@ function BookingSidebar({
 
 function ListingDetailPage() {
 	const { t } = useTranslation("listings");
-	const { listing, images, session, makeName, makeSlug, modelName, availability } =
-		Route.useLoaderData();
+	const { t: tProfile } = useTranslation("profile");
+	const {
+		listing,
+		images,
+		session,
+		makeName,
+		makeSlug,
+		modelName,
+		availability,
+		ownerReviewSummary,
+	} = Route.useLoaderData();
 
 	const [bookingModalOpen, setBookingModalOpen] = useState(false);
 
@@ -443,6 +455,22 @@ function ListingDetailPage() {
 									<span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
 										{t("detail.licenseBadge", { license: licenseLabel })}
 									</span>
+								)}
+								{ownerReviewSummary.averageRating !== null && (
+									<Link
+										to="/profiili/$userId"
+										params={{ userId: listing.owner_id }}
+										className="rounded-full bg-muted-light px-2.5 py-0.5 text-xs text-muted hover:text-accent"
+									>
+										{ownerReviewSummary.reviewCount === 1
+											? tProfile("reviews.summaryOne", {
+													rating: ownerReviewSummary.averageRating,
+												})
+											: tProfile("reviews.summary", {
+													rating: ownerReviewSummary.averageRating,
+													count: ownerReviewSummary.reviewCount,
+												})}
+									</Link>
 								)}
 							</div>
 						</div>

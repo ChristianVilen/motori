@@ -63,6 +63,25 @@ export default {
 			contactRevealed: "Yhteystiedot näkyvät kummallekin osapuolelle.",
 		},
 	},
+	reviews: {
+		heading: "Arvostelut",
+		submitHeading: "Jätä arvostelu",
+		ratingLabel: "Arvosana",
+		commentLabel: "Kommentti (vapaaehtoinen)",
+		commentPlaceholder: "Kerro kokemuksestasi...",
+		submitButton: "Lähetä arvostelu",
+		submitting: "Lähetetään...",
+		submitted:
+			"Arvostelu lähetetty! Näkyy kun molemmat ovat arvostelleet tai 14 päivää on kulunut.",
+		windowClosed: "Arvosteluaika on umpeutunut.",
+		revealed: "Arvosteluaika on päättynyt — arvostelusi on nyt näkyvissä profiilissa.",
+		waitingReveal:
+			"Arvosteluasi ei näytetä vielä — odottaa toisen osapuolen arvostelua tai 14 päivän määräaikaa.",
+		noReviews: "Ei vielä arvosteluja.",
+		summary: "{{rating}} ★ ({{count}} arvostelua)",
+		summaryOne: "{{rating}} ★ (1 arvostelu)",
+		submitError: "Arvostelun lähetys epäonnistui. Yritä uudelleen.",
+	},
 	settings: {
 		backLink: "← Omat ilmoitukset",
 		pageTitle: "Profiilin asetukset",
