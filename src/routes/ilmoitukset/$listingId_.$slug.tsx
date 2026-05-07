@@ -24,7 +24,7 @@ import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { getListingAvailability, getListingForDisplay, recordView } from "~/lib/listings-queries";
 import { protectedMutation } from "~/lib/middleware";
-import { computeReviewSummary, getReviewsForUser } from "~/lib/reviews.server";
+import { getReviewSummaryForUser } from "~/lib/reviews.server";
 import { getSession } from "~/lib/session";
 import { computeListingSlug } from "~/lib/slug";
 import { bookingRequestSchema } from "~/lib/validators";
@@ -42,8 +42,7 @@ const getListing = createServerFn({ method: "GET" })
 		const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
 		recordView(shortId, session?.user.id, ip);
 
-		const ownerReviews = await getReviewsForUser(result.listing.owner_id);
-		const ownerReviewSummary = computeReviewSummary(ownerReviews);
+		const ownerReviewSummary = await getReviewSummaryForUser(result.listing.owner_id);
 
 		return { ...result, ownerReviewSummary };
 	});

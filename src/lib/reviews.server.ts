@@ -51,16 +51,24 @@ export async function submitReview(args: {
 
 	const targetUserId = isRenter ? booking.owner_id : booking.renter_user_id;
 
-	await db
-		.insertInto("review")
-		.values({
-			booking_id: args.bookingId,
-			reviewer_id: args.userId,
-			target_user_id: targetUserId,
-			rating: args.rating,
-			comment: args.comment || null,
-		})
-		.execute();
+	try {
+		await db
+			.insertInto("review")
+			.values({
+				booking_id: args.bookingId,
+				reviewer_id: args.userId,
+				target_user_id: targetUserId,
+				rating: args.rating,
+				comment: args.comment || null,
+			})
+			.execute();
+	} catch (err) {
+		// 23505 = unique_violation. User already reviewed this booking — idempotent no-op.
+		if ((err as { code?: string })?.code === "23505") {
+			return;
+		}
+		throw err;
+	}
 
 	log.event(EVENTS.review.submitted, { bookingId: args.bookingId, reviewerId: args.userId });
 }
@@ -73,28 +81,38 @@ export interface ReviewForDisplay {
 	reviewer_display_name: string;
 }
 
+// SQL coverage for getReviewsForUser / getReviewSummaryForUser lives in
+// e2e/tests/reviews.spec.ts — the unit tests in this file mock Kysely and
+// cannot exercise the real reveal predicates.
 export async function getReviewsForUser(targetUserId: string): Promise<ReviewForDisplay[]> {
-	const reviews = await db
+	const rows = await db
 		.selectFrom("review")
 		.innerJoin("booking", "booking.id", "review.booking_id")
 		.innerJoin("profile", "profile.user_id", "review.reviewer_id")
 		.select([
 			"review.id",
-			"review.booking_id",
 			"review.rating",
 			"review.comment",
 			"review.created_at",
 			"profile.display_name as reviewer_display_name",
 			sql<string>`to_char(booking.end_date, 'YYYY-MM-DD')`.as("end_date"),
-			sql<number>`count(*) OVER (PARTITION BY review.booking_id)::int`.as("booking_review_count"),
+			sql<number>`(SELECT count(*) FROM review r2 WHERE r2.booking_id = review.booking_id)::int`.as(
+				"booking_review_count",
+			),
 		])
 		.where("review.target_user_id", "=", targetUserId)
 		.orderBy("review.created_at", "desc")
 		.execute();
 
-	return reviews
+	return rows
 		.filter((r) => isReviewRevealed(r.booking_review_count >= 2, r.end_date))
-		.map(({ booking_id: _, end_date: __, booking_review_count: ___, ...rest }) => rest);
+		.map((r) => ({
+			id: r.id,
+			rating: r.rating,
+			comment: r.comment,
+			created_at: r.created_at,
+			reviewer_display_name: r.reviewer_display_name,
+		}));
 }
 
 export interface ReviewSummary {
@@ -111,6 +129,40 @@ export function computeReviewSummary(reviews: ReviewForDisplay[]): ReviewSummary
 	return {
 		averageRating: Math.round((sum / reviews.length) * 10) / 10,
 		reviewCount: reviews.length,
+	};
+}
+
+/**
+ * Aggregate-only summary — single round trip, avoids loading the full
+ * reviews list when only the badge is needed (listing detail / profile header).
+ * Applies the same reveal logic as getReviewsForUser.
+ */
+export async function getReviewSummaryForUser(targetUserId: string): Promise<ReviewSummary> {
+	// Cutoff date matches isReviewRevealed: deadline passed when end_date <= today_utc - 14
+	const today = new Date().toISOString().slice(0, 10);
+	const cutoff = new Date(`${today}T00:00:00Z`);
+	cutoff.setUTCDate(cutoff.getUTCDate() - 14);
+	const cutoffStr = cutoff.toISOString().slice(0, 10);
+
+	const row = await db
+		.selectFrom("review")
+		.innerJoin("booking", "booking.id", "review.booking_id")
+		.select([
+			sql<number | null>`avg(review.rating)::float`.as("avg_rating"),
+			sql<number>`count(*)::int`.as("review_count"),
+		])
+		.where("review.target_user_id", "=", targetUserId)
+		.where(
+			sql<boolean>`((SELECT count(*) FROM review r2 WHERE r2.booking_id = review.booking_id) >= 2 OR booking.end_date <= ${cutoffStr}::date)`,
+		)
+		.executeTakeFirst();
+
+	if (!row || row.review_count === 0 || row.avg_rating === null) {
+		return { averageRating: null, reviewCount: 0 };
+	}
+	return {
+		averageRating: Math.round(row.avg_rating * 10) / 10,
+		reviewCount: row.review_count,
 	};
 }
 
