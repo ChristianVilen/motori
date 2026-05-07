@@ -195,12 +195,13 @@ function ToriItemDetailPage() {
 
 							{isOwner && (
 								<div className="mt-3 border-t border-border pt-3">
-									<a
-										href={`/tori/${item.short_id}/muokkaa`}
+									<Link
+										to="/tori/$itemId/muokkaa"
+										params={{ itemId: item.short_id }}
 										className="block text-center text-sm text-accent hover:underline"
 									>
 										Muokkaa ilmoitusta
-									</a>
+									</Link>
 								</div>
 							)}
 						</div>
