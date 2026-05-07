@@ -7,9 +7,7 @@ describe("computeApexRedirect", () => {
 	});
 
 	it("returns null when the request host already matches canonical", () => {
-		expect(
-			computeApexRedirect(new Request("https://motori.fi/x"), "https://motori.fi"),
-		).toBeNull();
+		expect(computeApexRedirect(new Request("https://motori.fi/x"), "https://motori.fi")).toBeNull();
 	});
 
 	it("301-redirects www.motori.fi to motori.fi preserving path and query", () => {
@@ -23,10 +21,7 @@ describe("computeApexRedirect", () => {
 	});
 
 	it("ignores port and scheme differences in BETTER_AUTH_URL", () => {
-		const res = computeApexRedirect(
-			new Request("https://www.motori.fi/"),
-			"https://motori.fi/",
-		);
+		const res = computeApexRedirect(new Request("https://www.motori.fi/"), "https://motori.fi/");
 		expect(res?.headers.get("location")).toBe("https://motori.fi/");
 	});
 

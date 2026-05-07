@@ -24,8 +24,8 @@ Build a Tori.fi/Craigslist-style noticeboard for peer-to-peer motorcycle rentals
 | Search | PostgreSQL full-text search (`tsvector`, Finnish config) | Sufficient at Finnish-market scale, no extra service |
 | PWA | vite-plugin-pwa | Service worker, manifest, offline shell |
 | **Production** | **Hetzner VPS + Object Storage (Helsinki DC)** | Finnish data residency, low latency, single vendor, ~8 EUR/month VPS |
-| Reverse Proxy | Caddy | Automatic HTTPS via Let's Encrypt |
-| Containers | Docker Compose | App + PostgreSQL + Caddy |
+| PaaS | Dokku (single VPS) | `git push dokku main` deploys; Heroku Node buildpack; Postgres + Let's Encrypt plugins |
+| TLS | `dokku-letsencrypt` | Automatic Let's Encrypt issuance + renewal |
 
 ---
 
@@ -36,9 +36,9 @@ motori/
   app.config.ts              # TanStack Start config
   package.json
   tsconfig.json
-  docker-compose.yml
-  Dockerfile
-  Caddyfile
+  docker-compose.yml         # Local dev Postgres only
+  Procfile                   # Dokku buildpack (release: migrate, web: start)
+  DEPLOY.md                  # Production deploy runbook (Dokku)
   .env.example
 
   app/
@@ -211,17 +211,21 @@ interface Database {
 
 ---
 
-## Deployment (Hetzner Helsinki)
+## Deployment (Hetzner Helsinki + Dokku)
 
 ```
-Internet -> Caddy (HTTPS) -> TanStack Start (Node.js :3000) -> PostgreSQL 17
-                                                             -> Hetzner Object Storage hel1 (images)
-                                                             -> Resend (email)
+Internet -> Dokku/nginx (HTTPS via Let's Encrypt) -> TanStack Start (Node.js, PORT) -> Postgres 17 (dokku-postgres)
+                                                                                     -> Hetzner Object Storage hel1 (motori-images, motori-backups)
+                                                                                     -> Resend (email)
 ```
 
-- **VPS**: Hetzner CPX21 (~8 EUR/month), Helsinki datacenter
-- **Docker Compose**: app + db + caddy containers
-- **Backups**: Daily pg_dump to Object Storage via cron
-- **Object Storage**: Hetzner Object Storage in hel1 (Helsinki) — S3-compatible, create bucket via Hetzner Cloud Console
-- **CI/CD**: GitHub Actions -> build -> SSH deploy (or Docker registry + Watchtower)
-- **Domain**: motori.fi
+- **VPS**: single Hetzner box (Helsinki DC), Ubuntu 24.04 + Dokku v0.34.x
+- **App**: Heroku Node buildpack — `git push dokku main` deploys; Procfile defines `release: pnpm db:migrate` and `web: pnpm start`
+- **DB**: `dokku-postgres` plugin, Postgres 17, linked into the app (injects `DATABASE_URL`)
+- **TLS**: `dokku-letsencrypt` plugin, auto-renew via cron
+- **Backups**: nightly GPG-encrypted Postgres dumps via `dokku postgres:backup-schedule` to `motori-backups` bucket; restore verified at setup
+- **Object Storage**: `motori-images` (public-read, listing photos) and `motori-backups` (private, DB dumps), both in hel1
+- **Cron**: host crontab → `POST /api/cron?task=…` with `CRON_SECRET` (purge-sessions, notify-expiry, expire-bookings)
+- **Secrets backup**: `secrets/motori.env.age` — age-encrypted snapshot of `dokku config:export`, committed to repo; private key stays off-VPS
+- **Deploy doc**: see [`DEPLOY.md`](./DEPLOY.md)
+- **Domain**: motori.fi (canonical), www.motori.fi (301 → apex via app middleware)
