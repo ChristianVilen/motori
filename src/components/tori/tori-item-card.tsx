@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import type { ToriItem, ToriItemImage } from "~/lib/db/schema";
 import { formatEur } from "~/lib/i18n";
 import { slugify } from "~/lib/slug";
@@ -27,8 +28,9 @@ export function ToriItemCard({ item, images }: ToriItemCardProps) {
 	const slug = slugify(item.title);
 
 	return (
-		<a
-			href={`/tori/${item.short_id}/${slug}`}
+		<Link
+			to="/tori/$itemId/$slug"
+			params={{ itemId: item.short_id, slug }}
 			className={`group block overflow-hidden rounded-xl border border-border bg-card card-hover hover:card-hover-active ${isSold ? "opacity-60" : ""}`}
 		>
 			{/* Image */}
@@ -90,6 +92,6 @@ export function ToriItemCard({ item, images }: ToriItemCardProps) {
 					</span>
 				</div>
 			</div>
-		</a>
+		</Link>
 	);
 }
