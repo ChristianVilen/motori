@@ -7,10 +7,6 @@ files:
   copy:
     - .env
     - .env.prod
-    - infra/certs/
-    - infra/secrets/
-    - infra/terraform.tfvars
-    - infra/terraform.tfstate
 
 panes:
   - command: <agent>

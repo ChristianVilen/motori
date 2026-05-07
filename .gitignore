@@ -6,8 +6,6 @@ playwright-report/
 dist
 .env
 .env.prod
-.env.production
-!.env.production.enc
 *.local
 .vinxi
 .vite
@@ -25,8 +23,7 @@ dist
 /uploads/
 *:Zone.Identifier
 
-# Terraform
-infra/terraform.tfvars
-infra/*.tfstate
-infra/*.tfstate.backup
-infra/.terraform/
+# Encrypted secrets backup (age-encrypted dokku config:export)
+secrets/*
+!secrets/.gitkeep
+!secrets/*.age
