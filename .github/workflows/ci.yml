@@ -137,4 +137,4 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H motori >> ~/.ssh/known_hosts
           git remote add dokku dokku@motori:motori
-          git push dokku main
+          git push dokku main --force
