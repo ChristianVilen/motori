@@ -8,7 +8,6 @@ import { AvailabilityCalendar } from "~/components/listings/availability-calenda
 import { ListingForm } from "~/components/listings/listing-form";
 import { Button } from "~/components/ui/button";
 import { centsToEuros } from "~/lib/currency";
-import { db } from "~/lib/db/index";
 import { AppError } from "~/lib/errors";
 import { useTranslation } from "~/lib/i18n";
 import { updateListing } from "~/lib/listings-commands";
@@ -71,6 +70,7 @@ const updateAvailability = createServerFn({ method: "POST" })
 			throw new Error("Kirjaudu sisään");
 		}
 
+		const { db } = await import("~/lib/db/index");
 		const listing = await db
 			.selectFrom("listing")
 			.select(["owner_id"])

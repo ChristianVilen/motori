@@ -5,7 +5,6 @@ import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { LICENSE_CLASSES, type LicenseClass } from "~/lib/constants";
-import { db } from "~/lib/db/index";
 import { useTranslation } from "~/lib/i18n";
 import { csrfOnly } from "~/lib/middleware";
 import { getSession } from "~/lib/session";
@@ -34,6 +33,7 @@ const saveProfile = createServerFn({ method: "POST" })
 			throw new Error("Ei istuntoa");
 		}
 		const licenseClass = data.licenseClass as LicenseClass | "";
+		const { db } = await import("~/lib/db/index");
 		await db
 			.insertInto("profile")
 			.values({

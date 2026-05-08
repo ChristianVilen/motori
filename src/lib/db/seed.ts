@@ -3,7 +3,7 @@ import { auth } from "../auth";
 import { db } from "./index";
 
 const SEED_EMAIL = "dev@motori.local";
-const SEED_PASSWORD = "devpassword";
+const SEED_PASSWORD = "DevPassword1!";
 const SEED_NAME = "Dev";
 
 const IMG = (name: string) => `/images/${name}-1200w.webp`;
@@ -354,6 +354,123 @@ async function main() {
 				)
 				.execute();
 		}
+	}
+
+	// 6. Tori items
+	console.log("Creating tori items...");
+	await db.deleteFrom("tori_item_image").execute();
+	await db.deleteFrom("tori_item").execute();
+
+	const toriItems: Array<{
+		title: string;
+		category: "gear" | "parts" | "tools";
+		condition: "new" | "excellent" | "good" | "fair";
+		price_cents: number;
+		city: string;
+		region: string;
+		description: string;
+		status?: "active" | "sold";
+	}> = [
+		{
+			title: "Alpinestars GP Plus -nahkatakki, koko 52",
+			category: "gear",
+			condition: "excellent",
+			price_cents: 28000,
+			city: "Helsinki",
+			region: "uusimaa",
+			description:
+				"Käytetty yhden kauden, ei kaatumisia. CE-suojat hartioissa, kyynärpäissä ja selässä. Koko 52 (L).",
+		},
+		{
+			title: "Shoei NXR2 -kypärä, musta matta M",
+			category: "gear",
+			condition: "good",
+			price_cents: 22000,
+			city: "Tampere",
+			region: "pirkanmaa",
+			description: "Kaksi kautta käytetty, hyväkuntoinen. Pinlock-kalvo mukana. Koko M (57-58cm).",
+		},
+		{
+			title: "Kawasaki Z650 alkuperäinen pakoputki",
+			category: "parts",
+			condition: "good",
+			price_cents: 8000,
+			city: "Turku",
+			region: "varsinais-suomi",
+			description:
+				"Alkuperäinen pakoputki vm. 2021 Z650:sta. Vaihdettu Akrapoviciin, tämä jäi yli.",
+		},
+		{
+			title: "Oxford Kriega US-20 -tankkilaukku",
+			category: "parts",
+			condition: "new",
+			price_cents: 9500,
+			city: "Espoo",
+			region: "uusimaa",
+			description: "Uusi, avaamaton pakkaus. 20 litran tankkilaukku magneettikiinnityksellä.",
+		},
+		{
+			title: "Rev'it Sand 4 -ajohousut, koko L",
+			category: "gear",
+			condition: "fair",
+			price_cents: 12000,
+			city: "Oulu",
+			region: "pohjois-pohjanmaa",
+			description:
+				"Adventure-housut, käytetty kolme kautta. Pieni repeämä vasemmassa polvessa korjattu. CE-suojat tallella.",
+		},
+		{
+			title: "Moottoripyörän pesuvälineet -setti",
+			category: "tools",
+			condition: "new",
+			price_cents: 3500,
+			city: "Jyväskylä",
+			region: "keski-suomi",
+			description:
+				"S100-ketjurasva, Muc-Off-pesuaine, ketjuharja ja mikrokuituliina. Kaikki käyttämättömiä.",
+		},
+		{
+			title: "Dainese Axial D1 -saappaat, koko 43",
+			category: "gear",
+			condition: "excellent",
+			price_cents: 35000,
+			city: "Helsinki",
+			region: "uusimaa",
+			description: "Ratakäyttöön ostetut, käytetty 3 ratapäivää. Magnesiumliukurit ehjät.",
+			status: "sold",
+		},
+		{
+			title: "Paddock-teline, etu + taka",
+			category: "tools",
+			condition: "good",
+			price_cents: 6000,
+			city: "Lahti",
+			region: "paijat-hame",
+			description: "Constands-merkkiset paddock-telineet. Sopii useimpiin naked/sport-pyöriin.",
+		},
+	];
+
+	for (const item of toriItems) {
+		await db
+			.insertInto("tori_item")
+			.values({
+				id: crypto.randomUUID(),
+				short_id: crypto.randomUUID().slice(0, 8),
+				owner_id: userId,
+				title: item.title,
+				category: item.category,
+				condition: item.condition,
+				price_cents: item.price_cents,
+				description: item.description,
+				city: item.city,
+				region: item.region,
+				postal_code: null,
+				status: item.status ?? "active",
+				expires_at: expiresAt,
+				created_at: new Date(),
+				updated_at: new Date(),
+			})
+			.execute();
 	}
 
 	console.log(`\n✅ Done. Login: ${SEED_EMAIL} / ${SEED_PASSWORD}\n`);

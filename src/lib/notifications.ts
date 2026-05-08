@@ -92,3 +92,78 @@ function escapeHtml(s: string): string {
 		c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === '"' ? "&quot;" : "&#39;",
 	);
 }
+
+/** Send expiry warning emails for tori items expiring within `daysAhead` days. */
+export async function sendToriExpiryWarnings(daysAhead = 7): Promise<number> {
+	return withLogContext({ task: "tori-expiry-warnings" }, async () => {
+		const rows = await db
+			.selectFrom("tori_item")
+			.innerJoin("user", "user.id", "tori_item.owner_id")
+			.innerJoin("profile", "profile.user_id", "tori_item.owner_id")
+			.select([
+				"tori_item.id",
+				"tori_item.title",
+				"tori_item.expires_at",
+				"user.email",
+				"profile.display_name",
+				"profile.language",
+			])
+			.where("tori_item.status", "=", "active")
+			.where("tori_item.expires_at", "<=", sql<Date>`now() + make_interval(days => ${daysAhead})`)
+			.where("tori_item.expires_at", ">", sql<Date>`now()`)
+			.where("tori_item.expiry_notified_at", "is", null)
+			.execute();
+
+		let sent = 0;
+
+		for (let i = 0; i < rows.length; i += CONCURRENCY) {
+			const batch = rows.slice(i, i + CONCURRENCY);
+			const results = await Promise.allSettled(
+				batch.map(async (row) => {
+					const daysLeft = Math.ceil((row.expires_at.getTime() - Date.now()) / 86_400_000);
+					const t = getEmailT(row.language);
+					const safeDisplayName = escapeHtml(row.display_name);
+					const safeTitle = escapeHtml(row.title);
+					await sendEmail({
+						to: row.email,
+						subject: t("toriExpiry.subject"),
+						html: wrapEmail(
+							`
+							<p>${t("toriExpiry.greeting", { name: safeDisplayName })}</p>
+							<p>${t("toriExpiry.body", { title: safeTitle, days: daysLeft })}</p>
+							<p>${t("toriExpiry.cta")}</p>
+						`,
+							row.language,
+						),
+						text: `${t("toriExpiry.body", { title: row.title, days: daysLeft })}\n\n${t("toriExpiry.cta")}`,
+						idempotencyKey: `tori-expiry-warning/${row.id}`,
+					});
+					await db
+						.updateTable("tori_item")
+						.set({ expiry_notified_at: new Date(), updated_at: new Date() })
+						.where("id", "=", row.id)
+						.execute();
+					log.event(EVENTS.notification.expiry_warning_sent, {
+						itemId: row.id,
+						daysLeft,
+					});
+					sent++;
+				}),
+			);
+
+			for (let j = 0; j < results.length; j++) {
+				const result = results[j];
+				if (result.status === "rejected") {
+					const row = batch[j];
+					log.event(EVENTS.notification.expiry_warning_skipped, {
+						itemId: row.id,
+						reason: "send_failed",
+						err: result.reason,
+					});
+				}
+			}
+		}
+
+		return sent;
+	});
+}

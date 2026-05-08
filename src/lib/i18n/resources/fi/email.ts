@@ -11,6 +11,12 @@ export default {
 		body: 'Ilmoituksesi "{{title}}" vanhenee {{days}} päivän kuluttua.',
 		cta: "Voit uusia ilmoituksen kirjautumalla sisään.",
 	},
+	toriExpiry: {
+		subject: "Tori-ilmoituksesi vanhenee pian — Motori",
+		greeting: "Hei {{name}},",
+		body: 'Tori-ilmoituksesi "{{title}}" vanhenee {{days}} päivän kuluttua.',
+		cta: "Voit uusia ilmoituksen kirjautumalla sisään.",
+	},
 	passwordReset: {
 		subject: "Vaihda salasanasi — Motori",
 		greeting: "Hei,",

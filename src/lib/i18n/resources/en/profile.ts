@@ -5,6 +5,16 @@ export default {
 		newListing: "New listing",
 		emptyState: "You don't have any listings yet.",
 		createFirst: "Create your first listing",
+		tori: {
+			heading: "Marketplace",
+			newItem: "Create new",
+			emptyState: "No marketplace listings.",
+			createFirst: "Create your first",
+			edit: "Edit",
+			pause: "Pause",
+			activate: "Activate",
+			markSold: "Sold",
+		},
 		row: {
 			pricePerDay: "€/day",
 			viewCount: "{{n}} views",

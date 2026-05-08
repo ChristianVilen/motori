@@ -10,7 +10,6 @@ import {
 	rejectBooking as rejectBookingAction,
 } from "~/lib/bookings.server";
 import { SITE_NAME } from "~/lib/constants";
-import { db } from "~/lib/db/index";
 import type { BookingStatus } from "~/lib/db/schema";
 import { AppError } from "~/lib/errors";
 import { handleAppError } from "~/lib/errors-client";
@@ -33,6 +32,7 @@ const getBooking = createServerFn({ method: "GET" })
 			throw new AppError("auth.unauthorized");
 		}
 
+		const { db } = await import("~/lib/db/index");
 		const row = await db
 			.selectFrom("booking")
 			.innerJoin("listing", "listing.id", "booking.listing_id")

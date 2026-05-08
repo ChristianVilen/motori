@@ -217,6 +217,46 @@ export interface ReviewTable {
 export type Review = Selectable<ReviewTable>;
 export type NewReview = Insertable<ReviewTable>;
 
+export type ToriItemStatus = "active" | "paused" | "sold" | "expired";
+export type ToriItemCategory = "gear" | "parts" | "apparel" | "tools";
+export type ToriItemCondition = "new" | "excellent" | "good" | "fair" | "poor";
+
+export interface ToriItemTable {
+	id: string;
+	owner_id: string;
+	short_id: string;
+	title: string;
+	category: ToriItemCategory;
+	condition: ToriItemCondition;
+	price_cents: number;
+	description: string;
+	city: string;
+	region: string;
+	postal_code: string | null;
+	status: Generated<ToriItemStatus>;
+	view_count: Generated<number>;
+	expires_at: ColumnType<Date, Date, Date>;
+	expiry_notified_at: ColumnType<Date, Date | undefined, Date> | null;
+	search_vector: Generated<string>;
+	created_at: ColumnType<Date, Date | undefined, Date>;
+	updated_at: ColumnType<Date, Date | undefined, Date>;
+}
+
+export type ToriItem = Selectable<ToriItemTable>;
+export type NewToriItem = Insertable<ToriItemTable>;
+export type ToriItemUpdate = Updateable<ToriItemTable>;
+
+export interface ToriItemImageTable {
+	id: string;
+	item_id: string;
+	url: string;
+	thumbnail_url: string | null;
+	order: Generated<number>;
+}
+
+export type ToriItemImage = Selectable<ToriItemImageTable>;
+export type NewToriItemImage = Insertable<ToriItemImageTable>;
+
 // ─── Database interface ───────────────────────────────────────────────────────
 
 export interface Database {
@@ -234,4 +274,6 @@ export interface Database {
 	booking: BookingTable;
 	listing_availability_exception: ListingAvailabilityExceptionTable;
 	review: ReviewTable;
+	tori_item: ToriItemTable;
+	tori_item_image: ToriItemImageTable;
 }

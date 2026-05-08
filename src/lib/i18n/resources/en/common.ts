@@ -1,6 +1,7 @@
 export default {
 	nav: {
 		browse: "Browse",
+		tori: "Marketplace",
 		listMotorcycle: "List a bike",
 		myListings: "My listings",
 		signIn: "Sign in",
@@ -54,5 +55,20 @@ export default {
 		descriptionTooShort: "Description is too short (min 20 characters)",
 		invalidImageUrl: "Invalid image URL",
 		invalidPhone: "Invalid phone number",
+	},
+	tori: {
+		category: {
+			gear: "Riding gear",
+			parts: "Parts & accessories",
+			apparel: "Apparel & merch",
+			tools: "Tools",
+		},
+		condition: {
+			new: "New",
+			excellent: "Excellent",
+			good: "Good",
+			fair: "Fair",
+			poor: "Poor",
+		},
 	},
 } as const;

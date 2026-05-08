@@ -158,6 +158,35 @@ export interface Session {
 	userId: string;
 }
 
+export interface ToriItem {
+	category: string;
+	city: string;
+	condition: string;
+	created_at: Generated<Timestamp>;
+	description: string;
+	expires_at: Timestamp;
+	expiry_notified_at: Timestamp | null;
+	id: string;
+	owner_id: string;
+	postal_code: string | null;
+	price_cents: number;
+	region: string;
+	search_vector: string | null;
+	short_id: string;
+	status: Generated<string>;
+	title: string;
+	updated_at: Generated<Timestamp>;
+	view_count: Generated<number>;
+}
+
+export interface ToriItemImage {
+	id: string;
+	item_id: string;
+	order: Generated<number>;
+	thumbnail_url: string | null;
+	url: string;
+}
+
 export interface User {
 	banExpires: Timestamp | null;
 	banned: Generated<boolean>;
@@ -194,6 +223,8 @@ export interface DB {
 	report: Report;
 	review: Review;
 	session: Session;
+	tori_item: ToriItem;
+	tori_item_image: ToriItemImage;
 	user: User;
 	verification: Verification;
 }

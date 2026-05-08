@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { sql } from "kysely";
-import { db } from "~/lib/db/index";
 
 const PERIODS = {
 	"24h": { label: "24 hours", ms: 24 * 60 * 60 * 1000 },
@@ -17,6 +16,7 @@ const getStats = createServerFn({ method: "GET" })
 		const period = data.period ?? "7d";
 		const since = new Date(Date.now() - PERIODS[period].ms);
 
+		const { db } = await import("~/lib/db/index");
 		const [users, listings, signups, byStatus] = await Promise.all([
 			db
 				.selectFrom("user")

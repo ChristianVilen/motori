@@ -3,7 +3,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { sql } from "kysely";
 import { useState } from "react";
 import { SITE_NAME } from "~/lib/constants";
-import { db } from "~/lib/db/index";
 import { useTranslation } from "~/lib/i18n";
 import { getSession } from "~/lib/session";
 
@@ -15,6 +14,7 @@ const getMyBookings = createServerFn({ method: "GET" }).handler(async () => {
 
 	const userId = session.user.id;
 
+	const { db } = await import("~/lib/db/index");
 	const incoming = await db
 		.selectFrom("booking")
 		.innerJoin("listing", "listing.id", "booking.listing_id")
