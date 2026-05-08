@@ -26,7 +26,11 @@ function applyFilters(
 	params: ToriBrowseSearchParams,
 	tsquery: string | null,
 ) {
-	let q = query.where("tori_item.status", "in", ["active", "sold"]);
+	let q = query.where(
+		"tori_item.status",
+		params.hide_sold ? "=" : "in",
+		params.hide_sold ? "active" : ["active", "sold"],
+	);
 
 	if (tsquery) {
 		q = q.where(

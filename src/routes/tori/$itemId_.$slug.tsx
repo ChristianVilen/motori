@@ -7,7 +7,7 @@ import { useState } from "react";
 import { ListingGallery } from "~/components/listings/listing-gallery";
 import { ReportButton } from "~/components/report-button";
 import { REGIONS, SITE_NAME, SITE_URL } from "~/lib/constants";
-import { formatEur } from "~/lib/i18n";
+import { formatEur, useTranslation } from "~/lib/i18n";
 import { getSession } from "~/lib/session";
 import { slugify } from "~/lib/slug";
 import { TORI_CATEGORIES, TORI_CONDITIONS } from "~/lib/tori/constants";
@@ -105,11 +105,12 @@ const CONDITION_COLORS: Record<string, string> = {
 function ToriItemDetailPage() {
 	const { item, userId } = Route.useLoaderData();
 	const [contactRevealed, setContactRevealed] = useState(false);
+	const { t } = useTranslation("common");
 
 	const conditionLabel =
-		TORI_CONDITIONS.find((c) => c.value === item.condition)?.label ?? item.condition;
+		TORI_CONDITIONS.find((c) => c.value === item.condition)?.labelKey ?? item.condition;
 	const categoryLabel =
-		TORI_CATEGORIES.find((c) => c.value === item.category)?.label ?? item.category;
+		TORI_CATEGORIES.find((c) => c.value === item.category)?.labelKey ?? item.category;
 	const conditionColor = CONDITION_COLORS[item.condition] ?? "bg-gray-100 text-gray-800";
 	const regionLabel = REGIONS.find((r) => r.value === item.region)?.label ?? item.region;
 	const isSold = item.status === "sold";
@@ -157,11 +158,11 @@ function ToriItemDetailPage() {
 								<span
 									className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${conditionColor}`}
 								>
-									{conditionLabel}
+									{t(conditionLabel)}
 								</span>
 								<span className="flex items-center gap-1 rounded-full bg-muted-light px-2.5 py-0.5 text-xs text-muted">
 									<Tag className="h-3 w-3" />
-									{categoryLabel}
+									{t(categoryLabel)}
 								</span>
 								<span className="flex items-center gap-1 rounded-full bg-muted-light px-2.5 py-0.5 text-xs text-muted">
 									<MapPin className="h-3 w-3" />

@@ -1,18 +1,18 @@
 export const TORI_CATEGORIES = [
-	{ value: "gear", label: "Ajovarusteet" },
-	{ value: "parts", label: "Osat & tarvikkeet" },
-	{ value: "apparel", label: "Vaatteet & merch" },
-	{ value: "tools", label: "Työkalut" },
+	{ value: "gear", labelKey: "tori.category.gear" },
+	{ value: "parts", labelKey: "tori.category.parts" },
+	{ value: "apparel", labelKey: "tori.category.apparel" },
+	{ value: "tools", labelKey: "tori.category.tools" },
 ] as const;
 
 export type ToriCategory = (typeof TORI_CATEGORIES)[number]["value"];
 
 export const TORI_CONDITIONS = [
-	{ value: "new", label: "Uusi" },
-	{ value: "excellent", label: "Erinomainen" },
-	{ value: "good", label: "Hyvä" },
-	{ value: "fair", label: "Tyydyttävä" },
-	{ value: "poor", label: "Huono" },
+	{ value: "new", labelKey: "tori.condition.new" },
+	{ value: "excellent", labelKey: "tori.condition.excellent" },
+	{ value: "good", labelKey: "tori.condition.good" },
+	{ value: "fair", labelKey: "tori.condition.fair" },
+	{ value: "poor", labelKey: "tori.condition.poor" },
 ] as const;
 
 export type ToriCondition = (typeof TORI_CONDITIONS)[number]["value"];

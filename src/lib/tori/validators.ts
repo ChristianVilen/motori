@@ -58,6 +58,7 @@ export const toriBrowseSearchSchema = z.object({
 	region: z.string().trim().max(100).optional(),
 	price_min: z.number().optional(),
 	price_max: z.number().optional(),
+	hide_sold: z.boolean().optional(),
 	sort: z.enum(["newest", "price_asc", "price_desc", "relevance"]).optional(),
 	cursor: z.string().max(200).optional(),
 });

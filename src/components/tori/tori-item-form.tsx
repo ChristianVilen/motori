@@ -5,6 +5,7 @@ import { CitySelect } from "~/components/listings/city-select";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
+import { useTranslation } from "~/lib/i18n";
 import { TORI_CATEGORIES, TORI_CONDITIONS } from "~/lib/tori/constants";
 import { type ToriItemFormData, toriItemFormSchema } from "~/lib/tori/validators";
 
@@ -54,6 +55,7 @@ export function ToriItemForm({
 	onSubmit,
 	submitLabel = "Julkaise",
 }: ToriItemFormProps) {
+	const { t } = useTranslation("common");
 	const [existingImages, setExistingImages] = useState(initialImages);
 	const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 	const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -187,7 +189,7 @@ export function ToriItemForm({
 								<option value="">Valitse...</option>
 								{TORI_CATEGORIES.map((c) => (
 									<option key={c.value} value={c.value}>
-										{c.label}
+										{t(c.labelKey)}
 									</option>
 								))}
 							</select>
@@ -214,7 +216,7 @@ export function ToriItemForm({
 								<option value="">Valitse...</option>
 								{TORI_CONDITIONS.map((c) => (
 									<option key={c.value} value={c.value}>
-										{c.label}
+										{t(c.labelKey)}
 									</option>
 								))}
 							</select>

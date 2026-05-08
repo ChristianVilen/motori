@@ -56,4 +56,19 @@ export default {
 		invalidImageUrl: "Virheellinen kuva-URL",
 		invalidPhone: "Virheellinen puhelinnumero",
 	},
+	tori: {
+		category: {
+			gear: "Ajovarusteet",
+			parts: "Osat & tarvikkeet",
+			apparel: "Vaatteet & merch",
+			tools: "Työkalut",
+		},
+		condition: {
+			new: "Uusi",
+			excellent: "Erinomainen",
+			good: "Hyvä",
+			fair: "Tyydyttävä",
+			poor: "Huono",
+		},
+	},
 } as const;

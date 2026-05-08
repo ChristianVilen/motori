@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ToriItem, ToriItemImage } from "~/lib/db/schema";
-import { formatEur } from "~/lib/i18n";
+import { formatEur, useTranslation } from "~/lib/i18n";
 import { slugify } from "~/lib/slug";
 import { TORI_CATEGORIES, TORI_CONDITIONS } from "~/lib/tori/constants";
 
@@ -18,11 +18,12 @@ const CONDITION_COLORS: Record<string, string> = {
 };
 
 export function ToriItemCard({ item, images }: ToriItemCardProps) {
+	const { t } = useTranslation("common");
 	const firstImage = images[0];
 	const conditionLabel =
-		TORI_CONDITIONS.find((c) => c.value === item.condition)?.label ?? item.condition;
+		TORI_CONDITIONS.find((c) => c.value === item.condition)?.labelKey ?? item.condition;
 	const categoryLabel =
-		TORI_CATEGORIES.find((c) => c.value === item.category)?.label ?? item.category;
+		TORI_CATEGORIES.find((c) => c.value === item.category)?.labelKey ?? item.category;
 	const conditionColor = CONDITION_COLORS[item.condition] ?? "bg-gray-100 text-gray-800";
 	const isSold = item.status === "sold";
 	const slug = slugify(item.title);
@@ -75,7 +76,7 @@ export function ToriItemCard({ item, images }: ToriItemCardProps) {
 				{/* Condition badge */}
 				<div className="absolute top-2.5 left-2.5">
 					<span className={`rounded-md px-2 py-0.5 text-xs font-medium ${conditionColor}`}>
-						{conditionLabel}
+						{t(conditionLabel)}
 					</span>
 				</div>
 			</div>
@@ -85,7 +86,7 @@ export function ToriItemCard({ item, images }: ToriItemCardProps) {
 				<h3 className="line-clamp-1 text-sm font-semibold text-foreground leading-tight">
 					{item.title}
 				</h3>
-				<p className="mt-1 text-xs text-muted">{categoryLabel}</p>
+				<p className="mt-1 text-xs text-muted">{t(categoryLabel)}</p>
 
 				<div className="mt-3 flex items-center justify-between border-t border-border pt-3">
 					<span className="text-xs text-muted">{item.city}</span>

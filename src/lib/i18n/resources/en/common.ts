@@ -56,4 +56,19 @@ export default {
 		invalidImageUrl: "Invalid image URL",
 		invalidPhone: "Invalid phone number",
 	},
+	tori: {
+		category: {
+			gear: "Riding gear",
+			parts: "Parts & accessories",
+			apparel: "Apparel & merch",
+			tools: "Tools",
+		},
+		condition: {
+			new: "New",
+			excellent: "Excellent",
+			good: "Good",
+			fair: "Fair",
+			poor: "Poor",
+		},
+	},
 } as const;

@@ -14,9 +14,11 @@ export default async function globalTeardown() {
 
 	await db
 		.deleteFrom("user")
-		.where((eb) =>
-			eb.or([eb("email", "like", "%-e2e-%@%"), eb("email", "like", "%e2e-%@test.example.com")]),
-		)
+		.where("email", "in", [
+			"e2e-user@test.example.com",
+			"e2e-viewer@test.example.com",
+			"e2e-lifecycle@test.example.com",
+		])
 		.execute();
 
 	// Clean up the e2e make
