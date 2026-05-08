@@ -4,7 +4,7 @@ import { expandDateRange } from "~/lib/bookings";
 import { centsToEuros, eurosToCents } from "~/lib/currency";
 import type { Database, Listing, ListingImage } from "~/lib/db/schema";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
-import { toTsQuery } from "~/lib/search";
+import { toPrefixTsQuery, toTsQuery } from "~/lib/search";
 import type { BrowseSearchParams } from "~/lib/validators";
 
 // Lazy-import db so this module is safe to evaluate in client bundles.
@@ -88,15 +88,63 @@ function applyCursor<O>(query: ListingQuery<O>, cursor: string, sort: SortMode):
 	);
 }
 
+type ListingSearchMode =
+	| { type: "none" }
+	| { type: "fts"; prefixQuery: string }
+	| { type: "trigram"; raw: string };
+
+async function resolveListingSearchMode(
+	raw: string | null | undefined,
+): Promise<ListingSearchMode> {
+	if (!raw) {
+		return { type: "none" };
+	}
+	const tsquery = toTsQuery(raw);
+	if (!tsquery) {
+		return { type: "none" };
+	}
+	const prefixQuery = toPrefixTsQuery(raw);
+	if (!prefixQuery) {
+		return { type: "none" };
+	}
+
+	const db = await getDb();
+	try {
+		const ftsCheck = await db
+			.selectFrom("listing")
+			.select(sql<number>`1`.as("hit"))
+			.where(sql<SqlBool>`listing.search_vector @@ to_tsquery('finnish_unaccent', ${prefixQuery})`)
+			.where("listing.status", "=", "active")
+			.limit(1)
+			.executeTakeFirst();
+
+		if (ftsCheck) {
+			return { type: "fts", prefixQuery };
+		}
+	} catch {
+		// Malformed tsquery (e.g. special characters) — fall through to trigram
+	}
+
+	return { type: "trigram", raw };
+}
+
 function applySort<O>(
 	query: ListingQuery<O>,
 	sort: SortMode,
-	tsquery: string | null,
+	searchMode: ListingSearchMode,
 ): ListingQuery<O> {
-	if (sort === "relevance" && tsquery) {
+	if (sort === "relevance" && searchMode.type === "fts") {
 		return query
 			.orderBy(
-				sql`ts_rank_cd(listing.search_vector, websearch_to_tsquery('finnish_unaccent', ${tsquery}))`,
+				sql`ts_rank_cd(listing.search_vector, to_tsquery('finnish_unaccent', ${searchMode.prefixQuery}))`,
+				"desc",
+			)
+			.orderBy("listing.created_at", "desc");
+	}
+	if (sort === "relevance" && searchMode.type === "trigram") {
+		return query
+			.orderBy(
+				sql`similarity(listing.title || ' ' || listing.description, ${searchMode.raw})`,
 				"desc",
 			)
 			.orderBy("listing.created_at", "desc");
@@ -184,14 +232,16 @@ function buildNextCursor(listings: Listing[], sort: SortMode): string | null {
 function applyFilters(
 	query: SelectQueryBuilder<Database, "listing", object>,
 	params: BrowseSearchParams,
-	tsquery: string | null,
+	searchMode: ListingSearchMode,
 ) {
 	let q = query.where("listing.status", "=", "active");
 
-	if (tsquery) {
+	if (searchMode.type === "fts") {
 		q = q.where(
-			sql<SqlBool>`listing.search_vector @@ websearch_to_tsquery('finnish_unaccent', ${tsquery})`,
+			sql<SqlBool>`listing.search_vector @@ to_tsquery('finnish_unaccent', ${searchMode.prefixQuery})`,
 		);
+	} else if (searchMode.type === "trigram") {
+		q = q.where(sql<SqlBool>`(listing.title || ' ' || listing.description) % ${searchMode.raw}`);
 	}
 	if (params.region) {
 		q = q.where("listing.region", "=", params.region);
@@ -246,10 +296,10 @@ export const searchListings = createServerFn({ method: "GET" })
 	.inputValidator((input: BrowseSearchParams) => input)
 	.handler(async ({ data: params }): Promise<SearchResult> => {
 		const db = await getDb();
-		const tsquery = params.q ? toTsQuery(params.q) : null;
-		const sort: SortMode = params.sort ?? (tsquery ? "relevance" : "newest");
+		const searchMode = await resolveListingSearchMode(params.q);
+		const sort: SortMode = params.sort ?? (searchMode.type !== "none" ? "relevance" : "newest");
 
-		const baseQuery = applyFilters(db.selectFrom("listing"), params, tsquery);
+		const baseQuery = applyFilters(db.selectFrom("listing"), params, searchMode);
 
 		const countResult = await baseQuery
 			.select(sql<number>`count(*)::int`.as("count"))
@@ -259,7 +309,7 @@ export const searchListings = createServerFn({ method: "GET" })
 		if (params.cursor) {
 			query = applyCursor(query, params.cursor, sort);
 		}
-		query = applySort(query, sort, tsquery);
+		query = applySort(query, sort, searchMode);
 		query = query.limit(PAGE_SIZE);
 
 		const listings = await query.execute();
