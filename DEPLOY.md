@@ -9,7 +9,7 @@ Production runs on a single Hetzner VPS as a Dokku app using the Heroku Node bui
 - **Object storage:** Hetzner Object Storage (`hel1`)
   - `motori-images` — listing photos, public-read
   - `motori-backups` — encrypted nightly DB dumps, private
-- **Deploy:** `just deploy` (= `git push dokku main`)
+- **Deploy:** automatic via GitHub Actions on push to `main` (after CI passes). Manual fallback: `just deploy` (= `git push dokku main`)
 - **Migrations:** auto-run via Procfile `release` phase (`pnpm db:migrate`)
 - **Secrets:** age-encrypted in `secrets/*.age`, decrypt key at `~/.config/sops/age/keys.txt`
 
@@ -98,6 +98,56 @@ just logs                          # tail
 ```
 
 Smoke test: `curl -kI --resolve motori.fi:443:<ip> https://motori.fi` → 200.
+
+### 5b. CI/CD deploy (GitHub Actions over Tailscale)
+
+After the first manual deploy works, hand off recurring deploys to GHA. The `deploy` job joins our tailnet (UFW only allows port 22 from `tailscale0`) and runs `git push dokku motori:motori` from the runner once `lint`, `format`, `typecheck`, `test`, and `e2e` all pass.
+
+One-time setup:
+
+**1. Generate a dedicated deploy SSH keypair**
+
+```bash
+ssh-keygen -t ed25519 -f /tmp/dokku_deploy -N "" -C "github-actions"
+cat /tmp/dokku_deploy.pub | ssh root@motori "dokku ssh-keys:add gha"
+```
+
+**2. Set up Tailscale ACL tags (one-time, only if `tag:ci` doesn't exist yet)**
+
+In the Tailscale admin → Access Controls, ensure the policy file has:
+
+```jsonc
+"tagOwners": {
+  "tag:server": ["autogroup:admin"],
+  "tag:ci":     ["autogroup:admin"],
+},
+"acls": [
+  // CI runners can SSH to servers
+  { "action": "accept", "src": ["tag:ci"], "dst": ["tag:server:22"] },
+],
+```
+
+**3. Create a Tailscale OAuth client**
+
+Tailscale admin → Settings → OAuth clients → **Generate OAuth client**. Scopes: `auth_keys` (write), tags: `tag:ci`. Copy the client ID and secret.
+
+**4. Add four GitHub repo secrets** (Settings → Secrets and variables → Actions):
+
+| Name                    | Value                                                  |
+|-------------------------|--------------------------------------------------------|
+| `DOKKU_SSH_PRIVATE_KEY` | full contents of `/tmp/dokku_deploy` (private key)     |
+| `TS_OAUTH_CLIENT_ID`    | OAuth client ID from step 3                            |
+| `TS_OAUTH_SECRET`       | OAuth client secret from step 3                        |
+
+**5. Clean up locally**
+
+```bash
+shred -u /tmp/dokku_deploy /tmp/dokku_deploy.pub
+```
+
+The Dokku host is reached as `dokku@motori` over Tailscale MagicDNS — no public IP or static host key needed.
+
+To revoke deploy access later: `ssh root@motori "dokku ssh-keys:remove gha"` and revoke the OAuth client in the Tailscale admin.
 
 ### 6. TLS
 

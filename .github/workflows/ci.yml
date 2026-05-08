@@ -11,6 +11,7 @@ concurrency:
 
 env:
   NODE_VERSION: 24
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   lint:
@@ -112,79 +113,28 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
-  release:
+  deploy:
     needs: [lint, format, typecheck, test, e2e]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    env:
-      APP_IMAGE: ghcr.io/christianvilen/motori-app
-      MIGRATE_IMAGE: ghcr.io/christianvilen/motori-migrate
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: App image tags
-        id: meta-app
-        uses: docker/metadata-action@v5
+          fetch-depth: 0
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v3
         with:
-          images: ${{ env.APP_IMAGE }}
-          tags: |
-            type=sha,format=long
-            type=sha,format=short
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Migrate image tags
-        id: meta-migrate
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.MIGRATE_IMAGE }}
-          tags: |
-            type=sha,format=long
-            type=sha,format=short
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Build & push app
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          target: runner
-          push: true
-          build-args: |
-            BETTER_AUTH_URL=https://motori.fi
-          tags: ${{ steps.meta-app.outputs.tags }}
-          labels: ${{ steps.meta-app.outputs.labels }}
-          cache-from: type=gha,scope=motori
-          cache-to: type=gha,mode=max,scope=motori
-
-      - name: Build & push migrate
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          target: migrator
-          push: true
-          tags: ${{ steps.meta-migrate.outputs.tags }}
-          labels: ${{ steps.meta-migrate.outputs.labels }}
-          cache-from: type=gha,scope=motori
-          cache-to: type=gha,mode=max,scope=motori
-
-      - name: Prune old app images
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: motori-app
-          package-type: container
-          min-versions-to-keep: 4
-
-      - name: Prune old migrate images
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: motori-migrate
-          package-type: container
-          min-versions-to-keep: 4
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+      - name: Push to Dokku
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DOKKU_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H motori >> ~/.ssh/known_hosts
+          git remote add dokku dokku@motori:motori
+          git push dokku main
