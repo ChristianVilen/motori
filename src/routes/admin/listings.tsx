@@ -5,7 +5,6 @@ import { sql } from "kysely";
 import { Pause, Play, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { requireAdmin } from "~/lib/admin";
-import { db } from "~/lib/db/index";
 import type { Database } from "~/lib/db/schema";
 import { csrfOnly } from "~/lib/middleware";
 
@@ -47,6 +46,7 @@ const getAdminListings = createServerFn({ method: "GET" })
 		const page = data.page ?? 1;
 		const offset = (page - 1) * PAGE_SIZE;
 
+		const { db } = await import("~/lib/db/index");
 		const [rows, countResult] = await Promise.all([
 			db
 				.selectFrom("listing")
@@ -95,6 +95,7 @@ const updateListingStatuses = createServerFn({ method: "POST" })
 		if (data.ids.length === 0) {
 			return;
 		}
+		const { db } = await import("~/lib/db/index");
 		await db
 			.updateTable("listing")
 			.set({ status: data.status, updated_at: new Date() })

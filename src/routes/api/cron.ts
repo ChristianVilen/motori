@@ -2,12 +2,12 @@ import { timingSafeEqual } from "node:crypto";
 import { createFileRoute } from "@tanstack/react-router";
 import { sql } from "kysely";
 import { expireStaleBookings } from "~/lib/bookings.server";
-import { db } from "~/lib/db/index";
 import { log } from "~/lib/log";
 import { sendListingExpiryWarnings, sendToriExpiryWarnings } from "~/lib/notifications";
 
 const TASKS: Record<string, () => Promise<Record<string, unknown>>> = {
 	"purge-sessions": async () => {
+		const { db } = await import("~/lib/db/index");
 		const result = await db
 			.deleteFrom("session")
 			.where("expiresAt", "<", sql<Date>`now()`)
@@ -27,6 +27,7 @@ const TASKS: Record<string, () => Promise<Record<string, unknown>>> = {
 		return { expired };
 	},
 	"expire-tori-items": async () => {
+		const { db } = await import("~/lib/db/index");
 		const result = await db
 			.updateTable("tori_item")
 			.set({ status: "expired", updated_at: new Date() })

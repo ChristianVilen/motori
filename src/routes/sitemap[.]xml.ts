@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SITE_URL } from "~/lib/constants";
-import { db } from "~/lib/db/index";
 import { computeListingSlug, slugify } from "~/lib/slug";
 
 const STATIC_PATHS = [
@@ -15,6 +14,7 @@ export const Route = createFileRoute("/sitemap.xml")({
 	server: {
 		handlers: {
 			GET: async () => {
+				const { db } = await import("~/lib/db/index");
 				const [listings, toriItems] = await Promise.all([
 					db
 						.selectFrom("listing")

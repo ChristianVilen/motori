@@ -6,7 +6,6 @@ import { ArrowLeft, MapPin } from "lucide-react";
 import { ListingCard } from "~/components/listings/listing-card";
 import { ReportButton } from "~/components/report-button";
 import { LICENSE_CLASSES, SITE_NAME } from "~/lib/constants";
-import { db } from "~/lib/db/index";
 import type { ListingImage } from "~/lib/db/schema";
 import { formatDate, useTranslation } from "~/lib/i18n";
 import { computeReviewSummary, getReviewsForUser } from "~/lib/reviews.server";
@@ -15,6 +14,7 @@ import { getSession } from "~/lib/session";
 const getPublicProfile = createServerFn({ method: "GET" })
 	.inputValidator((userId: string) => userId)
 	.handler(async ({ data: userId }) => {
+		const { db } = await import("~/lib/db/index");
 		const profile = await db
 			.selectFrom("profile")
 			.select(["user_id", "display_name", "city", "license_class", "created_at"])

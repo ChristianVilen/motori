@@ -8,7 +8,6 @@ import { Input } from "~/components/ui/input";
 import { authClient } from "~/lib/auth-client";
 import { LICENSE_CLASSES, type LicenseClass, SITE_NAME } from "~/lib/constants";
 import { exportMyData } from "~/lib/data-export";
-import { db } from "~/lib/db/index";
 import { deleteAccount } from "~/lib/delete-account";
 import { useTranslation } from "~/lib/i18n";
 import { csrfOnly } from "~/lib/middleware";
@@ -23,6 +22,7 @@ const loadSettings = createServerFn({ method: "GET" }).handler(async () => {
 	if (!session) {
 		throw new Error("Ei istuntoa");
 	}
+	const { db } = await import("~/lib/db/index");
 	const profile = await db
 		.selectFrom("profile")
 		.selectAll()
@@ -64,6 +64,7 @@ const saveSettings = createServerFn({ method: "POST" })
 			throw new Error("Ei istuntoa");
 		}
 		const licenseClass = data.licenseClass as LicenseClass | "";
+		const { db } = await import("~/lib/db/index");
 		await db
 			.insertInto("profile")
 			.values({

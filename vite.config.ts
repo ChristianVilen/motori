@@ -9,6 +9,11 @@ export default defineConfig({
 	server: {
 		port: 3000,
 	},
+	build: {
+		rollupOptions: {
+			external: ["pg", "pg-pool", "pg-connection-string", "pgpass", "split2"],
+		},
+	},
 	define: {
 		// Inline BETTER_AUTH_URL at build time so client-side head() calls produce
 		// the correct absolute SITE_URL instead of falling back to localhost.
