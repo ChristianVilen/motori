@@ -17,7 +17,7 @@ function buildCsp(nonce: string | undefined): string {
 		"default-src 'self'",
 		`script-src ${scriptSrc}`,
 		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-		"font-src 'self' https://fonts.gstatic.com",
+		"font-src 'self' data: https://fonts.gstatic.com",
 		`img-src ${imgSrc}`,
 		"connect-src 'self'",
 		"frame-ancestors 'none'",

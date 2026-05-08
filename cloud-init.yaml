@@ -1,0 +1,80 @@
+#cloud-config
+# Cloud-init for the Motori Dokku VPS.
+# Apply via: hcloud server rebuild app-server --image ubuntu-24.04 --user-data-from-file cloud-init.yaml
+#
+# Before applying:
+#   1. Replace ${TAILSCALE_AUTH_KEY} below with a fresh tskey-auth-… value from
+#      https://login.tailscale.com/admin/settings/keys (reusable: no, ephemeral: no, tags: tag:server).
+#      Do NOT commit the filled-in version — keep the placeholder in git.
+#   2. Ensure the `pgdata` Hetzner volume is attached to the server before rebuild
+#      and its filesystem is labelled `pgdata` (one-time, on a fresh volume:
+#      `mkfs.ext4 -L pgdata /dev/sdb`). The mount below is by-label so device
+#      order doesn't matter.
+
+package_update: true
+package_upgrade: true
+
+# Run before package_upgrade to silence needrestart's interactive prompts,
+# which otherwise hang cloud-init forever on a console nobody's watching.
+bootcmd:
+  - mkdir -p /etc/needrestart/conf.d
+  - printf '$nrconf{restart} = "a";\n$nrconf{kernelhints} = 0;\n' > /etc/needrestart/conf.d/no-interactive.conf
+
+apt:
+  conf: |
+    Acquire::Retries "3";
+    DPkg::Options { "--force-confdef"; "--force-confold"; };
+
+packages:
+  - curl
+  - ufw
+  - ca-certificates
+  - gnupg
+  - fail2ban
+  - unattended-upgrades
+  - age
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin prohibit-password
+
+runcmd:
+  # Wait for time sync — first boot clock can be 1970 and break TLS (Tailscale install over HTTPS).
+  - systemctl start systemd-timesyncd
+  - timedatectl set-ntp true
+  - until timedatectl show -p NTPSynchronized --value | grep -q yes; do sleep 1; done
+
+  # 2 GB swap — cheap insurance against build OOM during Dokku deploys.
+  - fallocate -l 2G /swapfile
+  - chmod 600 /swapfile
+  - mkswap /swapfile
+  - swapon /swapfile
+  - sh -c 'echo "/swapfile none swap sw 0 0" >> /etc/fstab'
+
+  # Mount the pgdata volume at Dokku's postgres service dir so DB data survives VPS rebuild.
+  # nofail: don't block boot if the volume isn't attached. Mount happens before Dokku is
+  # installed, so the postgres plugin lands its files on the volume from day one.
+  - mkdir -p /var/lib/dokku/services/postgres
+  - sh -c 'echo "LABEL=pgdata /var/lib/dokku/services/postgres ext4 defaults,nofail 0 2" >> /etc/fstab'
+  - mount -a
+
+  # Auto security patches.
+  - dpkg-reconfigure -f noninteractive unattended-upgrades
+
+  # UFW: backup firewall (Hetzner Cloud Firewall is primary). Public 80/443 only;
+  # SSH (22) and Dokku admin only via tailnet.
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw allow in on tailscale0
+  - ufw --force enable
+
+  # Apply SSH hardening.
+  - systemctl reload ssh
+
+  # Tailscale: non-interactive via auth key. --ssh enables Tailscale SSH (tailnet identity = auth).
+  - curl -fsSL https://tailscale.com/install.sh | sh
+  - tailscale up --authkey='${TAILSCALE_AUTH_KEY}' --ssh --hostname=motori --advertise-tags=tag:server
