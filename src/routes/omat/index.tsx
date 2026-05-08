@@ -5,7 +5,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { MapPin, Pencil, Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, SITE_NAME } from "~/lib/constants";
-import { db } from "~/lib/db/index";
 import type { Listing, ListingImage, ToriItem, ToriItemImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { setListingStatus } from "~/lib/listings-commands";
@@ -23,6 +22,7 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 		throw new Error("Kirjaudu sisään");
 	}
 
+	const { db } = await import("~/lib/db/index");
 	const { listings, images } = await getOwnerListings(session.user.id);
 
 	const [profile, toriItems] = await Promise.all([
