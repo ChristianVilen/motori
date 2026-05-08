@@ -41,40 +41,42 @@ export const createToriItem = createServerFn({ method: "POST" })
 		const shortId = generateShortId();
 		const expiresAt = new Date(Date.now() + TORI_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
 
-		await db
-			.insertInto("tori_item")
-			.values({
-				id,
-				short_id: shortId,
-				owner_id: ownerId,
-				title: data.title,
-				category: data.category,
-				condition: data.condition,
-				price_cents: eurosToCents(data.price),
-				description: data.description,
-				city: data.city,
-				region: data.region,
-				postal_code: data.postal_code ?? null,
-				expires_at: expiresAt,
-				created_at: new Date(),
-				updated_at: new Date(),
-			})
-			.execute();
-
-		if (data.images.length > 0) {
-			await db
-				.insertInto("tori_item_image")
-				.values(
-					data.images.map((img, i) => ({
-						id: crypto.randomUUID(),
-						item_id: id,
-						url: img.url,
-						thumbnail_url: img.thumbnail_url ?? null,
-						order: i,
-					})),
-				)
+		await db.transaction().execute(async (trx) => {
+			await trx
+				.insertInto("tori_item")
+				.values({
+					id,
+					short_id: shortId,
+					owner_id: ownerId,
+					title: data.title,
+					category: data.category,
+					condition: data.condition,
+					price_cents: eurosToCents(data.price),
+					description: data.description,
+					city: data.city,
+					region: data.region,
+					postal_code: data.postal_code ?? null,
+					expires_at: expiresAt,
+					created_at: new Date(),
+					updated_at: new Date(),
+				})
 				.execute();
-		}
+
+			if (data.images.length > 0) {
+				await trx
+					.insertInto("tori_item_image")
+					.values(
+						data.images.map((img, i) => ({
+							id: crypto.randomUUID(),
+							item_id: id,
+							url: img.url,
+							thumbnail_url: img.thumbnail_url ?? null,
+							order: i,
+						})),
+					)
+					.execute();
+			}
+		});
 
 		log.event(EVENTS.tori.created, { itemId: id, category: data.category });
 		return { id, shortId };

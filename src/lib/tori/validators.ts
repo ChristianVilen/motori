@@ -16,24 +16,22 @@ const conditionValues = TORI_CONDITIONS.map((c) => c.value) as unknown as readon
 	"poor",
 ];
 
-export function toriImageSchema() {
-	return z.object({
-		url: z
-			.string()
-			.refine(
-				(v) => v.startsWith("https://") || v.startsWith("/api/uploads/"),
-				"Virheellinen kuva-URL",
-			),
-		thumbnail_url: z
-			.string()
-			.refine(
-				(v) => v.startsWith("https://") || v.startsWith("/api/uploads/"),
-				"Virheellinen kuva-URL",
-			)
-			.nullable()
-			.optional(),
-	});
-}
+const toriImageSchema = z.object({
+	url: z
+		.string()
+		.refine(
+			(v) => v.startsWith("https://") || v.startsWith("/api/uploads/"),
+			"Virheellinen kuva-URL",
+		),
+	thumbnail_url: z
+		.string()
+		.refine(
+			(v) => v.startsWith("https://") || v.startsWith("/api/uploads/"),
+			"Virheellinen kuva-URL",
+		)
+		.nullable()
+		.optional(),
+});
 
 export const toriItemFormSchema = z.object({
 	title: z.string().trim().min(5, "Otsikko liian lyhyt").max(100, "Otsikko liian pitkä"),
@@ -48,7 +46,7 @@ export const toriItemFormSchema = z.object({
 		.refine((v) => MUNICIPALITY_NAME_SET.has(v), "Virheellinen paikkakunta"),
 	region: z.string().trim().min(1, "Maakunta vaaditaan"),
 	postal_code: z.string().trim().max(10).nullable().optional(),
-	images: z.array(toriImageSchema()).max(8).default([]),
+	images: z.array(toriImageSchema).max(8).default([]),
 });
 
 export type ToriItemFormData = z.infer<typeof toriItemFormSchema>;

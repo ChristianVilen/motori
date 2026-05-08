@@ -144,7 +144,7 @@ export async function sendToriExpiryWarnings(daysAhead = 7): Promise<number> {
 						.where("id", "=", row.id)
 						.execute();
 					log.event(EVENTS.notification.expiry_warning_sent, {
-						listingId: row.id,
+						itemId: row.id,
 						daysLeft,
 					});
 					sent++;
@@ -156,7 +156,7 @@ export async function sendToriExpiryWarnings(daysAhead = 7): Promise<number> {
 				if (result.status === "rejected") {
 					const row = batch[j];
 					log.event(EVENTS.notification.expiry_warning_skipped, {
-						listingId: row.id,
+						itemId: row.id,
 						reason: "send_failed",
 						err: result.reason,
 					});
