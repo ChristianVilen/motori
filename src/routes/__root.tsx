@@ -296,7 +296,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 				)}
 				<main id="main-content">{children}</main>
 				{!isAdmin && (
-					<footer className="border-t border-border px-4 py-6 text-center text-xs text-muted">
+					<footer className="relative border-t border-border px-4 py-6 text-center text-xs text-muted">
 						<span>{t("footer.copyright")}</span>
 						<span className="mx-2">·</span>
 						<Link to="/kayttoehdot" className="hover:text-foreground">
@@ -306,8 +306,9 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 						<Link to="/tietosuoja" className="hover:text-foreground">
 							{t("footer.privacy")}
 						</Link>
-						<span className="mx-2">·</span>
-						<span className="font-mono">{__APP_VERSION__}</span>
+						<span className="absolute inset-y-0 right-4 hidden items-center font-mono sm:flex">
+							{__APP_VERSION__}
+						</span>
 					</footer>
 				)}
 				{!isAdmin && <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />}

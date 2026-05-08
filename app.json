@@ -1,0 +1,15 @@
+{
+	"name": "motori",
+	"healthchecks": {
+		"web": [
+			{
+				"type": "startup",
+				"name": "web check",
+				"path": "/api/health",
+				"timeout": 10,
+				"wait": 5,
+				"attempts": 3
+			}
+		]
+	}
+}
