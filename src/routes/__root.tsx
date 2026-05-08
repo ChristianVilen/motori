@@ -306,6 +306,8 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 						<Link to="/tietosuoja" className="hover:text-foreground">
 							{t("footer.privacy")}
 						</Link>
+						<span className="mx-2">·</span>
+						<span className="font-mono">{__APP_VERSION__}</span>
 					</footer>
 				)}
 				{!isAdmin && <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />}
