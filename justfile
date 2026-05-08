@@ -86,6 +86,17 @@ config-apply:
     @test -f {{age_key}} || (echo "error: {{age_key}} not found" && exit 1)
     age -d -i {{age_key}} secrets/dokku-config.sh.age | ssh {{host}} bash
 
+# Encrypt secrets/backup-setup.sh → secrets/backup-setup.sh.age (postgres backup auth + encryption + schedule)
+backup-encrypt:
+    @test -f secrets/backup-setup.sh || (echo "error: secrets/backup-setup.sh not found" && exit 1)
+    age -r {{age_pub}} -o secrets/backup-setup.sh.age secrets/backup-setup.sh
+    @echo "✓ wrote secrets/backup-setup.sh.age"
+
+# Decrypt secrets/backup-setup.sh.age and run it on the VPS (configures dokku-postgres backups)
+backup-setup:
+    @test -f {{age_key}} || (echo "error: {{age_key}} not found" && exit 1)
+    age -d -i {{age_key}} secrets/backup-setup.sh.age | ssh {{host}} bash
+
 # Decrypt secrets/certs/*.age, build a tarball, and install on Dokku as the app's TLS cert
 certs-apply:
     @test -f secrets/certs/motori.fi.pem.age || (echo "error: secrets/certs/motori.fi.pem.age not found" && exit 1)
