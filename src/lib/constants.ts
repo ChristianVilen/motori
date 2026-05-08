@@ -52,6 +52,7 @@ export const LISTING_STATUSES = {
 	paused: "Tauolla",
 	rented: "Vuokrattu",
 	removed: "Poistettu",
+	expired: "Vanhentunut",
 } as const;
 
 export type ListingStatus = keyof typeof LISTING_STATUSES;

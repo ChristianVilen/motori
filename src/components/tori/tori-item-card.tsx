@@ -1,12 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import type { ToriItem, ToriItemImage } from "~/lib/db/schema";
+import type { ListingImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { slugify } from "~/lib/slug";
 import { TORI_CATEGORIES, TORI_CONDITIONS } from "~/lib/tori/constants";
+import type { ToriItemWithImages } from "~/lib/tori/tori-queries";
 
 interface ToriItemCardProps {
-	item: ToriItem;
-	images: ToriItemImage[];
+	item: ToriItemWithImages;
+	images: ListingImage[];
 }
 
 const CONDITION_COLORS: Record<string, string> = {
@@ -25,7 +26,7 @@ export function ToriItemCard({ item, images }: ToriItemCardProps) {
 	const categoryLabel =
 		TORI_CATEGORIES.find((c) => c.value === item.category)?.labelKey ?? item.category;
 	const conditionColor = CONDITION_COLORS[item.condition] ?? "bg-gray-100 text-gray-800";
-	const isSold = item.status === "sold";
+	const isSold = item.status === "removed";
 	const slug = slugify(item.title);
 
 	return (

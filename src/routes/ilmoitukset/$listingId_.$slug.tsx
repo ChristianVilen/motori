@@ -86,7 +86,7 @@ export const Route = createFileRoute("/ilmoitukset/$listingId_/$slug")({
 		const make = loaderData?.makeName ?? "";
 		const model = loaderData?.modelName ?? "";
 		const title = `${l.title} — ${SITE_NAME}`;
-		const desc = `Vuokraa ${make} ${model} (${l.year}) — ${l.city}. Alkaen ${centsToEuros(l.price_per_day).toFixed(0)} €/pv.`;
+		const desc = `Vuokraa ${make} ${model} (${l.year}) — ${l.city}. Alkaen ${centsToEuros(loaderData?.rental?.price_per_day ?? 0).toFixed(0)} €/pv.`;
 		const slug = computeListingSlug(
 			loaderData?.makeSlug ?? null,
 			loaderData?.modelName ?? null,
@@ -125,10 +125,12 @@ function ListingSpecs({
 	listing,
 	makeName,
 	modelName,
+	mileageLimit,
 }: {
 	listing: Listing;
 	makeName: string | null;
 	modelName: string | null;
+	mileageLimit?: number | null;
 }) {
 	const { t } = useTranslation("listings");
 
@@ -160,11 +162,11 @@ function ListingSpecs({
 						</dd>
 					</div>
 				)}
-				{!!listing.mileage_limit && (
+				{!!mileageLimit && (
 					<div>
 						<dt className="text-muted">{t("detail.specs.mileageLimit")}</dt>
 						<dd className="font-medium text-foreground">
-							{listing.mileage_limit} {t("detail.specs.mileageLimitUnit")}
+							{mileageLimit} {t("detail.specs.mileageLimitUnit")}
 						</dd>
 					</div>
 				)}
@@ -177,6 +179,7 @@ interface PricingCardProps {
 	pricePerDayCents: number;
 	pricePerWeekCents: number | null;
 	pricePerWeekendCents: number | null;
+	priceDescription: string | null;
 	listing: Listing;
 	isOwner: boolean;
 }
@@ -185,6 +188,7 @@ function PricingCard({
 	pricePerDayCents,
 	pricePerWeekCents,
 	pricePerWeekendCents,
+	priceDescription,
 	listing,
 	isOwner,
 }: PricingCardProps) {
@@ -207,9 +211,7 @@ function PricingCard({
 						{t("detail.pricing.perWeekend", { price: formatEur(pricePerWeekendCents) })}
 					</div>
 				)}
-				{!!listing.price_description && (
-					<div className="mt-1 text-xs text-muted">{listing.price_description}</div>
-				)}
+				{!!priceDescription && <div className="mt-1 text-xs text-muted">{priceDescription}</div>}
 			</div>
 			{!!isOwner && (
 				<div className="mt-3 flex gap-2">
@@ -302,11 +304,19 @@ function MobileBottomBar({
 
 function BookingSidebar({
 	listing,
+	rental,
 	availability,
 	session,
 	images,
 }: {
 	listing: Listing;
+	rental: {
+		price_per_day: number;
+		price_per_week: number | null;
+		price_per_weekend: number | null;
+		price_description: string | null;
+		mileage_limit: number | null;
+	} | null;
 	availability: {
 		availability_default: "open" | "closed";
 		exception_dates: string[];
@@ -321,9 +331,10 @@ function BookingSidebar({
 		return (
 			<div id="pricing" className="space-y-4 lg:self-start">
 				<PricingCard
-					pricePerDayCents={listing.price_per_day}
-					pricePerWeekCents={listing.price_per_week ?? null}
-					pricePerWeekendCents={listing.price_per_weekend ?? null}
+					pricePerDayCents={rental?.price_per_day ?? 0}
+					pricePerWeekCents={rental?.price_per_week ?? null}
+					pricePerWeekendCents={rental?.price_per_weekend ?? null}
+					priceDescription={rental?.price_description ?? null}
 					listing={listing}
 					isOwner={true}
 				/>
@@ -341,9 +352,9 @@ function BookingSidebar({
 		exceptionDates: availability.exception_dates,
 		bookedDates: availability.booked_dates,
 		isLoggedIn: !!session,
-		pricePerDayCents: listing.price_per_day,
-		pricePerWeekCents: listing.price_per_week ?? null,
-		pricePerWeekendCents: listing.price_per_weekend ?? null,
+		pricePerDayCents: rental?.price_per_day ?? 0,
+		pricePerWeekCents: rental?.price_per_week ?? null,
+		pricePerWeekendCents: rental?.price_per_weekend ?? null,
 		heroImageUrl: images[0]?.thumbnail_url ?? images[0]?.url ?? null,
 		onSubmit: async (input: { start_date: string; end_date: string; message: string }) => {
 			await submitBookingRequest({
@@ -371,6 +382,7 @@ function ListingDetailPage() {
 	const { t: tProfile } = useTranslation("profile");
 	const {
 		listing,
+		rental,
 		images,
 		session,
 		makeName,
@@ -475,7 +487,12 @@ function ListingDetailPage() {
 							</div>
 						</div>
 
-						<ListingSpecs listing={listing} makeName={makeName} modelName={modelName} />
+						<ListingSpecs
+							listing={listing}
+							makeName={makeName}
+							modelName={modelName}
+							mileageLimit={rental?.mileage_limit}
+						/>
 
 						{/* Description */}
 						<div>
@@ -491,6 +508,7 @@ function ListingDetailPage() {
 					{/* Right column — booking */}
 					<BookingSidebar
 						listing={listing}
+						rental={rental}
 						availability={availability}
 						session={session}
 						images={images}
@@ -499,9 +517,9 @@ function ListingDetailPage() {
 			</div>
 
 			<MobileBottomBar
-				pricePerDayCents={listing.price_per_day}
-				pricePerWeekCents={listing.price_per_week ?? null}
-				pricePerWeekendCents={listing.price_per_weekend ?? null}
+				pricePerDayCents={rental?.price_per_day ?? 0}
+				pricePerWeekCents={rental?.price_per_week ?? null}
+				pricePerWeekendCents={rental?.price_per_weekend ?? null}
 				isOwner={!!isOwner}
 				isActive={listing.status === "active"}
 				isLoggedIn={!!session}
@@ -523,9 +541,9 @@ function ListingDetailPage() {
 						exceptionDates={availability.exception_dates}
 						bookedDates={availability.booked_dates}
 						isLoggedIn={!!session}
-						pricePerDayCents={listing.price_per_day}
-						pricePerWeekCents={listing.price_per_week ?? null}
-						pricePerWeekendCents={listing.price_per_weekend ?? null}
+						pricePerDayCents={rental?.price_per_day ?? 0}
+						pricePerWeekCents={rental?.price_per_week ?? null}
+						pricePerWeekendCents={rental?.price_per_weekend ?? null}
 						heroImageUrl={images[0]?.thumbnail_url ?? images[0]?.url ?? null}
 						onSubmit={async (input) => {
 							await submitBookingRequest({

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { eurosToCents } from "~/lib/currency";
-import type { ToriItemStatus } from "~/lib/db/schema";
+import type { ListingCategory } from "~/lib/db/schema";
 import { AppError } from "~/lib/errors";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
@@ -12,6 +12,8 @@ import { toriItemFormSchema } from "~/lib/tori/validators";
 import { isValidImageUrl } from "~/lib/validators";
 
 const getDb = async () => (await import("~/lib/db/index")).db;
+
+type ToriListingStatus = "active" | "paused" | "removed";
 
 function validateImages(images: Array<{ url: string }>) {
 	for (const img of images) {
@@ -28,6 +30,14 @@ function getOwnerId(session: Awaited<ReturnType<typeof getSession>>): string {
 	return session.user.id;
 }
 
+/** Map tori form category to listing category */
+function toListingCategory(cat: string): ListingCategory {
+	if (cat === "gear" || cat === "apparel") {
+		return "gear";
+	}
+	return "part";
+}
+
 export const createToriItem = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("tori-create", 10, 3600))
 	.inputValidator(toriItemFormSchema)
@@ -40,18 +50,17 @@ export const createToriItem = createServerFn({ method: "POST" })
 		const id = crypto.randomUUID();
 		const shortId = generateShortId();
 		const expiresAt = new Date(Date.now() + TORI_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+		const category = toListingCategory(data.category);
 
 		await db.transaction().execute(async (trx) => {
 			await trx
-				.insertInto("tori_item")
+				.insertInto("listing")
 				.values({
 					id,
 					short_id: shortId,
 					owner_id: ownerId,
+					category,
 					title: data.title,
-					category: data.category,
-					condition: data.condition,
-					price_cents: eurosToCents(data.price),
 					description: data.description,
 					city: data.city,
 					region: data.region,
@@ -62,13 +71,35 @@ export const createToriItem = createServerFn({ method: "POST" })
 				})
 				.execute();
 
+			if (category === "gear") {
+				await trx
+					.insertInto("listing_gear")
+					.values({
+						listing_id: id,
+						gear_type: "other",
+						condition: data.condition,
+						price: eurosToCents(data.price),
+					})
+					.execute();
+			} else {
+				await trx
+					.insertInto("listing_part")
+					.values({
+						listing_id: id,
+						part_category: data.category,
+						condition: data.condition,
+						price: eurosToCents(data.price),
+					})
+					.execute();
+			}
+
 			if (data.images.length > 0) {
 				await trx
-					.insertInto("tori_item_image")
+					.insertInto("listing_image")
 					.values(
 						data.images.map((img, i) => ({
 							id: crypto.randomUUID(),
-							item_id: id,
+							listing_id: id,
 							url: img.url,
 							thumbnail_url: img.thumbnail_url ?? null,
 							order: i,
@@ -95,8 +126,8 @@ export const updateToriItem = createServerFn({ method: "POST" })
 		validateImages(data.images);
 
 		const existing = await db
-			.selectFrom("tori_item")
-			.select(["owner_id"])
+			.selectFrom("listing")
+			.select(["owner_id", "category"])
 			.where("id", "=", id)
 			.executeTakeFirst();
 
@@ -109,12 +140,9 @@ export const updateToriItem = createServerFn({ method: "POST" })
 
 		await db.transaction().execute(async (trx) => {
 			await trx
-				.updateTable("tori_item")
+				.updateTable("listing")
 				.set({
 					title: data.title,
-					category: data.category,
-					condition: data.condition,
-					price_cents: eurosToCents(data.price),
 					description: data.description,
 					city: data.city,
 					region: data.region,
@@ -124,15 +152,36 @@ export const updateToriItem = createServerFn({ method: "POST" })
 				.where("id", "=", id)
 				.execute();
 
-			await trx.deleteFrom("tori_item_image").where("item_id", "=", id).execute();
+			if (existing.category === "gear") {
+				await trx
+					.updateTable("listing_gear")
+					.set({
+						condition: data.condition,
+						price: eurosToCents(data.price),
+					})
+					.where("listing_id", "=", id)
+					.execute();
+			} else {
+				await trx
+					.updateTable("listing_part")
+					.set({
+						part_category: data.category,
+						condition: data.condition,
+						price: eurosToCents(data.price),
+					})
+					.where("listing_id", "=", id)
+					.execute();
+			}
+
+			await trx.deleteFrom("listing_image").where("listing_id", "=", id).execute();
 
 			if (data.images.length > 0) {
 				await trx
-					.insertInto("tori_item_image")
+					.insertInto("listing_image")
 					.values(
 						data.images.map((img, i) => ({
 							id: crypto.randomUUID(),
-							item_id: id,
+							listing_id: id,
 							url: img.url,
 							thumbnail_url: img.thumbnail_url ?? null,
 							order: i,
@@ -148,20 +197,21 @@ export const updateToriItem = createServerFn({ method: "POST" })
 export const setToriItemStatus = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("tori-status", 30, 3600))
 	.inputValidator((input: { id: string; status: string }) => {
-		const allowed: ToriItemStatus[] = ["active", "paused", "sold"];
-		if (!allowed.includes(input.status as ToriItemStatus)) {
+		const allowed: ToriListingStatus[] = ["active", "paused", "removed"];
+		if (!allowed.includes(input.status as ToriListingStatus)) {
 			throw new Error("Invalid status");
 		}
-		return { id: input.id, status: input.status as ToriItemStatus };
+		return { id: input.id, status: input.status as ToriListingStatus };
 	})
 	.handler(async ({ data: { id, status } }) => {
 		const ownerId = getOwnerId(await getSession());
 		const db = await getDb();
 
 		const item = await db
-			.selectFrom("tori_item")
+			.selectFrom("listing")
 			.select(["owner_id"])
 			.where("id", "=", id)
+			.where("category", "in", ["gear", "part"])
 			.executeTakeFirst();
 
 		if (!item || item.owner_id !== ownerId) {
@@ -173,7 +223,7 @@ export const setToriItemStatus = createServerFn({ method: "POST" })
 			updates.expires_at = new Date(Date.now() + TORI_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
 		}
 
-		await db.updateTable("tori_item").set(updates).where("id", "=", id).execute();
+		await db.updateTable("listing").set(updates).where("id", "=", id).execute();
 
 		log.event(EVENTS.tori.status_changed, { itemId: id, status });
 	});

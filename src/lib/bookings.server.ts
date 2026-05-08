@@ -77,9 +77,9 @@ export async function createBookingRequest(args: {
 
 	const [availRow, exceptions] = await Promise.all([
 		db
-			.selectFrom("listing")
+			.selectFrom("listing_rental")
 			.select("availability_default")
-			.where("id", "=", listing.id)
+			.where("listing_id", "=", listing.id)
 			.executeTakeFirst(),
 		db
 			.selectFrom("listing_availability_exception")

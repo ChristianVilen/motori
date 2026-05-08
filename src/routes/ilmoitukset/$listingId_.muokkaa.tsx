@@ -82,11 +82,11 @@ const updateAvailability = createServerFn({ method: "POST" })
 		}
 
 		await db.transaction().execute(async (trx) => {
+			// Ownership already verified above — listing_rental has no owner_id column
 			const availResult = await trx
-				.updateTable("listing")
-				.set({ availability_default: data.availability_default, updated_at: new Date() })
-				.where("id", "=", data.listing_id)
-				.where("owner_id", "=", session.user.id)
+				.updateTable("listing_rental")
+				.set({ availability_default: data.availability_default })
+				.where("listing_id", "=", data.listing_id)
 				.executeTakeFirst();
 
 			if (availResult.numUpdatedRows === 0n) {
@@ -220,26 +220,26 @@ function AvailabilityEditor(props: {
 
 function EditListingPage() {
 	const { t } = useTranslation("listings");
-	const { listing, images, makeSlug, modelName, availability } = Route.useLoaderData();
+	const { listing, rental, images, makeSlug, modelName, availability } = Route.useLoaderData();
 	const navigate = useNavigate();
 
 	const initialValues = {
 		title: listing.title,
-		make_id: listing.make_id,
+		make_id: listing.make_id ?? undefined,
 		model_id: listing.model_id ?? null,
-		year: listing.year,
+		year: listing.year ?? undefined,
 		engine_cc: listing.engine_cc,
-		motorcycle_type: listing.motorcycle_type,
+		motorcycle_type: listing.motorcycle_type ?? undefined,
 		required_license: listing.required_license,
-		price_per_day: centsToEuros(listing.price_per_day),
-		price_per_week: listing.price_per_week ? centsToEuros(listing.price_per_week) : null,
-		price_per_weekend: listing.price_per_weekend ? centsToEuros(listing.price_per_weekend) : null,
-		price_description: listing.price_description ?? "",
+		price_per_day: centsToEuros(rental?.price_per_day ?? 0),
+		price_per_week: rental?.price_per_week ? centsToEuros(rental.price_per_week) : null,
+		price_per_weekend: rental?.price_per_weekend ? centsToEuros(rental.price_per_weekend) : null,
+		price_description: rental?.price_description ?? "",
 		city: listing.city,
 		region: listing.region,
 		postal_code: listing.postal_code ?? "",
 		description: listing.description,
-		mileage_limit: listing.mileage_limit,
+		mileage_limit: rental?.mileage_limit,
 	};
 
 	async function handleSubmit(data: ListingFormData) {

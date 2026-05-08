@@ -6,7 +6,7 @@ import { formatEur, useTranslation } from "~/lib/i18n";
 import { computeListingSlug } from "~/lib/slug";
 
 interface ListingCardProps {
-	listing: Listing;
+	listing: Listing & { price_per_day?: number };
 	images: ListingImage[];
 	makeSlug: string | null;
 	modelName: string | null;
@@ -20,7 +20,7 @@ export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: Lis
 	const typeLabel =
 		MOTORCYCLE_TYPES.find((mt) => mt.value === listing.motorcycle_type)?.label ??
 		listing.motorcycle_type;
-	const typeEmoji = TYPE_EMOJI[listing.motorcycle_type] ?? "";
+	const typeEmoji = listing.motorcycle_type ? (TYPE_EMOJI[listing.motorcycle_type] ?? "") : "";
 
 	const isNew = Date.now() - new Date(listing.created_at).getTime() < 48 * 60 * 60 * 1000;
 	const imageCount = images.length;
@@ -130,7 +130,7 @@ export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: Lis
 							data-testid="listing-card-price"
 							className="font-heading text-lg font-bold text-accent"
 						>
-							{formatEur(listing.price_per_day)}
+							{formatEur(listing.price_per_day ?? 0)}
 						</span>
 						<span className="text-xs text-muted">{t("card.perDay")}</span>
 					</div>

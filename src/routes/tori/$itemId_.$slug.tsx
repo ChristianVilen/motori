@@ -30,7 +30,7 @@ function recordToriView(shortId: string, viewerId: string | undefined, ip: strin
 	}
 	void getDb().then((db) =>
 		db
-			.updateTable("tori_item")
+			.updateTable("listing")
 			.set({ view_count: sql`view_count + 1` })
 			.where("short_id", "=", shortId)
 			.execute()
@@ -113,7 +113,7 @@ function ToriItemDetailPage() {
 		TORI_CATEGORIES.find((c) => c.value === item.category)?.labelKey ?? item.category;
 	const conditionColor = CONDITION_COLORS[item.condition] ?? "bg-gray-100 text-gray-800";
 	const regionLabel = REGIONS.find((r) => r.value === item.region)?.label ?? item.region;
-	const isSold = item.status === "sold";
+	const isSold = item.status === "removed";
 	const isOwner = userId === item.owner_id;
 
 	return (
@@ -134,7 +134,7 @@ function ToriItemDetailPage() {
 						<ListingGallery
 							images={item.images.map((img) => ({
 								...img,
-								listing_id: img.item_id,
+								listing_id: img.listing_id,
 							}))}
 							title={item.title}
 						/>

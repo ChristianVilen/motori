@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { sql } from "kysely";
 import { ArrowLeft } from "lucide-react";
 import { ToriItemForm } from "~/components/tori/tori-item-form";
 import { centsToEuros } from "~/lib/currency";
@@ -21,9 +22,17 @@ const getToriItemForEdit = createServerFn({ method: "GET" })
 
 		const db = await getDb();
 		const item = await db
-			.selectFrom("tori_item")
-			.selectAll()
-			.where("short_id", "=", shortId)
+			.selectFrom("listing")
+			.leftJoin("listing_gear", "listing_gear.listing_id", "listing.id")
+			.leftJoin("listing_part", "listing_part.listing_id", "listing.id")
+			.selectAll("listing")
+			.select(sql<number>`coalesce(listing_gear.price, listing_part.price)`.as("price_cents"))
+			.select(sql<string>`coalesce(listing_gear.condition, listing_part.condition)`.as("condition"))
+			.select(
+				sql<string>`coalesce(listing_part.part_category, listing.category)`.as("item_category"),
+			)
+			.where("listing.short_id", "=", shortId)
+			.where("listing.category", "in", ["gear", "part"])
 			.executeTakeFirst();
 
 		if (!item || item.owner_id !== session.user.id) {
@@ -31,9 +40,9 @@ const getToriItemForEdit = createServerFn({ method: "GET" })
 		}
 
 		const images = await db
-			.selectFrom("tori_item_image")
+			.selectFrom("listing_image")
 			.selectAll()
-			.where("item_id", "=", item.id)
+			.where("listing_id", "=", item.id)
 			.orderBy("order", "asc")
 			.execute();
 
@@ -69,16 +78,16 @@ function EditToriItemPage() {
 
 	const initialValues: Partial<ToriItemFormData> = {
 		title: item.title,
-		category: item.category,
-		condition: item.condition,
-		price: centsToEuros(item.price_cents),
+		category: item.item_category as ToriItemFormData["category"],
+		condition: item.condition as ToriItemFormData["condition"],
+		price: centsToEuros(Number(item.price_cents)),
 		description: item.description,
 		city: item.city,
 		region: item.region,
 		postal_code: item.postal_code ?? "",
 	};
 
-	const initialImages = images.map((img) => ({
+	const initialImages = images.map((img: { url: string; thumbnail_url: string | null }) => ({
 		url: img.url,
 		thumbnail_url: img.thumbnail_url,
 	}));

@@ -92,24 +92,26 @@ async function seedConfirmedPastBooking(
 			short_id: crypto.randomUUID().slice(0, 8),
 			owner_id: owner.id,
 			title: "E2E Review Test Bike",
+			category: "rental",
 			make_id: makeId,
 			model_id: null,
 			year: 2020,
 			engine_cc: 500,
 			required_license: "A2",
 			motorcycle_type: "naked",
-			price_per_day: 4500,
-			price_per_week: null,
-			price_description: null,
 			city: "Helsinki",
 			region: "uusimaa",
 			postal_code: null,
 			description: "Review test listing.",
-			mileage_limit: null,
 			expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
 			created_at: new Date(),
 			updated_at: new Date(),
 		})
+		.execute();
+
+	await db
+		.insertInto("listing_rental")
+		.values({ listing_id: listingId, price_per_day: 4500 })
 		.execute();
 
 	const bookingId = crypto.randomUUID();
@@ -229,6 +231,7 @@ test.describe("Reviews", () => {
 				short_id: crypto.randomUUID().slice(0, 8),
 				owner_id: ownerId,
 				title: "E2E Pending Booking Test",
+				category: "rental",
 				make_id:
 					(
 						await db
@@ -242,18 +245,19 @@ test.describe("Reviews", () => {
 				engine_cc: 500,
 				required_license: "A2",
 				motorcycle_type: "naked",
-				price_per_day: 4500,
-				price_per_week: null,
-				price_description: null,
 				city: "Helsinki",
 				region: "uusimaa",
 				postal_code: null,
 				description: "Pending booking review test.",
-				mileage_limit: null,
 				expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
 				created_at: new Date(),
 				updated_at: new Date(),
 			})
+			.execute();
+
+		await db
+			.insertInto("listing_rental")
+			.values({ listing_id: listingId, price_per_day: 4500 })
 			.execute();
 
 		const bookingId = crypto.randomUUID();
@@ -320,24 +324,26 @@ test.describe("Reviews", () => {
 				short_id: crypto.randomUUID().slice(0, 8),
 				owner_id: ownerId,
 				title: "E2E Deadline Review Test",
+				category: "rental",
 				make_id: makeId,
 				model_id: null,
 				year: 2020,
 				engine_cc: 500,
 				required_license: "A2",
 				motorcycle_type: "naked",
-				price_per_day: 4500,
-				price_per_week: null,
-				price_description: null,
 				city: "Helsinki",
 				region: "uusimaa",
 				postal_code: null,
 				description: "Deadline review test.",
-				mileage_limit: null,
 				expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
 				created_at: new Date(),
 				updated_at: new Date(),
 			})
+			.execute();
+
+		await db
+			.insertInto("listing_rental")
+			.values({ listing_id: listingId, price_per_day: 4500 })
 			.execute();
 
 		const bookingId = crypto.randomUUID();

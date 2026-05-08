@@ -39,7 +39,9 @@ export async function sendListingExpiryWarnings(daysAhead = 7): Promise<number> 
 					if (!row.expires_at) {
 						return;
 					}
-					const daysLeft = Math.ceil((row.expires_at.getTime() - Date.now()) / 86_400_000);
+					const daysLeft = Math.ceil(
+						((row.expires_at?.getTime() ?? Date.now()) - Date.now()) / 86_400_000,
+					);
 					const t = getEmailT(row.language);
 					const safeDisplayName = escapeHtml(row.display_name);
 					const safeTitle = escapeHtml(row.title);
@@ -97,21 +99,22 @@ function escapeHtml(s: string): string {
 export async function sendToriExpiryWarnings(daysAhead = 7): Promise<number> {
 	return withLogContext({ task: "tori-expiry-warnings" }, async () => {
 		const rows = await db
-			.selectFrom("tori_item")
-			.innerJoin("user", "user.id", "tori_item.owner_id")
-			.innerJoin("profile", "profile.user_id", "tori_item.owner_id")
+			.selectFrom("listing")
+			.innerJoin("user", "user.id", "listing.owner_id")
+			.innerJoin("profile", "profile.user_id", "listing.owner_id")
 			.select([
-				"tori_item.id",
-				"tori_item.title",
-				"tori_item.expires_at",
+				"listing.id",
+				"listing.title",
+				"listing.expires_at",
 				"user.email",
 				"profile.display_name",
 				"profile.language",
 			])
-			.where("tori_item.status", "=", "active")
-			.where("tori_item.expires_at", "<=", sql<Date>`now() + make_interval(days => ${daysAhead})`)
-			.where("tori_item.expires_at", ">", sql<Date>`now()`)
-			.where("tori_item.expiry_notified_at", "is", null)
+			.where("listing.status", "=", "active")
+			.where("listing.category", "in", ["gear", "part"])
+			.where("listing.expires_at", "<=", sql<Date>`now() + make_interval(days => ${daysAhead})`)
+			.where("listing.expires_at", ">", sql<Date>`now()`)
+			.where("listing.expiry_notified_at", "is", null)
 			.execute();
 
 		let sent = 0;
@@ -120,7 +123,9 @@ export async function sendToriExpiryWarnings(daysAhead = 7): Promise<number> {
 			const batch = rows.slice(i, i + CONCURRENCY);
 			const results = await Promise.allSettled(
 				batch.map(async (row) => {
-					const daysLeft = Math.ceil((row.expires_at.getTime() - Date.now()) / 86_400_000);
+					const daysLeft = Math.ceil(
+						((row.expires_at?.getTime() ?? Date.now()) - Date.now()) / 86_400_000,
+					);
 					const t = getEmailT(row.language);
 					const safeDisplayName = escapeHtml(row.display_name);
 					const safeTitle = escapeHtml(row.title);
@@ -139,7 +144,7 @@ export async function sendToriExpiryWarnings(daysAhead = 7): Promise<number> {
 						idempotencyKey: `tori-expiry-warning/${row.id}`,
 					});
 					await db
-						.updateTable("tori_item")
+						.updateTable("listing")
 						.set({ expiry_notified_at: new Date(), updated_at: new Date() })
 						.where("id", "=", row.id)
 						.execute();

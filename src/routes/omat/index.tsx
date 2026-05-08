@@ -5,8 +5,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { MapPin, Pencil, Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, SITE_NAME } from "~/lib/constants";
-import type { Listing, ListingImage, ToriItem, ToriItemImage } from "~/lib/db/schema";
-import { formatEur, useTranslation } from "~/lib/i18n";
+import type { Listing, ListingImage } from "~/lib/db/schema";
+import { useTranslation } from "~/lib/i18n";
 import { setListingStatus } from "~/lib/listings-commands";
 import { getOwnerListings } from "~/lib/listings-queries";
 import { protectedMutation } from "~/lib/middleware";
@@ -28,10 +28,11 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 	const [profile, toriItems] = await Promise.all([
 		db.selectFrom("profile").selectAll().where("user_id", "=", session.user.id).executeTakeFirst(),
 		db
-			.selectFrom("tori_item")
+			.selectFrom("listing")
 			.selectAll()
 			.where("owner_id", "=", session.user.id)
-			.where("status", "!=", "expired")
+			.where("category", "in", ["gear", "part"])
+			.where("status", "!=", "removed")
 			.orderBy("created_at", "desc")
 			.execute(),
 	]);
@@ -40,9 +41,9 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 	const toriImages =
 		toriItemIds.length > 0
 			? await db
-					.selectFrom("tori_item_image")
+					.selectFrom("listing_image")
 					.selectAll()
-					.where("item_id", "in", toriItemIds)
+					.where("listing_id", "in", toriItemIds)
 					.where("order", "=", 0)
 					.execute()
 			: [];
@@ -186,11 +187,6 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 						<MapPin className="h-3 w-3" />
 						{listing.city}, {regionLabel}
 					</span>
-					<span>·</span>
-					<span className="font-medium text-accent">
-						{formatEur(listing.price_per_day)}
-						{t("dashboard.row.pricePerDay")}
-					</span>
 				</div>
 
 				<div className="mt-1 text-xs text-muted">
@@ -257,8 +253,8 @@ const TORI_STATUS_STYLES: Record<string, string> = {
 };
 
 interface ToriItemRowProps {
-	item: ToriItem;
-	firstImage: ToriItemImage | undefined;
+	item: Listing;
+	firstImage: ListingImage | undefined;
 	onStatusChange: () => void;
 	verified: boolean | null;
 }
@@ -266,7 +262,7 @@ interface ToriItemRowProps {
 function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRowProps) {
 	const { t } = useTranslation("profile");
 	const slug = slugify(item.title);
-	const statusLabel = TORI_STATUSES[item.status] ?? item.status;
+	const statusLabel = TORI_STATUSES[item.status as keyof typeof TORI_STATUSES] ?? item.status;
 	const statusStyle = TORI_STATUS_STYLES[item.status] ?? "bg-muted-light text-muted";
 
 	async function handleTogglePause() {
@@ -276,7 +272,7 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 	}
 
 	async function handleMarkSold() {
-		await setToriStatusFn({ data: { id: item.id, status: "sold" } });
+		await setToriStatusFn({ data: { id: item.id, status: "removed" } });
 		onStatusChange();
 	}
 
@@ -329,7 +325,7 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 						{item.city}
 					</span>
 					<span>·</span>
-					<span className="font-medium text-accent">{formatEur(item.price_cents)}</span>
+					<span className="font-medium text-accent">{item.city}</span>
 				</div>
 
 				{/* Actions */}
@@ -342,7 +338,7 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 							</Button>
 						</Link>
 					) : null}
-					{item.status !== "sold" && (
+					{item.status !== "removed" && (
 						<Button
 							variant="outline"
 							size="sm"
@@ -394,10 +390,10 @@ function ProfilePage() {
 		}
 	}
 
-	const firstToriImageByItem = new Map<string, ToriItemImage>();
+	const firstToriImageByItem = new Map<string, ListingImage>();
 	for (const img of toriImages) {
-		if (!firstToriImageByItem.has(img.item_id)) {
-			firstToriImageByItem.set(img.item_id, img);
+		if (!firstToriImageByItem.has(img.listing_id)) {
+			firstToriImageByItem.set(img.listing_id, img);
 		}
 	}
 

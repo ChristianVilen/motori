@@ -319,6 +319,7 @@ async function main() {
 				id,
 				short_id: crypto.randomUUID().slice(0, 8),
 				owner_id: userId,
+				category: "rental",
 				title: seed.title,
 				make_id: make.id,
 				model_id: null,
@@ -326,18 +327,25 @@ async function main() {
 				engine_cc: seed.engine_cc,
 				required_license: seed.required_license,
 				motorcycle_type: seed.motorcycle_type,
-				price_per_day: seed.price_per_day * 100,
-				price_per_week: seed.price_per_week ? seed.price_per_week * 100 : null,
-				price_description: null,
 				city: seed.city,
 				region: seed.region,
 				postal_code: null,
 				description: seed.description,
-				mileage_limit: null,
 				status: seed.status,
 				expires_at: expiresAt,
 				created_at: new Date(),
 				updated_at: new Date(),
+			})
+			.execute();
+
+		await db
+			.insertInto("listing_rental")
+			.values({
+				listing_id: id,
+				price_per_day: seed.price_per_day * 100,
+				price_per_week: seed.price_per_week ? seed.price_per_week * 100 : null,
+				price_description: null,
+				mileage_limit: null,
 			})
 			.execute();
 
@@ -356,10 +364,8 @@ async function main() {
 		}
 	}
 
-	// 6. Tori items
-	console.log("Creating tori items...");
-	await db.deleteFrom("tori_item_image").execute();
-	await db.deleteFrom("tori_item").execute();
+	// 6. Tori items (now gear/part listings)
+	console.log("Creating gear/part listings...");
 
 	const toriItems: Array<{
 		title: string;
@@ -369,7 +375,7 @@ async function main() {
 		city: string;
 		region: string;
 		description: string;
-		status?: "active" | "sold";
+		status?: "active" | "removed";
 	}> = [
 		{
 			title: "Alpinestars GP Plus -nahkatakki, koko 52",
@@ -437,7 +443,7 @@ async function main() {
 			city: "Helsinki",
 			region: "uusimaa",
 			description: "Ratakäyttöön ostetut, käytetty 3 ratapäivää. Magnesiumliukurit ehjät.",
-			status: "sold",
+			status: "removed",
 		},
 		{
 			title: "Paddock-teline, etu + taka",
@@ -451,16 +457,16 @@ async function main() {
 	];
 
 	for (const item of toriItems) {
+		const id = crypto.randomUUID();
+		const listingCategory = item.category === "gear" ? "gear" : "part";
 		await db
-			.insertInto("tori_item")
+			.insertInto("listing")
 			.values({
-				id: crypto.randomUUID(),
+				id,
 				short_id: crypto.randomUUID().slice(0, 8),
 				owner_id: userId,
+				category: listingCategory,
 				title: item.title,
-				category: item.category,
-				condition: item.condition,
-				price_cents: item.price_cents,
 				description: item.description,
 				city: item.city,
 				region: item.region,
@@ -471,6 +477,28 @@ async function main() {
 				updated_at: new Date(),
 			})
 			.execute();
+
+		if (listingCategory === "gear") {
+			await db
+				.insertInto("listing_gear")
+				.values({
+					listing_id: id,
+					gear_type: "other",
+					condition: item.condition,
+					price: item.price_cents,
+				})
+				.execute();
+		} else {
+			await db
+				.insertInto("listing_part")
+				.values({
+					listing_id: id,
+					part_category: item.category,
+					condition: item.condition,
+					price: item.price_cents,
+				})
+				.execute();
+		}
 	}
 
 	console.log(`\n✅ Done. Login: ${SEED_EMAIL} / ${SEED_PASSWORD}\n`);

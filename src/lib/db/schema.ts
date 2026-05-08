@@ -74,6 +74,8 @@ export interface ProfileTable {
 	show_phone: Generated<boolean>; // DB default false — omit on insert to use default
 	license_class: "A1" | "A2" | "A" | null;
 	language: "fi" | "en";
+	account_type: Generated<"private" | "business">;
+	business_name: string | null;
 	terms_accepted_at: ColumnType<Date, Date | undefined, Date> | null;
 	created_at: ColumnType<Date, Date | undefined, Date>;
 	updated_at: ColumnType<Date, Date | undefined, Date>;
@@ -102,28 +104,25 @@ export interface MotorcycleModelTable {
 export type MotorcycleMake = Selectable<MotorcycleMakeTable>;
 export type MotorcycleModel = Selectable<MotorcycleModelTable>;
 
+export type ListingCategory = "sale" | "rental" | "gear" | "part";
+
 export interface ListingTable {
 	id: string;
 	owner_id: string;
 	short_id: string;
+	category: ListingCategory;
 	title: string;
-	make_id: string;
+	make_id: string | null;
 	model_id: string | null;
-	year: number;
+	year: number | null;
 	engine_cc: number | null;
 	required_license: "A1" | "A2" | "A" | null;
-	motorcycle_type: string;
-	price_per_day: number; // EUR cents
-	price_per_week: number | null; // EUR cents
-	price_per_weekend: number | null; // EUR cents — Fri–Sun flat rate
-	price_description: string | null;
+	motorcycle_type: string | null;
 	city: string;
 	region: string;
 	postal_code: string | null;
 	description: string;
-	mileage_limit: number | null; // km/day
-	availability_default: Generated<"open" | "closed">;
-	status: Generated<"active" | "paused" | "rented" | "removed">;
+	status: Generated<"active" | "paused" | "rented" | "removed" | "expired">;
 	view_count: Generated<number>;
 	expires_at: ColumnType<Date, Date | undefined, Date> | null;
 	expiry_notified_at: ColumnType<Date, Date | undefined, Date> | null;
@@ -147,6 +146,59 @@ export interface ListingImageTable {
 
 export type ListingImage = Selectable<ListingImageTable>;
 export type NewListingImage = Insertable<ListingImageTable>;
+
+export interface ListingRentalTable {
+	listing_id: string;
+	price_per_day: number; // EUR cents
+	price_per_week: number | null;
+	price_per_weekend: number | null;
+	price_description: string | null;
+	mileage_limit: number | null;
+	availability_default: Generated<"open" | "closed">;
+}
+
+export type ListingRental = Selectable<ListingRentalTable>;
+export type NewListingRental = Insertable<ListingRentalTable>;
+export type ListingRentalUpdate = Updateable<ListingRentalTable>;
+
+export interface ListingSaleTable {
+	listing_id: string;
+	price: number; // EUR cents
+	condition: "new" | "excellent" | "good" | "fair" | "poor";
+	km_driven: number | null;
+	negotiable: Generated<boolean>;
+}
+
+export type ListingSale = Selectable<ListingSaleTable>;
+export type NewListingSale = Insertable<ListingSaleTable>;
+export type ListingSaleUpdate = Updateable<ListingSaleTable>;
+
+export type GearType = "helmet" | "jacket" | "pants" | "boots" | "gloves" | "other";
+
+export interface ListingGearTable {
+	listing_id: string;
+	gear_type: GearType;
+	size: string | null;
+	condition: "new" | "excellent" | "good" | "fair" | "poor";
+	price: number; // EUR cents
+}
+
+export type ListingGear = Selectable<ListingGearTable>;
+export type NewListingGear = Insertable<ListingGearTable>;
+export type ListingGearUpdate = Updateable<ListingGearTable>;
+
+export interface ListingPartTable {
+	listing_id: string;
+	part_category: string;
+	compatible_make_id: string | null;
+	compatible_model_id: string | null;
+	condition: "new" | "excellent" | "good" | "fair" | "poor";
+	price: number; // EUR cents
+}
+
+export type ListingPart = Selectable<ListingPartTable>;
+export type NewListingPart = Insertable<ListingPartTable>;
+export type ListingPartUpdate = Updateable<ListingPartTable>;
 
 export interface FavoriteTable {
 	user_id: string;
@@ -217,46 +269,6 @@ export interface ReviewTable {
 export type Review = Selectable<ReviewTable>;
 export type NewReview = Insertable<ReviewTable>;
 
-export type ToriItemStatus = "active" | "paused" | "sold" | "expired";
-export type ToriItemCategory = "gear" | "parts" | "apparel" | "tools";
-export type ToriItemCondition = "new" | "excellent" | "good" | "fair" | "poor";
-
-export interface ToriItemTable {
-	id: string;
-	owner_id: string;
-	short_id: string;
-	title: string;
-	category: ToriItemCategory;
-	condition: ToriItemCondition;
-	price_cents: number;
-	description: string;
-	city: string;
-	region: string;
-	postal_code: string | null;
-	status: Generated<ToriItemStatus>;
-	view_count: Generated<number>;
-	expires_at: ColumnType<Date, Date, Date>;
-	expiry_notified_at: ColumnType<Date, Date | undefined, Date> | null;
-	search_vector: Generated<string>;
-	created_at: ColumnType<Date, Date | undefined, Date>;
-	updated_at: ColumnType<Date, Date | undefined, Date>;
-}
-
-export type ToriItem = Selectable<ToriItemTable>;
-export type NewToriItem = Insertable<ToriItemTable>;
-export type ToriItemUpdate = Updateable<ToriItemTable>;
-
-export interface ToriItemImageTable {
-	id: string;
-	item_id: string;
-	url: string;
-	thumbnail_url: string | null;
-	order: Generated<number>;
-}
-
-export type ToriItemImage = Selectable<ToriItemImageTable>;
-export type NewToriItemImage = Insertable<ToriItemImageTable>;
-
 // ─── Database interface ───────────────────────────────────────────────────────
 
 export interface Database {
@@ -269,11 +281,13 @@ export interface Database {
 	motorcycle_model: MotorcycleModelTable;
 	listing: ListingTable;
 	listing_image: ListingImageTable;
+	listing_rental: ListingRentalTable;
+	listing_sale: ListingSaleTable;
+	listing_gear: ListingGearTable;
+	listing_part: ListingPartTable;
 	favorite: FavoriteTable;
 	report: ReportTable;
 	booking: BookingTable;
 	listing_availability_exception: ListingAvailabilityExceptionTable;
 	review: ReviewTable;
-	tori_item: ToriItemTable;
-	tori_item_image: ToriItemImageTable;
 }
