@@ -97,6 +97,13 @@ backup-setup:
     @test -f {{age_key}} || (echo "error: {{age_key}} not found" && exit 1)
     age -d -i {{age_key}} secrets/backup-setup.sh.age | ssh {{host}} bash
 
+# Install host crontab + wrapper script for /api/cron tasks
+cron-install:
+    scp infra/cron/motori-cron {{host}}:/usr/local/bin/motori-cron
+    scp infra/cron/motori.crontab {{host}}:/etc/cron.d/motori
+    ssh {{host}} "chmod 755 /usr/local/bin/motori-cron && chmod 644 /etc/cron.d/motori"
+    @echo "✓ cron installed; check with: ssh {{host}} 'cat /etc/cron.d/motori && systemctl status cron --no-pager'"
+
 # Decrypt secrets/certs/*.age, build a tarball, and install on Dokku as the app's TLS cert
 certs-apply:
     @test -f secrets/certs/motori.fi.pem.age || (echo "error: secrets/certs/motori.fi.pem.age not found" && exit 1)

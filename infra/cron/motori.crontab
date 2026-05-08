@@ -1,0 +1,13 @@
+# Motori scheduled tasks. Installed at /etc/cron.d/motori on the VPS.
+# Runs as root; PATH must include dokku.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Hourly — keep booking/listing state fresh
+17 * * * * root /usr/local/bin/motori-cron expire-bookings
+22 * * * * root /usr/local/bin/motori-cron expire-tori-items
+
+# Daily — overnight maintenance + notifications (03:30 UTC ≈ 06:30 EEST)
+30 3 * * * root /usr/local/bin/motori-cron purge-sessions
+35 3 * * * root /usr/local/bin/motori-cron notify-expiry
+40 3 * * * root /usr/local/bin/motori-cron notify-tori-expiry
