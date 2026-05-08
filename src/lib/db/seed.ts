@@ -3,7 +3,7 @@ import { auth } from "../auth";
 import { db } from "./index";
 
 const SEED_EMAIL = "dev@motori.local";
-const SEED_PASSWORD = "devpassword";
+const SEED_PASSWORD = "DevPassword1!";
 const SEED_NAME = "Dev";
 
 const IMG = (name: string) => `/images/${name}-1200w.webp`;
