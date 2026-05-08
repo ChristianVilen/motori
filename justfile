@@ -86,6 +86,18 @@ config-apply:
     @test -f {{age_key}} || (echo "error: {{age_key}} not found" && exit 1)
     age -d -i {{age_key}} secrets/dokku-config.sh.age | ssh {{host}} bash
 
+# Decrypt secrets/certs/*.age, build a tarball, and install on Dokku as the app's TLS cert
+certs-apply:
+    @test -f secrets/certs/motori.fi.pem.age || (echo "error: secrets/certs/motori.fi.pem.age not found" && exit 1)
+    @test -f secrets/certs/motori.fi.key.age || (echo "error: secrets/certs/motori.fi.key.age not found" && exit 1)
+    tmp=$(mktemp -d) && \
+      age -d -i {{age_key}} secrets/certs/motori.fi.pem.age > "$tmp/server.crt" && \
+      age -d -i {{age_key}} secrets/certs/motori.fi.key.age > "$tmp/server.key" && \
+      tar -C "$tmp" -cf "$tmp/certs.tar" server.crt server.key && \
+      ssh {{host}} "dokku certs:add {{app}}" < "$tmp/certs.tar" && \
+      rm -rf "$tmp"
+    @echo "✓ cert installed on Dokku"
+
 # Export full dokku config and age-encrypt to secrets/motori.env.age (off-VPS backup)
 secrets-export:
     ssh {{host}} "dokku config:export --format=docker-args {{app}}" \
