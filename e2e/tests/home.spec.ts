@@ -16,7 +16,7 @@ test.describe("Home page", () => {
 
 		await home.search("Honda");
 
-		await expect(page).toHaveURL(/\/ilmoitukset\?.*q=Honda/);
+		await expect(page).toHaveURL(/\/pyorat\/myynti\?.*q=Honda/);
 	});
 
 	test("region chip navigates to filtered listings", async ({ page }) => {
@@ -25,7 +25,7 @@ test.describe("Home page", () => {
 
 		await home.clickRegionChip("uusimaa");
 
-		await expect(page).toHaveURL(/\/ilmoitukset\?.*region=uusimaa/);
+		await expect(page).toHaveURL(/\/pyorat\/myynti\?.*region=uusimaa/);
 	});
 
 	test("add listing CTA links to new listing page", async ({ page }) => {
@@ -35,6 +35,6 @@ test.describe("Home page", () => {
 		await home.addListingCta.click();
 
 		// Unauthenticated users get redirected to login
-		await expect(page).toHaveURL(/\/kirjaudu|\/ilmoitukset\/uusi/, { timeout: 10000 });
+		await expect(page).toHaveURL(/\/kirjaudu|\/ilmoitukset\/uusi|\/pyorat\/vuokraus\/uusi/, { timeout: 10000 });
 	});
 });

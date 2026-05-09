@@ -40,7 +40,7 @@ test.describe("Listings browse", () => {
 		await expect(seeded).toContainText(SEEDED_LISTING_TITLE);
 		await seeded.click();
 		await expect(page).toHaveURL(
-			new RegExp(`/ilmoitukset/${SEEDED_LISTING_ID}/${SEEDED_LISTING_SLUG}$`),
+			new RegExp(`/pyorat/vuokraus/${SEEDED_LISTING_ID}/${SEEDED_LISTING_SLUG}$`),
 		);
 	});
 });
@@ -218,7 +218,7 @@ test.describe("Map view", () => {
 		const firstCard = listings.mapCityPanel.getByTestId("listing-card").first();
 		await firstCard.scrollIntoViewIfNeeded();
 		await firstCard.click();
-		await page.waitForURL(/\/ilmoitukset\/.+\/.+/);
+		await page.waitForURL(/\/pyorat\/vuokraus\/.+\/.+/);
 		// 3. Go back — should return to map view with Helsinki selected
 		await page.goBack();
 		await expect(page).toHaveURL(/view=map/);

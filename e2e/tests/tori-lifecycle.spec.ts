@@ -36,12 +36,12 @@ test.describe("Tori item lifecycle", () => {
 		});
 		await form.submitButton.click();
 		await page.waitForURL(
-			(url) => /\/tori\/[^/]+\/[^/]+$/.test(url.pathname) && url.pathname !== "/tori/uusi",
+			(url) => /\/varusteet\/[^/]+\/[^/]+$/.test(url.pathname),
 			{ timeout: 15000 },
 		);
 		await waitForHydration(page);
 
-		const match = page.url().match(/\/tori\/([^/]+)\/[^/]+$/);
+		const match = page.url().match(/\/varusteet\/([^/]+)\/[^/]+$/);
 		if (!match) {
 			throw new Error("Could not extract item short_id from URL");
 		}
@@ -64,7 +64,7 @@ test.describe("Tori item lifecycle", () => {
 		const form = new ToriFormPage(page);
 		await form.titleInput.fill(ITEM_TITLE_EDITED);
 		await form.submitButton.click();
-		await page.waitForURL(/\/tori\/[^/]+\/[^/]+$/, { timeout: 15000 });
+		await page.waitForURL(/\/varusteet\/[^/]+\/[^/]+$/, { timeout: 15000 });
 		await waitForHydration(page);
 
 		const detail = new ToriDetailPage(page);

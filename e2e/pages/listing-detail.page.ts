@@ -31,7 +31,7 @@ export class ListingDetailPage {
 	}
 
 	async goto(shortId: string, slug: string) {
-		await this.page.goto(`/ilmoitukset/${shortId}/${slug}`);
+		await this.page.goto(`/pyorat/vuokraus/${shortId}/${slug}`);
 		await waitForHydration(this.page);
 	}
 }
