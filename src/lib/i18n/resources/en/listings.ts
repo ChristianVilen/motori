@@ -162,6 +162,16 @@ export default {
 			location: "Location",
 			description: "Description",
 			images: "Images",
+			category: "Listing type",
+			saleDetails: "Sale details",
+			gearDetails: "Gear",
+			partDetails: "Part",
+		},
+		categories: {
+			sale: "For sale",
+			rental: "Rental",
+			gear: "Gear",
+			part: "Parts",
 		},
 		fields: {
 			title: "Title",

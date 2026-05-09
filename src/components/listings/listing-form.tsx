@@ -1,7 +1,7 @@
 // src/components/listings/listing-form.tsx
 // Shared between /ilmoitukset/uusi and /ilmoitukset/$listingId/muokkaa
 import { useForm } from "@tanstack/react-form";
-import { X } from "lucide-react";
+import { Key, Shield, ShoppingCart, Wrench, X } from "lucide-react";
 import { useState } from "react";
 import { CitySelect } from "~/components/listings/city-select";
 import { MakeModelSelect } from "~/components/listings/make-model-select";
@@ -16,12 +16,22 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { CURRENT_YEAR, LICENSE_CLASSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
+import type { ListingCategory } from "~/lib/db/schema";
 import { handleAppError } from "~/lib/errors-client";
 import { useTranslation } from "~/lib/i18n";
-import type { ListingFormData, ListingImageInput } from "~/lib/validators";
+import type {
+	GearFormData,
+	ListingFormData,
+	ListingImageInput,
+	PartFormData,
+	RentalFormData,
+	SaleFormData,
+} from "~/lib/validators";
 import { listingFormSchema } from "~/lib/validators";
 
 interface ListingFormProps {
+	lockedCategory?: ListingCategory;
+	initialCategory?: ListingCategory;
 	initialValues?: Partial<ListingFormData>;
 	initialImages?: ListingImageInput[];
 	onSubmit: (data: ListingFormData) => Promise<void>;
@@ -42,15 +52,21 @@ function FieldError({ errors }: { errors: unknown[] }) {
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: large form with many fields
-export function ListingForm({
-	initialValues,
-	initialImages = [],
-	onSubmit,
-	submitLabel,
-}: ListingFormProps) {
+export function ListingForm(props: ListingFormProps) {
+	const { initialImages = [], onSubmit, submitLabel } = props;
+	// initialValues is a discriminated union; widen for shared field access
+	const initialValues = props.initialValues as
+		| (Partial<RentalFormData> &
+				Partial<SaleFormData> &
+				Partial<GearFormData> &
+				Partial<PartFormData>)
+		| undefined;
 	const { t } = useTranslation("listings");
 	const { t: tCommon } = useTranslation("common");
 
+	const [category, setCategory] = useState<ListingCategory>(
+		props.lockedCategory ?? props.initialCategory ?? "rental",
+	);
 	const [existingImages, setExistingImages] = useState<ListingImageInput[]>(initialImages);
 	const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 	const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -97,6 +113,57 @@ export function ListingForm({
 			postal_code: initialValues?.postal_code ?? "",
 			description: initialValues?.description ?? "",
 			mileage_limit: initialValues?.mileage_limit ?? null,
+			// Sale
+			sale_price:
+				props.initialCategory === "sale"
+					? ((props.initialValues as SaleFormData | undefined)?.price ?? ("" as unknown as number))
+					: ("" as unknown as number),
+			sale_condition:
+				props.initialCategory === "sale"
+					? ((props.initialValues as SaleFormData | undefined)?.condition ?? "")
+					: "",
+			sale_km_driven:
+				props.initialCategory === "sale"
+					? ((props.initialValues as SaleFormData | undefined)?.km_driven ?? null)
+					: null,
+			sale_negotiable:
+				props.initialCategory === "sale"
+					? ((props.initialValues as SaleFormData | undefined)?.negotiable ?? false)
+					: false,
+			// Gear
+			gear_gear_type:
+				props.initialCategory === "gear"
+					? ((props.initialValues as GearFormData | undefined)?.gear_type ?? "")
+					: "",
+			gear_size:
+				props.initialCategory === "gear"
+					? ((props.initialValues as GearFormData | undefined)?.size ?? null)
+					: null,
+			gear_condition:
+				props.initialCategory === "gear"
+					? ((props.initialValues as GearFormData | undefined)?.condition ?? "")
+					: "",
+			gear_price:
+				props.initialCategory === "gear"
+					? ((props.initialValues as GearFormData | undefined)?.price ?? ("" as unknown as number))
+					: ("" as unknown as number),
+			// Part
+			part_part_category:
+				props.initialCategory === "part"
+					? ((props.initialValues as PartFormData | undefined)?.part_category ?? "")
+					: "",
+			part_compatible_make_id:
+				props.initialCategory === "part"
+					? ((props.initialValues as PartFormData | undefined)?.compatible_make_id ?? null)
+					: null,
+			part_condition:
+				props.initialCategory === "part"
+					? ((props.initialValues as PartFormData | undefined)?.condition ?? "")
+					: "",
+			part_price:
+				props.initialCategory === "part"
+					? ((props.initialValues as PartFormData | undefined)?.price ?? ("" as unknown as number))
+					: ("" as unknown as number),
 		},
 		onSubmit: async ({ value }) => {
 			setSubmitError(null);
@@ -105,7 +172,78 @@ export function ListingForm({
 				const newImages = await uploadFiles(pendingFiles, setUploadProgress);
 				setUploadProgress(null);
 				const allImages = [...existingImages, ...newImages];
-				const parsed = listingFormSchema(tCommon).safeParse({ ...value, images: allImages });
+				let formPayload: unknown;
+				if (category === "rental") {
+					formPayload = {
+						category: "rental",
+						title: value.title,
+						city: value.city,
+						region: value.region,
+						postal_code: value.postal_code || null,
+						description: value.description,
+						make_id: value.make_id,
+						model_id: value.model_id,
+						year: value.year,
+						engine_cc: value.engine_cc,
+						motorcycle_type: value.motorcycle_type,
+						required_license: value.required_license,
+						price_per_day: value.price_per_day,
+						price_per_week: value.price_per_week,
+						price_per_weekend: value.price_per_weekend,
+						price_description: value.price_description || null,
+						mileage_limit: value.mileage_limit,
+						images: allImages,
+					};
+				} else if (category === "sale") {
+					formPayload = {
+						category: "sale",
+						title: value.title,
+						city: value.city,
+						region: value.region,
+						postal_code: value.postal_code || null,
+						description: value.description,
+						make_id: value.make_id,
+						model_id: value.model_id,
+						year: value.year,
+						engine_cc: value.engine_cc,
+						motorcycle_type: value.motorcycle_type,
+						required_license: value.required_license,
+						condition: value.sale_condition,
+						km_driven: value.sale_km_driven,
+						price: value.sale_price,
+						negotiable: value.sale_negotiable,
+						images: allImages,
+					};
+				} else if (category === "gear") {
+					formPayload = {
+						category: "gear",
+						title: value.title,
+						city: value.city,
+						region: value.region,
+						postal_code: value.postal_code || null,
+						description: value.description,
+						gear_type: value.gear_gear_type,
+						size: value.gear_size,
+						condition: value.gear_condition,
+						price: value.gear_price,
+						images: allImages,
+					};
+				} else {
+					formPayload = {
+						category: "part",
+						title: value.title,
+						city: value.city,
+						region: value.region,
+						postal_code: value.postal_code || null,
+						description: value.description,
+						part_category: value.part_part_category,
+						compatible_make_id: value.part_compatible_make_id,
+						condition: value.part_condition,
+						price: value.part_price,
+						images: allImages,
+					};
+				}
+				const parsed = listingFormSchema(tCommon).safeParse(formPayload);
 				if (!parsed.success) {
 					const first = parsed.error.issues[0];
 					const fieldName = first?.path[0] as keyof typeof value | undefined;
@@ -179,7 +317,42 @@ export function ListingForm({
 			}}
 			className="space-y-8"
 		>
+			{!props.lockedCategory && (
+				<section className="rounded-lg border border-border bg-card p-6">
+					<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+						{t("form.sections.category")}
+					</h2>
+					<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+						{(["sale", "rental", "gear", "part"] as const).map((cat) => {
+							const icons: Record<string, React.ReactNode> = {
+								sale: <ShoppingCart className="h-6 w-6" />,
+								rental: <Key className="h-6 w-6" />,
+								gear: <Shield className="h-6 w-6" />,
+								part: <Wrench className="h-6 w-6" />,
+							};
+							return (
+								<button
+									key={cat}
+									type="button"
+									onClick={() => setCategory(cat)}
+									data-testid={`category-tile-${cat}`}
+									className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 text-sm font-medium transition-colors ${
+										category === cat
+											? "border-accent bg-accent/5 text-accent"
+											: "border-border bg-background text-foreground hover:border-accent/50"
+									}`}
+								>
+									{icons[cat]}
+									{t(`form.categories.${cat}`)}
+								</button>
+							);
+						})}
+					</div>
+				</section>
+			)}
+
 			{/* ── Moottoripyörä ─────────────────────────────────────────────── */}
+			{(category === "sale" || category === "rental") && (
 			<section className="rounded-lg border border-border bg-card p-6">
 				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
 					{t("form.sections.motorcycle")}
@@ -323,8 +496,10 @@ export function ListingForm({
 					</div>
 				</div>
 			</section>
+			)}
 
-			{/* ── Hinta ─────────────────────────────────────────────────────── */}
+			{/* ── Hinta (rental) ────────────────────────────────────────────── */}
+			{category === "rental" && (
 			<section className="rounded-lg border border-border bg-card p-6">
 				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
 					{t("form.sections.price")}
@@ -454,6 +629,321 @@ export function ListingForm({
 					</form.Field>
 				</div>
 			</section>
+			)}
+
+			{/* ── Myynti ────────────────────────────────────────────────────── */}
+			{category === "sale" && (
+				<section className="rounded-lg border border-border bg-card p-6">
+					<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+						{t("form.sections.saleDetails")}
+					</h2>
+					<div className="space-y-4">
+						<form.Field name="sale_price">
+							{(field) => (
+								<div>
+									<label
+										htmlFor="sale_price"
+										className="mb-1 block text-sm font-medium text-foreground"
+									>
+										Myyntihinta (€) <span className="text-destructive">*</span>
+									</label>
+									<Input
+										id="sale_price"
+										type="number"
+										min={1}
+										value={field.state.value ?? ""}
+										onBlur={field.handleBlur}
+										onChange={(e) =>
+											field.handleChange(
+												e.target.value === ""
+													? ("" as unknown as number)
+													: e.target.valueAsNumber,
+											)
+										}
+									/>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+						<form.Field name="sale_condition">
+							{(field) => (
+								<div>
+									<label className="mb-1 block text-sm font-medium text-foreground">
+										Kunto <span className="text-destructive">*</span>
+									</label>
+									<Select
+										value={field.state.value ?? ""}
+										onValueChange={(v) => field.handleChange(v)}
+									>
+										<SelectTrigger>
+											<SelectValue placeholder="Valitse kunto" />
+										</SelectTrigger>
+										<SelectContent>
+											{[
+												["new", "Uusi"],
+												["excellent", "Erinomainen"],
+												["good", "Hyvä"],
+												["fair", "Tyydyttävä"],
+												["poor", "Huono"],
+											].map(([v, l]) => (
+												<SelectItem key={v} value={v}>
+													{l}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+						<form.Field name="sale_km_driven">
+							{(field) => (
+								<div className="w-1/2">
+									<label
+										htmlFor="sale_km_driven"
+										className="mb-1 block text-sm font-medium text-foreground"
+									>
+										Kilometrit
+									</label>
+									<Input
+										id="sale_km_driven"
+										type="number"
+										min={0}
+										value={field.state.value ?? ""}
+										onBlur={field.handleBlur}
+										onChange={(e) =>
+											field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
+										}
+									/>
+								</div>
+							)}
+						</form.Field>
+						<form.Field name="sale_negotiable">
+							{(field) => (
+								<label className="flex cursor-pointer items-center gap-3">
+									<input
+										type="checkbox"
+										checked={field.state.value ?? false}
+										onChange={(e) => field.handleChange(e.target.checked)}
+										className="h-4 w-4 rounded border-border"
+									/>
+									<span className="text-sm text-foreground">Hinta joustaa</span>
+								</label>
+							)}
+						</form.Field>
+					</div>
+				</section>
+			)}
+
+			{/* ── Varuste ───────────────────────────────────────────────────── */}
+			{category === "gear" && (
+				<section className="rounded-lg border border-border bg-card p-6">
+					<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+						{t("form.sections.gearDetails")}
+					</h2>
+					<div className="space-y-4">
+						<form.Field name="gear_gear_type">
+							{(field) => (
+								<div>
+									<label className="mb-1 block text-sm font-medium text-foreground">
+										Varustetyyppi <span className="text-destructive">*</span>
+									</label>
+									<Select
+										value={field.state.value ?? ""}
+										onValueChange={(v) => field.handleChange(v)}
+									>
+										<SelectTrigger>
+											<SelectValue placeholder="Valitse tyyppi" />
+										</SelectTrigger>
+										<SelectContent>
+											{[
+												["helmet", "Kypärä"],
+												["jacket", "Takki"],
+												["pants", "Housut"],
+												["boots", "Saappaat"],
+												["gloves", "Käsineet"],
+												["other", "Muu"],
+											].map(([v, l]) => (
+												<SelectItem key={v} value={v}>
+													{l}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+						<div className="grid grid-cols-2 gap-4">
+							<form.Field name="gear_size">
+								{(field) => (
+									<div>
+										<label
+											htmlFor="gear_size"
+											className="mb-1 block text-sm font-medium text-foreground"
+										>
+											Koko
+										</label>
+										<Input
+											id="gear_size"
+											value={field.state.value ?? ""}
+											onChange={(e) => field.handleChange(e.target.value || null)}
+											maxLength={20}
+										/>
+									</div>
+								)}
+							</form.Field>
+							<form.Field name="gear_condition">
+								{(field) => (
+									<div>
+										<label className="mb-1 block text-sm font-medium text-foreground">
+											Kunto <span className="text-destructive">*</span>
+										</label>
+										<Select
+											value={field.state.value ?? ""}
+											onValueChange={(v) => field.handleChange(v)}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Valitse kunto" />
+											</SelectTrigger>
+											<SelectContent>
+												{[
+													["new", "Uusi"],
+													["excellent", "Erinomainen"],
+													["good", "Hyvä"],
+													["fair", "Tyydyttävä"],
+													["poor", "Huono"],
+												].map(([v, l]) => (
+													<SelectItem key={v} value={v}>
+														{l}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+										<FieldError errors={field.state.meta.errors} />
+									</div>
+								)}
+							</form.Field>
+						</div>
+						<form.Field name="gear_price">
+							{(field) => (
+								<div>
+									<label
+										htmlFor="gear_price"
+										className="mb-1 block text-sm font-medium text-foreground"
+									>
+										Hinta (€) <span className="text-destructive">*</span>
+									</label>
+									<Input
+										id="gear_price"
+										type="number"
+										min={1}
+										value={field.state.value ?? ""}
+										onBlur={field.handleBlur}
+										onChange={(e) =>
+											field.handleChange(
+												e.target.value === ""
+													? ("" as unknown as number)
+													: e.target.valueAsNumber,
+											)
+										}
+									/>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+					</div>
+				</section>
+			)}
+
+			{/* ── Varaosa ───────────────────────────────────────────────────── */}
+			{category === "part" && (
+				<section className="rounded-lg border border-border bg-card p-6">
+					<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+						{t("form.sections.partDetails")}
+					</h2>
+					<div className="space-y-4">
+						<form.Field name="part_part_category">
+							{(field) => (
+								<div>
+									<label
+										htmlFor="part_part_category"
+										className="mb-1 block text-sm font-medium text-foreground"
+									>
+										Osatyyppi <span className="text-destructive">*</span>
+									</label>
+									<Input
+										id="part_part_category"
+										placeholder="esim. Jarrulevyt, Ketjusarja, Peili"
+										value={field.state.value ?? ""}
+										onChange={(e) => field.handleChange(e.target.value)}
+										maxLength={100}
+									/>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+						<form.Field name="part_condition">
+							{(field) => (
+								<div>
+									<label className="mb-1 block text-sm font-medium text-foreground">
+										Kunto <span className="text-destructive">*</span>
+									</label>
+									<Select
+										value={field.state.value ?? ""}
+										onValueChange={(v) => field.handleChange(v)}
+									>
+										<SelectTrigger>
+											<SelectValue placeholder="Valitse kunto" />
+										</SelectTrigger>
+										<SelectContent>
+											{[
+												["new", "Uusi"],
+												["excellent", "Erinomainen"],
+												["good", "Hyvä"],
+												["fair", "Tyydyttävä"],
+												["poor", "Huono"],
+											].map(([v, l]) => (
+												<SelectItem key={v} value={v}>
+													{l}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+						<form.Field name="part_price">
+							{(field) => (
+								<div>
+									<label
+										htmlFor="part_price"
+										className="mb-1 block text-sm font-medium text-foreground"
+									>
+										Hinta (€) <span className="text-destructive">*</span>
+									</label>
+									<Input
+										id="part_price"
+										type="number"
+										min={1}
+										value={field.state.value ?? ""}
+										onBlur={field.handleBlur}
+										onChange={(e) =>
+											field.handleChange(
+												e.target.value === ""
+													? ("" as unknown as number)
+													: e.target.valueAsNumber,
+											)
+										}
+									/>
+									<FieldError errors={field.state.meta.errors} />
+								</div>
+							)}
+						</form.Field>
+					</div>
+				</section>
+			)}
 
 			{/* ── Sijainti ──────────────────────────────────────────────────── */}
 			<section className="rounded-lg border border-border bg-card p-6">

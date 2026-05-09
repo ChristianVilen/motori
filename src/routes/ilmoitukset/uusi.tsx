@@ -55,11 +55,19 @@ function NewListingPage() {
 	async function handleSubmit(data: ListingFormData) {
 		const result = await createListingFn({ data });
 		const slug = computeListingSlug(result.makeSlug, result.modelName, result.city);
+		const basePath =
+			data.category === "sale"
+				? "/pyorat/myynti"
+				: data.category === "rental"
+					? "/pyorat/vuokraus"
+					: data.category === "gear"
+						? "/varusteet"
+						: "/varaosat";
 		navigate({
-			to: "/ilmoitukset/$listingId/$slug",
+			to: `${basePath}/$listingId/$slug`,
 			params: { listingId: result.shortId, slug },
 			replace: true,
-		});
+		} as never);
 	}
 
 	return (

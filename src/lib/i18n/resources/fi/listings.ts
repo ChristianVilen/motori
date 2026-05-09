@@ -161,6 +161,16 @@ export default {
 			location: "Sijainti",
 			description: "Kuvaus",
 			images: "Kuvat",
+			category: "Ilmoitustyyppi",
+			saleDetails: "Myyntitiedot",
+			gearDetails: "Varuste",
+			partDetails: "Varaosa",
+		},
+		categories: {
+			sale: "Myynti",
+			rental: "Vuokraus",
+			gear: "Varusteet",
+			part: "Varaosat",
 		},
 		fields: {
 			title: "Otsikko",
