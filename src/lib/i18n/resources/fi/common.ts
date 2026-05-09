@@ -2,6 +2,11 @@ export default {
 	nav: {
 		browse: "Selaa",
 		tori: "Tori",
+		bikes: "Pyörät",
+		sale: "Myynti",
+		rental: "Vuokraus",
+		gear: "Varusteet",
+		parts: "Varaosat",
 		listMotorcycle: "Ilmoita pyörä",
 		myListings: "Omat",
 		signIn: "Kirjaudu",

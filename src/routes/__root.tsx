@@ -11,6 +11,7 @@ import {
 import { type ReactNode, useEffect, useState } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { Toaster } from "sonner";
+import { CategoryDropdown } from "~/components/nav/category-dropdown";
 import { LoginModal } from "~/components/auth/login-modal";
 import { UserMenu } from "~/components/auth/user-menu";
 import { LanguageSelector } from "~/components/language-selector";
@@ -221,12 +222,21 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 								<Logo variant="dark" className="h-8 w-auto" />
 							</Link>
 							<div className="flex items-center gap-4 sm:gap-6">
-								<Link to="/ilmoitukset" className="text-sm text-white/70 hover:text-white">
-									{t("nav.browse")}
-								</Link>
-								<Link to="/tori" className="text-sm text-white/70 hover:text-white">
-									{t("nav.tori")}
-								</Link>
+								<CategoryDropdown />
+								<a
+									href="/varusteet"
+									data-testid="nav-varusteet"
+									className="text-sm text-white/70 hover:text-white"
+								>
+									{t("nav.gear")}
+								</a>
+								<a
+									href="/varaosat"
+									data-testid="nav-varaosat"
+									className="text-sm text-white/70 hover:text-white"
+								>
+									{t("nav.parts")}
+								</a>
 								{verified ? (
 									<Link
 										data-testid="nav-add-listing"
