@@ -13,7 +13,7 @@ import { isValidImageUrl } from "~/lib/validators";
 
 const getDb = async () => (await import("~/lib/db/index")).db;
 
-type ToriListingStatus = "active" | "paused" | "removed";
+type ToriListingStatus = "active" | "paused" | "sold" | "removed";
 
 function validateImages(images: Array<{ url: string }>) {
 	for (const img of images) {
@@ -197,7 +197,7 @@ export const updateToriItem = createServerFn({ method: "POST" })
 export const setToriItemStatus = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("tori-status", 30, 3600))
 	.inputValidator((input: { id: string; status: string }) => {
-		const allowed: ToriListingStatus[] = ["active", "paused", "removed"];
+		const allowed: ToriListingStatus[] = ["active", "paused", "sold", "removed"];
 		if (!allowed.includes(input.status as ToriListingStatus)) {
 			throw new Error("Invalid status");
 		}

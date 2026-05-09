@@ -26,7 +26,7 @@ export function ToriItemCard({ item, images }: ToriItemCardProps) {
 	const categoryLabel =
 		TORI_CATEGORIES.find((c) => c.value === item.category)?.labelKey ?? item.category;
 	const conditionColor = CONDITION_COLORS[item.condition] ?? "bg-gray-100 text-gray-800";
-	const isSold = item.status === "removed";
+	const isSold = item.status === "sold";
 	const slug = slugify(item.title);
 
 	return (

@@ -50,6 +50,7 @@ export type LicenseClass = (typeof LICENSE_CLASSES)[number]["value"];
 export const LISTING_STATUSES = {
 	active: "Aktiivinen",
 	paused: "Tauolla",
+	sold: "Myyty",
 	rented: "Vuokrattu",
 	removed: "Poistettu",
 	expired: "Vanhentunut",

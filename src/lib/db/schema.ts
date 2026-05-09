@@ -122,7 +122,7 @@ export interface ListingTable {
 	region: string;
 	postal_code: string | null;
 	description: string;
-	status: Generated<"active" | "paused" | "rented" | "removed" | "expired">;
+	status: Generated<"active" | "paused" | "sold" | "rented" | "removed" | "expired">;
 	view_count: Generated<number>;
 	expires_at: ColumnType<Date, Date | undefined, Date> | null;
 	expiry_notified_at: ColumnType<Date, Date | undefined, Date> | null;
