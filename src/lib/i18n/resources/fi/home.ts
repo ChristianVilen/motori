@@ -1,11 +1,11 @@
 export default {
 	hero: {
 		imgAlt: "Motoristi Kawasaki Ninjalla auringonlaskussa",
-		seasonTag: "Kausi 2026 on käynnissä",
-		heading: "Vuokraa moottoripyörä",
-		headingAccent: "suoraan omistajalta",
-		subheading: "Vuokraa moottoripyörä suoraan omistajalta tai laita omasi vuokralle.",
-		searchPlaceholder: "Hae merkkiä, mallia, kaupunkia...",
+		heading: "Motoristien oma yhteisö",
+		headingAccent: "",
+		subheading:
+			"Osta, myy, vuokraa ja vaihda moottoripyöriä, varusteita ja varaosia suoraan toisilta motoristeilta.",
+		searchPlaceholder: "Hae merkkiä, mallia tai varusteita...",
 		searchButton: "Hae",
 		chips: {
 			uusimaa: "Uusimaa",
@@ -16,41 +16,37 @@ export default {
 		},
 		statsListings: "ilmoitusta",
 		statsRegions: "aluetta",
-		statsPrice: "alk. / päivä",
+		statsPrice: "alk. / pv",
 	},
-	seasonalStrip: {
-		active: "Kesäkausi on täällä. {{total}} pyörää saatavilla ympäri Suomea.",
-		inactive: "Varaa ensi kaudelle. Ilmoituksia lisätään jatkuvasti.",
+	categories: {
+		heading: "Mitä etsit?",
+		sale: { label: "Pyörät myyntiin", desc: "Käytetyt ja uudet moottoripyörät" },
+		rental: { label: "Vuokraus", desc: "Päiväksi tai viikonlopuksi" },
+		gear: { label: "Varusteet", desc: "Kypärät, takit, saappaat ja muuta" },
+		parts: { label: "Varaosat", desc: "Osat suoraan muilta motoristeilta" },
 	},
 	latestListings: {
 		heading: "Uusimmat ilmoitukset",
-		subheading: "Tuoreimmat lisäykset",
 		browseAll: "Selaa kaikkia",
-	},
-	howItWorks: {
-		heading: "Näin se toimii",
-		step1: {
-			title: "Löydä pyörä",
-			desc: "Selaa ilmoituksia alueittain, tyypeittäin tai hae vapaalla haulla.",
-		},
-		step2: {
-			title: "Ota yhteyttä",
-			desc: "Sovi vuokrauksen yksityiskohdat suoraan omistajan kanssa.",
-		},
-		step3: {
-			title: "Lähde ajamaan",
-			desc: "Nouda pyörä, nauti matkasta ja palauta sovitusti.",
+		tabs: {
+			sale: "Myynti",
+			rental: "Vuokraus",
+			gear: "Varusteet",
+			parts: "Varaosat",
 		},
 	},
 	cta: {
-		heading: "Pyöräsi seisoo tallissa?",
-		body: "Ilmoittaminen on ilmaista. Vuokraajat löytyvät suoraan palvelusta.",
+		heading: "Laita ilmoitus",
+		body: "Ilmainen ilmoitus tavoittaa muut motoristit suoraan.",
 		button: "Lisää ilmoitus",
 	},
 	footer: {
 		brand: "Motori",
-		browseListings: "Selaa ilmoituksia",
-		addListing: "Ilmoita pyörä",
+		sale: "Pyörät myyntiin",
+		rental: "Vuokraus",
+		gear: "Varusteet",
+		parts: "Varaosat",
+		addListing: "Lisää ilmoitus",
 		copyright: "© {{year}} Motori",
 	},
 } as const;

@@ -44,6 +44,10 @@ export default {
 		copyright: "© Motori",
 		terms: "Käyttöehdot",
 		privacy: "Tietosuoja",
+		sale: "Pyörät myyntiin",
+		rental: "Vuokraus",
+		gear: "Varusteet",
+		parts: "Varaosat",
 	},
 	validation: {
 		titleTooShort: "Otsikko on liian lyhyt (min 5 merkkiä)",

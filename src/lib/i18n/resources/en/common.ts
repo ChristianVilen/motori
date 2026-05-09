@@ -44,6 +44,10 @@ export default {
 		copyright: "© Motori",
 		terms: "Terms of service",
 		privacy: "Privacy policy",
+		sale: "Bikes for sale",
+		rental: "Rental",
+		gear: "Gear",
+		parts: "Parts",
 	},
 	validation: {
 		titleTooShort: "Title is too short (min 5 characters)",
