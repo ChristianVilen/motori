@@ -29,9 +29,10 @@ const TASKS: Record<string, () => Promise<Record<string, unknown>>> = {
 	"expire-tori-items": async () => {
 		const { db } = await import("~/lib/db/index");
 		const result = await db
-			.updateTable("tori_item")
+			.updateTable("listing")
 			.set({ status: "expired", updated_at: new Date() })
 			.where("status", "=", "active")
+			.where("category", "in", ["gear", "part"])
 			.where("expires_at", "<", sql<Date>`now()`)
 			.executeTakeFirst();
 		const expired = Number(result.numUpdatedRows);

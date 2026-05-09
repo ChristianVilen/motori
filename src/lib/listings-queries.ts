@@ -50,7 +50,7 @@ export interface SearchResult {
 	totalCount: number;
 }
 
-type ListingQuery<O> = SelectQueryBuilder<Database, "listing", O>;
+type ListingQuery<O> = SelectQueryBuilder<Database, "listing" | "listing_rental", O>;
 
 function applyCursor<O>(query: ListingQuery<O>, cursor: string, sort: SortMode): ListingQuery<O> {
 	const [cursorVal, cursorId] = cursor.split("__");
@@ -61,9 +61,9 @@ function applyCursor<O>(query: ListingQuery<O>, cursor: string, sort: SortMode):
 	if (sort === "price_asc") {
 		return query.where((eb) =>
 			eb.or([
-				eb("listing.price_per_day", ">", Number(cursorVal)),
+				eb("listing_rental.price_per_day", ">", Number(cursorVal)),
 				eb.and([
-					eb("listing.price_per_day", "=", Number(cursorVal)),
+					eb("listing_rental.price_per_day", "=", Number(cursorVal)),
 					eb("listing.id", ">", cursorId),
 				]),
 			]),
@@ -72,9 +72,9 @@ function applyCursor<O>(query: ListingQuery<O>, cursor: string, sort: SortMode):
 	if (sort === "price_desc") {
 		return query.where((eb) =>
 			eb.or([
-				eb("listing.price_per_day", "<", Number(cursorVal)),
+				eb("listing_rental.price_per_day", "<", Number(cursorVal)),
 				eb.and([
-					eb("listing.price_per_day", "=", Number(cursorVal)),
+					eb("listing_rental.price_per_day", "=", Number(cursorVal)),
 					eb("listing.id", "<", cursorId),
 				]),
 			]),
@@ -150,10 +150,10 @@ function applySort<O>(
 			.orderBy("listing.created_at", "desc");
 	}
 	if (sort === "price_asc") {
-		return query.orderBy("listing.price_per_day", "asc").orderBy("listing.id", "asc");
+		return query.orderBy("listing_rental.price_per_day", "asc").orderBy("listing.id", "asc");
 	}
 	if (sort === "price_desc") {
-		return query.orderBy("listing.price_per_day", "desc").orderBy("listing.id", "desc");
+		return query.orderBy("listing_rental.price_per_day", "desc").orderBy("listing.id", "desc");
 	}
 	return query.orderBy("listing.created_at", "desc").orderBy("listing.id", "desc");
 }
@@ -187,14 +187,18 @@ async function attachMakeModel<T extends Listing>(
 		return [];
 	}
 
-	const makeIds = [...new Set(listings.map((l) => l.make_id))];
+	const makeIds = [
+		...new Set(listings.map((l) => l.make_id).filter((id): id is string => id !== null)),
+	];
 	const modelIds = [
 		...new Set(listings.map((l) => l.model_id).filter((id): id is string => id !== null)),
 	];
 
 	const db = await getDb();
 	const [makes, models] = await Promise.all([
-		db.selectFrom("motorcycle_make").select(["id", "slug"]).where("id", "in", makeIds).execute(),
+		makeIds.length > 0
+			? db.selectFrom("motorcycle_make").select(["id", "slug"]).where("id", "in", makeIds).execute()
+			: Promise.resolve([]),
 		modelIds.length > 0
 			? db
 					.selectFrom("motorcycle_model")
@@ -209,7 +213,7 @@ async function attachMakeModel<T extends Listing>(
 
 	return listings.map((l) => ({
 		...l,
-		makeSlug: makeMap.get(l.make_id) ?? null,
+		makeSlug: l.make_id ? (makeMap.get(l.make_id) ?? null) : null,
 		modelName: l.model_id ? (modelMap.get(l.model_id) ?? null) : null,
 	}));
 }
@@ -218,19 +222,22 @@ async function attachMakeModel<T extends Listing>(
 // results with lower relevance but newer timestamps. Acceptable for MVP since most
 // users won't page deep through relevance results. A proper fix would require
 // encoding the rank score into the cursor or using offset-based pagination for relevance.
-function buildNextCursor(listings: Listing[], sort: SortMode): string | null {
+function buildNextCursor(
+	listings: Array<Listing & { price_per_day?: number }>,
+	sort: SortMode,
+): string | null {
 	if (listings.length < PAGE_SIZE) {
 		return null;
 	}
 	const last = listings[listings.length - 1];
 	if (sort === "price_asc" || sort === "price_desc") {
-		return `${last.price_per_day}__${last.id}`;
+		return `${last.price_per_day ?? 0}__${last.id}`;
 	}
 	return `${new Date(last.created_at).toISOString()}__${last.id}`;
 }
 
 function applyFilters(
-	query: SelectQueryBuilder<Database, "listing", object>,
+	query: SelectQueryBuilder<Database, "listing" | "listing_rental", object>,
 	params: BrowseSearchParams,
 	searchMode: ListingSearchMode,
 ) {
@@ -253,10 +260,10 @@ function applyFilters(
 		q = q.where("listing.required_license", "in", params.license as ("A1" | "A2" | "A")[]);
 	}
 	if (params.price_min != null) {
-		q = q.where("listing.price_per_day", ">=", eurosToCents(params.price_min));
+		q = q.where("listing_rental.price_per_day", ">=", eurosToCents(params.price_min));
 	}
 	if (params.price_max != null) {
-		q = q.where("listing.price_per_day", "<=", eurosToCents(params.price_max));
+		q = q.where("listing_rental.price_per_day", "<=", eurosToCents(params.price_max));
 	}
 	if (params.cc_min != null) {
 		q = q.where("listing.engine_cc", ">=", params.cc_min);
@@ -299,13 +306,20 @@ export const searchListings = createServerFn({ method: "GET" })
 		const searchMode = await resolveListingSearchMode(params.q);
 		const sort: SortMode = params.sort ?? (searchMode.type !== "none" ? "relevance" : "newest");
 
-		const baseQuery = applyFilters(db.selectFrom("listing"), params, searchMode);
+		const baseQuery = applyFilters(
+			db
+				.selectFrom("listing")
+				.innerJoin("listing_rental", "listing_rental.listing_id", "listing.id")
+				.where("listing.category", "=", "rental"),
+			params,
+			searchMode,
+		);
 
 		const countResult = await baseQuery
 			.select(sql<number>`count(*)::int`.as("count"))
 			.executeTakeFirstOrThrow();
 
-		let query = baseQuery.selectAll("listing");
+		let query = baseQuery.selectAll("listing").select("listing_rental.price_per_day");
 		if (params.cursor) {
 			query = applyCursor(query, params.cursor, sort);
 		}
@@ -327,6 +341,7 @@ export const getLatestListings = createServerFn({ method: "GET" }).handler(async
 		.selectFrom("listing")
 		.selectAll()
 		.where("status", "=", "active")
+		.where("category", "=", "rental")
 		.orderBy("created_at", "desc")
 		.limit(6)
 		.execute();
@@ -342,12 +357,14 @@ export const getHomepageStats = createServerFn({ method: "GET" }).handler(async 
 	const db = await getDb();
 	const result = await db
 		.selectFrom("listing")
+		.innerJoin("listing_rental", "listing_rental.listing_id", "listing.id")
 		.select([
 			sql<number>`count(*)::int`.as("total"),
-			sql<number>`count(distinct region)::int`.as("regions"),
-			sql<number>`coalesce(min(price_per_day), 0)::int`.as("min_price"),
+			sql<number>`count(distinct listing.region)::int`.as("regions"),
+			sql<number>`coalesce(min(listing_rental.price_per_day), 0)::int`.as("min_price"),
 		])
-		.where("status", "=", "active")
+		.where("listing.status", "=", "active")
+		.where("listing.category", "=", "rental")
 		.executeTakeFirstOrThrow();
 
 	return {
@@ -387,9 +404,9 @@ export const getListingAvailability = createServerFn({ method: "GET" })
 		const db = await getDb();
 		const [listing, exceptions, confirmed] = await Promise.all([
 			db
-				.selectFrom("listing")
+				.selectFrom("listing_rental")
 				.select(["availability_default"])
-				.where("id", "=", listingId)
+				.where("listing_id", "=", listingId)
 				.executeTakeFirst(),
 			db
 				.selectFrom("listing_availability_exception")
@@ -452,6 +469,13 @@ export function recordView(shortId: string, viewerId: string | undefined, ip: st
 
 export type ListingForDisplay = {
 	listing: Listing;
+	rental: {
+		price_per_day: number;
+		price_per_week: number | null;
+		price_per_weekend: number | null;
+		price_description: string | null;
+		mileage_limit: number | null;
+	} | null;
 	images: ListingImage[];
 	makeName: string | null;
 	makeSlug: string | null;
@@ -480,15 +504,31 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 
 	const { makeName, makeSlug, modelName, ...listing } = row;
 
-	const images = await db
-		.selectFrom("listing_image")
-		.selectAll()
-		.where("listing_id", "=", listing.id)
-		.orderBy("order", "asc")
-		.execute();
+	const [images, rental] = await Promise.all([
+		db
+			.selectFrom("listing_image")
+			.selectAll()
+			.where("listing_id", "=", listing.id)
+			.orderBy("order", "asc")
+			.execute(),
+		listing.category === "rental"
+			? db
+					.selectFrom("listing_rental")
+					.select([
+						"price_per_day",
+						"price_per_week",
+						"price_per_weekend",
+						"price_description",
+						"mileage_limit",
+					])
+					.where("listing_id", "=", listing.id)
+					.executeTakeFirst()
+			: Promise.resolve(null),
+	]);
 
 	return {
 		listing,
+		rental: rental ?? null,
 		images,
 		makeName: makeName ?? null,
 		makeSlug: makeSlug ?? null,
@@ -498,6 +538,14 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 
 export type ListingForEdit = {
 	listing: Listing;
+	rental: {
+		price_per_day: number;
+		price_per_week: number | null;
+		price_per_weekend: number | null;
+		price_description: string | null;
+		mileage_limit: number | null;
+		availability_default: "open" | "closed";
+	} | null;
 	images: ListingImage[];
 	makeSlug: string | null;
 	modelName: string | null;
@@ -524,15 +572,25 @@ export async function getListingForEdit(
 
 	const { makeSlug, modelName, ...listing } = row;
 
-	const images = await db
-		.selectFrom("listing_image")
-		.selectAll()
-		.where("listing_id", "=", listing.id)
-		.orderBy("order", "asc")
-		.execute();
+	const [images, rental] = await Promise.all([
+		db
+			.selectFrom("listing_image")
+			.selectAll()
+			.where("listing_id", "=", listing.id)
+			.orderBy("order", "asc")
+			.execute(),
+		listing.category === "rental"
+			? db
+					.selectFrom("listing_rental")
+					.selectAll()
+					.where("listing_id", "=", listing.id)
+					.executeTakeFirst()
+			: Promise.resolve(null),
+	]);
 
 	return {
 		listing,
+		rental: rental ?? null,
 		images,
 		makeSlug: makeSlug ?? null,
 		modelName: modelName ?? null,

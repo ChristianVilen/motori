@@ -28,6 +28,7 @@ export async function createListing(
 			id,
 			short_id: shortId,
 			owner_id: ownerId,
+			category: "rental",
 			title: data.title,
 			make_id: data.make_id,
 			model_id: data.model_id ?? null,
@@ -35,18 +36,25 @@ export async function createListing(
 			engine_cc: data.engine_cc ?? null,
 			required_license: data.required_license ?? null,
 			motorcycle_type: data.motorcycle_type,
-			price_per_day: eurosToCents(data.price_per_day),
-			price_per_week: data.price_per_week ? eurosToCents(data.price_per_week) : null,
-			price_per_weekend: data.price_per_weekend ? eurosToCents(data.price_per_weekend) : null,
-			price_description: data.price_description ?? null,
 			city: data.city,
 			region: data.region,
 			postal_code: data.postal_code ?? null,
 			description: data.description,
-			mileage_limit: data.mileage_limit ?? null,
 			expires_at: expiresAt,
 			created_at: new Date(),
 			updated_at: new Date(),
+		})
+		.execute();
+
+	await db
+		.insertInto("listing_rental")
+		.values({
+			listing_id: id,
+			price_per_day: eurosToCents(data.price_per_day),
+			price_per_week: data.price_per_week ? eurosToCents(data.price_per_week) : null,
+			price_per_weekend: data.price_per_weekend ? eurosToCents(data.price_per_weekend) : null,
+			price_description: data.price_description ?? null,
+			mileage_limit: data.mileage_limit ?? null,
 		})
 		.execute();
 
@@ -119,15 +127,10 @@ export async function updateListing(
 				engine_cc: data.engine_cc ?? null,
 				required_license: data.required_license ?? null,
 				motorcycle_type: data.motorcycle_type,
-				price_per_day: eurosToCents(data.price_per_day),
-				price_per_week: data.price_per_week ? eurosToCents(data.price_per_week) : null,
-				price_per_weekend: data.price_per_weekend ? eurosToCents(data.price_per_weekend) : null,
-				price_description: data.price_description ?? null,
 				city: data.city,
 				region: data.region,
 				postal_code: data.postal_code ?? null,
 				description: data.description,
-				mileage_limit: data.mileage_limit ?? null,
 				updated_at: new Date(),
 			})
 			.where("id", "=", id)
@@ -137,6 +140,18 @@ export async function updateListing(
 		if (updateResult.numUpdatedRows === 0n) {
 			throw new AppError("listing.forbidden");
 		}
+
+		await trx
+			.updateTable("listing_rental")
+			.set({
+				price_per_day: eurosToCents(data.price_per_day),
+				price_per_week: data.price_per_week ? eurosToCents(data.price_per_week) : null,
+				price_per_weekend: data.price_per_weekend ? eurosToCents(data.price_per_weekend) : null,
+				price_description: data.price_description ?? null,
+				mileage_limit: data.mileage_limit ?? null,
+			})
+			.where("listing_id", "=", id)
+			.execute();
 
 		await trx.deleteFrom("listing_image").where("listing_id", "=", id).execute();
 

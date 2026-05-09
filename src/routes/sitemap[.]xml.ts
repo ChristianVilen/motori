@@ -32,9 +32,10 @@ export const Route = createFileRoute("/sitemap.xml")({
 						.limit(50_000)
 						.execute(),
 					db
-						.selectFrom("tori_item")
+						.selectFrom("listing")
 						.select(["short_id", "title", "updated_at"])
-						.where("status", "in", ["active", "sold"])
+						.where("status", "in", ["active", "removed"])
+						.where("category", "in", ["gear", "part"])
 						.orderBy("updated_at", "desc")
 						.limit(50_000)
 						.execute(),

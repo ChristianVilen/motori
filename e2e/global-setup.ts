@@ -163,24 +163,32 @@ async function seedListings(ownerId: string) {
 			short_id: SEEDED_LISTING_ID,
 			owner_id: ownerId,
 			title: SEEDED_LISTING_TITLE,
+			category: "rental",
 			make_id: e2eMake.id,
 			model_id: null,
 			year: 2022,
 			engine_cc: 471,
 			required_license: "A2",
 			motorcycle_type: "naked",
-			price_per_day: 5500,
-			price_per_week: 30000,
-			price_description: null,
 			city: "Helsinki",
 			region: "uusimaa",
 			postal_code: null,
 			description:
 				"E2E seed listing. Do not edit manually — global-setup recreates this row on every run.",
-			mileage_limit: 200,
 			expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
 			created_at: new Date(),
 			updated_at: new Date(),
+		})
+		.execute();
+
+	await db
+		.insertInto("listing_rental")
+		.values({
+			listing_id: SEEDED_LISTING_UUID,
+			price_per_day: 5500,
+			price_per_week: 30000,
+			price_description: null,
+			mileage_limit: 200,
 		})
 		.execute();
 }
