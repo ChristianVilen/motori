@@ -11,7 +11,7 @@ import { ListingCardSkeleton } from "~/components/listings/listing-card-skeleton
 import { REGIONS } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import type { ListingCategory } from "~/lib/db/schema";
-import { type SearchResult, searchListings } from "~/lib/listings-queries";
+import { type SearchResult } from "~/lib/listings-queries";
 import type { MotorcycleMake } from "~/lib/db/schema";
 import { type BrowseSearchParams, countActiveFilters } from "~/lib/validators";
 
