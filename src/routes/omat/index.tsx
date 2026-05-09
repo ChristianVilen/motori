@@ -272,7 +272,7 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 	}
 
 	async function handleMarkSold() {
-		await setToriStatusFn({ data: { id: item.id, status: "removed" } });
+		await setToriStatusFn({ data: { id: item.id, status: "sold" } });
 		onStatusChange();
 	}
 
