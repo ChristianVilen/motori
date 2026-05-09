@@ -4,6 +4,12 @@ import { CURRENT_YEAR, LICENSE_CLASSES, MOTORCYCLE_TYPES } from "~/lib/constants
 import fiCommon from "~/lib/i18n/resources/fi/common";
 import { MUNICIPALITY_NAME_SET } from "~/lib/municipalities";
 
+export const CONDITIONS = ["new", "excellent", "good", "fair", "poor"] as const;
+export type Condition = (typeof CONDITIONS)[number];
+
+export const GEAR_TYPES = ["helmet", "jacket", "pants", "boots", "gloves", "other"] as const;
+export type GearTypeValue = (typeof GEAR_TYPES)[number];
+
 type T = (key: string) => string;
 
 const defaultT: T = (key) => {
@@ -29,27 +35,13 @@ export function listingImageSchema(t: T = defaultT) {
 
 export type ListingImageInput = z.infer<ReturnType<typeof listingImageSchema>>;
 
-export function listingFormSchema(t: T = defaultT) {
-	return z.object({
+function sharedFields(t: T) {
+	return {
 		title: z
 			.string()
 			.trim()
 			.min(5, t("validation.titleTooShort"))
 			.max(100, t("validation.titleTooLong")),
-		make_id: z.string().min(1, t("validation.brandRequired")),
-		model_id: z.string().nullable().optional(),
-		year: z
-			.number()
-			.int()
-			.min(1970, t("validation.yearTooOld"))
-			.max(CURRENT_YEAR + 1, t("validation.yearInFuture")),
-		engine_cc: z.number().int().min(50).max(3000).nullable().optional(),
-		motorcycle_type: z.string().trim().min(1, t("validation.typeRequired")),
-		required_license: z.enum(["A1", "A2", "A"]).nullable().optional(),
-		price_per_day: z.number().min(1, t("validation.pricePerDayRequired")).max(10000),
-		price_per_week: z.number().min(1).max(50000).nullable().optional(),
-		price_per_weekend: z.number().min(1).max(50000).nullable().optional(),
-		price_description: z.string().trim().max(200).nullable().optional(),
 		city: z
 			.string()
 			.trim()
@@ -57,13 +49,81 @@ export function listingFormSchema(t: T = defaultT) {
 			.refine((v) => MUNICIPALITY_NAME_SET.has(v), t("validation.cityInvalid")),
 		region: z.string().trim().min(1, t("validation.regionRequired")),
 		postal_code: z.string().trim().max(10).nullable().optional(),
-		description: z.string().trim().min(20, t("validation.descriptionTooShort")).max(5000),
-		mileage_limit: z.number().int().min(0).max(10000).nullable().optional(),
+		description: z
+			.string()
+			.trim()
+			.min(20, t("validation.descriptionTooShort"))
+			.max(5000),
 		images: z.array(listingImageSchema(t)).max(8).default([]),
-	});
+	};
+}
+
+const CONDITION_ENUM = CONDITIONS;
+
+export function listingFormSchema(t: T = defaultT) {
+	const shared = sharedFields(t);
+	return z.discriminatedUnion("category", [
+		z.object({
+			...shared,
+			category: z.literal("rental"),
+			make_id: z.string().min(1, t("validation.brandRequired")),
+			model_id: z.string().nullable().optional(),
+			year: z
+				.number()
+				.int()
+				.min(1970, t("validation.yearTooOld"))
+				.max(CURRENT_YEAR + 1, t("validation.yearInFuture")),
+			engine_cc: z.number().int().min(50).max(3000).nullable().optional(),
+			motorcycle_type: z.string().trim().min(1, t("validation.typeRequired")),
+			required_license: z.enum(["A1", "A2", "A"]).nullable().optional(),
+			price_per_day: z.number().min(1, t("validation.pricePerDayRequired")).max(10000),
+			price_per_week: z.number().min(1).max(50000).nullable().optional(),
+			price_per_weekend: z.number().min(1).max(50000).nullable().optional(),
+			price_description: z.string().trim().max(200).nullable().optional(),
+			mileage_limit: z.number().int().min(0).max(10000).nullable().optional(),
+		}),
+		z.object({
+			...shared,
+			category: z.literal("sale"),
+			make_id: z.string().min(1, t("validation.brandRequired")),
+			model_id: z.string().nullable().optional(),
+			year: z
+				.number()
+				.int()
+				.min(1970, t("validation.yearTooOld"))
+				.max(CURRENT_YEAR + 1, t("validation.yearInFuture")),
+			engine_cc: z.number().int().min(50).max(3000).nullable().optional(),
+			motorcycle_type: z.string().trim().min(1, t("validation.typeRequired")),
+			required_license: z.enum(["A1", "A2", "A"]).nullable().optional(),
+			condition: z.enum(CONDITION_ENUM),
+			km_driven: z.number().int().min(0).max(999999).nullable().optional(),
+			price: z.number().int().min(1).max(100_000_000),
+			negotiable: z.boolean().default(false),
+		}),
+		z.object({
+			...shared,
+			category: z.literal("gear"),
+			gear_type: z.enum(GEAR_TYPES),
+			size: z.string().trim().max(20).nullable().optional(),
+			condition: z.enum(CONDITION_ENUM),
+			price: z.number().int().min(1).max(10_000_000),
+		}),
+		z.object({
+			...shared,
+			category: z.literal("part"),
+			part_category: z.string().trim().min(1).max(100),
+			compatible_make_id: z.string().nullable().optional(),
+			condition: z.enum(CONDITION_ENUM),
+			price: z.number().int().min(1).max(10_000_000),
+		}),
+	]);
 }
 
 export type ListingFormData = z.infer<ReturnType<typeof listingFormSchema>>;
+export type RentalFormData = Extract<ListingFormData, { category: "rental" }>;
+export type SaleFormData = Extract<ListingFormData, { category: "sale" }>;
+export type GearFormData = Extract<ListingFormData, { category: "gear" }>;
+export type PartFormData = Extract<ListingFormData, { category: "part" }>;
 
 export const browseSearchSchema = z.object({
 	q: z.string().trim().max(200).optional(),
@@ -75,13 +135,10 @@ export const browseSearchSchema = z.object({
 	cc_min: z.number().int().min(1).optional(),
 	cc_max: z.number().int().min(1).optional(),
 	year_min: z.number().int().min(1970).optional(),
-	year_max: z
-		.number()
-		.int()
-		.min(1970)
-		.max(CURRENT_YEAR + 1)
-		.optional(),
+	year_max: z.number().int().min(1970).max(CURRENT_YEAR + 1).optional(),
 	make: z.string().trim().max(100).optional(),
+	gear_type: z.enum(GEAR_TYPES).optional(),
+	condition: z.enum(CONDITIONS).optional(),
 	sort: z.enum(["newest", "price_asc", "price_desc", "relevance"]).optional(),
 	cursor: z.string().max(200).optional(),
 	view: z.enum(["list", "map"]).optional(),
@@ -101,7 +158,9 @@ export function countActiveFilters(search: BrowseSearchParams): number {
 		(search.cc_max != null ? 1 : 0) +
 		(search.year_min != null ? 1 : 0) +
 		(search.year_max != null ? 1 : 0) +
-		(search.make ? 1 : 0)
+		(search.make ? 1 : 0) +
+		(search.gear_type ? 1 : 0) +
+		(search.condition ? 1 : 0)
 	);
 }
 
