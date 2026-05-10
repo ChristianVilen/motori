@@ -53,7 +53,10 @@ export const rentalSection: CategoryFormSection<"rental", RentalFieldValues> = {
 		"price_description",
 		"mileage_limit",
 	],
-	toPayload: (shared: SharedPayload, value: RentalFieldValues): Extract<ListingFormData, { category: "rental" }> => ({
+	toPayload: (
+		shared: SharedPayload,
+		value: RentalFieldValues,
+	): Extract<ListingFormData, { category: "rental" }> => ({
 		category: "rental",
 		title: shared.title,
 		city: shared.city,
@@ -97,7 +100,10 @@ export function RentalFields({ form }: RentalFieldsProps) {
 							handleChange: (v: number) => void;
 						}) => (
 							<div>
-								<label htmlFor="price_per_day" className="mb-1 block text-sm font-medium text-foreground">
+								<label
+									htmlFor="price_per_day"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
 									{t("form.fields.pricePerDay")} <span className="text-destructive">*</span>
 								</label>
 								<Input
@@ -124,7 +130,10 @@ export function RentalFields({ form }: RentalFieldsProps) {
 							handleChange: (v: number | null) => void;
 						}) => (
 							<div>
-								<label htmlFor="price_per_week" className="mb-1 block text-sm font-medium text-foreground">
+								<label
+									htmlFor="price_per_week"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
 									{t("form.fields.pricePerWeek")}
 								</label>
 								<Input
@@ -151,7 +160,10 @@ export function RentalFields({ form }: RentalFieldsProps) {
 						handleChange: (v: number | null) => void;
 					}) => (
 						<div>
-							<label htmlFor="price_per_weekend" className="mb-1 block text-sm font-medium text-foreground">
+							<label
+								htmlFor="price_per_weekend"
+								className="mb-1 block text-sm font-medium text-foreground"
+							>
 								{t("form.fields.pricePerWeekend")}
 							</label>
 							<Input
@@ -177,7 +189,10 @@ export function RentalFields({ form }: RentalFieldsProps) {
 						handleChange: (v: string) => void;
 					}) => (
 						<div>
-							<label htmlFor="price_description" className="mb-1 block text-sm font-medium text-foreground">
+							<label
+								htmlFor="price_description"
+								className="mb-1 block text-sm font-medium text-foreground"
+							>
 								{t("form.fields.priceDescription")}
 							</label>
 							<Input
@@ -198,7 +213,10 @@ export function RentalFields({ form }: RentalFieldsProps) {
 						handleChange: (v: number | null) => void;
 					}) => (
 						<div className="w-1/3">
-							<label htmlFor="mileage_limit" className="mb-1 block text-sm font-medium text-foreground">
+							<label
+								htmlFor="mileage_limit"
+								className="mb-1 block text-sm font-medium text-foreground"
+							>
 								{t("form.fields.mileageLimit")}
 							</label>
 							<Input
@@ -221,4 +239,3 @@ export function RentalFields({ form }: RentalFieldsProps) {
 		</section>
 	);
 }
-

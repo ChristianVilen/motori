@@ -13,6 +13,10 @@ export function categoryBrowsePath(category: ListingCategory): string {
 	return CATEGORY_BROWSE_PATH[category];
 }
 
-export function categoryDetailPath(category: ListingCategory, shortId: string, slug: string): string {
+export function categoryDetailPath(
+	category: ListingCategory,
+	shortId: string,
+	slug: string,
+): string {
 	return `${CATEGORY_BROWSE_PATH[category]}/${shortId}/${slug}`;
 }

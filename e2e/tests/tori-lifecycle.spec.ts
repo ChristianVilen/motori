@@ -47,10 +47,9 @@ test.describe("Gear listing lifecycle", () => {
 			.fill("E2E lifecycle test — luotu automaattisesti automaation kautta.");
 
 		await page.getByTestId("listing-form-submit").click();
-		await page.waitForURL(
-			(url) => /\/varusteet\/[^/]+\/[^/]+$/.test(url.pathname),
-			{ timeout: 15000 },
-		);
+		await page.waitForURL((url) => /\/varusteet\/[^/]+\/[^/]+$/.test(url.pathname), {
+			timeout: 15000,
+		});
 		await waitForHydration(page);
 
 		const match = page.url().match(/\/varusteet\/([^/]+)\/[^/]+$/);

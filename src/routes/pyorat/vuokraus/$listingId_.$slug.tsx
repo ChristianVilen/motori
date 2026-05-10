@@ -390,7 +390,19 @@ function ListingDetailPage() {
 
 	return (
 		<ListingDetailShell
-			data={{ listing, rental, sale: null, gear: null, part: null, images, makeName, makeSlug, modelName, ownerReviewSummary, ownerContact }}
+			data={{
+				listing,
+				rental,
+				sale: null,
+				gear: null,
+				part: null,
+				images,
+				makeName,
+				makeSlug,
+				modelName,
+				ownerReviewSummary,
+				ownerContact,
+			}}
 			session={session}
 			backTo="/pyorat/vuokraus"
 			backLabel={t("detail.back")}

@@ -49,11 +49,7 @@ function sharedFields(t: T) {
 			.refine((v) => MUNICIPALITY_NAME_SET.has(v), t("validation.cityInvalid")),
 		region: z.string().trim().min(1, t("validation.regionRequired")),
 		postal_code: z.string().trim().max(10).nullable().optional(),
-		description: z
-			.string()
-			.trim()
-			.min(20, t("validation.descriptionTooShort"))
-			.max(5000),
+		description: z.string().trim().min(20, t("validation.descriptionTooShort")).max(5000),
 		images: z.array(listingImageSchema(t)).max(8).default([]),
 	};
 }
@@ -135,7 +131,12 @@ export const browseSearchSchema = z.object({
 	cc_min: z.number().int().min(1).optional(),
 	cc_max: z.number().int().min(1).optional(),
 	year_min: z.number().int().min(1970).optional(),
-	year_max: z.number().int().min(1970).max(CURRENT_YEAR + 1).optional(),
+	year_max: z
+		.number()
+		.int()
+		.min(1970)
+		.max(CURRENT_YEAR + 1)
+		.optional(),
 	make: z.string().trim().max(100).optional(),
 	gear_type: z.enum(GEAR_TYPES).optional(),
 	condition: z.enum(CONDITIONS).optional(),

@@ -12,11 +12,11 @@ import { useForm } from "@tanstack/react-form";
 import { Key, Shield, ShoppingCart, Wrench, X } from "lucide-react";
 import { useState } from "react";
 import { CitySelect } from "~/components/listings/city-select";
+import { MotorcycleFields } from "~/components/listings/sections/motorcycle-fields";
 import { GearFields, gearSection } from "~/components/listings/sections/section-gear";
 import { PartFields, partSection } from "~/components/listings/sections/section-part";
 import { RentalFields, rentalSection } from "~/components/listings/sections/section-rental";
 import { SaleFields, saleSection } from "~/components/listings/sections/section-sale";
-import { MotorcycleFields } from "~/components/listings/sections/motorcycle-fields";
 import { FieldError, TitleField } from "~/components/listings/sections/shared-fields";
 import type { SharedPayload } from "~/components/listings/sections/types";
 import { Button } from "~/components/ui/button";
@@ -156,7 +156,9 @@ export function ListingForm(props: ListingFormProps) {
 		setCategory(next);
 		// Reset every other section's fields to defaults; keep shared values intact.
 		for (const section of ALL_SECTIONS) {
-			if (section.category === next) continue;
+			if (section.category === next) {
+				continue;
+			}
 			// biome-ignore lint/suspicious/noExplicitAny: section adapters are heterogeneous
 			const defaults = section.defaultValues(undefined) as Record<string, any>;
 			for (const key of section.fieldKeys) {
@@ -171,7 +173,9 @@ export function ListingForm(props: ListingFormProps) {
 		const remaining = MAX_IMAGES - existingImages.length;
 		const valid: File[] = [];
 		for (const file of files) {
-			if (valid.length >= remaining) break;
+			if (valid.length >= remaining) {
+				break;
+			}
 			if (!ALLOWED_TYPES.includes(file.type)) {
 				setImageError(t("form.images.errorInvalidType"));
 				continue;
@@ -205,8 +209,7 @@ export function ListingForm(props: ListingFormProps) {
 	const totalImages = existingImages.length + pendingFiles.length;
 	const canAddMore = totalImages < MAX_IMAGES;
 
-	const initialMakeId =
-		(initialValues as { make_id?: string } | undefined)?.make_id ?? null;
+	const initialMakeId = (initialValues as { make_id?: string } | undefined)?.make_id ?? null;
 	const initialModelId =
 		(initialValues as { model_id?: string | null } | undefined)?.model_id ?? null;
 

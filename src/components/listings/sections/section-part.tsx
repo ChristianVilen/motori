@@ -3,8 +3,7 @@
 
 import { Input } from "~/components/ui/input";
 import { useTranslation } from "~/lib/i18n";
-import { CONDITIONS } from "~/lib/validators";
-import type { ListingFormData, PartFormData } from "~/lib/validators";
+import type { CONDITIONS, ListingFormData, PartFormData } from "~/lib/validators";
 import { ConditionSelect, FieldError } from "./shared-fields";
 import type { CategoryFormSection, SharedPayload } from "./types";
 
@@ -29,7 +28,10 @@ export const partSection: CategoryFormSection<"part", PartFieldValues> = {
 		};
 	},
 	fieldKeys: ["part_part_category", "part_compatible_make_id", "part_condition", "part_price"],
-	toPayload: (shared: SharedPayload, value: PartFieldValues): Extract<ListingFormData, { category: "part" }> => ({
+	toPayload: (
+		shared: SharedPayload,
+		value: PartFieldValues,
+	): Extract<ListingFormData, { category: "part" }> => ({
 		category: "part",
 		title: shared.title,
 		city: shared.city,
@@ -64,7 +66,10 @@ export function PartFields({ form }: PartFieldsProps) {
 						handleChange: (v: string) => void;
 					}) => (
 						<div>
-							<label htmlFor="part_part_category" className="mb-1 block text-sm font-medium text-foreground">
+							<label
+								htmlFor="part_part_category"
+								className="mb-1 block text-sm font-medium text-foreground"
+							>
 								Osatyyppi <span className="text-destructive">*</span>
 							</label>
 							<Input
@@ -97,7 +102,10 @@ export function PartFields({ form }: PartFieldsProps) {
 						handleChange: (v: number) => void;
 					}) => (
 						<div>
-							<label htmlFor="part_price" className="mb-1 block text-sm font-medium text-foreground">
+							<label
+								htmlFor="part_price"
+								className="mb-1 block text-sm font-medium text-foreground"
+							>
 								Hinta (€) <span className="text-destructive">*</span>
 							</label>
 							<Input

@@ -35,6 +35,8 @@ test.describe("Home page", () => {
 		await home.addListingCta.click();
 
 		// Unauthenticated users get redirected to login
-		await expect(page).toHaveURL(/\/kirjaudu|\/ilmoitukset\/uusi|\/pyorat\/vuokraus\/uusi/, { timeout: 10000 });
+		await expect(page).toHaveURL(/\/kirjaudu|\/ilmoitukset\/uusi|\/pyorat\/vuokraus\/uusi/, {
+			timeout: 10000,
+		});
 	});
 });

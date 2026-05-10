@@ -10,8 +10,7 @@ import {
 	SelectValue,
 } from "~/components/ui/select";
 import { useTranslation } from "~/lib/i18n";
-import { CONDITIONS, GEAR_TYPES } from "~/lib/validators";
-import type { GearFormData, ListingFormData } from "~/lib/validators";
+import type { CONDITIONS, GEAR_TYPES, GearFormData, ListingFormData } from "~/lib/validators";
 import { ConditionSelect, FieldError } from "./shared-fields";
 import type { CategoryFormSection, SharedPayload } from "./types";
 
@@ -46,7 +45,10 @@ export const gearSection: CategoryFormSection<"gear", GearFieldValues> = {
 		};
 	},
 	fieldKeys: ["gear_gear_type", "gear_size", "gear_condition", "gear_price"],
-	toPayload: (shared: SharedPayload, value: GearFieldValues): Extract<ListingFormData, { category: "gear" }> => ({
+	toPayload: (
+		shared: SharedPayload,
+		value: GearFieldValues,
+	): Extract<ListingFormData, { category: "gear" }> => ({
 		category: "gear",
 		title: shared.title,
 		city: shared.city,
@@ -107,7 +109,10 @@ export function GearFields({ form }: GearFieldsProps) {
 							handleChange: (v: string | null) => void;
 						}) => (
 							<div>
-								<label htmlFor="gear_size" className="mb-1 block text-sm font-medium text-foreground">
+								<label
+									htmlFor="gear_size"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
 									Koko
 								</label>
 								<Input
@@ -139,7 +144,10 @@ export function GearFields({ form }: GearFieldsProps) {
 						handleChange: (v: number) => void;
 					}) => (
 						<div>
-							<label htmlFor="gear_price" className="mb-1 block text-sm font-medium text-foreground">
+							<label
+								htmlFor="gear_price"
+								className="mb-1 block text-sm font-medium text-foreground"
+							>
 								Hinta (€) <span className="text-destructive">*</span>
 							</label>
 							<Input

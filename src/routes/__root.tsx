@@ -11,11 +11,11 @@ import {
 import { type ReactNode, useEffect, useState } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { Toaster } from "sonner";
-import { CategoryDropdown } from "~/components/nav/category-dropdown";
 import { LoginModal } from "~/components/auth/login-modal";
 import { UserMenu } from "~/components/auth/user-menu";
 import { LanguageSelector } from "~/components/language-selector";
 import { Logo } from "~/components/logo";
+import { CategoryDropdown } from "~/components/nav/category-dropdown";
 import { authClient, signOut, useSession } from "~/lib/auth-client";
 import { SITE_NAME, SITE_URL } from "~/lib/constants";
 import { i18n as clientI18n, ensureClientI18n } from "~/lib/i18n/client";

@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Button } from "~/components/ui/button";
-import { formatEur } from "~/lib/i18n";
 import type { Listing } from "~/lib/db/schema";
+import { formatEur } from "~/lib/i18n";
 
 export interface NonRentalSidebarProps {
 	price: number;

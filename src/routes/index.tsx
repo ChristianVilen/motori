@@ -2,8 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Key, Shield, ShoppingCart, Wrench } from "lucide-react";
 import { useState } from "react";
 import { ListingCard } from "~/components/listings/listing-card";
-import { useTranslation } from "~/lib/i18n";
 import type { ListingCategory } from "~/lib/db/schema";
+import { useTranslation } from "~/lib/i18n";
 import { getHomepageStats, getLatestListings } from "~/lib/listings-queries";
 import { getSession } from "~/lib/session";
 
@@ -27,8 +27,14 @@ export const Route = createFileRoute("/")({
 type ActiveTab = "sale" | "rental" | "gear" | "part";
 
 function HomePage() {
-	const { saleListings, rentalListings, gearListings, partListings, stats, emailVerified: verified } =
-		Route.useLoaderData();
+	const {
+		saleListings,
+		rentalListings,
+		gearListings,
+		partListings,
+		stats,
+		emailVerified: verified,
+	} = Route.useLoaderData();
 	const navigate = useNavigate();
 	const { t } = useTranslation("home");
 	const { t: tAuth } = useTranslation("auth");
@@ -49,7 +55,14 @@ function HomePage() {
 		part: "/varaosat",
 	};
 
-	const tabs: { key: ActiveTab; labelKey: "latestListings.tabs.sale" | "latestListings.tabs.rental" | "latestListings.tabs.gear" | "latestListings.tabs.parts" }[] = [
+	const tabs: {
+		key: ActiveTab;
+		labelKey:
+			| "latestListings.tabs.sale"
+			| "latestListings.tabs.rental"
+			| "latestListings.tabs.gear"
+			| "latestListings.tabs.parts";
+	}[] = [
 		{ key: "sale", labelKey: "latestListings.tabs.sale" },
 		{ key: "rental", labelKey: "latestListings.tabs.rental" },
 		{ key: "gear", labelKey: "latestListings.tabs.gear" },

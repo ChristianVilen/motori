@@ -17,9 +17,7 @@ const shared: SharedPayload = {
 describe("rentalSection", () => {
 	it("defaults are empty when initial is missing or wrong category", () => {
 		expect(rentalSection.defaultValues(undefined).price_per_day).toBe("");
-		expect(
-			rentalSection.defaultValues({ category: "sale", price: 1 } as never).make_id,
-		).toBe("");
+		expect(rentalSection.defaultValues({ category: "sale", price: 1 } as never).make_id).toBe("");
 	});
 
 	it("hydrates defaults from a rental initial value", () => {

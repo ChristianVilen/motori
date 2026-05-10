@@ -4,8 +4,7 @@
 
 import { Input } from "~/components/ui/input";
 import { useTranslation } from "~/lib/i18n";
-import type { ListingFormData, SaleFormData } from "~/lib/validators";
-import { CONDITIONS } from "~/lib/validators";
+import type { CONDITIONS, ListingFormData, SaleFormData } from "~/lib/validators";
 import { ConditionSelect, FieldError } from "./shared-fields";
 import type { CategoryFormSection, SharedPayload } from "./types";
 
@@ -53,7 +52,10 @@ export const saleSection: CategoryFormSection<"sale", SaleFieldValues> = {
 		"sale_km_driven",
 		"sale_negotiable",
 	],
-	toPayload: (shared: SharedPayload, value: SaleFieldValues): Extract<ListingFormData, { category: "sale" }> => ({
+	toPayload: (
+		shared: SharedPayload,
+		value: SaleFieldValues,
+	): Extract<ListingFormData, { category: "sale" }> => ({
 		category: "sale",
 		title: shared.title,
 		city: shared.city,
@@ -95,7 +97,10 @@ export function SaleFields({ form }: SaleFieldsProps) {
 						handleChange: (v: number) => void;
 					}) => (
 						<div>
-							<label htmlFor="sale_price" className="mb-1 block text-sm font-medium text-foreground">
+							<label
+								htmlFor="sale_price"
+								className="mb-1 block text-sm font-medium text-foreground"
+							>
 								Myyntihinta (€) <span className="text-destructive">*</span>
 							</label>
 							<Input
@@ -133,7 +138,10 @@ export function SaleFields({ form }: SaleFieldsProps) {
 						handleChange: (v: number | null) => void;
 					}) => (
 						<div className="w-1/2">
-							<label htmlFor="sale_km_driven" className="mb-1 block text-sm font-medium text-foreground">
+							<label
+								htmlFor="sale_km_driven"
+								className="mb-1 block text-sm font-medium text-foreground"
+							>
 								Kilometrit
 							</label>
 							<Input

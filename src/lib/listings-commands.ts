@@ -1,7 +1,7 @@
 import { eurosToCents } from "~/lib/currency";
+import type { GearType } from "~/lib/db/schema";
 import { AppError } from "~/lib/errors";
 import { generateShortId } from "~/lib/slug";
-import type { GearType } from "~/lib/db/schema";
 import type { ListingFormData } from "~/lib/validators";
 
 const getDb = async () => (await import("~/lib/db/index")).db;
@@ -56,9 +56,7 @@ export async function createListing(
 				listing_id: id,
 				price_per_day: eurosToCents(data.price_per_day),
 				price_per_week: data.price_per_week ? eurosToCents(data.price_per_week) : null,
-				price_per_weekend: data.price_per_weekend
-					? eurosToCents(data.price_per_weekend)
-					: null,
+				price_per_weekend: data.price_per_weekend ? eurosToCents(data.price_per_weekend) : null,
 				price_description: data.price_description ?? null,
 				mileage_limit: data.mileage_limit ?? null,
 			})
@@ -153,9 +151,15 @@ export async function updateListing(
 		.where("id", "=", id)
 		.executeTakeFirst();
 
-	if (!existing) throw new AppError("listing.not_found");
-	if (existing.owner_id !== ownerId) throw new AppError("listing.forbidden");
-	if (existing.category !== data.category) throw new AppError("listing.forbidden");
+	if (!existing) {
+		throw new AppError("listing.not_found");
+	}
+	if (existing.owner_id !== ownerId) {
+		throw new AppError("listing.forbidden");
+	}
+	if (existing.category !== data.category) {
+		throw new AppError("listing.forbidden");
+	}
 
 	const hasBike = data.category === "sale" || data.category === "rental";
 
@@ -180,7 +184,9 @@ export async function updateListing(
 			.where("owner_id", "=", ownerId)
 			.executeTakeFirst();
 
-		if (result.numUpdatedRows === 0n) throw new AppError("listing.forbidden");
+		if (result.numUpdatedRows === 0n) {
+			throw new AppError("listing.forbidden");
+		}
 
 		if (data.category === "rental") {
 			await trx
@@ -188,9 +194,7 @@ export async function updateListing(
 				.set({
 					price_per_day: eurosToCents(data.price_per_day),
 					price_per_week: data.price_per_week ? eurosToCents(data.price_per_week) : null,
-					price_per_weekend: data.price_per_weekend
-						? eurosToCents(data.price_per_weekend)
-						: null,
+					price_per_weekend: data.price_per_weekend ? eurosToCents(data.price_per_weekend) : null,
 					price_description: data.price_description ?? null,
 					mileage_limit: data.mileage_limit ?? null,
 				})

@@ -21,5 +21,8 @@ export interface CategoryFormSection<C extends ListingCategory, FieldValues> {
 	category: C;
 	defaultValues: (initial?: Partial<ListingFormData>) => FieldValues;
 	fieldKeys: readonly (keyof FieldValues)[];
-	toPayload: (shared: SharedPayload, value: FieldValues) => Extract<ListingFormData, { category: C }>;
+	toPayload: (
+		shared: SharedPayload,
+		value: FieldValues,
+	) => Extract<ListingFormData, { category: C }>;
 }

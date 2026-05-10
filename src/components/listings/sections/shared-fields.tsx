@@ -15,7 +15,9 @@ interface FieldErrorProps {
 }
 export function FieldError({ errors }: FieldErrorProps) {
 	const first = errors.find((e) => e != null);
-	if (first == null) return null;
+	if (first == null) {
+		return null;
+	}
 	const msg = typeof first === "string" ? first : String(first);
 	return <p className="mt-1 text-sm text-destructive">{msg}</p>;
 }

@@ -9,10 +9,9 @@ import { FilterSidebar } from "~/components/listings/filter-sidebar";
 import { ListingCard } from "~/components/listings/listing-card";
 import { ListingCardSkeleton } from "~/components/listings/listing-card-skeleton";
 import { REGIONS } from "~/lib/constants";
+import type { ListingCategory, MotorcycleMake } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
-import type { ListingCategory } from "~/lib/db/schema";
-import { type SearchResult } from "~/lib/listings-queries";
-import type { MotorcycleMake } from "~/lib/db/schema";
+import type { SearchResult } from "~/lib/listings-queries";
 import { type BrowseSearchParams, countActiveFilters } from "~/lib/validators";
 
 const ListingsMap = lazy(() =>
@@ -188,7 +187,11 @@ export function BrowsePage({
 								aria-label={view === "list" ? t("browse.mapToggle") : t("browse.listToggle")}
 								data-testid="listings-view-toggle"
 							>
-								{view === "list" ? <MapIcon className="h-5 w-5" /> : <Grid3x3 className="h-5 w-5" />}
+								{view === "list" ? (
+									<MapIcon className="h-5 w-5" />
+								) : (
+									<Grid3x3 className="h-5 w-5" />
+								)}
 								<span className="hidden sm:inline">
 									{view === "list" ? t("browse.mapToggle") : t("browse.listToggle")}
 								</span>
@@ -212,7 +215,7 @@ export function BrowsePage({
 			</div>
 
 			{/* Main content */}
-			{(!showMap || view === "list") ? (
+			{!showMap || view === "list" ? (
 				<div className="mx-auto flex max-w-6xl gap-8 px-4 py-6">
 					{/* Desktop sidebar */}
 					<div className="hidden lg:block">
@@ -221,7 +224,12 @@ export function BrowsePage({
 								className={`overflow-hidden transition-all duration-300 ${sidebarOpen ? "w-[280px]" : "w-10"}`}
 							>
 								<CollapsibleSidebar open={sidebarOpen} onToggle={setSidebarOpen}>
-									<FilterSidebar search={search} hasQuery={hasQuery} makes={makes} browseTo={browseTo} />
+									<FilterSidebar
+										search={search}
+										hasQuery={hasQuery}
+										makes={makes}
+										browseTo={browseTo}
+									/>
 								</CollapsibleSidebar>
 							</div>
 						</div>
@@ -284,7 +292,12 @@ export function BrowsePage({
 								onToggle={setSidebarOpen}
 								collapsedHeight="full"
 							>
-								<FilterSidebar search={search} hasQuery={hasQuery} makes={makes} browseTo={browseTo} />
+								<FilterSidebar
+									search={search}
+									hasQuery={hasQuery}
+									makes={makes}
+									browseTo={browseTo}
+								/>
 							</CollapsibleSidebar>
 						</div>
 					</div>

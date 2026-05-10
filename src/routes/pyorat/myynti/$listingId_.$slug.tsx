@@ -39,14 +39,24 @@ const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute
 	},
 	head: (loaderData) => {
 		const l = loaderData?.listing;
-		if (!l) return {};
+		if (!l) {
+			return {};
+		}
 		const price = loaderData?.sale?.price ?? 0;
-		const slug = computeListingSlug(loaderData?.makeSlug ?? null, loaderData?.modelName ?? null, l.city);
+		const slug = computeListingSlug(
+			loaderData?.makeSlug ?? null,
+			loaderData?.modelName ?? null,
+			l.city,
+		);
 		const url = `${SITE_URL}/pyorat/myynti/${l.short_id}/${slug}`;
 		const title = `${l.title} — ${SITE_NAME}`;
 		const desc = `Myydään ${loaderData?.makeName ?? ""} ${loaderData?.modelName ?? ""} (${l.year ?? ""}) — ${l.city}. Hinta ${centsToEuros(price).toFixed(0)} €.`;
 		return {
-			meta: [{ title }, { name: "description", content: desc }, { property: "og:url", content: url }],
+			meta: [
+				{ title },
+				{ name: "description", content: desc },
+				{ property: "og:url", content: url },
+			],
 			links: [{ rel: "canonical", href: url }],
 		};
 	},

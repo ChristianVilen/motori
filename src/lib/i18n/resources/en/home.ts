@@ -3,8 +3,7 @@ export default {
 		imgAlt: "Rider on Kawasaki Ninja at sunset",
 		heading: "A community for riders",
 		headingAccent: "",
-		subheading:
-			"Buy, sell, rent and swap motorcycles, gear and parts directly with other riders.",
+		subheading: "Buy, sell, rent and swap motorcycles, gear and parts directly with other riders.",
 		searchPlaceholder: "Search make, model or gear...",
 		searchButton: "Search",
 		chips: {

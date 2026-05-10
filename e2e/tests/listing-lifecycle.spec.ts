@@ -38,11 +38,9 @@ test.describe("Listing lifecycle", () => {
 			description: "E2E lifecycle test listing — luotu automaattisesti e2e-testillä.",
 		});
 		await form.submitButton.click();
-		await page.waitForURL(
-			(url) =>
-				/\/pyorat\/vuokraus\/[^/]+\/[^/]+$/.test(url.pathname),
-			{ timeout: 15000 },
-		);
+		await page.waitForURL((url) => /\/pyorat\/vuokraus\/[^/]+\/[^/]+$/.test(url.pathname), {
+			timeout: 15000,
+		});
 		await waitForHydration(page);
 
 		const match = page.url().match(/\/pyorat\/vuokraus\/([^/]+)\/[^/]+$/);

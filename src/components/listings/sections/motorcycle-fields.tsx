@@ -18,7 +18,9 @@ interface FieldErrorProps {
 }
 function FieldError({ errors }: FieldErrorProps) {
 	const first = errors.find((e) => e != null);
-	if (first == null) return null;
+	if (first == null) {
+		return null;
+	}
 	const msg = typeof first === "string" ? first : String(first);
 	return <p className="mt-1 text-sm text-destructive">{msg}</p>;
 }
@@ -62,7 +64,10 @@ export function MotorcycleFields({ form, initialMakeId, initialModelId }: Motorc
 				</form.Field>
 
 				<form.Field name="make_id">
-					{(makeField: { handleChange: (v: string) => void; state: { meta: { errors: unknown[] } } }) => (
+					{(makeField: {
+						handleChange: (v: string) => void;
+						state: { meta: { errors: unknown[] } };
+					}) => (
 						<MakeModelSelect
 							initialMakeId={initialMakeId}
 							initialModelId={initialModelId}
@@ -108,7 +113,10 @@ export function MotorcycleFields({ form, initialMakeId, initialModelId }: Motorc
 							handleChange: (v: number | null) => void;
 						}) => (
 							<div>
-								<label htmlFor="engine_cc" className="mb-1 block text-sm font-medium text-foreground">
+								<label
+									htmlFor="engine_cc"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
 									{t("form.fields.engineCc")}
 								</label>
 								<Input
@@ -135,7 +143,10 @@ export function MotorcycleFields({ form, initialMakeId, initialModelId }: Motorc
 							handleChange: (v: string) => void;
 						}) => (
 							<div>
-								<label htmlFor="motorcycle_type" className="mb-1 block text-sm font-medium text-foreground">
+								<label
+									htmlFor="motorcycle_type"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
 									{t("form.fields.type")} <span className="text-destructive">*</span>
 								</label>
 								<Select value={field.state.value} onValueChange={(v) => field.handleChange(v)}>

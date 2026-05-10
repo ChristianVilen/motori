@@ -13,11 +13,7 @@ import type { FC, ReactNode } from "react";
 import { ListingDetailShell } from "~/components/listings/listing-detail-shell";
 import type { ListingCategory } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
-import {
-	getListingForDisplay,
-	type ListingForDisplay,
-	recordView,
-} from "~/lib/listings-queries";
+import { getListingForDisplay, type ListingForDisplay, recordView } from "~/lib/listings-queries";
 import { getReviewSummaryForUser } from "~/lib/reviews.server";
 import { getSession } from "~/lib/session";
 
@@ -67,7 +63,9 @@ export function defineCategoryDetailRoute<C extends "sale" | "gear" | "part">(
 			getCategoryListing({ data: { shortId: params.listingId, category } }),
 			getSession(),
 		]);
-		if (!result) throw notFound();
+		if (!result) {
+			throw notFound();
+		}
 		return { ...result, session };
 	}
 
