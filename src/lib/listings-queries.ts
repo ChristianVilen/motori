@@ -363,10 +363,12 @@ interface SimpleCategorySearch {
 // (innerJoin on motorcycle_make changes the builder's generic DB param from single-table to joined).
 // Callers cast result at select-time, same as the rental path's baseQuery pattern.
 function applySimpleFilters(
+	// biome-ignore lint/suspicious/noExplicitAny: Kysely join graph widening prevents precise typing
 	query: SelectQueryBuilder<Database, any, object>,
 	params: SimpleSearchParams,
 	searchMode: ListingSearchMode,
 	child: SimpleCategorySearch,
+	// biome-ignore lint/suspicious/noExplicitAny: Kysely join graph widening prevents precise typing
 ): SelectQueryBuilder<Database, any, object> {
 	let q = query
 		.where("listing.category", "=", child.category)
@@ -484,6 +486,7 @@ async function searchSaleListings(params: BrowseSearchParams): Promise<SearchRes
 		.select(sql<number>`count(*)::int`.as("count"))
 		.executeTakeFirstOrThrow();
 
+	// biome-ignore lint/suspicious/noExplicitAny: cast needed — Kysely join graph widening prevents precise typing
 	let query = (baseQuery as SelectQueryBuilder<Database, any, object>)
 		.selectAll("listing")
 		.select(sql<number>`child.price`.as("price_per_day"));
@@ -519,6 +522,7 @@ async function searchGearListings(params: BrowseSearchParams): Promise<SearchRes
 		.select(sql<number>`count(*)::int`.as("count"))
 		.executeTakeFirstOrThrow();
 
+	// biome-ignore lint/suspicious/noExplicitAny: cast needed — Kysely join graph widening prevents precise typing
 	let query = (baseQuery as SelectQueryBuilder<Database, any, object>)
 		.selectAll("listing")
 		.select(sql<number>`child.price`.as("price_per_day"));
@@ -554,6 +558,7 @@ async function searchPartListings(params: BrowseSearchParams): Promise<SearchRes
 		.select(sql<number>`count(*)::int`.as("count"))
 		.executeTakeFirstOrThrow();
 
+	// biome-ignore lint/suspicious/noExplicitAny: cast needed — Kysely join graph widening prevents precise typing
 	let query = (baseQuery as SelectQueryBuilder<Database, any, object>)
 		.selectAll("listing")
 		.select(sql<number>`child.price`.as("price_per_day"));

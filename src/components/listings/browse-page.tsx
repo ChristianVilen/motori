@@ -9,7 +9,7 @@ import { FilterSidebar } from "~/components/listings/filter-sidebar";
 import { ListingCard } from "~/components/listings/listing-card";
 import { ListingCardSkeleton } from "~/components/listings/listing-card-skeleton";
 import { REGIONS } from "~/lib/constants";
-import type { ListingCategory, MotorcycleMake } from "~/lib/db/schema";
+import type { MotorcycleMake } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
 import type { SearchResult } from "~/lib/listings-queries";
 import { type BrowseSearchParams, countActiveFilters } from "~/lib/validators";
@@ -19,7 +19,6 @@ const ListingsMap = lazy(() =>
 );
 
 export interface BrowsePageProps {
-	category: ListingCategory;
 	initialData: SearchResult & { currentUserId: string | null; makes: MotorcycleMake[] };
 	search: BrowseSearchParams;
 	browseTo: string;
@@ -58,13 +57,7 @@ function searchKeyWithoutCursor(search: BrowseSearchParams): string {
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: page component with conditional view rendering
-export function BrowsePage({
-	category,
-	initialData,
-	search,
-	browseTo,
-	showMap = true,
-}: BrowsePageProps) {
+export function BrowsePage({ initialData, search, browseTo, showMap = true }: BrowsePageProps) {
 	const { t } = useTranslation("listings");
 	const navigate = useNavigate();
 
@@ -170,7 +163,7 @@ export function BrowsePage({
 							)}
 						</button>
 						{/* View toggle — only shown if showMap is true */}
-						{showMap && (
+						{showMap ? (
 							<button
 								type="button"
 								onClick={() => {
@@ -196,7 +189,7 @@ export function BrowsePage({
 									{view === "list" ? t("browse.mapToggle") : t("browse.listToggle")}
 								</span>
 							</button>
-						)}
+						) : null}
 					</form>
 					<p
 						data-testid="listings-result-count"

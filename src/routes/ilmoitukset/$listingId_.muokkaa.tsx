@@ -220,6 +220,7 @@ function AvailabilityEditor(props: {
 	);
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: form component with conditional fields
 function EditListingPage() {
 	const { t } = useTranslation("listings");
 	const { listing, rental, sale, gear, part, images, makeSlug, modelName, availability } =

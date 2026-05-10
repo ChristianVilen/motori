@@ -230,6 +230,7 @@ const listings: SeedListing[] = [
 	},
 ];
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: seed script — readability over splitting
 async function main() {
 	console.log("\n🌱 Seeding dev data...\n");
 

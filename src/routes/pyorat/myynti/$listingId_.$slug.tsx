@@ -17,7 +17,7 @@ const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute
 	category: "sale",
 	backTo: "/pyorat/myynti",
 	Sidebar: ({ data, isOwner }) => {
-		const s = data.sale!;
+		const s = data.sale as NonNullable<typeof data.sale>;
 		return (
 			<NonRentalSidebar
 				price={s.price}

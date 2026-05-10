@@ -83,11 +83,14 @@ export function GearFields({ form }: GearFieldsProps) {
 						handleChange: (v: string) => void;
 					}) => (
 						<div>
-							<label className="mb-1 block text-sm font-medium text-foreground">
+							<label
+								htmlFor="gear-type-select"
+								className="mb-1 block text-sm font-medium text-foreground"
+							>
 								Varustetyyppi <span className="text-destructive">*</span>
 							</label>
 							<Select value={field.state.value ?? ""} onValueChange={(v) => field.handleChange(v)}>
-								<SelectTrigger>
+								<SelectTrigger id="gear-type-select">
 									<SelectValue placeholder="Valitse tyyppi" />
 								</SelectTrigger>
 								<SelectContent>

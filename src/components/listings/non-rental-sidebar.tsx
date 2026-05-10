@@ -34,7 +34,7 @@ export function NonRentalSidebar({
 					<span data-testid={priceTestId} className="text-3xl font-bold text-accent">
 						{formatEur(price)}
 					</span>
-					{negotiable && <span className="ml-2 text-sm text-muted">Hinta joustaa</span>}
+					{negotiable ? <span className="ml-2 text-sm text-muted">Hinta joustaa</span> : null}
 				</div>
 				{statRows.length > 0 && (
 					<dl className="mb-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">

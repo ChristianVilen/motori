@@ -34,7 +34,6 @@ export const Route = createFileRoute("/varusteet/")({
 function GearBrowsePage() {
 	return (
 		<BrowsePage
-			category="gear"
 			initialData={Route.useLoaderData()}
 			search={Route.useSearch()}
 			browseTo="/varusteet"

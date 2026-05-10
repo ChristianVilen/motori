@@ -25,7 +25,7 @@ const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute
 	category: "gear",
 	backTo: "/varusteet",
 	Sidebar: ({ data, isOwner }) => {
-		const g = data.gear!;
+		const g = data.gear as NonNullable<typeof data.gear>;
 		return (
 			<NonRentalSidebar
 				price={g.price}

@@ -34,7 +34,6 @@ export const Route = createFileRoute("/pyorat/myynti/")({
 function SaleBrowsePage() {
 	return (
 		<BrowsePage
-			category="sale"
 			initialData={Route.useLoaderData()}
 			search={Route.useSearch()}
 			browseTo="/pyorat/myynti"

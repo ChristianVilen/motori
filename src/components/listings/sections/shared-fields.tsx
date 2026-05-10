@@ -38,11 +38,11 @@ interface ConditionSelectProps {
 export function ConditionSelect({ value, onChange, errors }: ConditionSelectProps) {
 	return (
 		<div>
-			<label className="mb-1 block text-sm font-medium text-foreground">
+			<label htmlFor="condition-select" className="mb-1 block text-sm font-medium text-foreground">
 				Kunto <span className="text-destructive">*</span>
 			</label>
 			<Select value={value} onValueChange={onChange}>
-				<SelectTrigger>
+				<SelectTrigger id="condition-select">
 					<SelectValue placeholder="Valitse kunto" />
 				</SelectTrigger>
 				<SelectContent>

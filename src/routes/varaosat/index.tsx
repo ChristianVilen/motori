@@ -34,7 +34,6 @@ export const Route = createFileRoute("/varaosat/")({
 function PartsBrowsePage() {
 	return (
 		<BrowsePage
-			category="part"
 			initialData={Route.useLoaderData()}
 			search={Route.useSearch()}
 			browseTo="/varaosat"

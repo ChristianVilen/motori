@@ -34,7 +34,6 @@ export const Route = createFileRoute("/pyorat/vuokraus/")({
 function RentalBrowsePage() {
 	return (
 		<BrowsePage
-			category="rental"
 			initialData={Route.useLoaderData()}
 			search={Route.useSearch()}
 			browseTo="/pyorat/vuokraus"

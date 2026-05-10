@@ -15,6 +15,7 @@ export function CategoryDropdown() {
 	}
 
 	return (
+		// biome-ignore lint/a11y/noStaticElementInteractions: dropdown wrapper needs blur handler
 		<div ref={ref} className="relative" onBlur={handleBlur}>
 			<button
 				type="button"
@@ -28,7 +29,7 @@ export function CategoryDropdown() {
 				<ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
 			</button>
 
-			{open && (
+			{open ? (
 				<div
 					role="menu"
 					className="absolute left-0 top-full z-50 mt-1 w-36 overflow-hidden rounded-lg border border-white/10 bg-primary shadow-lg"
@@ -52,7 +53,7 @@ export function CategoryDropdown() {
 						{t("nav.rental")}
 					</a>
 				</div>
-			)}
+			) : null}
 		</div>
 	);
 }
