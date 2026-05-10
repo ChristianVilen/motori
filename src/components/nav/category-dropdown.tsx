@@ -1,5 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import { useRef, useState } from "react";
+import { categoryBrowsePath } from "~/lib/category-routes";
 import { useTranslation } from "~/lib/i18n";
 
 export function CategoryDropdown() {
@@ -33,7 +34,7 @@ export function CategoryDropdown() {
           className="absolute left-0 top-full z-50 mt-1 w-36 overflow-hidden rounded-lg border border-white/10 bg-primary shadow-lg"
         >
           <a
-            href="/pyorat/myynti"
+            href={categoryBrowsePath("sale")}
             role="menuitem"
             onClick={() => setOpen(false)}
             className="block px-4 py-2.5 text-sm text-white/80 hover:bg-white/10 hover:text-white"
@@ -42,7 +43,7 @@ export function CategoryDropdown() {
             {t("nav.sale")}
           </a>
           <a
-            href="/pyorat/vuokraus"
+            href={categoryBrowsePath("rental")}
             role="menuitem"
             onClick={() => setOpen(false)}
             className="block px-4 py-2.5 text-sm text-white/80 hover:bg-white/10 hover:text-white"

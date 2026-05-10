@@ -1,23 +1,39 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PartDetailSidebar } from "~/components/listings/part-detail-sidebar";
+import { NonRentalSidebar } from "~/components/listings/non-rental-sidebar";
 import { SITE_NAME, SITE_URL } from "~/lib/constants";
 import { centsToEuros } from "~/lib/currency";
 import { defineCategoryDetailRoute } from "~/lib/listings-detail-route";
 import { slugify } from "~/lib/slug";
 
+const CONDITION_LABELS: Record<string, string> = {
+	new: "Uusi",
+	excellent: "Erinomainen",
+	good: "Hyvä",
+	fair: "Tyydyttävä",
+	poor: "Huono",
+};
+
 const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute({
 	category: "part",
 	backTo: "/varaosat",
-	Sidebar: ({ data, isOwner }) => (
-		<PartDetailSidebar
-			listing={data.listing}
-			part={data.part!}
-			isOwner={isOwner}
-			ownerPhoneVisible={data.ownerContact.showPhone}
-			ownerPhone={data.ownerContact.phone}
-			ownerUserId={data.listing.owner_id}
-		/>
-	),
+	Sidebar: ({ data, isOwner }) => {
+		const p = data.part!;
+		return (
+			<NonRentalSidebar
+				price={p.price}
+				priceTestId="price-part"
+				statRows={[
+					{ label: "Osatyyppi", value: p.part_category },
+					{ label: "Kunto", value: CONDITION_LABELS[p.condition] ?? p.condition },
+				]}
+				listing={data.listing}
+				isOwner={isOwner}
+				ownerPhoneVisible={data.ownerContact.showPhone}
+				ownerPhone={data.ownerContact.phone}
+				ownerUserId={data.listing.owner_id}
+			/>
+		);
+	},
 	head: (loaderData) => {
 		const l = loaderData?.listing;
 		if (!l) return {};

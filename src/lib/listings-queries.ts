@@ -303,10 +303,16 @@ export const searchListings = createServerFn({ method: "GET" })
 	.middleware([rateLimitMiddleware(60, 60, "search")])
 	.inputValidator((input: BrowseSearchParams & { category: ListingCategory }) => input)
 	.handler(async ({ data: params }): Promise<SearchResult> => {
-		if (params.category === "rental") {
-			return searchRentalListings(params);
+		switch (params.category) {
+			case "rental":
+				return searchRentalListings(params);
+			case "sale":
+				return searchSaleListings(params);
+			case "gear":
+				return searchGearListings(params);
+			case "part":
+				return searchPartListings(params);
 		}
-		return searchSimpleListings(params as BrowseSearchParams & { category: "sale" | "gear" | "part" });
 	});
 
 async function searchRentalListings(params: BrowseSearchParams): Promise<SearchResult> {
@@ -340,102 +346,209 @@ async function searchRentalListings(params: BrowseSearchParams): Promise<SearchR
 	};
 }
 
-async function searchSimpleListings(
-	params: BrowseSearchParams & { category: "sale" | "gear" | "part" },
-): Promise<SearchResult> {
+type SimpleChildTable = "listing_sale" | "listing_gear" | "listing_part";
+type SimpleSearchParams = BrowseSearchParams & { condition?: string; gear_type?: string; make?: string };
+
+interface SimpleCategorySearch {
+	table: SimpleChildTable;
+	category: "sale" | "gear" | "part";
+}
+
+// Return type is loose because applySimpleFilters conditionally widens the join graph
+// (innerJoin on motorcycle_make changes the builder's generic DB param from single-table to joined).
+// Callers cast result at select-time, same as the rental path's baseQuery pattern.
+function applySimpleFilters(
+	query: SelectQueryBuilder<Database, any, object>,
+	params: SimpleSearchParams,
+	searchMode: ListingSearchMode,
+	child: SimpleCategorySearch,
+): SelectQueryBuilder<Database, any, object> {
+	let q = query.where("listing.category", "=", child.category).where("listing.status", "=", "active");
+
+	if (searchMode.type === "fts") {
+		q = q.where(
+			sql<SqlBool>`listing.search_vector @@ to_tsquery('finnish_unaccent', ${searchMode.prefixQuery})`,
+		);
+	} else if (searchMode.type === "trigram") {
+		q = q.where(sql<SqlBool>`(listing.title || ' ' || listing.description) % ${searchMode.raw}`);
+	}
+	if (params.region) q = q.where("listing.region", "=", params.region);
+	if (params.price_min != null)
+		q = q.where(sql`child.price`, ">=", eurosToCents(params.price_min));
+	if (params.price_max != null)
+		q = q.where(sql`child.price`, "<=", eurosToCents(params.price_max));
+	if (params.condition)
+		q = q.where(sql`child.condition`, "=", params.condition);
+	if (params.gear_type && child.category === "gear")
+		q = q.where(sql`child.gear_type`, "=", params.gear_type);
+	if (params.make && (child.category === "sale" || child.category === "part")) {
+		q = q
+			.innerJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
+			.where("motorcycle_make.slug", "=", params.make);
+	}
+	return q;
+}
+
+function applySimpleCursor<O>(
+	query: SelectQueryBuilder<Database, "listing", O>,
+	cursor: string,
+	sort: SortMode,
+): SelectQueryBuilder<Database, "listing", O> {
+	const [cursorVal, cursorId] = cursor.split("__");
+	if (!cursorVal || !cursorId) return query;
+
+	if (sort === "price_asc") {
+		return query.where((eb) =>
+			eb.or([
+				eb(sql`child.price`, ">", Number(cursorVal)),
+				eb.and([eb(sql`child.price`, "=", Number(cursorVal)), eb("listing.id", ">", cursorId)]),
+			]),
+		);
+	}
+	if (sort === "price_desc") {
+		return query.where((eb) =>
+			eb.or([
+				eb(sql`child.price`, "<", Number(cursorVal)),
+				eb.and([eb(sql`child.price`, "=", Number(cursorVal)), eb("listing.id", "<", cursorId)]),
+			]),
+		);
+	}
+	return query.where((eb) =>
+		eb.or([
+			eb("listing.created_at", "<", new Date(cursorVal)),
+			eb.and([eb("listing.created_at", "=", new Date(cursorVal)), eb("listing.id", "<", cursorId)]),
+		]),
+	);
+}
+
+function applySimpleSort<O>(
+	query: SelectQueryBuilder<Database, "listing", O>,
+	sort: SortMode,
+	searchMode: ListingSearchMode,
+): SelectQueryBuilder<Database, "listing", O> {
+	if (sort === "relevance" && searchMode.type === "fts") {
+		return query
+			.orderBy(
+				sql`ts_rank_cd(listing.search_vector, to_tsquery('finnish_unaccent', ${searchMode.prefixQuery}))`,
+				"desc",
+			)
+			.orderBy("listing.created_at", "desc");
+	}
+	if (sort === "relevance" && searchMode.type === "trigram") {
+		return query
+			.orderBy(
+				sql`similarity(listing.title || ' ' || listing.description, ${searchMode.raw})`,
+				"desc",
+			)
+			.orderBy("listing.created_at", "desc");
+	}
+	if (sort === "price_asc") {
+		return query.orderBy(sql`child.price`, "asc").orderBy("listing.id", "asc");
+	}
+	if (sort === "price_desc") {
+		return query.orderBy(sql`child.price`, "desc").orderBy("listing.id", "desc");
+	}
+	return query.orderBy("listing.created_at", "desc").orderBy("listing.id", "desc");
+}
+
+async function searchSaleListings(params: BrowseSearchParams): Promise<SearchResult> {
 	const db = await getDb();
 	const searchMode = await resolveListingSearchMode(params.q);
 	const sort: SortMode = params.sort ?? (searchMode.type !== "none" ? "relevance" : "newest");
 
-	const childTable =
-		params.category === "sale"
-			? "listing_sale"
-			: params.category === "gear"
-				? "listing_gear"
-				: "listing_part";
+	const child: SimpleCategorySearch = { table: "listing_sale", category: "sale" };
 
-	// biome-ignore lint/suspicious/noExplicitAny: dynamic join table name
-	let base: any = (
+	const baseQuery = applySimpleFilters(
 		db
 			.selectFrom("listing")
-			.innerJoin(`${childTable} as child` as any, "child.listing_id" as any, "listing.id") as any
-	)
-		.where("listing.category", "=", params.category)
-		.where("listing.status", "=", "active");
+			.innerJoin("listing_sale as child", "child.listing_id", "listing.id"),
+		params,
+		searchMode,
+		child,
+	);
 
-	if (searchMode.type === "fts") {
-		base = base.where(
-			sql<SqlBool>`listing.search_vector @@ to_tsquery('finnish_unaccent', ${searchMode.prefixQuery})`,
-		);
-	} else if (searchMode.type === "trigram") {
-		base = base.where(
-			sql<SqlBool>`(listing.title || ' ' || listing.description) % ${searchMode.raw}`,
-		);
-	}
-	if (params.region) base = base.where("listing.region", "=", params.region);
-	if (params.price_min != null)
-		base = base.where(sql`child.price` as any, ">=", eurosToCents(params.price_min));
-	if (params.price_max != null)
-		base = base.where(sql`child.price` as any, "<=", eurosToCents(params.price_max));
-	if (params.condition)
-		base = base.where(sql`child.condition` as any, "=", params.condition);
-	if (params.gear_type && params.category === "gear")
-		base = base.where(sql`child.gear_type` as any, "=", params.gear_type);
-	if (params.make && (params.category === "sale" || params.category === "part")) {
-		base = base
-			.innerJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
-			.where("motorcycle_make.slug", "=", params.make);
-	}
-
-	const countResult = await (base as any)
+	const countResult = await baseQuery
 		.select(sql<number>`count(*)::int`.as("count"))
 		.executeTakeFirstOrThrow();
 
-	let query = (base as any)
+	let query = (baseQuery as SelectQueryBuilder<Database, any, object>)
 		.selectAll("listing")
-		.select(sql<number>`child.price`.as("price_per_day")); // alias for cursor compat
-
-	if (params.cursor) {
-		const [cursorVal, cursorId] = params.cursor.split("__");
-		if (cursorVal && cursorId) {
-			if (sort === "price_asc") {
-				query = query.where((eb: any) =>
-					eb.or([
-						eb(sql`child.price`, ">", Number(cursorVal)),
-						eb.and([eb(sql`child.price`, "=", Number(cursorVal)), eb("listing.id", ">", cursorId)]),
-					]),
-				);
-			} else if (sort === "price_desc") {
-				query = query.where((eb: any) =>
-					eb.or([
-						eb(sql`child.price`, "<", Number(cursorVal)),
-						eb.and([eb(sql`child.price`, "=", Number(cursorVal)), eb("listing.id", "<", cursorId)]),
-					]),
-				);
-			} else {
-				query = query.where((eb: any) =>
-					eb.or([
-						eb("listing.created_at", "<", new Date(cursorVal)),
-						eb.and([
-							eb("listing.created_at", "=", new Date(cursorVal)),
-							eb("listing.id", "<", cursorId),
-						]),
-					]),
-				);
-			}
-		}
-	}
-
-	if (sort === "price_asc") {
-		query = query.orderBy(sql`child.price`, "asc").orderBy("listing.id", "asc");
-	} else if (sort === "price_desc") {
-		query = query.orderBy(sql`child.price`, "desc").orderBy("listing.id", "desc");
-	} else {
-		query = query.orderBy("listing.created_at", "desc").orderBy("listing.id", "desc");
-	}
+		.select(sql<number>`child.price`.as("price_per_day"));
+	if (params.cursor) query = applySimpleCursor(query, params.cursor, sort);
+	query = applySimpleSort(query, sort, searchMode);
 	query = query.limit(PAGE_SIZE);
 
-	const listings = await query.execute();
+	const listings = (await query.execute()) as (Listing & { price_per_day: number })[];
+	return {
+		listings: await hydrateListings(listings),
+		nextCursor: buildNextCursor(listings, sort),
+		totalCount: countResult.count,
+	};
+}
+
+async function searchGearListings(params: BrowseSearchParams): Promise<SearchResult> {
+	const db = await getDb();
+	const searchMode = await resolveListingSearchMode(params.q);
+	const sort: SortMode = params.sort ?? (searchMode.type !== "none" ? "relevance" : "newest");
+
+	const child: SimpleCategorySearch = { table: "listing_gear", category: "gear" };
+
+	const baseQuery = applySimpleFilters(
+		db
+			.selectFrom("listing")
+			.innerJoin("listing_gear as child", "child.listing_id", "listing.id"),
+		params,
+		searchMode,
+		child,
+	);
+
+	const countResult = await baseQuery
+		.select(sql<number>`count(*)::int`.as("count"))
+		.executeTakeFirstOrThrow();
+
+	let query = (baseQuery as SelectQueryBuilder<Database, any, object>)
+		.selectAll("listing")
+		.select(sql<number>`child.price`.as("price_per_day"));
+	if (params.cursor) query = applySimpleCursor(query, params.cursor, sort);
+	query = applySimpleSort(query, sort, searchMode);
+	query = query.limit(PAGE_SIZE);
+
+	const listings = (await query.execute()) as (Listing & { price_per_day: number })[];
+	return {
+		listings: await hydrateListings(listings),
+		nextCursor: buildNextCursor(listings, sort),
+		totalCount: countResult.count,
+	};
+}
+
+async function searchPartListings(params: BrowseSearchParams): Promise<SearchResult> {
+	const db = await getDb();
+	const searchMode = await resolveListingSearchMode(params.q);
+	const sort: SortMode = params.sort ?? (searchMode.type !== "none" ? "relevance" : "newest");
+
+	const child: SimpleCategorySearch = { table: "listing_part", category: "part" };
+
+	const baseQuery = applySimpleFilters(
+		db
+			.selectFrom("listing")
+			.innerJoin("listing_part as child", "child.listing_id", "listing.id"),
+		params,
+		searchMode,
+		child,
+	);
+
+	const countResult = await baseQuery
+		.select(sql<number>`count(*)::int`.as("count"))
+		.executeTakeFirstOrThrow();
+
+	let query = (baseQuery as SelectQueryBuilder<Database, any, object>)
+		.selectAll("listing")
+		.select(sql<number>`child.price`.as("price_per_day"));
+	if (params.cursor) query = applySimpleCursor(query, params.cursor, sort);
+	query = applySimpleSort(query, sort, searchMode);
+	query = query.limit(PAGE_SIZE);
+
+	const listings = (await query.execute()) as (Listing & { price_per_day: number })[];
 	return {
 		listings: await hydrateListings(listings),
 		nextCursor: buildNextCursor(listings, sort),

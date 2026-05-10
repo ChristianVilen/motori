@@ -1,23 +1,48 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { GearDetailSidebar } from "~/components/listings/gear-detail-sidebar";
+import { NonRentalSidebar } from "~/components/listings/non-rental-sidebar";
 import { SITE_NAME, SITE_URL } from "~/lib/constants";
 import { centsToEuros } from "~/lib/currency";
 import { defineCategoryDetailRoute } from "~/lib/listings-detail-route";
 import { slugify } from "~/lib/slug";
 
+const CONDITION_LABELS: Record<string, string> = {
+	new: "Uusi",
+	excellent: "Erinomainen",
+	good: "Hyvä",
+	fair: "Tyydyttävä",
+	poor: "Huono",
+};
+const GEAR_TYPE_LABELS: Record<string, string> = {
+	helmet: "Kypärä",
+	jacket: "Takki",
+	pants: "Housut",
+	boots: "Saappaat",
+	gloves: "Käsineet",
+	other: "Muu",
+};
+
 const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute({
 	category: "gear",
 	backTo: "/varusteet",
-	Sidebar: ({ data, isOwner }) => (
-		<GearDetailSidebar
-			listing={data.listing}
-			gear={data.gear!}
-			isOwner={isOwner}
-			ownerPhoneVisible={data.ownerContact.showPhone}
-			ownerPhone={data.ownerContact.phone}
-			ownerUserId={data.listing.owner_id}
-		/>
-	),
+	Sidebar: ({ data, isOwner }) => {
+		const g = data.gear!;
+		return (
+			<NonRentalSidebar
+				price={g.price}
+				priceTestId="price-gear"
+				statRows={[
+					{ label: "Tyyppi", value: GEAR_TYPE_LABELS[g.gear_type] ?? g.gear_type },
+					...(g.size ? [{ label: "Koko", value: g.size }] : []),
+					{ label: "Kunto", value: CONDITION_LABELS[g.condition] ?? g.condition },
+				]}
+				listing={data.listing}
+				isOwner={isOwner}
+				ownerPhoneVisible={data.ownerContact.showPhone}
+				ownerPhone={data.ownerContact.phone}
+				ownerUserId={data.listing.owner_id}
+			/>
+		);
+	},
 	head: (loaderData) => {
 		const l = loaderData?.listing;
 		if (!l) return {};

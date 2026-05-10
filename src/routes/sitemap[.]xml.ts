@@ -1,13 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CATEGORY_BROWSE_PATH } from "~/lib/category-routes";
 import { SITE_URL } from "~/lib/constants";
+import type { ListingCategory } from "~/lib/db/schema";
 import { computeListingSlug, slugify } from "~/lib/slug";
-
-const CATEGORY_PATH: Record<string, string> = {
-  rental: "/pyorat/vuokraus",
-  sale: "/pyorat/myynti",
-  gear: "/varusteet",
-  part: "/varaosat",
-};
 
 const STATIC_PATHS = [
   { path: "/", priority: "1.0", changefreq: "daily" },
@@ -48,7 +43,7 @@ export const Route = createFileRoute("/sitemap.xml")({
               `<url><loc>${SITE_URL}${p.path}</loc><changefreq>${p.changefreq}</changefreq><priority>${p.priority}</priority></url>`,
           ),
           ...listings.map((l) => {
-            const basePath = CATEGORY_PATH[l.category] ?? "/pyorat/vuokraus";
+            const basePath = CATEGORY_BROWSE_PATH[l.category as ListingCategory] ?? "/pyorat/vuokraus";
             const slug =
               l.category === "gear" || l.category === "part"
                 ? slugify(l.title)

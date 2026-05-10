@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
+import { categoryDetailPath } from "~/lib/category-routes";
 import { MOTORCYCLE_TYPES, REGIONS, TYPE_EMOJI } from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
@@ -25,14 +26,7 @@ export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: Lis
 	const isNew = Date.now() - new Date(listing.created_at).getTime() < 48 * 60 * 60 * 1000;
 	const imageCount = images.length;
 	const slug = computeListingSlug(makeSlug, modelName, listing.city);
-	const detailRoute =
-		listing.category === "sale"
-			? "/pyorat/myynti/$listingId/$slug"
-			: listing.category === "gear"
-				? "/varusteet/$listingId/$slug"
-				: listing.category === "part"
-					? "/varaosat/$listingId/$slug"
-					: "/pyorat/vuokraus/$listingId/$slug";
+	const detailRoute = categoryDetailPath(listing.category, "$listingId", "$slug");
 
 	return (
 		<Link

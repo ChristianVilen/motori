@@ -23,13 +23,13 @@ Generated: 2026-05-10. ADR context: `docs/adr/0001-listing-module.md`.
 - **Depth**: callers learn one interface (the factory's options) instead of memorizing the loader/server-fn ritual. **Locality**: when we add OG-image generation or migrate `getReviewSummaryForUser` calls, we change one place. **Deletion test**: deleting the factory would force the loader+server-fn ritual back into all four files — complexity reappears, so the factory earns its keep.
 - **Tests**: the factory's interface is the test surface — one adapter test asserts the loader-not-found path, one for category mismatch, one for the success path. Today these would need 4× duplication.
 
-## 3. Non-rental sidebar — slot-based deepening
+## 3. Non-rental sidebar — slot-based deepening ✅ DONE
 
-- **Files**: `src/components/listings/sale-detail-sidebar.tsx`, `gear-detail-sidebar.tsx`, `part-detail-sidebar.tsx` (~285 lines, with ~120 lines of duplicated owner-action / contact-button / phone-link logic)
-- **Problem**: Three sidebars share a frame (price card → stat row → owner-action-or-contact CTA) but differ only in *which stats* they show. The owner-vs-anonymous CTA — a non-trivial state machine across `isOwner`, `listing.status`, `ownerPhoneVisible`, `ownerPhone` — is copied verbatim three times. The rental sidebar is genuinely different (booking calendar) and should stay separate.
-- **Solution**: A single `NonRentalSidebar` interface taking `{ price, statRows: StatRow[], listing, owner }`. The category-specific bits collapse into 3-line StatRow arrays.
+- **Files**: `src/components/listings/non-rental-sidebar.tsx` (replaces `sale-detail-sidebar.tsx`, `gear-detail-sidebar.tsx`, `part-detail-sidebar.tsx` — ~240 deduplicated lines → one 84-line component)
+- **Problem**: Three sidebars shared a frame (price card → stat row → owner-action-or-contact CTA) but differed only in *which stats* they show. The owner-vs-anonymous CTA — a non-trivial state machine across `isOwner`, `listing.status`, `ownerPhoneVisible`, `ownerPhone` — was copied verbatim three times.
+- **Solution**: A single `NonRentalSidebar` taking `{ price, priceTestId, negotiable?, statRows, listing, isOwner, ownerPhoneVisible, ownerPhone, ownerUserId }`. Each route file builds its own `statRows` array with category-specific label maps.
 - **Depth & locality**: the contact-CTA state machine lives once. A future change ("show negotiable badge", "add SMS link") touches one place.
-- **Tests**: the contact-CTA state machine becomes independently testable behind a small interface — today it's tested only via three duplicate UI tests.
+- **Tests**: the contact-CTA state machine can now be independently tested behind a small interface — previously tested only via three duplicate UI tests.
 
 ## 4. Per-category search adapters in `listings-queries.ts`
 

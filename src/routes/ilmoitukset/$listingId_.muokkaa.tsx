@@ -7,6 +7,7 @@ import { useState } from "react";
 import { AvailabilityCalendar } from "~/components/listings/availability-calendar";
 import { ListingForm } from "~/components/listings/listing-form";
 import { Button } from "~/components/ui/button";
+import { categoryBrowsePath } from "~/lib/category-routes";
 import { centsToEuros } from "~/lib/currency";
 import type { ListingCategory } from "~/lib/db/schema";
 import { AppError } from "~/lib/errors";
@@ -294,16 +295,8 @@ function EditListingPage() {
 	async function handleSubmit(data: ListingFormData) {
 		await updateListingFn({ data: { id: listing.id, form: data } });
 		const slug = computeListingSlug(makeSlug ?? null, modelName ?? null, listing.city);
-		const basePath =
-			listing.category === "sale"
-				? "/pyorat/myynti"
-				: listing.category === "rental"
-					? "/pyorat/vuokraus"
-					: listing.category === "gear"
-						? "/varusteet"
-						: "/varaosat";
 		navigate({
-			to: `${basePath}/$listingId/$slug`,
+			to: `${categoryBrowsePath(listing.category as ListingCategory)}/$listingId/$slug`,
 			params: { listingId: listing.short_id, slug },
 			replace: true,
 		} as never);

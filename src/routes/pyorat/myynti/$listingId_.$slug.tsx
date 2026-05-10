@@ -1,23 +1,42 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SaleDetailSidebar } from "~/components/listings/sale-detail-sidebar";
+import { NonRentalSidebar } from "~/components/listings/non-rental-sidebar";
 import { SITE_NAME, SITE_URL } from "~/lib/constants";
 import { centsToEuros } from "~/lib/currency";
 import { defineCategoryDetailRoute } from "~/lib/listings-detail-route";
 import { computeListingSlug } from "~/lib/slug";
 
+const CONDITION_LABELS: Record<string, string> = {
+	new: "Uusi",
+	excellent: "Erinomainen",
+	good: "Hyvä",
+	fair: "Tyydyttävä",
+	poor: "Huono",
+};
+
 const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute({
 	category: "sale",
 	backTo: "/pyorat/myynti",
-	Sidebar: ({ data, isOwner }) => (
-		<SaleDetailSidebar
-			listing={data.listing}
-			sale={data.sale!}
-			isOwner={isOwner}
-			ownerPhoneVisible={data.ownerContact.showPhone}
-			ownerPhone={data.ownerContact.phone}
-			ownerUserId={data.listing.owner_id}
-		/>
-	),
+	Sidebar: ({ data, isOwner }) => {
+		const s = data.sale!;
+		return (
+			<NonRentalSidebar
+				price={s.price}
+				priceTestId="price-sale"
+				negotiable={s.negotiable}
+				statRows={[
+					{ label: "Kunto", value: CONDITION_LABELS[s.condition] ?? s.condition },
+					...(s.km_driven != null
+						? [{ label: "Kilometrit", value: `${s.km_driven.toLocaleString("fi")} km` as const }]
+						: []),
+				]}
+				listing={data.listing}
+				isOwner={isOwner}
+				ownerPhoneVisible={data.ownerContact.showPhone}
+				ownerPhone={data.ownerContact.phone}
+				ownerUserId={data.listing.owner_id}
+			/>
+		);
+	},
 	head: (loaderData) => {
 		const l = loaderData?.listing;
 		if (!l) return {};

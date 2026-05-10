@@ -1,12 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { categoryBrowsePath } from "~/lib/category-routes";
+import type { ListingCategory } from "~/lib/db/schema";
 import { computeListingSlug, slugify } from "~/lib/slug";
-
-const CATEGORY_PATH: Record<string, string> = {
-  rental: "/pyorat/vuokraus",
-  sale: "/pyorat/myynti",
-  gear: "/varusteet",
-  part: "/varaosat",
-};
 
 export const Route = createFileRoute("/tori/$itemId_/$slug")({
   loader: async ({ params }) => {
@@ -29,14 +24,13 @@ export const Route = createFileRoute("/tori/$itemId_/$slug")({
 
     if (!row) return;
 
-    const basePath = CATEGORY_PATH[row.category] ?? "/varusteet";
     const slug =
       row.category === "gear" || row.category === "part"
         ? slugify(row.title)
         : computeListingSlug(row.makeSlug ?? null, row.modelName ?? null, row.city);
 
     throw redirect({
-      href: `${basePath}/${row.short_id}/${slug}`,
+      href: `${categoryBrowsePath(row.category as ListingCategory)}/${row.short_id}/${slug}`,
       statusCode: 301,
       replace: true,
     });
