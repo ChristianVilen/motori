@@ -22,19 +22,8 @@ const getListing = createServerFn({ method: "GET" })
 		const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
 		recordView(shortId, session?.user.id, ip);
 
-		const [ownerReviewSummary, ownerProfile] = await Promise.all([
-			getReviewSummaryForUser(result.listing.owner_id),
-			(async () => {
-				const { db } = await import("~/lib/db/index");
-				return db
-					.selectFrom("profile")
-					.select(["phone", "show_phone"])
-					.where("user_id", "=", result.listing.owner_id)
-					.executeTakeFirst();
-			})(),
-		]);
-
-		return { ...result, ownerReviewSummary, ownerProfile: ownerProfile ?? null };
+		const ownerReviewSummary = await getReviewSummaryForUser(result.listing.owner_id);
+		return { ...result, ownerReviewSummary };
 	});
 
 export const Route = createFileRoute("/varaosat/$listingId_/$slug")({
@@ -70,14 +59,14 @@ export const Route = createFileRoute("/varaosat/$listingId_/$slug")({
 });
 
 function PartDetailPage() {
-	const { listing, part, images, session, makeName, makeSlug, modelName, ownerReviewSummary, ownerProfile } =
+	const { listing, part, images, session, makeName, makeSlug, modelName, ownerReviewSummary, ownerContact } =
 		Route.useLoaderData();
 	const { t } = useTranslation("listings");
 	const isOwner = session?.user.id === listing.owner_id;
 
 	return (
 		<ListingDetailShell
-			data={{ listing, rental: null, sale: null, gear: null, part, images, makeName, makeSlug, modelName, ownerReviewSummary }}
+			data={{ listing, rental: null, sale: null, gear: null, part, images, makeName, makeSlug, modelName, ownerReviewSummary, ownerContact }}
 			session={session}
 			backTo="/varaosat"
 			backLabel={t("detail.back")}
@@ -86,8 +75,8 @@ function PartDetailPage() {
 					listing={listing}
 					part={part!}
 					isOwner={isOwner}
-					ownerPhoneVisible={ownerProfile?.show_phone ?? false}
-					ownerPhone={ownerProfile?.phone ?? null}
+					ownerPhoneVisible={ownerContact.showPhone}
+					ownerPhone={ownerContact.phone}
 					ownerUserId={listing.owner_id}
 				/>
 			}

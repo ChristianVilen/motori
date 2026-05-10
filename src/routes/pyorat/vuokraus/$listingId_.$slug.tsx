@@ -327,6 +327,7 @@ function ListingDetailPage() {
 		modelName,
 		availability,
 		ownerReviewSummary,
+		ownerContact,
 	} = Route.useLoaderData();
 
 	const [bookingModalOpen, setBookingModalOpen] = useState(false);
@@ -389,7 +390,7 @@ function ListingDetailPage() {
 
 	return (
 		<ListingDetailShell
-			data={{ listing, rental, sale: null, gear: null, part: null, images, makeName, makeSlug, modelName, ownerReviewSummary }}
+			data={{ listing, rental, sale: null, gear: null, part: null, images, makeName, makeSlug, modelName, ownerReviewSummary, ownerContact }}
 			session={session}
 			backTo="/pyorat/vuokraus"
 			backLabel={t("detail.back")}
