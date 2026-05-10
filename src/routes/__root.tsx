@@ -221,7 +221,7 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 							<Link to="/" className="flex items-center">
 								<Logo variant="dark" className="h-8 w-auto" />
 							</Link>
-							<div className="flex items-center gap-4 sm:gap-6">
+							<div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 sm:gap-x-6">
 								<CategoryDropdown />
 								<a
 									href="/varusteet"

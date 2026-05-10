@@ -12,6 +12,7 @@ interface FilterDrawerProps {
 	open: boolean;
 	onClose: () => void;
 	makes: FilterMake[];
+	browseTo: string;
 }
 
 export function FilterDrawer({
@@ -21,9 +22,10 @@ export function FilterDrawer({
 	open,
 	onClose,
 	makes,
+	browseTo,
 }: FilterDrawerProps) {
 	const { t } = useTranslation("listings");
-	const { clearAll } = useFilterActions(search);
+	const { clearAll } = useFilterActions(search, browseTo);
 	const trapRef = useFocusTrap(open);
 
 	useEffect(() => {
@@ -80,6 +82,7 @@ export function FilterDrawer({
 						search={search}
 						hasQuery={hasQuery}
 						makes={makes}
+						browseTo={browseTo}
 						idPrefix="drawer"
 						inputHeight="h-10"
 					/>

@@ -735,6 +735,29 @@ export function ListingForm(props: ListingFormProps) {
 				</section>
 			)}
 
+			{/* ── Otsikko (vain varusteille/varaosille; pyöräosioissa erikseen) ── */}
+			{(category === "gear" || category === "part") && (
+				<section className="rounded-lg border border-border bg-card p-6">
+					<form.Field name="title">
+						{(field) => (
+							<div>
+								<label htmlFor="title" className="mb-1 block text-sm font-medium text-foreground">
+									{t("form.fields.title")} <span className="text-destructive">*</span>
+								</label>
+								<Input
+									id="title"
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onChange={(e) => field.handleChange(e.target.value)}
+								/>
+								<p className="mt-1 text-xs text-muted">{t("form.fields.titleHint")}</p>
+								<FieldError errors={field.state.meta.errors} />
+							</div>
+						)}
+					</form.Field>
+				</section>
+			)}
+
 			{/* ── Varuste ───────────────────────────────────────────────────── */}
 			{category === "gear" && (
 				<section className="rounded-lg border border-border bg-card p-6">

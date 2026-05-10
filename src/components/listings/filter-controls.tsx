@@ -16,12 +16,12 @@ export interface FilterMake {
 	slug: string;
 }
 
-export function useFilterActions(search: BrowseSearchParams) {
+export function useFilterActions(search: BrowseSearchParams, browseTo: string) {
 	const navigate = useNavigate();
 
 	function updateFilter(updates: Partial<BrowseSearchParams>) {
 		navigate({
-			to: "/ilmoitukset",
+			to: browseTo,
 			search: (prev) => ({ ...prev, ...updates, cursor: undefined }),
 			replace: true,
 		});
@@ -35,8 +35,8 @@ export function useFilterActions(search: BrowseSearchParams) {
 
 	function clearAll() {
 		navigate({
-			to: "/ilmoitukset",
-			search: (prev) => ({ view: prev.view, city: prev.city }),
+			to: browseTo,
+			search: (prev: BrowseSearchParams) => ({ view: prev.view, city: prev.city }),
 			replace: true,
 		});
 	}
@@ -48,6 +48,7 @@ interface FilterControlsProps {
 	search: BrowseSearchParams;
 	hasQuery: boolean;
 	makes: FilterMake[];
+	browseTo: string;
 	/** HTML id/data-testid prefix — "filter" for sidebar, "drawer" for drawer */
 	idPrefix: string;
 	/** Tailwind height class for inputs/selects — "h-9" for sidebar, "h-10" for drawer */
@@ -58,11 +59,12 @@ export function FilterControls({
 	search,
 	hasQuery,
 	makes,
+	browseTo,
 	idPrefix,
 	inputHeight,
 }: FilterControlsProps) {
 	const { t } = useTranslation("listings");
-	const { updateFilter, toggleArrayFilter } = useFilterActions(search);
+	const { updateFilter, toggleArrayFilter } = useFilterActions(search, browseTo);
 
 	const selectClass = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm text-foreground`;
 	const rangeClass = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm`;
