@@ -22,7 +22,7 @@ export function useFilterActions(search: BrowseSearchParams, browseTo: string) {
 	function updateFilter(updates: Partial<BrowseSearchParams>) {
 		navigate({
 			to: browseTo,
-			search: (prev) => ({ ...prev, ...updates, cursor: undefined }),
+			search: (prev: BrowseSearchParams) => ({ ...prev, ...updates, cursor: undefined }),
 			replace: true,
 		});
 	}

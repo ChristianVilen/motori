@@ -129,7 +129,7 @@ export function BrowsePage({
 		const q = (formData.get("q") as string)?.trim() || undefined;
 		navigate({
 			to: browseTo,
-			search: (prev) => ({ ...prev, q, cursor: undefined }),
+			search: (prev: BrowseSearchParams) => ({ ...prev, q, cursor: undefined }),
 			replace: true,
 		});
 	}
@@ -177,7 +177,7 @@ export function BrowsePage({
 								onClick={() => {
 									navigate({
 										to: browseTo,
-										search: (prev) => ({
+										search: (prev: BrowseSearchParams) => ({
 											...prev,
 											view: view === "list" ? ("map" as const) : undefined,
 											city: undefined,
