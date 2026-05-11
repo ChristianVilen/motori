@@ -1,5 +1,6 @@
 // biome-ignore-all lint/suspicious/noConsole: CLI script — console output is expected
 import { auth } from "../auth";
+import { generateShortId } from "../slug";
 import { db } from "./index";
 
 const SEED_EMAIL = "dev@motori.local";
@@ -230,6 +231,7 @@ const listings: SeedListing[] = [
 	},
 ];
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: seed script — readability over splitting
 async function main() {
 	console.log("\n🌱 Seeding dev data...\n");
 
@@ -317,7 +319,7 @@ async function main() {
 			.insertInto("listing")
 			.values({
 				id,
-				short_id: crypto.randomUUID().slice(0, 8),
+				short_id: generateShortId(),
 				owner_id: userId,
 				category: "rental",
 				title: seed.title,
@@ -364,7 +366,135 @@ async function main() {
 		}
 	}
 
-	// 6. Tori items (now gear/part listings)
+	// 6. Sale listings
+	console.log("Creating sale listings...");
+
+	const saleListings: Array<{
+		title: string;
+		makeSlug: string;
+		year: number;
+		engine_cc: number;
+		required_license: "A1" | "A2" | "A";
+		motorcycle_type: string;
+		condition: "new" | "excellent" | "good" | "fair" | "poor";
+		km_driven: number;
+		price_cents: number;
+		negotiable: boolean;
+		city: string;
+		region: string;
+		description: string;
+		images: string[];
+	}> = [
+		{
+			title: "Yamaha MT-07 2021 — siisti yhden omistajan pyörä",
+			makeSlug: "yamaha",
+			year: 2021,
+			engine_cc: 689,
+			required_license: "A2",
+			motorcycle_type: "naked",
+			condition: "excellent",
+			km_driven: 8500,
+			price_cents: 690000,
+			negotiable: true,
+			city: "Helsinki",
+			region: "uusimaa",
+			description:
+				"Hyvin huollettu MT-07, kaikki huollot merkkiliikkeessä. Akrapovic-pakoputki ja tankin suoja mukana.",
+			images: [LINEUP, R6],
+		},
+		{
+			title: "Honda CB650R 2020 — neliosylinterin laulu",
+			makeSlug: "honda",
+			year: 2020,
+			engine_cc: 649,
+			required_license: "A",
+			motorcycle_type: "naked",
+			condition: "good",
+			km_driven: 14200,
+			price_cents: 750000,
+			negotiable: false,
+			city: "Tampere",
+			region: "pirkanmaa",
+			description: "Kaunis CB650R hopeisena. Renkaat hyvät, ketju ja rattaat juuri vaihdettu.",
+			images: [TANK, LINEUP],
+		},
+		{
+			title: "BMW R nineT 2019 — modernikuski klassisella tyylillä",
+			makeSlug: "bmw",
+			year: 2019,
+			engine_cc: 1170,
+			required_license: "A",
+			motorcycle_type: "naked",
+			condition: "excellent",
+			km_driven: 11000,
+			price_cents: 1290000,
+			negotiable: true,
+			city: "Espoo",
+			region: "uusimaa",
+			description:
+				"R nineT Pure -versio, runsaasti lisävarusteita: Rizoma-peilit, Akrapovic-pakoputki, navigaattoriteline.",
+			images: [FERRY, TANK],
+		},
+	];
+
+	for (const sale of saleListings) {
+		const id = crypto.randomUUID();
+		const make = makeBySlug[sale.makeSlug];
+		if (!make) {
+			throw new Error(`Unknown make slug: ${sale.makeSlug}`);
+		}
+
+		await db
+			.insertInto("listing")
+			.values({
+				id,
+				short_id: generateShortId(),
+				owner_id: userId,
+				category: "sale",
+				title: sale.title,
+				make_id: make.id,
+				model_id: null,
+				year: sale.year,
+				engine_cc: sale.engine_cc,
+				required_license: sale.required_license,
+				motorcycle_type: sale.motorcycle_type,
+				city: sale.city,
+				region: sale.region,
+				postal_code: null,
+				description: sale.description,
+				expires_at: expiresAt,
+				created_at: new Date(),
+				updated_at: new Date(),
+			})
+			.execute();
+
+		await db
+			.insertInto("listing_sale")
+			.values({
+				listing_id: id,
+				price: sale.price_cents,
+				condition: sale.condition,
+				km_driven: sale.km_driven,
+				negotiable: sale.negotiable,
+			})
+			.execute();
+
+		if (sale.images.length > 0) {
+			await db
+				.insertInto("listing_image")
+				.values(
+					sale.images.map((url, i) => ({
+						id: crypto.randomUUID(),
+						listing_id: id,
+						url,
+						order: i,
+					})),
+				)
+				.execute();
+		}
+	}
+
+	// 7. Tori items (now gear/part listings)
 	console.log("Creating gear/part listings...");
 
 	const toriItems: Array<{
@@ -463,7 +593,7 @@ async function main() {
 			.insertInto("listing")
 			.values({
 				id,
-				short_id: crypto.randomUUID().slice(0, 8),
+				short_id: generateShortId(),
 				owner_id: userId,
 				category: listingCategory,
 				title: item.title,

@@ -7,14 +7,14 @@ test.describe("Language selector", () => {
 		await waitForHydration(page);
 
 		// Default is Finnish (Playwright locale is fi-FI)
-		await expect(page.locator("nav a", { hasText: "Selaa" })).toBeVisible();
+		await expect(page.locator("nav a", { hasText: "Varusteet" })).toBeVisible();
 
 		// Switch to English
 		await page.getByRole("button", { name: /EN/i }).click();
-		await expect(page.locator("nav a", { hasText: "Browse" })).toBeVisible();
+		await expect(page.locator("nav a", { hasText: "Gear" })).toBeVisible();
 
 		// Switch back to Finnish
 		await page.getByRole("button", { name: /FI/i }).click();
-		await expect(page.locator("nav a", { hasText: "Selaa" })).toBeVisible();
+		await expect(page.locator("nav a", { hasText: "Varusteet" })).toBeVisible();
 	});
 });

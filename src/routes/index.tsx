@@ -1,45 +1,103 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Key, Shield, ShoppingCart, Wrench } from "lucide-react";
+import { useState } from "react";
 import { ListingCard } from "~/components/listings/listing-card";
+import { CATEGORY_BROWSE_PATH } from "~/lib/category-routes";
+import type { ListingCategory } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
 import { getHomepageStats, getLatestListings } from "~/lib/listings-queries";
 import { getSession } from "~/lib/session";
 
 export const Route = createFileRoute("/")({
 	loader: async () => {
-		const [latestListings, stats, session] = await Promise.all([
-			getLatestListings(),
-			getHomepageStats(),
-			getSession(),
-		]);
-		// Logged-out users are treated as verified so they see enabled links;
-		// server auth middleware handles actual gating.
+		const [saleListings, rentalListings, gearListings, partListings, stats, session] =
+			await Promise.all([
+				getLatestListings({ data: "sale" }),
+				getLatestListings({ data: "rental" }),
+				getLatestListings({ data: "gear" }),
+				getLatestListings({ data: "part" }),
+				getHomepageStats(),
+				getSession(),
+			]);
 		const emailVerified = session?.user.emailVerified ?? true;
-		return { latestListings, stats, emailVerified };
+		return { saleListings, rentalListings, gearListings, partListings, stats, emailVerified };
 	},
 	component: HomePage,
 });
 
+type ActiveTab = "sale" | "rental" | "gear" | "part";
+
 function HomePage() {
-	const { latestListings, stats, emailVerified: verified } = Route.useLoaderData();
+	const {
+		saleListings,
+		rentalListings,
+		gearListings,
+		partListings,
+		stats,
+		emailVerified: verified,
+	} = Route.useLoaderData();
 	const navigate = useNavigate();
 	const { t } = useTranslation("home");
 	const { t: tAuth } = useTranslation("auth");
 
-	const isRidingSeason = (() => {
-		const month = new Date().getMonth();
-		return month >= 3 && month <= 9;
-	})();
+	const [activeTab, setActiveTab] = useState<ActiveTab>("sale");
+
+	const tabData: Record<ActiveTab, ReturnType<typeof saleListings.slice>> = {
+		sale: saleListings,
+		rental: rentalListings,
+		gear: gearListings,
+		part: partListings,
+	};
+
+	const tabs: {
+		key: ActiveTab;
+		labelKey:
+			| "latestListings.tabs.sale"
+			| "latestListings.tabs.rental"
+			| "latestListings.tabs.gear"
+			| "latestListings.tabs.parts";
+	}[] = [
+		{ key: "sale", labelKey: "latestListings.tabs.sale" },
+		{ key: "rental", labelKey: "latestListings.tabs.rental" },
+		{ key: "gear", labelKey: "latestListings.tabs.gear" },
+		{ key: "part", labelKey: "latestListings.tabs.parts" },
+	];
+
+	const categories: {
+		key: ListingCategory;
+		icon: React.ReactNode;
+		labelKey: "categories.sale" | "categories.rental" | "categories.gear" | "categories.parts";
+	}[] = [
+		{
+			key: "sale",
+			icon: <ShoppingCart className="h-6 w-6" />,
+			labelKey: "categories.sale",
+		},
+		{
+			key: "rental",
+			icon: <Key className="h-6 w-6" />,
+			labelKey: "categories.rental",
+		},
+		{
+			key: "gear",
+			icon: <Shield className="h-6 w-6" />,
+			labelKey: "categories.gear",
+		},
+		{
+			key: "part",
+			icon: <Wrench className="h-6 w-6" />,
+			labelKey: "categories.parts",
+		},
+	];
 
 	function handleSearch(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault();
 		const formData = new FormData(e.currentTarget);
 		const q = (formData.get("q") as string)?.trim() || undefined;
-		navigate({
-			to: "/ilmoitukset",
-			search: q ? { q } : {},
-		});
+		navigate({ to: "/pyorat/myynti", search: q ? { q } : {} });
 	}
+
+	const activeListings = tabData[activeTab];
 
 	return (
 		<div className="min-h-screen">
@@ -61,22 +119,11 @@ function HomePage() {
 				<div className="relative mx-auto grid min-h-[70vh] max-w-7xl lg:min-h-[92vh] lg:grid-cols-2">
 					{/* Left column */}
 					<div className="flex flex-col justify-center px-6 py-16 lg:px-12 lg:py-24">
-						{/* Seasonal tag */}
-						{isRidingSeason && (
-							<div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-xl">
-								<span className="relative flex h-2 w-2">
-									<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
-									<span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-								</span>
-								<span className="text-sm text-white/90">{t("hero.seasonTag")}</span>
-							</div>
-						)}
-
 						<h1
 							data-testid="home-hero-heading"
 							className="font-heading text-4xl leading-[1.1] font-bold tracking-tight text-white sm:text-5xl lg:text-6xl"
 						>
-							{t("hero.heading")} <span className="text-accent">{t("hero.headingAccent")}</span>
+							{t("hero.heading")}
 						</h1>
 
 						<p className="mt-4 max-w-md text-lg text-white/80">{t("hero.subheading")}</p>
@@ -135,7 +182,7 @@ function HomePage() {
 								<Link
 									key={chip.slug}
 									data-testid={`home-chip-${chip.slug}`}
-									to="/ilmoitukset"
+									to="/pyorat/myynti"
 									search={chip.search}
 									className="rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs text-white/90 backdrop-blur-xl transition-colors hover:bg-white/20 hover:text-white"
 								>
@@ -173,36 +220,70 @@ function HomePage() {
 				</div>
 			</section>
 
-			{/* Seasonal strip */}
-			<div className="bg-gradient-to-r from-accent to-accent-hover px-4 py-3 text-center text-sm font-medium text-white">
-				{isRidingSeason
-					? t("seasonalStrip.active", { total: stats.totalListings })
-					: t("seasonalStrip.inactive")}
-			</div>
-
-			{/* Latest listings */}
-			{latestListings.length > 0 && (
-				<section className="mx-auto max-w-6xl px-4 py-16">
-					<div className="mb-8 flex items-end justify-between">
-						<div>
-							<h2 className="font-heading text-2xl font-bold text-foreground">
-								{t("latestListings.heading")}
-							</h2>
-							<p className="mt-1 text-sm text-muted">{t("latestListings.subheading")}</p>
-						</div>
+			{/* Category showcase */}
+			<section className="mx-auto max-w-6xl px-4 py-14">
+				<h2 className="mb-8 font-heading text-2xl font-bold text-foreground">
+					{t("categories.heading")}
+				</h2>
+				<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+					{categories.map((cat) => (
 						<Link
-							data-testid="home-browse-all"
-							to="/ilmoitukset"
-							search={{ sort: "newest" }}
-							className="flex items-center gap-1 text-sm font-medium text-accent hover:underline"
+							key={cat.key}
+							to={CATEGORY_BROWSE_PATH[cat.key]}
+							className="group flex flex-col gap-3 rounded-2xl border border-border bg-background p-5 transition-colors hover:bg-muted-light"
 						>
-							{t("latestListings.browseAll")}
-							<ArrowRight className="h-4 w-4" />
+							<span className="text-accent">{cat.icon}</span>
+							<div className="flex-1">
+								<p className="font-heading text-sm font-semibold text-foreground">
+									{t(`${cat.labelKey}.label` as Parameters<typeof t>[0])}
+								</p>
+								<p className="mt-1 text-xs text-muted">
+									{t(`${cat.labelKey}.desc` as Parameters<typeof t>[0])}
+								</p>
+							</div>
+							<ArrowRight className="h-4 w-4 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
 						</Link>
-					</div>
+					))}
+				</div>
+			</section>
 
+			{/* Tabbed listings */}
+			<section className="mx-auto max-w-6xl px-4 py-4 pb-16">
+				<div className="mb-6 flex items-end justify-between">
+					<h2 className="font-heading text-2xl font-bold text-foreground">
+						{t("latestListings.heading")}
+					</h2>
+					<Link
+						data-testid="home-browse-all"
+						to={CATEGORY_BROWSE_PATH[activeTab]}
+						className="flex items-center gap-1 text-sm font-medium text-accent hover:underline"
+					>
+						{t("latestListings.browseAll")}
+						<ArrowRight className="h-4 w-4" />
+					</Link>
+				</div>
+
+				{/* Tab bar */}
+				<div className="mb-6 flex gap-1 rounded-xl border border-border bg-muted-light p-1">
+					{tabs.map((tab) => (
+						<button
+							key={tab.key}
+							type="button"
+							onClick={() => setActiveTab(tab.key)}
+							className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+								activeTab === tab.key
+									? "bg-accent text-white shadow-sm"
+									: "text-muted hover:text-foreground"
+							}`}
+						>
+							{t(tab.labelKey)}
+						</button>
+					))}
+				</div>
+
+				{activeListings.length > 0 ? (
 					<div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-						{latestListings.slice(0, 6).map((listing) => (
+						{activeListings.slice(0, 6).map((listing) => (
 							<ListingCard
 								key={listing.id}
 								listing={listing}
@@ -212,53 +293,23 @@ function HomePage() {
 							/>
 						))}
 					</div>
-				</section>
-			)}
-
-			{/* How it works */}
-			<section className="bg-primary px-4 py-16">
-				<div className="mx-auto max-w-4xl">
-					<h2 className="mb-12 text-center font-heading text-2xl font-bold text-white">
-						{t("howItWorks.heading")}
-					</h2>
-
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-						{[
-							{
-								num: "01",
-								title: t("howItWorks.step1.title"),
-								desc: t("howItWorks.step1.desc"),
-							},
-							{
-								num: "02",
-								title: t("howItWorks.step2.title"),
-								desc: t("howItWorks.step2.desc"),
-							},
-							{
-								num: "03",
-								title: t("howItWorks.step3.title"),
-								desc: t("howItWorks.step3.desc"),
-							},
-						].map((step) => (
-							<div
-								key={step.num}
-								className="rounded-2xl border border-white/10 bg-white/[0.05] p-6"
-							>
-								<span className="font-heading text-3xl font-bold text-accent-light">
-									{step.num}
-								</span>
-								<h3 className="mt-3 font-heading text-lg font-semibold text-white">{step.title}</h3>
-								<p className="mt-2 text-sm leading-relaxed text-white/70">{step.desc}</p>
-							</div>
-						))}
+				) : (
+					<div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-16 text-center">
+						<p className="text-sm text-muted">{t("latestListings.browseAll")}</p>
+						<Link
+							to={CATEGORY_BROWSE_PATH[activeTab]}
+							className="mt-4 rounded-lg bg-accent px-5 py-2 text-sm font-semibold text-white hover:bg-accent-hover"
+						>
+							{t("latestListings.browseAll")}
+						</Link>
 					</div>
-				</div>
+				)}
 			</section>
 
 			{/* Lister CTA */}
-			<section className="px-4 py-16 text-center">
-				<h2 className="font-heading text-2xl font-bold text-foreground">{t("cta.heading")}</h2>
-				<p className="mt-2 text-muted">{t("cta.body")}</p>
+			<section className="bg-primary px-4 py-16 text-center">
+				<h2 className="font-heading text-2xl font-bold text-white">{t("cta.heading")}</h2>
+				<p className="mt-2 text-white/70">{t("cta.body")}</p>
 				{verified ? (
 					<Link
 						data-testid="home-add-listing-cta"
@@ -271,7 +322,7 @@ function HomePage() {
 					<span
 						data-testid="home-add-listing-cta"
 						title={tAuth("unverifiedTooltip")}
-						className="mt-6 inline-block cursor-not-allowed rounded-lg bg-muted-light px-8 py-3 font-heading text-sm font-semibold text-muted"
+						className="mt-6 inline-block cursor-not-allowed rounded-lg bg-white/20 px-8 py-3 font-heading text-sm font-semibold text-white/50"
 					>
 						{t("cta.button")}
 					</span>

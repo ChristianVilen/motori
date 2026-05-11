@@ -15,6 +15,7 @@ import { LoginModal } from "~/components/auth/login-modal";
 import { UserMenu } from "~/components/auth/user-menu";
 import { LanguageSelector } from "~/components/language-selector";
 import { Logo } from "~/components/logo";
+import { CategoryDropdown } from "~/components/nav/category-dropdown";
 import { authClient, signOut, useSession } from "~/lib/auth-client";
 import { SITE_NAME, SITE_URL } from "~/lib/constants";
 import { i18n as clientI18n, ensureClientI18n } from "~/lib/i18n/client";
@@ -42,11 +43,11 @@ export const Route = createRootRoute({
 			{ charSet: "utf-8" },
 
 			{ name: "viewport", content: "width=device-width, initial-scale=1" },
-			{ title: `${SITE_NAME} — Vuokraa moottoripyörä` },
+			{ title: `${SITE_NAME} — Motoristien oma yhteisö` },
 			{
 				name: "description",
 				content:
-					"Suomalainen moottoripyörien vuokrausilmoitukset. Vuokraa kaksipyöräinen tai ilmoita omasi vuokralle.",
+					"Osta, myy ja vuokraa moottoripyöriä, varusteita ja osia. Suomalainen motoristien yhteisö.",
 			},
 			{
 				name: "theme-color",
@@ -54,7 +55,7 @@ export const Route = createRootRoute({
 			},
 			{ property: "og:type", content: "website" },
 			{ property: "og:site_name", content: SITE_NAME },
-			{ property: "og:title", content: `${SITE_NAME} — Vuokraa moottoripyörä` },
+			{ property: "og:title", content: `${SITE_NAME} — Motoristien oma yhteisö` },
 			{
 				property: "og:description",
 				content: "Suomalainen moottoripyörien vuokrausilmoitukset.",
@@ -220,12 +221,21 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 							<Link to="/" className="flex items-center">
 								<Logo variant="dark" className="h-8 w-auto" />
 							</Link>
-							<div className="flex items-center gap-4 sm:gap-6">
-								<Link to="/ilmoitukset" className="text-sm text-white/70 hover:text-white">
-									{t("nav.browse")}
+							<div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 sm:gap-x-6">
+								<CategoryDropdown />
+								<Link
+									to="/varusteet"
+									data-testid="nav-varusteet"
+									className="text-sm text-white/70 hover:text-white"
+								>
+									{t("nav.gear")}
 								</Link>
-								<Link to="/tori" className="text-sm text-white/70 hover:text-white">
-									{t("nav.tori")}
+								<Link
+									to="/varaosat"
+									data-testid="nav-varaosat"
+									className="text-sm text-white/70 hover:text-white"
+								>
+									{t("nav.parts")}
 								</Link>
 								{verified ? (
 									<Link
@@ -297,6 +307,20 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 				<main id="main-content">{children}</main>
 				{!isAdmin && (
 					<footer className="relative border-t border-border px-4 py-6 text-center text-xs text-muted">
+						<div className="mb-3 flex flex-wrap justify-center gap-x-4 gap-y-1">
+							<Link to="/pyorat/myynti" className="hover:text-foreground">
+								{t("footer.sale")}
+							</Link>
+							<Link to="/pyorat/vuokraus" className="hover:text-foreground">
+								{t("footer.rental")}
+							</Link>
+							<Link to="/varusteet" className="hover:text-foreground">
+								{t("footer.gear")}
+							</Link>
+							<Link to="/varaosat" className="hover:text-foreground">
+								{t("footer.parts")}
+							</Link>
+						</div>
 						<span>{t("footer.copyright")}</span>
 						<span className="mx-2">·</span>
 						<Link to="/kayttoehdot" className="hover:text-foreground">

@@ -1,56 +1,41 @@
 export default {
 	hero: {
-		imgAlt: "Motorcyclist on a Kawasaki Ninja at sunset",
-		seasonTag: "2026 season is on",
-		heading: "Rent a motorcycle",
-		headingAccent: "directly from the owner",
-		subheading: "Rent a motorcycle from the owner or list yours for rent.",
-		searchPlaceholder: "Search brand, model, city...",
+		imgAlt: "Rider on Kawasaki Ninja at sunset",
+		heading: "A community for riders",
+		subheading: "Buy, sell, rent and swap motorcycles, gear and parts directly with other riders.",
+		searchPlaceholder: "Search make, model or gear...",
 		searchButton: "Search",
 		chips: {
 			uusimaa: "Uusimaa",
 			pirkanmaa: "Pirkanmaa",
 			naked: "Naked",
-			a2: "A2 license",
+			a2: "A2 licence",
 			touring: "Touring",
 		},
 		statsListings: "listings",
 		statsRegions: "regions",
 		statsPrice: "from / day",
 	},
-	seasonalStrip: {
-		active: "Summer season is here. {{total}} bikes available across Finland.",
-		inactive: "Book for next season. New listings added regularly.",
+	categories: {
+		heading: "What are you looking for?",
+		sale: { label: "Bikes for sale", desc: "Used and new motorcycles" },
+		rental: { label: "Rental", desc: "For a day or a weekend" },
+		gear: { label: "Gear", desc: "Helmets, jackets, boots and more" },
+		parts: { label: "Parts", desc: "Parts straight from other riders" },
 	},
 	latestListings: {
 		heading: "Latest listings",
-		subheading: "Recently added",
 		browseAll: "Browse all",
-	},
-	howItWorks: {
-		heading: "How it works",
-		step1: {
-			title: "Find a bike",
-			desc: "Browse listings by region, type, or search freely.",
-		},
-		step2: {
-			title: "Get in touch",
-			desc: "Arrange the rental details directly with the owner.",
-		},
-		step3: {
-			title: "Hit the road",
-			desc: "Pick up the bike, enjoy the ride, and return as agreed.",
+		tabs: {
+			sale: "For sale",
+			rental: "Rental",
+			gear: "Gear",
+			parts: "Parts",
 		},
 	},
 	cta: {
-		heading: "Your bike sitting in the garage?",
-		body: "Listing is free. Renters find you through the service.",
-		button: "Add a listing",
-	},
-	footer: {
-		brand: "Motori",
-		browseListings: "Browse listings",
-		addListing: "List a bike",
-		copyright: "© {{year}} Motori",
+		heading: "Post a listing",
+		body: "A free listing reaches other riders directly.",
+		button: "Add listing",
 	},
 } as const;

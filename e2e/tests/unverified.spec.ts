@@ -81,8 +81,8 @@ test.describe("Unverified user flow", () => {
 	});
 
 	test("unverified user can still browse listings", async () => {
-		await page.goto("/ilmoitukset");
+		await page.goto("/pyorat/vuokraus");
 		await waitForHydration(page);
-		await expect(page).toHaveURL(/\/ilmoitukset/);
+		await expect(page).toHaveURL(/\/pyorat\/vuokraus/);
 	});
 });

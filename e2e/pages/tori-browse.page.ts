@@ -12,7 +12,7 @@ export class ToriBrowsePage {
 
 	async goto(params?: Record<string, string>) {
 		const query = params ? `?${new URLSearchParams(params).toString()}` : "";
-		await this.page.goto(`/tori${query}`);
+		await this.page.goto(`/varusteet${query}`);
 		await waitForHydration(this.page);
 	}
 

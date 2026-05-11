@@ -8,12 +8,13 @@ interface FilterSidebarProps {
 	search: BrowseSearchParams;
 	hasQuery: boolean;
 	makes: FilterMake[];
+	browseTo: string;
 }
 
-export function FilterSidebar({ search, hasQuery, makes }: FilterSidebarProps) {
+export function FilterSidebar({ search, hasQuery, makes, browseTo }: FilterSidebarProps) {
 	const { t } = useTranslation("listings");
 	const activeFilterCount = countActiveFilters(search);
-	const { updateFilter, toggleArrayFilter, clearAll } = useFilterActions(search);
+	const { updateFilter, toggleArrayFilter, clearAll } = useFilterActions(search, browseTo);
 
 	return (
 		<aside className="w-full shrink-0 space-y-6">
@@ -33,6 +34,7 @@ export function FilterSidebar({ search, hasQuery, makes }: FilterSidebarProps) {
 				search={search}
 				hasQuery={hasQuery}
 				makes={makes}
+				browseTo={browseTo}
 				idPrefix="filter"
 				inputHeight="h-9"
 			/>

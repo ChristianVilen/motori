@@ -41,7 +41,7 @@ test.describe("Booking flow", () => {
 
 		// 2. Log in as renter and open the seeded listing.
 		await loginAs(page, renterEmail);
-		await page.goto(`/ilmoitukset/${SEEDED_LISTING_ID}/${SEEDED_LISTING_SLUG}`);
+		await page.goto(`/pyorat/vuokraus/${SEEDED_LISTING_ID}/${SEEDED_LISTING_SLUG}`);
 		await waitForHydration(page);
 
 		// 3. Verify the booking form is visible.

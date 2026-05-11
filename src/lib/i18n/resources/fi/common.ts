@@ -1,12 +1,14 @@
 export default {
 	nav: {
-		browse: "Selaa",
-		tori: "Tori",
+		bikes: "Pyörät",
+		sale: "Myynti",
+		rental: "Vuokraus",
+		gear: "Varusteet",
+		parts: "Varaosat",
 		listMotorcycle: "Ilmoita pyörä",
 		myListings: "Omat",
 		signIn: "Kirjaudu",
 		signOut: "Kirjaudu ulos",
-		profile: "Profiili",
 		settings: "Asetukset",
 		userMenuAriaLabel: "Käyttäjävalikko",
 		skipToContent: "Siirry sisältöön",
@@ -18,10 +20,7 @@ export default {
 		back: "Takaisin etusivulle",
 	},
 	actions: {
-		save: "Tallenna",
 		cancel: "Peruuta",
-		delete: "Poista",
-		edit: "Muokkaa",
 	},
 	errors: {
 		generic: "Jotain meni pieleen. Yritä uudelleen.",
@@ -39,12 +38,15 @@ export default {
 		copyright: "© Motori",
 		terms: "Käyttöehdot",
 		privacy: "Tietosuoja",
+		sale: "Pyörät myyntiin",
+		rental: "Vuokraus",
+		gear: "Varusteet",
+		parts: "Varaosat",
 	},
 	validation: {
 		titleTooShort: "Otsikko on liian lyhyt (min 5 merkkiä)",
 		titleTooLong: "Otsikko on liian pitkä",
 		brandRequired: "Valitse merkki",
-		modelRequired: "Malli on pakollinen",
 		yearTooOld: "Vuosimalli liian vanha",
 		yearInFuture: "Vuosimalli ei voi olla tulevaisuudessa",
 		typeRequired: "Valitse tyyppi",
@@ -54,7 +56,6 @@ export default {
 		regionRequired: "Valitse alue",
 		descriptionTooShort: "Kuvaus on liian lyhyt (min 20 merkkiä)",
 		invalidImageUrl: "Virheellinen kuva-URL",
-		invalidPhone: "Virheellinen puhelinnumero",
 	},
 	tori: {
 		category: {

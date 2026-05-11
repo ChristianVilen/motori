@@ -4,7 +4,7 @@ import { waitForHydration } from "../helpers";
 
 const PAGES = [
 	{ name: "Home", path: "/" },
-	{ name: "Browse listings", path: "/ilmoitukset" },
+	{ name: "Browse listings", path: "/pyorat/vuokraus" },
 	{ name: "Login", path: "/kirjaudu" },
 	{ name: "Register", path: "/rekisteroidy" },
 	{ name: "Forgot password", path: "/unohdin-salasanan" },

@@ -1,8 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { type SelectQueryBuilder, type SqlBool, sql } from "kysely";
+import { z } from "zod";
 import { expandDateRange } from "~/lib/bookings";
+import type { Condition, GearTypeValue } from "~/lib/constants";
 import { centsToEuros, eurosToCents } from "~/lib/currency";
-import type { Database, Listing, ListingImage } from "~/lib/db/schema";
+import type { Database, Listing, ListingCategory, ListingImage } from "~/lib/db/schema";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { toPrefixTsQuery, toTsQuery } from "~/lib/search";
 import type { BrowseSearchParams } from "~/lib/validators";
@@ -11,6 +13,8 @@ import type { BrowseSearchParams } from "~/lib/validators";
 // db/index.ts imports pg which uses Buffer (Node-only); keeping it out of the
 // static import graph prevents it from being bundled into client chunks.
 const getDb = async () => (await import("~/lib/db/index")).db;
+
+const categorySchema = z.enum(["sale", "rental", "gear", "part"]);
 
 const ADJACENT_REGIONS: Record<string, string[]> = {
 	uusimaa: ["paijat-hame", "kanta-hame", "kymenlaakso"],
@@ -300,77 +304,257 @@ async function hydrateListings(listings: Listing[]): Promise<ListingWithImages[]
 
 export const searchListings = createServerFn({ method: "GET" })
 	.middleware([rateLimitMiddleware(60, 60, "search")])
-	.inputValidator((input: BrowseSearchParams) => input)
+	.inputValidator((input: BrowseSearchParams & { category: ListingCategory }) => ({
+		...input,
+		category: categorySchema.parse(input.category),
+	}))
 	.handler(async ({ data: params }): Promise<SearchResult> => {
-		const db = await getDb();
-		const searchMode = await resolveListingSearchMode(params.q);
-		const sort: SortMode = params.sort ?? (searchMode.type !== "none" ? "relevance" : "newest");
-
-		const baseQuery = applyFilters(
-			db
-				.selectFrom("listing")
-				.innerJoin("listing_rental", "listing_rental.listing_id", "listing.id")
-				.where("listing.category", "=", "rental"),
-			params,
-			searchMode,
-		);
-
-		const countResult = await baseQuery
-			.select(sql<number>`count(*)::int`.as("count"))
-			.executeTakeFirstOrThrow();
-
-		let query = baseQuery.selectAll("listing").select("listing_rental.price_per_day");
-		if (params.cursor) {
-			query = applyCursor(query, params.cursor, sort);
+		switch (params.category) {
+			case "rental":
+				return searchRentalListings(params);
+			case "sale":
+				return searchSimpleCategory(params, { table: "listing_sale", category: "sale" });
+			case "gear":
+				return searchSimpleCategory(params, { table: "listing_gear", category: "gear" });
+			case "part":
+				return searchSimpleCategory(params, { table: "listing_part", category: "part" });
 		}
-		query = applySort(query, sort, searchMode);
-		query = query.limit(PAGE_SIZE);
-
-		const listings = await query.execute();
-
-		return {
-			listings: await hydrateListings(listings),
-			nextCursor: buildNextCursor(listings, sort),
-			totalCount: countResult.count,
-		};
 	});
 
-export const getLatestListings = createServerFn({ method: "GET" }).handler(async () => {
+async function searchRentalListings(params: BrowseSearchParams): Promise<SearchResult> {
 	const db = await getDb();
-	const listings = await db
-		.selectFrom("listing")
-		.selectAll()
-		.where("status", "=", "active")
-		.where("category", "=", "rental")
-		.orderBy("created_at", "desc")
-		.limit(6)
-		.execute();
+	const searchMode = await resolveListingSearchMode(params.q);
+	const sort: SortMode = params.sort ?? (searchMode.type !== "none" ? "relevance" : "newest");
 
-	if (listings.length === 0) {
-		return [] as ListingWithImages[];
+	const baseQuery = applyFilters(
+		db
+			.selectFrom("listing")
+			.innerJoin("listing_rental", "listing_rental.listing_id", "listing.id")
+			.where("listing.category", "=", "rental"),
+		params,
+		searchMode,
+	);
+
+	const countResult = await baseQuery
+		.select(sql<number>`count(*)::int`.as("count"))
+		.executeTakeFirstOrThrow();
+
+	let query = baseQuery.selectAll("listing").select("listing_rental.price_per_day");
+	if (params.cursor) {
+		query = applyCursor(query, params.cursor, sort);
+	}
+	query = applySort(query, sort, searchMode);
+	query = query.limit(PAGE_SIZE);
+
+	const listings = await query.execute();
+	return {
+		listings: await hydrateListings(listings),
+		nextCursor: buildNextCursor(listings, sort),
+		totalCount: countResult.count,
+	};
+}
+
+type SimpleChildTable = "listing_sale" | "listing_gear" | "listing_part";
+type SimpleSearchParams = BrowseSearchParams & {
+	condition?: string;
+	gear_type?: string;
+	make?: string;
+};
+
+interface SimpleCategorySearch {
+	table: SimpleChildTable;
+	category: "sale" | "gear" | "part";
+}
+
+// Return type is loose because applySimpleFilters conditionally widens the join graph
+// (innerJoin on motorcycle_make changes the builder's generic DB param from single-table to joined).
+// Callers cast result at select-time, same as the rental path's baseQuery pattern.
+function applySimpleFilters(
+	// biome-ignore lint/suspicious/noExplicitAny: Kysely join graph widening prevents precise typing
+	query: SelectQueryBuilder<Database, any, object>,
+	params: SimpleSearchParams,
+	searchMode: ListingSearchMode,
+	child: SimpleCategorySearch,
+	// biome-ignore lint/suspicious/noExplicitAny: Kysely join graph widening prevents precise typing
+): SelectQueryBuilder<Database, any, object> {
+	let q = query
+		.where("listing.category", "=", child.category)
+		.where("listing.status", "=", "active");
+
+	if (searchMode.type === "fts") {
+		q = q.where(
+			sql<SqlBool>`listing.search_vector @@ to_tsquery('finnish_unaccent', ${searchMode.prefixQuery})`,
+		);
+	} else if (searchMode.type === "trigram") {
+		q = q.where(sql<SqlBool>`(listing.title || ' ' || listing.description) % ${searchMode.raw}`);
+	}
+	if (params.region) {
+		q = q.where("listing.region", "=", params.region);
+	}
+	if (params.price_min != null) {
+		q = q.where(sql`child.price`, ">=", eurosToCents(params.price_min));
+	}
+	if (params.price_max != null) {
+		q = q.where(sql`child.price`, "<=", eurosToCents(params.price_max));
+	}
+	if (params.condition) {
+		q = q.where(sql`child.condition`, "=", params.condition);
+	}
+	if (params.gear_type && child.category === "gear") {
+		q = q.where(sql`child.gear_type`, "=", params.gear_type);
+	}
+	if (params.make && (child.category === "sale" || child.category === "part")) {
+		q = q
+			.innerJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
+			.where("motorcycle_make.slug", "=", params.make);
+	}
+	return q;
+}
+
+function applySimpleCursor<O>(
+	query: SelectQueryBuilder<Database, "listing", O>,
+	cursor: string,
+	sort: SortMode,
+): SelectQueryBuilder<Database, "listing", O> {
+	const [cursorVal, cursorId] = cursor.split("__");
+	if (!cursorVal || !cursorId) {
+		return query;
 	}
 
-	return hydrateListings(listings);
-});
+	if (sort === "price_asc") {
+		return query.where((eb) =>
+			eb.or([
+				eb(sql`child.price`, ">", Number(cursorVal)),
+				eb.and([eb(sql`child.price`, "=", Number(cursorVal)), eb("listing.id", ">", cursorId)]),
+			]),
+		);
+	}
+	if (sort === "price_desc") {
+		return query.where((eb) =>
+			eb.or([
+				eb(sql`child.price`, "<", Number(cursorVal)),
+				eb.and([eb(sql`child.price`, "=", Number(cursorVal)), eb("listing.id", "<", cursorId)]),
+			]),
+		);
+	}
+	return query.where((eb) =>
+		eb.or([
+			eb("listing.created_at", "<", new Date(cursorVal)),
+			eb.and([eb("listing.created_at", "=", new Date(cursorVal)), eb("listing.id", "<", cursorId)]),
+		]),
+	);
+}
+
+function applySimpleSort<O>(
+	query: SelectQueryBuilder<Database, "listing", O>,
+	sort: SortMode,
+	searchMode: ListingSearchMode,
+): SelectQueryBuilder<Database, "listing", O> {
+	if (sort === "relevance" && searchMode.type === "fts") {
+		return query
+			.orderBy(
+				sql`ts_rank_cd(listing.search_vector, to_tsquery('finnish_unaccent', ${searchMode.prefixQuery}))`,
+				"desc",
+			)
+			.orderBy("listing.created_at", "desc");
+	}
+	if (sort === "relevance" && searchMode.type === "trigram") {
+		return query
+			.orderBy(
+				sql`similarity(listing.title || ' ' || listing.description, ${searchMode.raw})`,
+				"desc",
+			)
+			.orderBy("listing.created_at", "desc");
+	}
+	if (sort === "price_asc") {
+		return query.orderBy(sql`child.price`, "asc").orderBy("listing.id", "asc");
+	}
+	if (sort === "price_desc") {
+		return query.orderBy(sql`child.price`, "desc").orderBy("listing.id", "desc");
+	}
+	return query.orderBy("listing.created_at", "desc").orderBy("listing.id", "desc");
+}
+
+async function searchSimpleCategory(
+	params: BrowseSearchParams,
+	child: SimpleCategorySearch,
+): Promise<SearchResult> {
+	const db = await getDb();
+	const searchMode = await resolveListingSearchMode(params.q);
+	const sort: SortMode = params.sort ?? (searchMode.type !== "none" ? "relevance" : "newest");
+
+	const baseQuery = applySimpleFilters(
+		db.selectFrom("listing").innerJoin(`${child.table} as child`, "child.listing_id", "listing.id"),
+		params,
+		searchMode,
+		child,
+	);
+
+	const countResult = await baseQuery
+		.select(sql<number>`count(*)::int`.as("count"))
+		.executeTakeFirstOrThrow();
+
+	// biome-ignore lint/suspicious/noExplicitAny: cast needed — Kysely join graph widening prevents precise typing
+	let query = (baseQuery as SelectQueryBuilder<Database, any, object>)
+		.selectAll("listing")
+		.select(sql<number>`child.price`.as("price_per_day"));
+	if (params.cursor) {
+		query = applySimpleCursor(query, params.cursor, sort);
+	}
+	query = applySimpleSort(query, sort, searchMode);
+	query = query.limit(PAGE_SIZE);
+
+	const listings = (await query.execute()) as (Listing & { price_per_day: number })[];
+	return {
+		listings: await hydrateListings(listings),
+		nextCursor: buildNextCursor(listings, sort),
+		totalCount: countResult.count,
+	};
+}
+
+export const getLatestListings = createServerFn({ method: "GET" })
+	.middleware([rateLimitMiddleware(60, 60, "latest")])
+	.inputValidator((category: unknown) => categorySchema.parse(category))
+	.handler(async ({ data: category }) => {
+		const db = await getDb();
+		const listings = await db
+			.selectFrom("listing")
+			.selectAll()
+			.where("status", "=", "active")
+			.where("category", "=", category)
+			.orderBy("created_at", "desc")
+			.limit(6)
+			.execute();
+
+		if (listings.length === 0) {
+			return [] as ListingWithImages[];
+		}
+		return hydrateListings(listings);
+	});
 
 export const getHomepageStats = createServerFn({ method: "GET" }).handler(async () => {
 	const db = await getDb();
-	const result = await db
-		.selectFrom("listing")
-		.innerJoin("listing_rental", "listing_rental.listing_id", "listing.id")
-		.select([
-			sql<number>`count(*)::int`.as("total"),
-			sql<number>`count(distinct listing.region)::int`.as("regions"),
-			sql<number>`coalesce(min(listing_rental.price_per_day), 0)::int`.as("min_price"),
-		])
-		.where("listing.status", "=", "active")
-		.where("listing.category", "=", "rental")
-		.executeTakeFirstOrThrow();
+	const [countResult, priceResult] = await Promise.all([
+		db
+			.selectFrom("listing")
+			.select([
+				sql<number>`count(*)::int`.as("total"),
+				sql<number>`count(distinct region)::int`.as("regions"),
+			])
+			.where("status", "=", "active")
+			.executeTakeFirstOrThrow(),
+		db
+			.selectFrom("listing_rental")
+			.innerJoin("listing", "listing.id", "listing_rental.listing_id")
+			.select(sql<number>`coalesce(min(listing_rental.price_per_day), 0)::int`.as("min_price"))
+			.where("listing.status", "=", "active")
+			.executeTakeFirstOrThrow(),
+	]);
 
 	return {
-		totalListings: result.total,
-		regionCount: result.regions,
-		minPricePerDay: Math.round(centsToEuros(result.min_price)),
+		totalListings: countResult.total,
+		regionCount: countResult.regions,
+		minPricePerDay: Math.round(centsToEuros(priceResult.min_price)),
 	};
 });
 
@@ -476,10 +660,30 @@ export type ListingForDisplay = {
 		price_description: string | null;
 		mileage_limit: number | null;
 	} | null;
+	sale: {
+		price: number;
+		condition: Condition;
+		km_driven: number | null;
+		negotiable: boolean;
+	} | null;
+	gear: {
+		gear_type: GearTypeValue;
+		size: string | null;
+		condition: Condition;
+		price: number;
+	} | null;
+	part: {
+		part_category: string;
+		compatible_make_id: string | null;
+		compatible_model_id: string | null;
+		condition: Condition;
+		price: number;
+	} | null;
 	images: ListingImage[];
 	makeName: string | null;
 	makeSlug: string | null;
 	modelName: string | null;
+	ownerContact: { phone: string | null; showPhone: boolean };
 };
 
 export async function getListingForDisplay(shortId: string): Promise<ListingForDisplay | null> {
@@ -501,10 +705,9 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 	if (!row) {
 		return null;
 	}
-
 	const { makeName, makeSlug, modelName, ...listing } = row;
 
-	const [images, rental] = await Promise.all([
+	const [images, rental, sale, gear, part, ownerProfile] = await Promise.all([
 		db
 			.selectFrom("listing_image")
 			.selectAll()
@@ -524,15 +727,54 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 					.where("listing_id", "=", listing.id)
 					.executeTakeFirst()
 			: Promise.resolve(null),
+		listing.category === "sale"
+			? db
+					.selectFrom("listing_sale")
+					.select(["price", "condition", "km_driven", "negotiable"])
+					.where("listing_id", "=", listing.id)
+					.executeTakeFirst()
+			: Promise.resolve(null),
+		listing.category === "gear"
+			? db
+					.selectFrom("listing_gear")
+					.select(["gear_type", "size", "condition", "price"])
+					.where("listing_id", "=", listing.id)
+					.executeTakeFirst()
+			: Promise.resolve(null),
+		listing.category === "part"
+			? db
+					.selectFrom("listing_part")
+					.select([
+						"part_category",
+						"compatible_make_id",
+						"compatible_model_id",
+						"condition",
+						"price",
+					])
+					.where("listing_id", "=", listing.id)
+					.executeTakeFirst()
+			: Promise.resolve(null),
+		db
+			.selectFrom("profile")
+			.select(["phone", "show_phone"])
+			.where("user_id", "=", listing.owner_id)
+			.executeTakeFirst(),
 	]);
 
 	return {
 		listing,
 		rental: rental ?? null,
+		sale: sale ?? null,
+		gear: gear ?? null,
+		part: part ?? null,
 		images,
 		makeName: makeName ?? null,
 		makeSlug: makeSlug ?? null,
 		modelName: modelName ?? null,
+		ownerContact: {
+			phone: ownerProfile?.phone ?? null,
+			showPhone: ownerProfile?.show_phone ?? false,
+		},
 	};
 }
 
@@ -545,6 +787,25 @@ export type ListingForEdit = {
 		price_description: string | null;
 		mileage_limit: number | null;
 		availability_default: "open" | "closed";
+	} | null;
+	sale: {
+		price: number;
+		condition: string;
+		km_driven: number | null;
+		negotiable: boolean;
+	} | null;
+	gear: {
+		gear_type: string;
+		size: string | null;
+		condition: string;
+		price: number;
+	} | null;
+	part: {
+		part_category: string;
+		compatible_make_id: string | null;
+		compatible_model_id: string | null;
+		condition: string;
+		price: number;
 	} | null;
 	images: ListingImage[];
 	makeSlug: string | null;
@@ -572,7 +833,7 @@ export async function getListingForEdit(
 
 	const { makeSlug, modelName, ...listing } = row;
 
-	const [images, rental] = await Promise.all([
+	const [images, rental, sale, gear, part] = await Promise.all([
 		db
 			.selectFrom("listing_image")
 			.selectAll()
@@ -586,11 +847,41 @@ export async function getListingForEdit(
 					.where("listing_id", "=", listing.id)
 					.executeTakeFirst()
 			: Promise.resolve(null),
+		listing.category === "sale"
+			? db
+					.selectFrom("listing_sale")
+					.select(["price", "condition", "km_driven", "negotiable"])
+					.where("listing_id", "=", listing.id)
+					.executeTakeFirst()
+			: Promise.resolve(null),
+		listing.category === "gear"
+			? db
+					.selectFrom("listing_gear")
+					.select(["gear_type", "size", "condition", "price"])
+					.where("listing_id", "=", listing.id)
+					.executeTakeFirst()
+			: Promise.resolve(null),
+		listing.category === "part"
+			? db
+					.selectFrom("listing_part")
+					.select([
+						"part_category",
+						"compatible_make_id",
+						"compatible_model_id",
+						"condition",
+						"price",
+					])
+					.where("listing_id", "=", listing.id)
+					.executeTakeFirst()
+			: Promise.resolve(null),
 	]);
 
 	return {
 		listing,
 		rental: rental ?? null,
+		sale: sale ?? null,
+		gear: gear ?? null,
+		part: part ?? null,
 		images,
 		makeSlug: makeSlug ?? null,
 		modelName: modelName ?? null,

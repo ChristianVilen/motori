@@ -7,7 +7,9 @@ import { useState } from "react";
 import { AvailabilityCalendar } from "~/components/listings/availability-calendar";
 import { ListingForm } from "~/components/listings/listing-form";
 import { Button } from "~/components/ui/button";
+import { categoryDetailPath } from "~/lib/category-routes";
 import { centsToEuros } from "~/lib/currency";
+import type { ListingCategory } from "~/lib/db/schema";
 import { AppError } from "~/lib/errors";
 import { useTranslation } from "~/lib/i18n";
 import { updateListing } from "~/lib/listings-commands";
@@ -49,7 +51,12 @@ const updateListingFn = createServerFn({ method: "POST" })
 			throw new Error("Kirjaudu sisään");
 		}
 
-		if (data.form.images.some((img) => !isValidImageUrl(img.url))) {
+		if (
+			data.form.images.some(
+				(img) =>
+					!isValidImageUrl(img.url) || (img.thumbnail_url && !isValidImageUrl(img.thumbnail_url)),
+			)
+		) {
 			throw new AppError("listing.invalid_image", { field: "images" });
 		}
 
@@ -218,36 +225,84 @@ function AvailabilityEditor(props: {
 	);
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: form component with conditional fields
 function EditListingPage() {
 	const { t } = useTranslation("listings");
-	const { listing, rental, images, makeSlug, modelName, availability } = Route.useLoaderData();
+	const { listing, rental, sale, gear, part, images, makeSlug, modelName, availability } =
+		Route.useLoaderData();
 	const navigate = useNavigate();
 
-	const initialValues = {
+	const sharedInitial = {
 		title: listing.title,
-		make_id: listing.make_id ?? undefined,
-		model_id: listing.model_id ?? null,
-		year: listing.year ?? undefined,
-		engine_cc: listing.engine_cc,
-		motorcycle_type: listing.motorcycle_type ?? undefined,
-		required_license: listing.required_license,
-		price_per_day: centsToEuros(rental?.price_per_day ?? 0),
-		price_per_week: rental?.price_per_week ? centsToEuros(rental.price_per_week) : null,
-		price_per_weekend: rental?.price_per_weekend ? centsToEuros(rental.price_per_weekend) : null,
-		price_description: rental?.price_description ?? "",
 		city: listing.city,
 		region: listing.region,
 		postal_code: listing.postal_code ?? "",
 		description: listing.description,
-		mileage_limit: rental?.mileage_limit,
 	};
+
+	let initialValues: Partial<ListingFormData>;
+	if (listing.category === "rental") {
+		initialValues = {
+			...sharedInitial,
+			category: "rental",
+			make_id: listing.make_id ?? undefined,
+			model_id: listing.model_id ?? null,
+			year: listing.year ?? undefined,
+			engine_cc: listing.engine_cc,
+			motorcycle_type: listing.motorcycle_type ?? undefined,
+			required_license: listing.required_license,
+			price_per_day: centsToEuros(rental?.price_per_day ?? 0),
+			price_per_week: rental?.price_per_week ? centsToEuros(rental.price_per_week) : null,
+			price_per_weekend: rental?.price_per_weekend ? centsToEuros(rental.price_per_weekend) : null,
+			price_description: rental?.price_description ?? "",
+			mileage_limit: rental?.mileage_limit,
+		} as Partial<ListingFormData>;
+	} else if (listing.category === "sale") {
+		initialValues = {
+			...sharedInitial,
+			category: "sale",
+			make_id: listing.make_id ?? undefined,
+			model_id: listing.model_id ?? null,
+			year: listing.year ?? undefined,
+			engine_cc: listing.engine_cc,
+			motorcycle_type: listing.motorcycle_type ?? undefined,
+			required_license: listing.required_license,
+			price: sale?.price ?? 0,
+			condition: (sale?.condition ?? "good") as "new" | "excellent" | "good" | "fair" | "poor",
+			km_driven: sale?.km_driven ?? null,
+			negotiable: sale?.negotiable ?? false,
+		} as Partial<ListingFormData>;
+	} else if (listing.category === "gear") {
+		initialValues = {
+			...sharedInitial,
+			category: "gear",
+			gear_type: (gear?.gear_type ?? "other") as
+				| "helmet"
+				| "jacket"
+				| "pants"
+				| "boots"
+				| "gloves"
+				| "other",
+			size: gear?.size ?? null,
+			condition: (gear?.condition ?? "good") as "new" | "excellent" | "good" | "fair" | "poor",
+			price: gear?.price ?? 0,
+		} as Partial<ListingFormData>;
+	} else {
+		initialValues = {
+			...sharedInitial,
+			category: "part",
+			part_category: part?.part_category ?? "",
+			compatible_make_id: part?.compatible_make_id ?? null,
+			condition: (part?.condition ?? "good") as "new" | "excellent" | "good" | "fair" | "poor",
+			price: part?.price ?? 0,
+		} as Partial<ListingFormData>;
+	}
 
 	async function handleSubmit(data: ListingFormData) {
 		await updateListingFn({ data: { id: listing.id, form: data } });
-		const slug = computeListingSlug(makeSlug, modelName, listing.city);
+		const slug = computeListingSlug(makeSlug ?? null, modelName ?? null, listing.city);
 		navigate({
-			to: "/ilmoitukset/$listingId/$slug",
-			params: { listingId: listing.short_id, slug },
+			href: categoryDetailPath(listing.category as ListingCategory, listing.short_id, slug),
 			replace: true,
 		});
 	}
@@ -270,17 +325,21 @@ function EditListingPage() {
 					<p className="mt-1 text-sm text-muted">{listing.title}</p>
 				</div>
 				<ListingForm
+					lockedCategory={listing.category as ListingCategory}
+					initialCategory={listing.category as ListingCategory}
 					initialValues={initialValues}
 					initialImages={images.map((img) => ({ url: img.url, thumbnail_url: img.thumbnail_url }))}
 					onSubmit={handleSubmit}
 					submitLabel={t("edit.submitLabel")}
 				/>
-				<AvailabilityEditor
-					listingId={listing.id}
-					initialDefault={availability.availability_default}
-					initialExceptions={availability.exception_dates}
-					bookedDates={availability.booked_dates}
-				/>
+				{listing.category === "rental" && (
+					<AvailabilityEditor
+						listingId={listing.id}
+						initialDefault={availability.availability_default}
+						initialExceptions={availability.exception_dates}
+						bookedDates={availability.booked_dates}
+					/>
+				)}
 			</div>
 		</div>
 	);

@@ -20,6 +20,8 @@ import { Route as KirjauduRouteImport } from './routes/kirjaudu'
 import { Route as KayttoehdotRouteImport } from './routes/kayttoehdot'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VarusteetIndexRouteImport } from './routes/varusteet/index'
+import { Route as VaraosatIndexRouteImport } from './routes/varaosat/index'
 import { Route as ToriIndexRouteImport } from './routes/tori/index'
 import { Route as OmatIndexRouteImport } from './routes/omat/index'
 import { Route as IlmoituksetIndexRouteImport } from './routes/ilmoitukset/index'
@@ -35,6 +37,10 @@ import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminModerationRouteImport } from './routes/admin/moderation'
 import { Route as AdminMakesRouteImport } from './routes/admin/makes'
 import { Route as AdminListingsRouteImport } from './routes/admin/listings'
+import { Route as PyoratVuokrausIndexRouteImport } from './routes/pyorat/vuokraus/index'
+import { Route as PyoratMyyntiIndexRouteImport } from './routes/pyorat/myynti/index'
+import { Route as VarusteetListingIdSlugRouteImport } from './routes/varusteet/$listingId_.$slug'
+import { Route as VaraosatListingIdSlugRouteImport } from './routes/varaosat/$listingId_.$slug'
 import { Route as ToriItemIdMuokkaaRouteImport } from './routes/tori/$itemId_.muokkaa'
 import { Route as ToriItemIdSlugRouteImport } from './routes/tori/$itemId_.$slug'
 import { Route as OmatVarauksetBookingIdRouteImport } from './routes/omat/varaukset_.$bookingId'
@@ -43,6 +49,8 @@ import { Route as IlmoituksetListingIdSlugRouteImport } from './routes/ilmoituks
 import { Route as ApiUploadsSplatRouteImport } from './routes/api/uploads/$'
 import { Route as ApiImagesUploadRouteImport } from './routes/api/images/upload'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as PyoratVuokrausListingIdSlugRouteImport } from './routes/pyorat/vuokraus/$listingId_.$slug'
+import { Route as PyoratMyyntiListingIdSlugRouteImport } from './routes/pyorat/myynti/$listingId_.$slug'
 
 const VaihdaSalasanaRoute = VaihdaSalasanaRouteImport.update({
   id: '/vaihda-salasana',
@@ -97,6 +105,16 @@ const AdminRouteRoute = AdminRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VarusteetIndexRoute = VarusteetIndexRouteImport.update({
+  id: '/varusteet/',
+  path: '/varusteet/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VaraosatIndexRoute = VaraosatIndexRouteImport.update({
+  id: '/varaosat/',
+  path: '/varaosat/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToriIndexRoute = ToriIndexRouteImport.update({
@@ -174,6 +192,26 @@ const AdminListingsRoute = AdminListingsRouteImport.update({
   path: '/listings',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const PyoratVuokrausIndexRoute = PyoratVuokrausIndexRouteImport.update({
+  id: '/pyorat/vuokraus/',
+  path: '/pyorat/vuokraus/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PyoratMyyntiIndexRoute = PyoratMyyntiIndexRouteImport.update({
+  id: '/pyorat/myynti/',
+  path: '/pyorat/myynti/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VarusteetListingIdSlugRoute = VarusteetListingIdSlugRouteImport.update({
+  id: '/varusteet/$listingId_/$slug',
+  path: '/varusteet/$listingId/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VaraosatListingIdSlugRoute = VaraosatListingIdSlugRouteImport.update({
+  id: '/varaosat/$listingId_/$slug',
+  path: '/varaosat/$listingId/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ToriItemIdMuokkaaRoute = ToriItemIdMuokkaaRouteImport.update({
   id: '/tori/$itemId_/muokkaa',
   path: '/tori/$itemId/muokkaa',
@@ -216,6 +254,18 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PyoratVuokrausListingIdSlugRoute =
+  PyoratVuokrausListingIdSlugRouteImport.update({
+    id: '/pyorat/vuokraus/$listingId_/$slug',
+    path: '/pyorat/vuokraus/$listingId/$slug',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PyoratMyyntiListingIdSlugRoute =
+  PyoratMyyntiListingIdSlugRouteImport.update({
+    id: '/pyorat/myynti/$listingId_/$slug',
+    path: '/pyorat/myynti/$listingId/$slug',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -244,6 +294,8 @@ export interface FileRoutesByFullPath {
   '/ilmoitukset/': typeof IlmoituksetIndexRoute
   '/omat/': typeof OmatIndexRoute
   '/tori/': typeof ToriIndexRoute
+  '/varaosat/': typeof VaraosatIndexRoute
+  '/varusteet/': typeof VarusteetIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/images/upload': typeof ApiImagesUploadRoute
   '/api/uploads/$': typeof ApiUploadsSplatRoute
@@ -252,6 +304,12 @@ export interface FileRoutesByFullPath {
   '/omat/varaukset/$bookingId': typeof OmatVarauksetBookingIdRoute
   '/tori/$itemId/$slug': typeof ToriItemIdSlugRoute
   '/tori/$itemId/muokkaa': typeof ToriItemIdMuokkaaRoute
+  '/varaosat/$listingId/$slug': typeof VaraosatListingIdSlugRoute
+  '/varusteet/$listingId/$slug': typeof VarusteetListingIdSlugRoute
+  '/pyorat/myynti/': typeof PyoratMyyntiIndexRoute
+  '/pyorat/vuokraus/': typeof PyoratVuokrausIndexRoute
+  '/pyorat/myynti/$listingId/$slug': typeof PyoratMyyntiListingIdSlugRoute
+  '/pyorat/vuokraus/$listingId/$slug': typeof PyoratVuokrausListingIdSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -279,6 +337,8 @@ export interface FileRoutesByTo {
   '/ilmoitukset': typeof IlmoituksetIndexRoute
   '/omat': typeof OmatIndexRoute
   '/tori': typeof ToriIndexRoute
+  '/varaosat': typeof VaraosatIndexRoute
+  '/varusteet': typeof VarusteetIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/images/upload': typeof ApiImagesUploadRoute
   '/api/uploads/$': typeof ApiUploadsSplatRoute
@@ -287,6 +347,12 @@ export interface FileRoutesByTo {
   '/omat/varaukset/$bookingId': typeof OmatVarauksetBookingIdRoute
   '/tori/$itemId/$slug': typeof ToriItemIdSlugRoute
   '/tori/$itemId/muokkaa': typeof ToriItemIdMuokkaaRoute
+  '/varaosat/$listingId/$slug': typeof VaraosatListingIdSlugRoute
+  '/varusteet/$listingId/$slug': typeof VarusteetListingIdSlugRoute
+  '/pyorat/myynti': typeof PyoratMyyntiIndexRoute
+  '/pyorat/vuokraus': typeof PyoratVuokrausIndexRoute
+  '/pyorat/myynti/$listingId/$slug': typeof PyoratMyyntiListingIdSlugRoute
+  '/pyorat/vuokraus/$listingId/$slug': typeof PyoratVuokrausListingIdSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -316,6 +382,8 @@ export interface FileRoutesById {
   '/ilmoitukset/': typeof IlmoituksetIndexRoute
   '/omat/': typeof OmatIndexRoute
   '/tori/': typeof ToriIndexRoute
+  '/varaosat/': typeof VaraosatIndexRoute
+  '/varusteet/': typeof VarusteetIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/images/upload': typeof ApiImagesUploadRoute
   '/api/uploads/$': typeof ApiUploadsSplatRoute
@@ -324,6 +392,12 @@ export interface FileRoutesById {
   '/omat/varaukset_/$bookingId': typeof OmatVarauksetBookingIdRoute
   '/tori/$itemId_/$slug': typeof ToriItemIdSlugRoute
   '/tori/$itemId_/muokkaa': typeof ToriItemIdMuokkaaRoute
+  '/varaosat/$listingId_/$slug': typeof VaraosatListingIdSlugRoute
+  '/varusteet/$listingId_/$slug': typeof VarusteetListingIdSlugRoute
+  '/pyorat/myynti/': typeof PyoratMyyntiIndexRoute
+  '/pyorat/vuokraus/': typeof PyoratVuokrausIndexRoute
+  '/pyorat/myynti/$listingId_/$slug': typeof PyoratMyyntiListingIdSlugRoute
+  '/pyorat/vuokraus/$listingId_/$slug': typeof PyoratVuokrausListingIdSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -354,6 +428,8 @@ export interface FileRouteTypes {
     | '/ilmoitukset/'
     | '/omat/'
     | '/tori/'
+    | '/varaosat/'
+    | '/varusteet/'
     | '/api/auth/$'
     | '/api/images/upload'
     | '/api/uploads/$'
@@ -362,6 +438,12 @@ export interface FileRouteTypes {
     | '/omat/varaukset/$bookingId'
     | '/tori/$itemId/$slug'
     | '/tori/$itemId/muokkaa'
+    | '/varaosat/$listingId/$slug'
+    | '/varusteet/$listingId/$slug'
+    | '/pyorat/myynti/'
+    | '/pyorat/vuokraus/'
+    | '/pyorat/myynti/$listingId/$slug'
+    | '/pyorat/vuokraus/$listingId/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -389,6 +471,8 @@ export interface FileRouteTypes {
     | '/ilmoitukset'
     | '/omat'
     | '/tori'
+    | '/varaosat'
+    | '/varusteet'
     | '/api/auth/$'
     | '/api/images/upload'
     | '/api/uploads/$'
@@ -397,6 +481,12 @@ export interface FileRouteTypes {
     | '/omat/varaukset/$bookingId'
     | '/tori/$itemId/$slug'
     | '/tori/$itemId/muokkaa'
+    | '/varaosat/$listingId/$slug'
+    | '/varusteet/$listingId/$slug'
+    | '/pyorat/myynti'
+    | '/pyorat/vuokraus'
+    | '/pyorat/myynti/$listingId/$slug'
+    | '/pyorat/vuokraus/$listingId/$slug'
   id:
     | '__root__'
     | '/'
@@ -425,6 +515,8 @@ export interface FileRouteTypes {
     | '/ilmoitukset/'
     | '/omat/'
     | '/tori/'
+    | '/varaosat/'
+    | '/varusteet/'
     | '/api/auth/$'
     | '/api/images/upload'
     | '/api/uploads/$'
@@ -433,6 +525,12 @@ export interface FileRouteTypes {
     | '/omat/varaukset_/$bookingId'
     | '/tori/$itemId_/$slug'
     | '/tori/$itemId_/muokkaa'
+    | '/varaosat/$listingId_/$slug'
+    | '/varusteet/$listingId_/$slug'
+    | '/pyorat/myynti/'
+    | '/pyorat/vuokraus/'
+    | '/pyorat/myynti/$listingId_/$slug'
+    | '/pyorat/vuokraus/$listingId_/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -457,6 +555,8 @@ export interface RootRouteChildren {
   IlmoituksetIndexRoute: typeof IlmoituksetIndexRoute
   OmatIndexRoute: typeof OmatIndexRoute
   ToriIndexRoute: typeof ToriIndexRoute
+  VaraosatIndexRoute: typeof VaraosatIndexRoute
+  VarusteetIndexRoute: typeof VarusteetIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiImagesUploadRoute: typeof ApiImagesUploadRoute
   ApiUploadsSplatRoute: typeof ApiUploadsSplatRoute
@@ -465,6 +565,12 @@ export interface RootRouteChildren {
   OmatVarauksetBookingIdRoute: typeof OmatVarauksetBookingIdRoute
   ToriItemIdSlugRoute: typeof ToriItemIdSlugRoute
   ToriItemIdMuokkaaRoute: typeof ToriItemIdMuokkaaRoute
+  VaraosatListingIdSlugRoute: typeof VaraosatListingIdSlugRoute
+  VarusteetListingIdSlugRoute: typeof VarusteetListingIdSlugRoute
+  PyoratMyyntiIndexRoute: typeof PyoratMyyntiIndexRoute
+  PyoratVuokrausIndexRoute: typeof PyoratVuokrausIndexRoute
+  PyoratMyyntiListingIdSlugRoute: typeof PyoratMyyntiListingIdSlugRoute
+  PyoratVuokrausListingIdSlugRoute: typeof PyoratVuokrausListingIdSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -544,6 +650,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/varusteet/': {
+      id: '/varusteet/'
+      path: '/varusteet'
+      fullPath: '/varusteet/'
+      preLoaderRoute: typeof VarusteetIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/varaosat/': {
+      id: '/varaosat/'
+      path: '/varaosat'
+      fullPath: '/varaosat/'
+      preLoaderRoute: typeof VaraosatIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tori/': {
@@ -651,6 +771,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminListingsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/pyorat/vuokraus/': {
+      id: '/pyorat/vuokraus/'
+      path: '/pyorat/vuokraus'
+      fullPath: '/pyorat/vuokraus/'
+      preLoaderRoute: typeof PyoratVuokrausIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pyorat/myynti/': {
+      id: '/pyorat/myynti/'
+      path: '/pyorat/myynti'
+      fullPath: '/pyorat/myynti/'
+      preLoaderRoute: typeof PyoratMyyntiIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/varusteet/$listingId_/$slug': {
+      id: '/varusteet/$listingId_/$slug'
+      path: '/varusteet/$listingId/$slug'
+      fullPath: '/varusteet/$listingId/$slug'
+      preLoaderRoute: typeof VarusteetListingIdSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/varaosat/$listingId_/$slug': {
+      id: '/varaosat/$listingId_/$slug'
+      path: '/varaosat/$listingId/$slug'
+      fullPath: '/varaosat/$listingId/$slug'
+      preLoaderRoute: typeof VaraosatListingIdSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tori/$itemId_/muokkaa': {
       id: '/tori/$itemId_/muokkaa'
       path: '/tori/$itemId/muokkaa'
@@ -707,6 +855,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pyorat/vuokraus/$listingId_/$slug': {
+      id: '/pyorat/vuokraus/$listingId_/$slug'
+      path: '/pyorat/vuokraus/$listingId/$slug'
+      fullPath: '/pyorat/vuokraus/$listingId/$slug'
+      preLoaderRoute: typeof PyoratVuokrausListingIdSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pyorat/myynti/$listingId_/$slug': {
+      id: '/pyorat/myynti/$listingId_/$slug'
+      path: '/pyorat/myynti/$listingId/$slug'
+      fullPath: '/pyorat/myynti/$listingId/$slug'
+      preLoaderRoute: typeof PyoratMyyntiListingIdSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -752,6 +914,8 @@ const rootRouteChildren: RootRouteChildren = {
   IlmoituksetIndexRoute: IlmoituksetIndexRoute,
   OmatIndexRoute: OmatIndexRoute,
   ToriIndexRoute: ToriIndexRoute,
+  VaraosatIndexRoute: VaraosatIndexRoute,
+  VarusteetIndexRoute: VarusteetIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiImagesUploadRoute: ApiImagesUploadRoute,
   ApiUploadsSplatRoute: ApiUploadsSplatRoute,
@@ -760,6 +924,12 @@ const rootRouteChildren: RootRouteChildren = {
   OmatVarauksetBookingIdRoute: OmatVarauksetBookingIdRoute,
   ToriItemIdSlugRoute: ToriItemIdSlugRoute,
   ToriItemIdMuokkaaRoute: ToriItemIdMuokkaaRoute,
+  VaraosatListingIdSlugRoute: VaraosatListingIdSlugRoute,
+  VarusteetListingIdSlugRoute: VarusteetListingIdSlugRoute,
+  PyoratMyyntiIndexRoute: PyoratMyyntiIndexRoute,
+  PyoratVuokrausIndexRoute: PyoratVuokrausIndexRoute,
+  PyoratMyyntiListingIdSlugRoute: PyoratMyyntiListingIdSlugRoute,
+  PyoratVuokrausListingIdSlugRoute: PyoratVuokrausListingIdSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

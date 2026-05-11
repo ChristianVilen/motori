@@ -1,12 +1,14 @@
 export default {
 	nav: {
-		browse: "Browse",
-		tori: "Marketplace",
+		bikes: "Bikes",
+		sale: "For sale",
+		rental: "Rental",
+		gear: "Gear",
+		parts: "Parts",
 		listMotorcycle: "List a bike",
 		myListings: "My listings",
 		signIn: "Sign in",
 		signOut: "Sign out",
-		profile: "Profile",
 		settings: "Settings",
 		userMenuAriaLabel: "User menu",
 		skipToContent: "Skip to content",
@@ -18,10 +20,7 @@ export default {
 		back: "Back to home",
 	},
 	actions: {
-		save: "Save",
 		cancel: "Cancel",
-		delete: "Delete",
-		edit: "Edit",
 	},
 	errors: {
 		generic: "Something went wrong. Please try again.",
@@ -39,12 +38,15 @@ export default {
 		copyright: "© Motori",
 		terms: "Terms of service",
 		privacy: "Privacy policy",
+		sale: "Bikes for sale",
+		rental: "Rental",
+		gear: "Gear",
+		parts: "Parts",
 	},
 	validation: {
 		titleTooShort: "Title is too short (min 5 characters)",
 		titleTooLong: "Title is too long",
 		brandRequired: "Select a brand",
-		modelRequired: "Model is required",
 		yearTooOld: "Year is too old",
 		yearInFuture: "Year can't be in the future",
 		typeRequired: "Select a type",
@@ -54,7 +56,6 @@ export default {
 		regionRequired: "Select a region",
 		descriptionTooShort: "Description is too short (min 20 characters)",
 		invalidImageUrl: "Invalid image URL",
-		invalidPhone: "Invalid phone number",
 	},
 	tori: {
 		category: {

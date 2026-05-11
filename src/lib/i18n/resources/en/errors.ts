@@ -22,5 +22,4 @@ export default {
 	"review.booking_not_confirmed": "Booking is not confirmed.",
 	"review.rental_not_ended": "Rental period has not ended yet.",
 	"review.window_closed": "Review window has closed.",
-	"rate_limit.exceeded": "Too many attempts. Try again in {{seconds}} seconds.",
 } as const;

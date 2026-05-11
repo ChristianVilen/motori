@@ -2,6 +2,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ListingForm } from "~/components/listings/listing-form";
+import { categoryDetailPath } from "~/lib/category-routes";
 import { SITE_NAME } from "~/lib/constants";
 import { AppError } from "~/lib/errors";
 import { useTranslation } from "~/lib/i18n";
@@ -23,7 +24,12 @@ const createListingFn = createServerFn({ method: "POST" })
 			throw new AppError("auth.unauthorized");
 		}
 
-		if (data.images.some((img) => !isValidImageUrl(img.url))) {
+		if (
+			data.images.some(
+				(img) =>
+					!isValidImageUrl(img.url) || (img.thumbnail_url && !isValidImageUrl(img.thumbnail_url)),
+			)
+		) {
 			throw new AppError("listing.invalid_image", { field: "images" });
 		}
 
@@ -56,8 +62,7 @@ function NewListingPage() {
 		const result = await createListingFn({ data });
 		const slug = computeListingSlug(result.makeSlug, result.modelName, result.city);
 		navigate({
-			to: "/ilmoitukset/$listingId/$slug",
-			params: { listingId: result.shortId, slug },
+			href: categoryDetailPath(data.category, result.shortId, slug),
 			replace: true,
 		});
 	}

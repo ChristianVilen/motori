@@ -22,5 +22,4 @@ export default {
 	"review.booking_not_confirmed": "Varausta ei ole vahvistettu.",
 	"review.rental_not_ended": "Vuokra-aika ei ole päättynyt.",
 	"review.window_closed": "Arvosteluaika on umpeutunut.",
-	"rate_limit.exceeded": "Liian monta yritystä. Yritä uudelleen {{seconds}} sekunnin kuluttua.",
 } as const;

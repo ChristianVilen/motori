@@ -2,14 +2,12 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "../fixtures";
 import { LIFECYCLE_AUTH_STATE_PATH } from "../global-setup";
 import { waitForHydration } from "../helpers";
-import { ToriBrowsePage } from "../pages/tori-browse.page";
-import { ToriDetailPage } from "../pages/tori-detail.page";
-import { ToriFormPage } from "../pages/tori-form.page";
+import { ListingDetailPage } from "../pages/listing-detail.page";
 
-const ITEM_TITLE = "E2E Tori Alpinestars GP Plus koko 52";
-const ITEM_TITLE_EDITED = "E2E Tori Alpinestars GP Plus koko 52 – muokattu";
+const ITEM_TITLE = "E2E Gear Alpinestars GP Plus koko 52";
+const ITEM_TITLE_EDITED = "E2E Gear Alpinestars GP Plus koko 52 – muokattu";
 
-test.describe("Tori item lifecycle", () => {
+test.describe("Gear listing lifecycle", () => {
 	test.describe.configure({ mode: "serial" });
 
 	let page: Page;
@@ -23,62 +21,70 @@ test.describe("Tori item lifecycle", () => {
 		await page.close();
 	});
 
-	test("create tori item and assert detail page", async () => {
-		const form = new ToriFormPage(page);
-		await form.gotoCreate();
-		await form.fill({
-			title: ITEM_TITLE,
-			category: "gear",
-			condition: "excellent",
-			price: 280,
-			city: "Helsinki",
-			description: "E2E lifecycle test — luotu automaattisesti.",
-		});
-		await form.submitButton.click();
-		await page.waitForURL(
-			(url) => /\/tori\/[^/]+\/[^/]+$/.test(url.pathname) && url.pathname !== "/tori/uusi",
-			{ timeout: 15000 },
-		);
+	test("create gear listing and assert detail page", async () => {
+		await page.goto("/ilmoitukset/uusi");
 		await waitForHydration(page);
 
-		const match = page.url().match(/\/tori\/([^/]+)\/[^/]+$/);
+		await page.getByTestId("category-tile-gear").click();
+		await page.locator("#title").fill(ITEM_TITLE);
+
+		// Gear-specific fields use Radix Select (no native <select>)
+		await page.getByText("Valitse tyyppi").click();
+		await page.getByRole("option", { name: "Takki", exact: true }).click();
+
+		await page.locator("#gear_size").fill("52");
+
+		await page.getByText("Valitse kunto").click();
+		await page.getByRole("option", { name: "Erinomainen", exact: true }).click();
+
+		await page.locator("#gear_price").fill("280");
+
+		await page.locator("#city").fill("Helsinki");
+		await page.getByRole("option", { name: "Helsinki", exact: true }).first().click();
+
+		await page
+			.locator("#description")
+			.fill("E2E lifecycle test — luotu automaattisesti automaation kautta.");
+
+		await page.getByTestId("listing-form-submit").click();
+		await page.waitForURL((url) => /\/varusteet\/[^/]+\/[^/]+$/.test(url.pathname), {
+			timeout: 15000,
+		});
+		await waitForHydration(page);
+
+		const match = page.url().match(/\/varusteet\/([^/]+)\/[^/]+$/);
 		if (!match) {
-			throw new Error("Could not extract item short_id from URL");
+			throw new Error("Could not extract listing short_id from URL");
 		}
 		itemId = match[1];
 
-		const detail = new ToriDetailPage(page);
+		const detail = new ListingDetailPage(page);
 		await expect(detail.title).toHaveText(ITEM_TITLE);
 	});
 
-	test("item appears in tori browse", async () => {
-		const browse = new ToriBrowsePage(page);
-		await browse.goto({ q: "E2E Tori Alpinestars" });
-		await expect(browse.cardById(itemId)).toBeVisible({ timeout: 10000 });
+	test("gear listing appears in /varusteet browse", async () => {
+		await page.goto("/varusteet?q=E2E+Gear+Alpinestars");
+		await waitForHydration(page);
+		await expect(
+			page.locator(`[data-testid="listing-card"][data-listing-id="${itemId}"]`),
+		).toBeVisible({ timeout: 10000 });
 	});
 
-	test("edit item updates title", async () => {
-		await page.goto(`/tori/${itemId}/muokkaa`);
-		await waitForHydration(page);
-
-		const form = new ToriFormPage(page);
-		await form.titleInput.fill(ITEM_TITLE_EDITED);
-		await form.submitButton.click();
-		await page.waitForURL(/\/tori\/[^/]+\/[^/]+$/, { timeout: 15000 });
-		await waitForHydration(page);
-
-		const detail = new ToriDetailPage(page);
-		await expect(detail.title).toHaveText(ITEM_TITLE_EDITED);
-	});
-
-	test("mark item as sold from dashboard", async () => {
+	test("edit gear listing updates title", async () => {
 		await page.goto("/omat");
 		await waitForHydration(page);
 
-		const row = page.locator(`[data-testid="tori-item-row"][data-item-id="${itemId}"]`);
-		await row.getByTestId("tori-item-mark-sold").click();
+		const row = page.locator(`[data-testid="dashboard-listing-row"][data-listing-id="${itemId}"]`);
+		await row.getByTestId("dashboard-listing-edit").click();
+		await page.waitForURL(/\/muokkaa/, { timeout: 10000 });
+		await waitForHydration(page);
 
-		// Verify status changes to sold
-		await expect(row.getByTestId("tori-item-status")).toHaveText("Myyty", { timeout: 10000 });
+		await page.locator("#title").fill(ITEM_TITLE_EDITED);
+		await page.getByTestId("listing-form-submit").click();
+		await page.waitForURL(/\/varusteet\/[^/]+\/[^/]+$/, { timeout: 15000 });
+		await waitForHydration(page);
+
+		const detail = new ListingDetailPage(page);
+		await expect(detail.title).toHaveText(ITEM_TITLE_EDITED);
 	});
 });
