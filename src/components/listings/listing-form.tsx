@@ -19,6 +19,7 @@ import { RentalFields, rentalSection } from "~/components/listings/sections/sect
 import { SaleFields, saleSection } from "~/components/listings/sections/section-sale";
 import { FieldError, TitleField } from "~/components/listings/sections/shared-fields";
 import type { SharedPayload } from "~/components/listings/sections/types";
+import { useImageUpload } from "~/components/listings/use-image-upload";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -33,21 +34,17 @@ import { REGIONS } from "~/lib/constants";
 import type { ListingCategory } from "~/lib/db/schema";
 import { handleAppError } from "~/lib/errors-client";
 import { useTranslation } from "~/lib/i18n";
-import type { ListingFormData, ListingImageInput } from "~/lib/validators";
+import type { ListingFormData } from "~/lib/validators";
 import { listingFormSchema } from "~/lib/validators";
 
 interface ListingFormProps {
 	lockedCategory?: ListingCategory;
 	initialCategory?: ListingCategory;
 	initialValues?: Partial<ListingFormData>;
-	initialImages?: ListingImageInput[];
+	initialImages?: { url: string; thumbnail_url?: string | null }[];
 	onSubmit: (data: ListingFormData) => Promise<void>;
 	submitLabel?: string;
 }
-
-const MAX_IMAGES = 8;
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const ALL_SECTIONS = [rentalSection, saleSection, gearSection, partSection] as const;
 
@@ -58,7 +55,7 @@ const sectionFor: Record<ListingCategory, (typeof ALL_SECTIONS)[number]> = {
 	part: partSection,
 };
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: shell composes many concerns at the top level
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: form shell — remaining complexity is conditional JSX rendering per category
 export function ListingForm(props: ListingFormProps) {
 	const { initialImages = [], initialValues, onSubmit, submitLabel } = props;
 	const { t } = useTranslation("listings");
@@ -67,32 +64,8 @@ export function ListingForm(props: ListingFormProps) {
 	const [category, setCategory] = useState<ListingCategory>(
 		props.lockedCategory ?? props.initialCategory ?? "rental",
 	);
-	const [existingImages, setExistingImages] = useState<ListingImageInput[]>(initialImages);
-	const [pendingFiles, setPendingFiles] = useState<File[]>([]);
-	const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-	const [imageError, setImageError] = useState<string | null>(null);
+	const images = useImageUpload(initialImages);
 	const [submitError, setSubmitError] = useState<string | null>(null);
-	const [uploadProgress, setUploadProgress] = useState<string | null>(null);
-
-	async function uploadFiles(
-		files: File[],
-		onProgress: (msg: string) => void,
-	): Promise<{ url: string; thumbnail_url: string | null }[]> {
-		const results: { url: string; thumbnail_url: string | null }[] = [];
-		for (let i = 0; i < files.length; i++) {
-			onProgress(t("form.images.uploading", { current: i + 1, total: files.length }));
-			const body = new FormData();
-			body.append("file", files[i]);
-			const res = await fetch("/api/images/upload", { method: "POST", body });
-			if (!res.ok) {
-				const err = await res.json().catch(() => ({ error: "Kuvan lataus epäonnistui" }));
-				throw new Error((err as { error: string }).error);
-			}
-			const { url, thumbnailUrl } = (await res.json()) as { url: string; thumbnailUrl: string };
-			results.push({ url, thumbnail_url: thumbnailUrl });
-		}
-		return results;
-	}
 
 	const form = useForm({
 		defaultValues: {
@@ -120,11 +93,8 @@ export function ListingForm(props: ListingFormProps) {
 		},
 		onSubmit: async ({ value }) => {
 			setSubmitError(null);
-			setUploadProgress(null);
 			try {
-				const newImages = await uploadFiles(pendingFiles, setUploadProgress);
-				setUploadProgress(null);
-				const allImages = [...existingImages, ...newImages];
+				const allImages = await images.uploadFiles();
 
 				const shared: SharedPayload = {
 					title: value.title,
@@ -184,48 +154,6 @@ export function ListingForm(props: ListingFormProps) {
 			}
 		}
 	}
-
-	function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-		setImageError(null);
-		const files = Array.from(e.target.files ?? []);
-		const remaining = MAX_IMAGES - existingImages.length;
-		const valid: File[] = [];
-		for (const file of files) {
-			if (valid.length >= remaining) {
-				break;
-			}
-			if (!ALLOWED_TYPES.includes(file.type)) {
-				setImageError(t("form.images.errorInvalidType"));
-				continue;
-			}
-			if (file.size > MAX_FILE_SIZE) {
-				setImageError(t("form.images.errorFileTooLarge"));
-				continue;
-			}
-			valid.push(file);
-		}
-		setPendingFiles((prev) => [...prev, ...valid]);
-		for (const file of valid) {
-			const reader = new FileReader();
-			reader.onload = (ev) => {
-				setImagePreviews((prev) => [...prev, ev.target?.result as string]);
-			};
-			reader.readAsDataURL(file);
-		}
-		e.target.value = "";
-	}
-
-	function removeExistingImage(url: string) {
-		setExistingImages((prev) => prev.filter((img) => img.url !== url));
-	}
-
-	function removePendingImage(index: number) {
-		setPendingFiles((prev) => prev.filter((_, i) => i !== index));
-		setImagePreviews((prev) => prev.filter((_, i) => i !== index));
-	}
-
-	const totalImages = existingImages.length + pendingFiles.length;
-	const canAddMore = totalImages < MAX_IMAGES;
 
 	const initialMakeId = (initialValues as { make_id?: string } | undefined)?.make_id ?? null;
 	const initialModelId =
@@ -407,13 +335,13 @@ export function ListingForm(props: ListingFormProps) {
 				<h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
 					{t("form.sections.images")}{" "}
 					<span className="font-normal text-muted">
-						({totalImages}/{MAX_IMAGES})
+						({images.totalImages}/{images.maxImages})
 					</span>
 				</h2>
 
-				{(existingImages.length > 0 || imagePreviews.length > 0) && (
+				{(images.existingImages.length > 0 || images.imagePreviews.length > 0) && (
 					<div className="mb-4 grid grid-cols-4 gap-2">
-						{existingImages.map((img) => (
+						{images.existingImages.map((img) => (
 							<div
 								key={img.url}
 								className="group relative aspect-square overflow-hidden rounded-md bg-muted-light"
@@ -421,7 +349,7 @@ export function ListingForm(props: ListingFormProps) {
 								<img src={img.url} alt="" className="h-full w-full object-cover" />
 								<button
 									type="button"
-									onClick={() => removeExistingImage(img.url)}
+									onClick={() => images.removeExistingImage(img.url)}
 									className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
 									aria-label={t("form.images.removeImageAriaLabel")}
 								>
@@ -429,15 +357,15 @@ export function ListingForm(props: ListingFormProps) {
 								</button>
 							</div>
 						))}
-						{imagePreviews.map((preview, i) => (
+						{images.imagePreviews.map((preview, i) => (
 							<div
-								key={`${pendingFiles[i]?.name ?? i}-${pendingFiles[i]?.size ?? i}`}
+								key={`${images.pendingFiles[i]?.name ?? i}-${images.pendingFiles[i]?.size ?? i}`}
 								className="group relative aspect-square overflow-hidden rounded-md bg-muted-light"
 							>
 								<img src={preview} alt="" className="h-full w-full object-cover" />
 								<button
 									type="button"
-									onClick={() => removePendingImage(i)}
+									onClick={() => images.removePendingImage(i)}
 									className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
 									aria-label={t("form.images.removeImageAriaLabel")}
 								>
@@ -448,7 +376,7 @@ export function ListingForm(props: ListingFormProps) {
 					</div>
 				)}
 
-				{canAddMore && (
+				{images.canAddMore ? (
 					<label className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 text-center transition-colors hover:border-accent hover:bg-muted-light/50">
 						<svg
 							className="h-8 w-8 text-muted"
@@ -473,14 +401,16 @@ export function ListingForm(props: ListingFormProps) {
 							type="file"
 							accept="image/jpeg,image/png,image/webp"
 							multiple
-							onChange={handleFileSelect}
+							onChange={images.handleFileSelect}
 							className="sr-only"
 							aria-label={t("form.images.addImages")}
 						/>
 					</label>
-				)}
+				) : null}
 
-				{!!imageError && <p className="mt-2 text-sm text-destructive">{imageError}</p>}
+				{!!images.imageError && (
+					<p className="mt-2 text-sm text-destructive">{images.imageError}</p>
+				)}
 			</section>
 
 			{/* ── Submit ────────────────────────────────────────────────────── */}
@@ -499,7 +429,7 @@ export function ListingForm(props: ListingFormProps) {
 						size="lg"
 						data-testid="listing-form-submit"
 					>
-						{uploadProgress ??
+						{images.uploadProgress ??
 							(isSubmitting ? t("form.submit.saving") : (submitLabel ?? t("create.submitLabel")))}
 					</Button>
 				)}
