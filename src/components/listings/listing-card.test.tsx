@@ -38,22 +38,14 @@ const baseListing: Listing & { price_per_day?: number } = {
 	postal_code: null,
 	description: "Hyvä pyörä",
 	price_per_day: 5000,
-	price_per_week: null,
-	price_per_weekend: null,
-	price: null,
-	mileage_limit: null,
-	max_stay: null,
 	status: "active",
 	view_count: 10,
-	availability_default: "open",
-	condition: null,
-	gear_type: null,
-	gear_size: null,
-	part_type: null,
-	part_compatibility: null,
+	expires_at: null,
+	expiry_notified_at: null,
+	reviewed_at: null,
 	created_at: new Date("2026-01-01"),
 	updated_at: new Date("2026-01-01"),
-	search_vector: null,
+	search_vector: "",
 };
 
 const baseImages: ListingImage[] = [
@@ -62,8 +54,7 @@ const baseImages: ListingImage[] = [
 		listing_id: "uuid-1",
 		url: "https://storage.example.com/main.webp",
 		thumbnail_url: "https://storage.example.com/thumb.webp",
-		position: 0,
-		created_at: new Date("2026-01-01"),
+		order: 0,
 	},
 ];
 
@@ -148,8 +139,8 @@ describe("ListingCard", () => {
 	it("shows image count when multiple images", () => {
 		const multiImages: ListingImage[] = [
 			baseImages[0],
-			{ ...baseImages[0], id: "img-2", position: 1 },
-			{ ...baseImages[0], id: "img-3", position: 2 },
+			{ ...baseImages[0], id: "img-2", order: 1 },
+			{ ...baseImages[0], id: "img-3", order: 2 },
 		];
 
 		render(
