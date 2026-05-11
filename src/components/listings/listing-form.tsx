@@ -102,11 +102,13 @@ export function ListingForm(props: ListingFormProps) {
 			region: initialValues?.region ?? "",
 			postal_code: initialValues?.postal_code ?? "",
 			description: initialValues?.description ?? "",
-			// Section defaults — each section reads only the slice that matches its category.
+			// All section defaults — active category spread last so it wins shared keys
+			// (rental & sale share make_id/year/motorcycle_type field names).
 			...rentalSection.defaultValues(initialValues),
 			...saleSection.defaultValues(initialValues),
 			...gearSection.defaultValues(initialValues),
 			...partSection.defaultValues(initialValues),
+			...sectionFor[category].defaultValues(initialValues),
 		},
 		onSubmit: async ({ value }) => {
 			setSubmitError(null);
