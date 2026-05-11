@@ -223,20 +223,20 @@ function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
 							</Link>
 							<div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 sm:gap-x-6">
 								<CategoryDropdown />
-								<a
-									href="/varusteet"
+								<Link
+									to="/varusteet"
 									data-testid="nav-varusteet"
 									className="text-sm text-white/70 hover:text-white"
 								>
 									{t("nav.gear")}
-								</a>
-								<a
-									href="/varaosat"
+								</Link>
+								<Link
+									to="/varaosat"
 									data-testid="nav-varaosat"
 									className="text-sm text-white/70 hover:text-white"
 								>
 									{t("nav.parts")}
-								</a>
+								</Link>
 								{verified ? (
 									<Link
 										data-testid="nav-add-listing"

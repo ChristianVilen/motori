@@ -2,7 +2,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ListingForm } from "~/components/listings/listing-form";
-import { categoryBrowsePath } from "~/lib/category-routes";
+import { categoryDetailPath } from "~/lib/category-routes";
 import { SITE_NAME } from "~/lib/constants";
 import { AppError } from "~/lib/errors";
 import { useTranslation } from "~/lib/i18n";
@@ -57,10 +57,9 @@ function NewListingPage() {
 		const result = await createListingFn({ data });
 		const slug = computeListingSlug(result.makeSlug, result.modelName, result.city);
 		navigate({
-			to: `${categoryBrowsePath(data.category)}/$listingId/$slug`,
-			params: { listingId: result.shortId, slug },
+			href: categoryDetailPath(data.category, result.shortId, slug),
 			replace: true,
-		} as never);
+		});
 	}
 
 	return (

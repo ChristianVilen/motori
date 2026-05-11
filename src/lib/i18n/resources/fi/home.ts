@@ -2,7 +2,6 @@ export default {
 	hero: {
 		imgAlt: "Motoristi Kawasaki Ninjalla auringonlaskussa",
 		heading: "Motoristien oma yhteisö",
-		headingAccent: "",
 		subheading:
 			"Osta, myy, vuokraa ja vaihda moottoripyöriä, varusteita ja varaosia suoraan toisilta motoristeilta.",
 		searchPlaceholder: "Hae merkkiä, mallia tai varusteita...",
@@ -39,14 +38,5 @@ export default {
 		heading: "Laita ilmoitus",
 		body: "Ilmainen ilmoitus tavoittaa muut motoristit suoraan.",
 		button: "Lisää ilmoitus",
-	},
-	footer: {
-		brand: "Motori",
-		sale: "Pyörät myyntiin",
-		rental: "Vuokraus",
-		gear: "Varusteet",
-		parts: "Varaosat",
-		addListing: "Lisää ilmoitus",
-		copyright: "© {{year}} Motori",
 	},
 } as const;

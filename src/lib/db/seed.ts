@@ -1,5 +1,6 @@
 // biome-ignore-all lint/suspicious/noConsole: CLI script — console output is expected
 import { auth } from "../auth";
+import { generateShortId } from "../slug";
 import { db } from "./index";
 
 const SEED_EMAIL = "dev@motori.local";
@@ -318,7 +319,7 @@ async function main() {
 			.insertInto("listing")
 			.values({
 				id,
-				short_id: crypto.randomUUID().slice(0, 8),
+				short_id: generateShortId(),
 				owner_id: userId,
 				category: "rental",
 				title: seed.title,
@@ -447,7 +448,7 @@ async function main() {
 			.insertInto("listing")
 			.values({
 				id,
-				short_id: crypto.randomUUID().slice(0, 8),
+				short_id: generateShortId(),
 				owner_id: userId,
 				category: "sale",
 				title: sale.title,
@@ -592,7 +593,7 @@ async function main() {
 			.insertInto("listing")
 			.values({
 				id,
-				short_id: crypto.randomUUID().slice(0, 8),
+				short_id: generateShortId(),
 				owner_id: userId,
 				category: listingCategory,
 				title: item.title,

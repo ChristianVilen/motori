@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { categoryBrowsePath } from "~/lib/category-routes";
 import type { ListingCategory } from "~/lib/db/schema";
 import { computeListingSlug } from "~/lib/slug";
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/ilmoitukset/$listingId_/$slug")({
 			.executeTakeFirst();
 
 		if (!row) {
-			return;
+			throw notFound();
 		}
 
 		const slug = computeListingSlug(row.makeSlug ?? null, row.modelName ?? null, row.city);

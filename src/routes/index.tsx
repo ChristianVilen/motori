@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Key, Shield, ShoppingCart, Wrench } from "lucide-react";
 import { useState } from "react";
 import { ListingCard } from "~/components/listings/listing-card";
+import { CATEGORY_BROWSE_PATH } from "~/lib/category-routes";
 import type { ListingCategory } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
 import { getHomepageStats, getLatestListings } from "~/lib/listings-queries";
@@ -46,13 +47,6 @@ function HomePage() {
 		rental: rentalListings,
 		gear: gearListings,
 		part: partListings,
-	};
-
-	const tabRoutes: Record<ActiveTab, string> = {
-		sale: "/pyorat/myynti",
-		rental: "/pyorat/vuokraus",
-		gear: "/varusteet",
-		part: "/varaosat",
 	};
 
 	const tabs: {
@@ -266,7 +260,7 @@ function HomePage() {
 					</h2>
 					<Link
 						data-testid="home-browse-all"
-						to={tabRoutes[activeTab]}
+						to={CATEGORY_BROWSE_PATH[activeTab]}
 						className="flex items-center gap-1 text-sm font-medium text-accent hover:underline"
 					>
 						{t("latestListings.browseAll")}
@@ -308,7 +302,7 @@ function HomePage() {
 					<div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-16 text-center">
 						<p className="text-sm text-muted">{t("latestListings.browseAll")}</p>
 						<Link
-							to={tabRoutes[activeTab]}
+							to={CATEGORY_BROWSE_PATH[activeTab]}
 							className="mt-4 rounded-lg bg-accent px-5 py-2 text-sm font-semibold text-white hover:bg-accent-hover"
 						>
 							{t("latestListings.browseAll")}

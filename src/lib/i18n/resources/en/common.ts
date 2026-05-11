@@ -1,7 +1,5 @@
 export default {
 	nav: {
-		browse: "Browse",
-		tori: "Marketplace",
 		bikes: "Bikes",
 		sale: "For sale",
 		rental: "Rental",

@@ -102,13 +102,21 @@ export function ListingForm(props: ListingFormProps) {
 			region: initialValues?.region ?? "",
 			postal_code: initialValues?.postal_code ?? "",
 			description: initialValues?.description ?? "",
-			// All section defaults — active category spread last so it wins shared keys
-			// (rental & sale share make_id/year/motorcycle_type field names).
+			// Motorcycle fields — shared between rental & sale, owned by the shell.
+			make_id: (initialValues as { make_id?: string } | undefined)?.make_id ?? "",
+			model_id: (initialValues as { model_id?: string | null } | undefined)?.model_id ?? null,
+			year: (initialValues as { year?: number } | undefined)?.year ?? ("" as unknown as number),
+			engine_cc: (initialValues as { engine_cc?: number | null } | undefined)?.engine_cc ?? null,
+			motorcycle_type:
+				(initialValues as { motorcycle_type?: string } | undefined)?.motorcycle_type ?? "",
+			required_license:
+				(initialValues as { required_license?: "A1" | "A2" | "A" | null } | undefined)
+					?.required_license ?? null,
+			// Category-specific section defaults (no field name collisions).
 			...rentalSection.defaultValues(initialValues),
 			...saleSection.defaultValues(initialValues),
 			...gearSection.defaultValues(initialValues),
 			...partSection.defaultValues(initialValues),
-			...sectionFor[category].defaultValues(initialValues),
 		},
 		onSubmit: async ({ value }) => {
 			setSubmitError(null);
@@ -128,7 +136,15 @@ export function ListingForm(props: ListingFormProps) {
 				};
 
 				const section = sectionFor[category];
-				const formPayload = section.toPayload(shared, value);
+				const moto = {
+					make_id: value.make_id,
+					model_id: value.model_id,
+					year: value.year,
+					engine_cc: value.engine_cc,
+					motorcycle_type: value.motorcycle_type,
+					required_license: value.required_license,
+				};
+				const formPayload = section.toPayload(shared, value, moto);
 
 				const parsed = listingFormSchema(tCommon).safeParse(formPayload);
 				if (!parsed.success) {

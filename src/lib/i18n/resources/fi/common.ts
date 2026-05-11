@@ -1,7 +1,5 @@
 export default {
 	nav: {
-		browse: "Selaa",
-		tori: "Tori",
 		bikes: "Pyörät",
 		sale: "Myynti",
 		rental: "Vuokraus",

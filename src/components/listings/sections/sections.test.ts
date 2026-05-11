@@ -3,7 +3,7 @@ import { gearSection } from "./section-gear";
 import { partSection } from "./section-part";
 import { rentalSection } from "./section-rental";
 import { saleSection } from "./section-sale";
-import type { SharedPayload } from "./types";
+import type { MotorcyclePayload, SharedPayload } from "./types";
 
 const shared: SharedPayload = {
 	title: "T",
@@ -14,37 +14,44 @@ const shared: SharedPayload = {
 	images: [],
 };
 
+const moto: MotorcyclePayload = {
+	make_id: "m1",
+	model_id: null,
+	year: 2020,
+	engine_cc: 500,
+	motorcycle_type: "naked",
+	required_license: "A2",
+};
+
 describe("rentalSection", () => {
 	it("defaults are empty when initial is missing or wrong category", () => {
 		expect(rentalSection.defaultValues(undefined).price_per_day).toBe("");
-		expect(rentalSection.defaultValues({ category: "sale", price: 1 } as never).make_id).toBe("");
+		expect(rentalSection.defaultValues({ category: "sale", price: 1 } as never).price_per_day).toBe(
+			"",
+		);
 	});
 
 	it("hydrates defaults from a rental initial value", () => {
 		const v = rentalSection.defaultValues({
 			category: "rental",
-			make_id: "m1",
-			year: 2020,
-			motorcycle_type: "naked",
 			price_per_day: 50,
+			mileage_limit: 200,
 		} as never);
-		expect(v.make_id).toBe("m1");
-		expect(v.year).toBe(2020);
 		expect(v.price_per_day).toBe(50);
+		expect(v.mileage_limit).toBe(200);
 	});
 
 	it("toPayload produces the rental discriminated branch", () => {
 		const value = rentalSection.defaultValues({
 			category: "rental",
-			make_id: "m1",
-			year: 2020,
-			motorcycle_type: "naked",
 			price_per_day: 50,
 		} as never);
-		const payload = rentalSection.toPayload(shared, value);
+		const payload = rentalSection.toPayload(shared, value, moto);
 		expect(payload.category).toBe("rental");
 		expect(payload.title).toBe("T");
 		expect(payload.price_per_day).toBe(50);
+		expect(payload.make_id).toBe("m1");
+		expect(payload.year).toBe(2020);
 		expect(payload.images).toEqual([]);
 	});
 });
@@ -53,20 +60,18 @@ describe("saleSection", () => {
 	it("hydrates defaults and toPayload preserves discriminated branch", () => {
 		const v = saleSection.defaultValues({
 			category: "sale",
-			make_id: "m1",
-			year: 2019,
-			motorcycle_type: "sport",
 			price: 800000,
 			condition: "good",
 			km_driven: 12000,
 			negotiable: true,
 		} as never);
-		const payload = saleSection.toPayload(shared, v);
+		const payload = saleSection.toPayload(shared, v, moto);
 		expect(payload.category).toBe("sale");
 		expect(payload.price).toBe(800000);
 		expect(payload.condition).toBe("good");
 		expect(payload.km_driven).toBe(12000);
 		expect(payload.negotiable).toBe(true);
+		expect(payload.make_id).toBe("m1");
 	});
 });
 
@@ -109,14 +114,14 @@ describe("partSection", () => {
 	});
 });
 
-describe("section field keys are unique per section", () => {
-	it("rental keys are disjoint from sale keys (except shared motorcycle keys)", () => {
-		const rentalOnly = new Set(rentalSection.fieldKeys);
-		const saleOnly = new Set(saleSection.fieldKeys);
-		// rental_price_per_day not in sale, sale_price not in rental
-		expect(rentalOnly.has("price_per_day" as never)).toBe(true);
-		expect(saleOnly.has("price_per_day" as never)).toBe(false);
-		expect(saleOnly.has("sale_price" as never)).toBe(true);
-		expect(rentalOnly.has("sale_price" as never)).toBe(false);
+describe("section field keys are unique across sections", () => {
+	it("no field key collisions between any sections", () => {
+		const all = [
+			...rentalSection.fieldKeys,
+			...saleSection.fieldKeys,
+			...gearSection.fieldKeys,
+			...partSection.fieldKeys,
+		];
+		expect(new Set(all).size).toBe(all.length);
 	});
 });

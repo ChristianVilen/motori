@@ -6,7 +6,7 @@
 // (the codegen reads the literal string) and supplies the category-specific
 // sidebar plus head meta.
 
-import { notFound, useLoaderData } from "@tanstack/react-router";
+import { type LinkProps, notFound, useLoaderData } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import type { FC, ReactNode } from "react";
@@ -28,7 +28,7 @@ type HeadInput = LoaderResult;
 
 interface DefineCategoryDetailRouteArgs<C extends "sale" | "gear" | "part"> {
 	category: C;
-	backTo: string;
+	backTo: LinkProps["to"];
 	Sidebar: FC<{
 		data: LoaderResult;
 		isOwner: boolean;

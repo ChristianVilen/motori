@@ -2,7 +2,6 @@ export default {
 	hero: {
 		imgAlt: "Rider on Kawasaki Ninja at sunset",
 		heading: "A community for riders",
-		headingAccent: "",
 		subheading: "Buy, sell, rent and swap motorcycles, gear and parts directly with other riders.",
 		searchPlaceholder: "Search make, model or gear...",
 		searchButton: "Search",
@@ -38,14 +37,5 @@ export default {
 		heading: "Post a listing",
 		body: "A free listing reaches other riders directly.",
 		button: "Add listing",
-	},
-	footer: {
-		brand: "Motori",
-		sale: "Bikes for sale",
-		rental: "Rental",
-		gear: "Gear",
-		parts: "Parts",
-		addListing: "Add listing",
-		copyright: "© {{year}} Motori",
 	},
 } as const;

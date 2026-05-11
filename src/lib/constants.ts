@@ -80,3 +80,20 @@ export const TYPE_EMOJI: Record<string, string> = {
 	scooter: "\uD83D\uDEF5",
 	custom: "\uD83D\uDD27",
 };
+
+export const CONDITION_LABELS: Record<string, string> = {
+	new: "Uusi",
+	excellent: "Erinomainen",
+	good: "Hyvä",
+	fair: "Tyydyttävä",
+	poor: "Huono",
+};
+
+export const GEAR_TYPE_LABELS: Record<string, string> = {
+	helmet: "Kypärä",
+	jacket: "Takki",
+	pants: "Housut",
+	boots: "Saappaat",
+	gloves: "Käsineet",
+	other: "Muu",
+};

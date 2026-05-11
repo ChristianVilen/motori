@@ -22,13 +22,7 @@ export function FieldError({ errors }: FieldErrorProps) {
 	return <p className="mt-1 text-sm text-destructive">{msg}</p>;
 }
 
-const CONDITION_OPTIONS: [string, string][] = [
-	["new", "Uusi"],
-	["excellent", "Erinomainen"],
-	["good", "Hyvä"],
-	["fair", "Tyydyttävä"],
-	["poor", "Huono"],
-];
+const CONDITION_KEYS = ["new", "excellent", "good", "fair", "poor"] as const;
 
 interface ConditionSelectProps {
 	value: string;
@@ -36,19 +30,20 @@ interface ConditionSelectProps {
 	errors: unknown[];
 }
 export function ConditionSelect({ value, onChange, errors }: ConditionSelectProps) {
+	const { t } = useTranslation("listings");
 	return (
 		<div>
 			<label htmlFor="condition-select" className="mb-1 block text-sm font-medium text-foreground">
-				Kunto <span className="text-destructive">*</span>
+				{t("form.fields.condition")} <span className="text-destructive">*</span>
 			</label>
 			<Select value={value} onValueChange={onChange}>
 				<SelectTrigger id="condition-select">
-					<SelectValue placeholder="Valitse kunto" />
+					<SelectValue placeholder={t("form.fields.conditionPlaceholder")} />
 				</SelectTrigger>
 				<SelectContent>
-					{CONDITION_OPTIONS.map(([v, l]) => (
-						<SelectItem key={v} value={v}>
-							{l}
+					{CONDITION_KEYS.map((key) => (
+						<SelectItem key={key} value={key}>
+							{t(`form.conditions.${key}`)}
 						</SelectItem>
 					))}
 				</SelectContent>

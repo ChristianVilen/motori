@@ -17,14 +17,7 @@ import type { CategoryFormSection, SharedPayload } from "./types";
 type Condition = (typeof CONDITIONS)[number];
 type GearTypeValue = (typeof GEAR_TYPES)[number];
 
-const GEAR_TYPE_LABELS: [GearTypeValue, string][] = [
-	["helmet", "Kypärä"],
-	["jacket", "Takki"],
-	["pants", "Housut"],
-	["boots", "Saappaat"],
-	["gloves", "Käsineet"],
-	["other", "Muu"],
-];
+import { GEAR_TYPE_LABELS } from "~/lib/constants";
 
 export interface GearFieldValues {
 	gear_gear_type: GearTypeValue | "";
@@ -87,14 +80,14 @@ export function GearFields({ form }: GearFieldsProps) {
 								htmlFor="gear-type-select"
 								className="mb-1 block text-sm font-medium text-foreground"
 							>
-								Varustetyyppi <span className="text-destructive">*</span>
+								{t("form.fields.gearType")} <span className="text-destructive">*</span>
 							</label>
 							<Select value={field.state.value ?? ""} onValueChange={(v) => field.handleChange(v)}>
 								<SelectTrigger id="gear-type-select">
-									<SelectValue placeholder="Valitse tyyppi" />
+									<SelectValue placeholder={t("form.fields.gearTypePlaceholder")} />
 								</SelectTrigger>
 								<SelectContent>
-									{GEAR_TYPE_LABELS.map(([v, l]) => (
+									{Object.entries(GEAR_TYPE_LABELS).map(([v, l]) => (
 										<SelectItem key={v} value={v}>
 											{l}
 										</SelectItem>
@@ -116,7 +109,7 @@ export function GearFields({ form }: GearFieldsProps) {
 									htmlFor="gear_size"
 									className="mb-1 block text-sm font-medium text-foreground"
 								>
-									Koko
+									{t("form.fields.size")}
 								</label>
 								<Input
 									id="gear_size"
@@ -151,7 +144,7 @@ export function GearFields({ form }: GearFieldsProps) {
 								htmlFor="gear_price"
 								className="mb-1 block text-sm font-medium text-foreground"
 							>
-								Hinta (€) <span className="text-destructive">*</span>
+								{t("form.fields.price")} <span className="text-destructive">*</span>
 							</label>
 							<Input
 								id="gear_price"

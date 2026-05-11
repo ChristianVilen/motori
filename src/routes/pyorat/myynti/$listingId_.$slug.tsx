@@ -1,17 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { NonRentalSidebar } from "~/components/listings/non-rental-sidebar";
-import { SITE_NAME, SITE_URL } from "~/lib/constants";
+import { CONDITION_LABELS, SITE_NAME, SITE_URL } from "~/lib/constants";
 import { centsToEuros } from "~/lib/currency";
 import { defineCategoryDetailRoute } from "~/lib/listings-detail-route";
 import { computeListingSlug } from "~/lib/slug";
-
-const CONDITION_LABELS: Record<string, string> = {
-	new: "Uusi",
-	excellent: "Erinomainen",
-	good: "Hyvä",
-	fair: "Tyydyttävä",
-	poor: "Huono",
-};
 
 const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute({
 	category: "sale",

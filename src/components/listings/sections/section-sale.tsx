@@ -1,22 +1,16 @@
 // Sale category section adapter.
 // Owns: condition / km_driven / price / negotiable.
-// Motorcycle fields (title, make, year, ...) are rendered separately by the shell.
+// Motorcycle fields are owned by the shell and passed via MotorcyclePayload.
 
 import { Input } from "~/components/ui/input";
 import { useTranslation } from "~/lib/i18n";
 import type { CONDITIONS, ListingFormData, SaleFormData } from "~/lib/validators";
 import { ConditionSelect, FieldError } from "./shared-fields";
-import type { CategoryFormSection, SharedPayload } from "./types";
+import type { CategoryFormSection, MotorcyclePayload, SharedPayload } from "./types";
 
 type Condition = (typeof CONDITIONS)[number];
 
 export interface SaleFieldValues {
-	make_id: string;
-	model_id: string | null;
-	year: number;
-	engine_cc: number | null;
-	motorcycle_type: string;
-	required_license: "A1" | "A2" | "A" | null;
 	sale_price: number;
 	sale_condition: Condition | "";
 	sale_km_driven: number | null;
@@ -28,52 +22,42 @@ export const saleSection: CategoryFormSection<"sale", SaleFieldValues> = {
 	defaultValues: (initial) => {
 		const v = initial?.category === "sale" ? initial : undefined;
 		return {
-			make_id: v?.make_id ?? "",
-			model_id: v?.model_id ?? null,
-			year: v?.year ?? ("" as unknown as number),
-			engine_cc: v?.engine_cc ?? null,
-			motorcycle_type: v?.motorcycle_type ?? "",
-			required_license: v?.required_license ?? null,
 			sale_price: v?.price ?? ("" as unknown as number),
 			sale_condition: v?.condition ?? "",
 			sale_km_driven: v?.km_driven ?? null,
 			sale_negotiable: v?.negotiable ?? false,
 		};
 	},
-	fieldKeys: [
-		"make_id",
-		"model_id",
-		"year",
-		"engine_cc",
-		"motorcycle_type",
-		"required_license",
-		"sale_price",
-		"sale_condition",
-		"sale_km_driven",
-		"sale_negotiable",
-	],
+	fieldKeys: ["sale_price", "sale_condition", "sale_km_driven", "sale_negotiable"],
 	toPayload: (
 		shared: SharedPayload,
 		value: SaleFieldValues,
-	): Extract<ListingFormData, { category: "sale" }> => ({
-		category: "sale",
-		title: shared.title,
-		city: shared.city,
-		region: shared.region,
-		postal_code: shared.postal_code,
-		description: shared.description,
-		make_id: value.make_id,
-		model_id: value.model_id,
-		year: value.year,
-		engine_cc: value.engine_cc,
-		motorcycle_type: value.motorcycle_type,
-		required_license: value.required_license,
-		condition: value.sale_condition as SaleFormData["condition"],
-		km_driven: value.sale_km_driven,
-		price: value.sale_price,
-		negotiable: value.sale_negotiable,
-		images: shared.images,
-	}),
+		moto?: MotorcyclePayload,
+	): Extract<ListingFormData, { category: "sale" }> => {
+		if (!moto) {
+			throw new Error("moto is required for sale listings");
+		}
+		const m = moto;
+		return {
+			category: "sale",
+			title: shared.title,
+			city: shared.city,
+			region: shared.region,
+			postal_code: shared.postal_code,
+			description: shared.description,
+			make_id: m.make_id,
+			model_id: m.model_id,
+			year: m.year,
+			engine_cc: m.engine_cc,
+			motorcycle_type: m.motorcycle_type,
+			required_license: m.required_license,
+			condition: value.sale_condition as SaleFormData["condition"],
+			km_driven: value.sale_km_driven,
+			price: value.sale_price,
+			negotiable: value.sale_negotiable,
+			images: shared.images,
+		};
+	},
 };
 
 interface SaleFieldsProps {
@@ -101,7 +85,7 @@ export function SaleFields({ form }: SaleFieldsProps) {
 								htmlFor="sale_price"
 								className="mb-1 block text-sm font-medium text-foreground"
 							>
-								Myyntihinta (€) <span className="text-destructive">*</span>
+								{t("form.fields.salePrice")} <span className="text-destructive">*</span>
 							</label>
 							<Input
 								id="sale_price"
@@ -142,7 +126,7 @@ export function SaleFields({ form }: SaleFieldsProps) {
 								htmlFor="sale_km_driven"
 								className="mb-1 block text-sm font-medium text-foreground"
 							>
-								Kilometrit
+								{t("form.fields.kmDriven")}
 							</label>
 							<Input
 								id="sale_km_driven"
@@ -166,7 +150,7 @@ export function SaleFields({ form }: SaleFieldsProps) {
 								onChange={(e) => field.handleChange(e.target.checked)}
 								className="h-4 w-4 rounded border-border"
 							/>
-							<span className="text-sm text-foreground">Hinta joustaa</span>
+							<span className="text-sm text-foreground">{t("form.fields.negotiable")}</span>
 						</label>
 					)}
 				</form.Field>

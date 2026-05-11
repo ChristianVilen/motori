@@ -12,18 +12,7 @@ import {
 } from "~/components/ui/select";
 import { CURRENT_YEAR, LICENSE_CLASSES, MOTORCYCLE_TYPES } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
-
-interface FieldErrorProps {
-	errors: unknown[];
-}
-function FieldError({ errors }: FieldErrorProps) {
-	const first = errors.find((e) => e != null);
-	if (first == null) {
-		return null;
-	}
-	const msg = typeof first === "string" ? first : String(first);
-	return <p className="mt-1 text-sm text-destructive">{msg}</p>;
-}
+import { FieldError } from "./shared-fields";
 
 interface MotorcycleFieldsProps {
 	// biome-ignore lint/suspicious/noExplicitAny: TanStack Form's TFormState is the merged shell shape — sections see a flat any here

@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Button } from "~/components/ui/button";
 import type { Listing } from "~/lib/db/schema";
-import { formatEur } from "~/lib/i18n";
+import { formatEur, useTranslation } from "~/lib/i18n";
 
 export interface NonRentalSidebarProps {
 	price: number;
@@ -27,6 +27,7 @@ export function NonRentalSidebar({
 	ownerPhone,
 	ownerUserId,
 }: NonRentalSidebarProps) {
+	const { t } = useTranslation("listings");
 	return (
 		<div id="pricing" className="space-y-4 lg:self-start">
 			<div className="rounded-l border border-border bg-card p-5 shadow-sm">
@@ -34,7 +35,9 @@ export function NonRentalSidebar({
 					<span data-testid={priceTestId} className="text-3xl font-bold text-accent">
 						{formatEur(price)}
 					</span>
-					{negotiable ? <span className="ml-2 text-sm text-muted">Hinta joustaa</span> : null}
+					{negotiable ? (
+						<span className="ml-2 text-sm text-muted">{t("detail.negotiable")}</span>
+					) : null}
 				</div>
 				{statRows.length > 0 && (
 					<dl className="mb-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
@@ -54,12 +57,12 @@ export function NonRentalSidebar({
 							className="flex-1"
 						>
 							<Button variant="outline" className="w-full" size="sm">
-								Muokkaa
+								{t("detail.ownerActions.edit")}
 							</Button>
 						</Link>
 						<Link to="/omat" className="flex-1">
 							<Button variant="outline" className="w-full" size="sm">
-								Omat ilmoitukset
+								{t("detail.ownerActions.myListings")}
 							</Button>
 						</Link>
 					</div>
@@ -77,7 +80,7 @@ export function NonRentalSidebar({
 							params={{ userId: ownerUserId }}
 							className="block w-full rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-accent-hover"
 						>
-							Ota yhteyttä
+							{t("detail.contactSeller")}
 						</Link>
 					)
 				) : null}

@@ -1,25 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { NonRentalSidebar } from "~/components/listings/non-rental-sidebar";
-import { SITE_NAME, SITE_URL } from "~/lib/constants";
+import { CONDITION_LABELS, GEAR_TYPE_LABELS, SITE_NAME, SITE_URL } from "~/lib/constants";
 import { centsToEuros } from "~/lib/currency";
 import { defineCategoryDetailRoute } from "~/lib/listings-detail-route";
 import { slugify } from "~/lib/slug";
-
-const CONDITION_LABELS: Record<string, string> = {
-	new: "Uusi",
-	excellent: "Erinomainen",
-	good: "Hyvä",
-	fair: "Tyydyttävä",
-	poor: "Huono",
-};
-const GEAR_TYPE_LABELS: Record<string, string> = {
-	helmet: "Kypärä",
-	jacket: "Takki",
-	pants: "Housut",
-	boots: "Saappaat",
-	gloves: "Käsineet",
-	other: "Muu",
-};
 
 const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute({
 	category: "gear",

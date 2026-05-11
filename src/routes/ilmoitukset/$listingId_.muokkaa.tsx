@@ -7,7 +7,7 @@ import { useState } from "react";
 import { AvailabilityCalendar } from "~/components/listings/availability-calendar";
 import { ListingForm } from "~/components/listings/listing-form";
 import { Button } from "~/components/ui/button";
-import { categoryBrowsePath } from "~/lib/category-routes";
+import { categoryDetailPath } from "~/lib/category-routes";
 import { centsToEuros } from "~/lib/currency";
 import type { ListingCategory } from "~/lib/db/schema";
 import { AppError } from "~/lib/errors";
@@ -297,10 +297,9 @@ function EditListingPage() {
 		await updateListingFn({ data: { id: listing.id, form: data } });
 		const slug = computeListingSlug(makeSlug ?? null, modelName ?? null, listing.city);
 		navigate({
-			to: `${categoryBrowsePath(listing.category as ListingCategory)}/$listingId/$slug`,
-			params: { listingId: listing.short_id, slug },
+			href: categoryDetailPath(listing.category as ListingCategory, listing.short_id, slug),
 			replace: true,
-		} as never);
+		});
 	}
 
 	const slug = computeListingSlug(makeSlug, modelName, listing.city);

@@ -306,11 +306,11 @@ export const searchListings = createServerFn({ method: "GET" })
 			case "rental":
 				return searchRentalListings(params);
 			case "sale":
-				return searchSaleListings(params);
+				return searchSimpleCategory(params, { table: "listing_sale", category: "sale" });
 			case "gear":
-				return searchGearListings(params);
+				return searchSimpleCategory(params, { table: "listing_gear", category: "gear" });
 			case "part":
-				return searchPartListings(params);
+				return searchSimpleCategory(params, { table: "listing_part", category: "part" });
 		}
 	});
 
@@ -468,87 +468,16 @@ function applySimpleSort<O>(
 	return query.orderBy("listing.created_at", "desc").orderBy("listing.id", "desc");
 }
 
-async function searchSaleListings(params: BrowseSearchParams): Promise<SearchResult> {
+async function searchSimpleCategory(
+	params: BrowseSearchParams,
+	child: SimpleCategorySearch,
+): Promise<SearchResult> {
 	const db = await getDb();
 	const searchMode = await resolveListingSearchMode(params.q);
 	const sort: SortMode = params.sort ?? (searchMode.type !== "none" ? "relevance" : "newest");
 
-	const child: SimpleCategorySearch = { table: "listing_sale", category: "sale" };
-
 	const baseQuery = applySimpleFilters(
-		db.selectFrom("listing").innerJoin("listing_sale as child", "child.listing_id", "listing.id"),
-		params,
-		searchMode,
-		child,
-	);
-
-	const countResult = await baseQuery
-		.select(sql<number>`count(*)::int`.as("count"))
-		.executeTakeFirstOrThrow();
-
-	// biome-ignore lint/suspicious/noExplicitAny: cast needed — Kysely join graph widening prevents precise typing
-	let query = (baseQuery as SelectQueryBuilder<Database, any, object>)
-		.selectAll("listing")
-		.select(sql<number>`child.price`.as("price_per_day"));
-	if (params.cursor) {
-		query = applySimpleCursor(query, params.cursor, sort);
-	}
-	query = applySimpleSort(query, sort, searchMode);
-	query = query.limit(PAGE_SIZE);
-
-	const listings = (await query.execute()) as (Listing & { price_per_day: number })[];
-	return {
-		listings: await hydrateListings(listings),
-		nextCursor: buildNextCursor(listings, sort),
-		totalCount: countResult.count,
-	};
-}
-
-async function searchGearListings(params: BrowseSearchParams): Promise<SearchResult> {
-	const db = await getDb();
-	const searchMode = await resolveListingSearchMode(params.q);
-	const sort: SortMode = params.sort ?? (searchMode.type !== "none" ? "relevance" : "newest");
-
-	const child: SimpleCategorySearch = { table: "listing_gear", category: "gear" };
-
-	const baseQuery = applySimpleFilters(
-		db.selectFrom("listing").innerJoin("listing_gear as child", "child.listing_id", "listing.id"),
-		params,
-		searchMode,
-		child,
-	);
-
-	const countResult = await baseQuery
-		.select(sql<number>`count(*)::int`.as("count"))
-		.executeTakeFirstOrThrow();
-
-	// biome-ignore lint/suspicious/noExplicitAny: cast needed — Kysely join graph widening prevents precise typing
-	let query = (baseQuery as SelectQueryBuilder<Database, any, object>)
-		.selectAll("listing")
-		.select(sql<number>`child.price`.as("price_per_day"));
-	if (params.cursor) {
-		query = applySimpleCursor(query, params.cursor, sort);
-	}
-	query = applySimpleSort(query, sort, searchMode);
-	query = query.limit(PAGE_SIZE);
-
-	const listings = (await query.execute()) as (Listing & { price_per_day: number })[];
-	return {
-		listings: await hydrateListings(listings),
-		nextCursor: buildNextCursor(listings, sort),
-		totalCount: countResult.count,
-	};
-}
-
-async function searchPartListings(params: BrowseSearchParams): Promise<SearchResult> {
-	const db = await getDb();
-	const searchMode = await resolveListingSearchMode(params.q);
-	const sort: SortMode = params.sort ?? (searchMode.type !== "none" ? "relevance" : "newest");
-
-	const child: SimpleCategorySearch = { table: "listing_part", category: "part" };
-
-	const baseQuery = applySimpleFilters(
-		db.selectFrom("listing").innerJoin("listing_part as child", "child.listing_id", "listing.id"),
+		db.selectFrom("listing").innerJoin(`${child.table} as child`, "child.listing_id", "listing.id"),
 		params,
 		searchMode,
 		child,

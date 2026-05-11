@@ -15,7 +15,6 @@ export type CreateListingResult = {
 	city: string;
 };
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: core write path — splitting would obscure transactional integrity
 export async function createListing(
 	ownerId: string,
 	data: ListingFormData,
@@ -26,92 +25,95 @@ export async function createListing(
 	const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
 	const hasBike = data.category === "sale" || data.category === "rental";
 
-	await db
-		.insertInto("listing")
-		.values({
-			id,
-			short_id: shortId,
-			owner_id: ownerId,
-			category: data.category,
-			title: data.title,
-			make_id: hasBike ? data.make_id : null,
-			model_id: hasBike ? (data.model_id ?? null) : null,
-			year: hasBike ? data.year : null,
-			engine_cc: hasBike ? (data.engine_cc ?? null) : null,
-			required_license: hasBike ? (data.required_license ?? null) : null,
-			motorcycle_type: hasBike ? data.motorcycle_type : null,
-			city: data.city,
-			region: data.region,
-			postal_code: data.postal_code ?? null,
-			description: data.description,
-			expires_at: expiresAt,
-			created_at: new Date(),
-			updated_at: new Date(),
-		})
-		.execute();
+	// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: core write path — splitting would obscure transactional integrity
+	await db.transaction().execute(async (trx) => {
+		await trx
+			.insertInto("listing")
+			.values({
+				id,
+				short_id: shortId,
+				owner_id: ownerId,
+				category: data.category,
+				title: data.title,
+				make_id: hasBike ? data.make_id : null,
+				model_id: hasBike ? (data.model_id ?? null) : null,
+				year: hasBike ? data.year : null,
+				engine_cc: hasBike ? (data.engine_cc ?? null) : null,
+				required_license: hasBike ? (data.required_license ?? null) : null,
+				motorcycle_type: hasBike ? data.motorcycle_type : null,
+				city: data.city,
+				region: data.region,
+				postal_code: data.postal_code ?? null,
+				description: data.description,
+				expires_at: expiresAt,
+				created_at: new Date(),
+				updated_at: new Date(),
+			})
+			.execute();
 
-	if (data.category === "rental") {
-		await db
-			.insertInto("listing_rental")
-			.values({
-				listing_id: id,
-				price_per_day: eurosToCents(data.price_per_day),
-				price_per_week: data.price_per_week ? eurosToCents(data.price_per_week) : null,
-				price_per_weekend: data.price_per_weekend ? eurosToCents(data.price_per_weekend) : null,
-				price_description: data.price_description ?? null,
-				mileage_limit: data.mileage_limit ?? null,
-			})
-			.execute();
-	} else if (data.category === "sale") {
-		await db
-			.insertInto("listing_sale")
-			.values({
-				listing_id: id,
-				price: data.price,
-				condition: data.condition,
-				km_driven: data.km_driven ?? null,
-				negotiable: data.negotiable,
-			})
-			.execute();
-	} else if (data.category === "gear") {
-		await db
-			.insertInto("listing_gear")
-			.values({
-				listing_id: id,
-				gear_type: data.gear_type as GearType,
-				size: data.size ?? null,
-				condition: data.condition,
-				price: data.price,
-			})
-			.execute();
-	} else {
-		await db
-			.insertInto("listing_part")
-			.values({
-				listing_id: id,
-				part_category: data.part_category,
-				compatible_make_id: data.compatible_make_id ?? null,
-				compatible_model_id: null,
-				condition: data.condition,
-				price: data.price,
-			})
-			.execute();
-	}
-
-	if (data.images.length > 0) {
-		await db
-			.insertInto("listing_image")
-			.values(
-				data.images.map((img, i) => ({
-					id: crypto.randomUUID(),
+		if (data.category === "rental") {
+			await trx
+				.insertInto("listing_rental")
+				.values({
 					listing_id: id,
-					url: img.url,
-					thumbnail_url: img.thumbnail_url ?? null,
-					order: i,
-				})),
-			)
-			.execute();
-	}
+					price_per_day: eurosToCents(data.price_per_day),
+					price_per_week: data.price_per_week ? eurosToCents(data.price_per_week) : null,
+					price_per_weekend: data.price_per_weekend ? eurosToCents(data.price_per_weekend) : null,
+					price_description: data.price_description ?? null,
+					mileage_limit: data.mileage_limit ?? null,
+				})
+				.execute();
+		} else if (data.category === "sale") {
+			await trx
+				.insertInto("listing_sale")
+				.values({
+					listing_id: id,
+					price: data.price,
+					condition: data.condition,
+					km_driven: data.km_driven ?? null,
+					negotiable: data.negotiable,
+				})
+				.execute();
+		} else if (data.category === "gear") {
+			await trx
+				.insertInto("listing_gear")
+				.values({
+					listing_id: id,
+					gear_type: data.gear_type as GearType,
+					size: data.size ?? null,
+					condition: data.condition,
+					price: data.price,
+				})
+				.execute();
+		} else {
+			await trx
+				.insertInto("listing_part")
+				.values({
+					listing_id: id,
+					part_category: data.part_category,
+					compatible_make_id: data.compatible_make_id ?? null,
+					compatible_model_id: null,
+					condition: data.condition,
+					price: data.price,
+				})
+				.execute();
+		}
+
+		if (data.images.length > 0) {
+			await trx
+				.insertInto("listing_image")
+				.values(
+					data.images.map((img, i) => ({
+						id: crypto.randomUUID(),
+						listing_id: id,
+						url: img.url,
+						thumbnail_url: img.thumbnail_url ?? null,
+						order: i,
+					})),
+				)
+				.execute();
+		}
+	});
 
 	const [make, model] = await Promise.all([
 		hasBike

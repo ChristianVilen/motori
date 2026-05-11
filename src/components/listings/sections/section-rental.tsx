@@ -1,20 +1,14 @@
 // Rental category section adapter.
 // Owns: rental price fields (per-day, per-week, per-weekend, description, mileage limit).
-// Motorcycle fields (title, make, year, ...) are rendered separately by the shell.
+// Motorcycle fields are owned by the shell and passed via MotorcyclePayload.
 
 import { Input } from "~/components/ui/input";
 import { useTranslation } from "~/lib/i18n";
 import type { ListingFormData } from "~/lib/validators";
 import { FieldError } from "./shared-fields";
-import type { CategoryFormSection, SharedPayload } from "./types";
+import type { CategoryFormSection, MotorcyclePayload, SharedPayload } from "./types";
 
 export interface RentalFieldValues {
-	make_id: string;
-	model_id: string | null;
-	year: number;
-	engine_cc: number | null;
-	motorcycle_type: string;
-	required_license: "A1" | "A2" | "A" | null;
 	price_per_day: number;
 	price_per_week: number | null;
 	price_per_weekend: number | null;
@@ -27,12 +21,6 @@ export const rentalSection: CategoryFormSection<"rental", RentalFieldValues> = {
 	defaultValues: (initial) => {
 		const v = initial?.category === "rental" ? initial : undefined;
 		return {
-			make_id: v?.make_id ?? "",
-			model_id: v?.model_id ?? null,
-			year: v?.year ?? ("" as unknown as number),
-			engine_cc: v?.engine_cc ?? null,
-			motorcycle_type: v?.motorcycle_type ?? "",
-			required_license: v?.required_license ?? null,
 			price_per_day: v?.price_per_day ?? ("" as unknown as number),
 			price_per_week: v?.price_per_week ?? null,
 			price_per_weekend: v?.price_per_weekend ?? null,
@@ -41,12 +29,6 @@ export const rentalSection: CategoryFormSection<"rental", RentalFieldValues> = {
 		};
 	},
 	fieldKeys: [
-		"make_id",
-		"model_id",
-		"year",
-		"engine_cc",
-		"motorcycle_type",
-		"required_license",
 		"price_per_day",
 		"price_per_week",
 		"price_per_weekend",
@@ -56,26 +38,33 @@ export const rentalSection: CategoryFormSection<"rental", RentalFieldValues> = {
 	toPayload: (
 		shared: SharedPayload,
 		value: RentalFieldValues,
-	): Extract<ListingFormData, { category: "rental" }> => ({
-		category: "rental",
-		title: shared.title,
-		city: shared.city,
-		region: shared.region,
-		postal_code: shared.postal_code,
-		description: shared.description,
-		make_id: value.make_id,
-		model_id: value.model_id,
-		year: value.year,
-		engine_cc: value.engine_cc,
-		motorcycle_type: value.motorcycle_type,
-		required_license: value.required_license,
-		price_per_day: value.price_per_day,
-		price_per_week: value.price_per_week,
-		price_per_weekend: value.price_per_weekend,
-		price_description: value.price_description || null,
-		mileage_limit: value.mileage_limit,
-		images: shared.images,
-	}),
+		moto?: MotorcyclePayload,
+	): Extract<ListingFormData, { category: "rental" }> => {
+		if (!moto) {
+			throw new Error("moto is required for rental listings");
+		}
+		const m = moto;
+		return {
+			category: "rental",
+			title: shared.title,
+			city: shared.city,
+			region: shared.region,
+			postal_code: shared.postal_code,
+			description: shared.description,
+			make_id: m.make_id,
+			model_id: m.model_id,
+			year: m.year,
+			engine_cc: m.engine_cc,
+			motorcycle_type: m.motorcycle_type,
+			required_license: m.required_license,
+			price_per_day: value.price_per_day,
+			price_per_week: value.price_per_week,
+			price_per_weekend: value.price_per_weekend,
+			price_description: value.price_description || null,
+			mileage_limit: value.mileage_limit,
+			images: shared.images,
+		};
+	},
 };
 
 interface RentalFieldsProps {

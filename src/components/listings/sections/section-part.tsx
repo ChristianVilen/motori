@@ -70,11 +70,11 @@ export function PartFields({ form }: PartFieldsProps) {
 								htmlFor="part_part_category"
 								className="mb-1 block text-sm font-medium text-foreground"
 							>
-								Osatyyppi <span className="text-destructive">*</span>
+								{t("form.fields.partCategory")} <span className="text-destructive">*</span>
 							</label>
 							<Input
 								id="part_part_category"
-								placeholder="esim. Jarrulevyt, Ketjusarja, Peili"
+								placeholder={t("form.fields.partCategoryPlaceholder")}
 								value={field.state.value ?? ""}
 								onChange={(e) => field.handleChange(e.target.value)}
 								maxLength={100}
@@ -106,7 +106,7 @@ export function PartFields({ form }: PartFieldsProps) {
 								htmlFor="part_price"
 								className="mb-1 block text-sm font-medium text-foreground"
 							>
-								Hinta (€) <span className="text-destructive">*</span>
+								{t("form.fields.price")} <span className="text-destructive">*</span>
 							</label>
 							<Input
 								id="part_price"

@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, type LinkProps } from "@tanstack/react-router";
 import { ArrowLeft, MapPin, Tag } from "lucide-react";
 import type { ReactNode } from "react";
 import { ListingGallery } from "~/components/listings/listing-gallery";
@@ -15,7 +15,7 @@ interface ReviewSummary {
 export interface ListingDetailShellProps {
 	data: ListingForDisplay & { ownerReviewSummary: ReviewSummary };
 	session: { user: { id: string } } | null;
-	backTo: string;
+	backTo: LinkProps["to"];
 	backLabel: string;
 	sidebar: ReactNode;
 	mobileBar?: ReactNode;
@@ -47,7 +47,7 @@ export function ListingDetailShell({
 			<div className="mx-auto max-w-4xl px-4 py-4 md:py-8">
 				<Link
 					data-testid="listing-detail-back"
-					to={backTo as never}
+					to={backTo}
 					className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground"
 				>
 					<ArrowLeft className="h-4 w-4" />
