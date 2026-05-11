@@ -16,7 +16,6 @@ export default {
 			markSold: "Myyty",
 		},
 		row: {
-			pricePerDay: "€/pv",
 			viewCount: "{{n}} näyttökertaa",
 			edit: "Muokkaa",
 			pause: "Aseta tauolle",
@@ -50,11 +49,6 @@ export default {
 			expired: "Vanhentunut",
 			cancelled: "Peruttu",
 		},
-		row: {
-			dates: "{{start}} – {{end}}",
-			days_one: "{{count}} päivä",
-			days_other: "{{count}} päivää",
-		},
 		detail: {
 			heading: "Varaus",
 			messageLabel: "Viesti",
@@ -70,7 +64,6 @@ export default {
 			cancelConfirm: "Perutaanko varauspyyntö?",
 			rejectDismiss: "Peruuta",
 			autoRejectNotice: "{{count}} päällekkäistä pyyntöä hylättiin automaattisesti.",
-			contactRevealed: "Yhteystiedot näkyvät kummallekin osapuolelle.",
 		},
 	},
 	reviews: {
@@ -81,13 +74,10 @@ export default {
 		commentPlaceholder: "Kerro kokemuksestasi...",
 		submitButton: "Lähetä arvostelu",
 		submitting: "Lähetetään...",
-		submitted:
-			"Arvostelu lähetetty! Näkyy kun molemmat ovat arvostelleet tai 14 päivää on kulunut.",
 		windowClosed: "Arvosteluaika on umpeutunut.",
 		revealed: "Arvosteluaika on päättynyt — arvostelusi on nyt näkyvissä profiilissa.",
 		waitingReveal:
 			"Arvosteluasi ei näytetä vielä — odottaa toisen osapuolen arvostelua tai 14 päivän määräaikaa.",
-		noReviews: "Ei vielä arvosteluja.",
 		summary: "{{rating}} ★ ({{count}} arvostelua)",
 		summaryOne: "{{rating}} ★ (1 arvostelu)",
 		submitError: "Arvostelun lähetys epäonnistui. Yritä uudelleen.",

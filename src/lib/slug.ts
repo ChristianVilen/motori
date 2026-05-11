@@ -28,3 +28,16 @@ export function computeListingSlug(
 	);
 	return parts.join("-");
 }
+
+/** Compute the URL slug for a listing based on its category. */
+export function computeCategorySlug(
+	category: string,
+	title: string,
+	makeSlug: string | null,
+	modelName: string | null,
+	city: string,
+): string {
+	return category === "gear" || category === "part"
+		? slugify(title)
+		: computeListingSlug(makeSlug, modelName, city);
+}

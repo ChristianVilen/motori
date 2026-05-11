@@ -10,8 +10,8 @@ import { type LinkProps, notFound, useLoaderData } from "@tanstack/react-router"
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import type { FC, ReactNode } from "react";
+import { z } from "zod";
 import { ListingDetailShell } from "~/components/listings/listing-detail-shell";
-import type { ListingCategory } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
 import { getListingForDisplay, type ListingForDisplay, recordView } from "~/lib/listings-queries";
 import { getReviewSummaryForUser } from "~/lib/reviews.server";
@@ -36,8 +36,13 @@ interface DefineCategoryDetailRouteArgs<C extends "sale" | "gear" | "part"> {
 	head: (loaderData: HeadInput | undefined) => Record<string, unknown>;
 }
 
+const categoryDetailInput = z.object({
+	shortId: z.string().min(1).max(20),
+	category: z.enum(["sale", "rental", "gear", "part"]),
+});
+
 const getCategoryListing = createServerFn({ method: "GET" })
-	.inputValidator((input: { shortId: string; category: ListingCategory }) => input)
+	.inputValidator((input: unknown) => categoryDetailInput.parse(input))
 	.handler(async ({ data }) => {
 		const session = await getSession();
 		const result = await getListingForDisplay(data.shortId);

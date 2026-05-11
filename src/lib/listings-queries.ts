@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { type SelectQueryBuilder, type SqlBool, sql } from "kysely";
+import { z } from "zod";
 import { expandDateRange } from "~/lib/bookings";
+import type { Condition, GearTypeValue } from "~/lib/constants";
 import { centsToEuros, eurosToCents } from "~/lib/currency";
 import type { Database, Listing, ListingCategory, ListingImage } from "~/lib/db/schema";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
@@ -11,6 +13,8 @@ import type { BrowseSearchParams } from "~/lib/validators";
 // db/index.ts imports pg which uses Buffer (Node-only); keeping it out of the
 // static import graph prevents it from being bundled into client chunks.
 const getDb = async () => (await import("~/lib/db/index")).db;
+
+const categorySchema = z.enum(["sale", "rental", "gear", "part"]);
 
 const ADJACENT_REGIONS: Record<string, string[]> = {
 	uusimaa: ["paijat-hame", "kanta-hame", "kymenlaakso"],
@@ -300,7 +304,10 @@ async function hydrateListings(listings: Listing[]): Promise<ListingWithImages[]
 
 export const searchListings = createServerFn({ method: "GET" })
 	.middleware([rateLimitMiddleware(60, 60, "search")])
-	.inputValidator((input: BrowseSearchParams & { category: ListingCategory }) => input)
+	.inputValidator((input: BrowseSearchParams & { category: ListingCategory }) => ({
+		...input,
+		category: categorySchema.parse(input.category),
+	}))
 	.handler(async ({ data: params }): Promise<SearchResult> => {
 		switch (params.category) {
 			case "rental":
@@ -506,7 +513,8 @@ async function searchSimpleCategory(
 }
 
 export const getLatestListings = createServerFn({ method: "GET" })
-	.inputValidator((category: ListingCategory) => category)
+	.middleware([rateLimitMiddleware(60, 60, "latest")])
+	.inputValidator((category: unknown) => categorySchema.parse(category))
 	.handler(async ({ data: category }) => {
 		const db = await getDb();
 		const listings = await db
@@ -654,21 +662,21 @@ export type ListingForDisplay = {
 	} | null;
 	sale: {
 		price: number;
-		condition: string;
+		condition: Condition;
 		km_driven: number | null;
 		negotiable: boolean;
 	} | null;
 	gear: {
-		gear_type: string;
+		gear_type: GearTypeValue;
 		size: string | null;
-		condition: string;
+		condition: Condition;
 		price: number;
 	} | null;
 	part: {
 		part_category: string;
 		compatible_make_id: string | null;
 		compatible_model_id: string | null;
-		condition: string;
+		condition: Condition;
 		price: number;
 	} | null;
 	images: ListingImage[];

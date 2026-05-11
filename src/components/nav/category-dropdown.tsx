@@ -87,7 +87,6 @@ export function CategoryDropdown() {
 			</button>
 
 			{open ? (
-				// biome-ignore lint/a11y/noStaticElementInteractions: menu needs keydown for arrow navigation
 				<div
 					role="menu"
 					className="absolute left-0 top-full z-50 mt-1 w-36 overflow-hidden rounded-lg border border-white/10 bg-primary shadow-lg"

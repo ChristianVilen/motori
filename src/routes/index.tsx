@@ -67,31 +67,26 @@ function HomePage() {
 		key: ListingCategory;
 		icon: React.ReactNode;
 		labelKey: "categories.sale" | "categories.rental" | "categories.gear" | "categories.parts";
-		to: string;
 	}[] = [
 		{
 			key: "sale",
 			icon: <ShoppingCart className="h-6 w-6" />,
 			labelKey: "categories.sale",
-			to: "/pyorat/myynti",
 		},
 		{
 			key: "rental",
 			icon: <Key className="h-6 w-6" />,
 			labelKey: "categories.rental",
-			to: "/pyorat/vuokraus",
 		},
 		{
 			key: "gear",
 			icon: <Shield className="h-6 w-6" />,
 			labelKey: "categories.gear",
-			to: "/varusteet",
 		},
 		{
 			key: "part",
 			icon: <Wrench className="h-6 w-6" />,
 			labelKey: "categories.parts",
-			to: "/varaosat",
 		},
 	];
 
@@ -234,7 +229,7 @@ function HomePage() {
 					{categories.map((cat) => (
 						<Link
 							key={cat.key}
-							to={cat.to}
+							to={CATEGORY_BROWSE_PATH[cat.key]}
 							className="group flex flex-col gap-3 rounded-2xl border border-border bg-background p-5 transition-colors hover:bg-muted-light"
 						>
 							<span className="text-accent">{cat.icon}</span>

@@ -4,6 +4,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { useState } from "react";
+import { z } from "zod";
 import { BookingRequestForm } from "~/components/listings/booking-request-form";
 import { ListingDetailShell } from "~/components/listings/listing-detail-shell";
 import { ReportButton } from "~/components/report-button";
@@ -22,7 +23,7 @@ import { computeListingSlug } from "~/lib/slug";
 import { bookingRequestSchema } from "~/lib/validators";
 
 const getListing = createServerFn({ method: "GET" })
-	.inputValidator((shortId: string) => shortId)
+	.inputValidator((shortId: unknown) => z.string().min(1).max(20).parse(shortId))
 	.handler(async ({ data: shortId }) => {
 		const session = await getSession();
 		const result = await getListingForDisplay(shortId);

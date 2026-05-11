@@ -81,7 +81,13 @@ export const TYPE_EMOJI: Record<string, string> = {
 	custom: "\uD83D\uDD27",
 };
 
-export const CONDITION_LABELS: Record<string, string> = {
+export const CONDITIONS = ["new", "excellent", "good", "fair", "poor"] as const;
+export type Condition = (typeof CONDITIONS)[number];
+
+export const GEAR_TYPES = ["helmet", "jacket", "pants", "boots", "gloves", "other"] as const;
+export type GearTypeValue = (typeof GEAR_TYPES)[number];
+
+export const CONDITION_LABELS: Record<Condition, string> = {
 	new: "Uusi",
 	excellent: "Erinomainen",
 	good: "Hyvä",
@@ -89,7 +95,7 @@ export const CONDITION_LABELS: Record<string, string> = {
 	poor: "Huono",
 };
 
-export const GEAR_TYPE_LABELS: Record<string, string> = {
+export const GEAR_TYPE_LABELS: Record<GearTypeValue, string> = {
 	helmet: "Kypärä",
 	jacket: "Takki",
 	pants: "Housut",

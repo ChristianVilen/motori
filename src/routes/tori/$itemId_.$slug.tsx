@@ -1,7 +1,7 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { categoryBrowsePath } from "~/lib/category-routes";
 import type { ListingCategory } from "~/lib/db/schema";
-import { computeListingSlug, slugify } from "~/lib/slug";
+import { computeCategorySlug } from "~/lib/slug";
 
 export const Route = createFileRoute("/tori/$itemId_/$slug")({
 	loader: async ({ params }) => {
@@ -26,10 +26,13 @@ export const Route = createFileRoute("/tori/$itemId_/$slug")({
 			throw notFound();
 		}
 
-		const slug =
-			row.category === "gear" || row.category === "part"
-				? slugify(row.title)
-				: computeListingSlug(row.makeSlug ?? null, row.modelName ?? null, row.city);
+		const slug = computeCategorySlug(
+			row.category,
+			row.title,
+			row.makeSlug ?? null,
+			row.modelName ?? null,
+			row.city,
+		);
 
 		throw redirect({
 			href: `${categoryBrowsePath(row.category as ListingCategory)}/${row.short_id}/${slug}`,

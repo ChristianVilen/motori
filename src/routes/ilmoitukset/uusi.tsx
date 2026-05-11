@@ -24,7 +24,12 @@ const createListingFn = createServerFn({ method: "POST" })
 			throw new AppError("auth.unauthorized");
 		}
 
-		if (data.images.some((img) => !isValidImageUrl(img.url))) {
+		if (
+			data.images.some(
+				(img) =>
+					!isValidImageUrl(img.url) || (img.thumbnail_url && !isValidImageUrl(img.thumbnail_url)),
+			)
+		) {
 			throw new AppError("listing.invalid_image", { field: "images" });
 		}
 

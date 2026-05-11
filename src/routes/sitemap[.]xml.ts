@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CATEGORY_BROWSE_PATH } from "~/lib/category-routes";
 import { SITE_URL } from "~/lib/constants";
 import type { ListingCategory } from "~/lib/db/schema";
-import { computeListingSlug, slugify } from "~/lib/slug";
+import { computeCategorySlug } from "~/lib/slug";
 
 const STATIC_PATHS = [
 	{ path: "/", priority: "1.0", changefreq: "daily" },
@@ -45,10 +45,13 @@ export const Route = createFileRoute("/sitemap.xml")({
 					...listings.map((l) => {
 						const basePath =
 							CATEGORY_BROWSE_PATH[l.category as ListingCategory] ?? "/pyorat/vuokraus";
-						const slug =
-							l.category === "gear" || l.category === "part"
-								? slugify(l.title)
-								: computeListingSlug(l.makeSlug ?? null, l.modelName ?? null, l.city);
+						const slug = computeCategorySlug(
+							l.category,
+							l.title,
+							l.makeSlug ?? null,
+							l.modelName ?? null,
+							l.city,
+						);
 						return `<url><loc>${SITE_URL}${basePath}/${l.short_id}/${slug}</loc><lastmod>${new Date(l.updated_at).toISOString().split("T")[0]}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`;
 					}),
 				];

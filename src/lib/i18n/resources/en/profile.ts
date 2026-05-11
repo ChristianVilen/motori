@@ -16,7 +16,6 @@ export default {
 			markSold: "Sold",
 		},
 		row: {
-			pricePerDay: "€/day",
 			viewCount: "{{n}} views",
 			edit: "Edit",
 			pause: "Pause",
@@ -50,11 +49,6 @@ export default {
 			expired: "Expired",
 			cancelled: "Cancelled",
 		},
-		row: {
-			dates: "{{start}} – {{end}}",
-			days_one: "{{count}} day",
-			days_other: "{{count}} days",
-		},
 		detail: {
 			heading: "Booking",
 			messageLabel: "Message",
@@ -70,7 +64,6 @@ export default {
 			rejectConfirm: "Reject this booking?",
 			cancelConfirm: "Cancel this booking request?",
 			autoRejectNotice: "{{count}} overlapping request was automatically rejected.",
-			contactRevealed: "Contact details are visible to both parties.",
 		},
 	},
 	reviews: {
@@ -81,13 +74,10 @@ export default {
 		commentPlaceholder: "Tell about your experience...",
 		submitButton: "Submit review",
 		submitting: "Submitting...",
-		submitted:
-			"Review submitted! It will be visible once both parties have reviewed or 14 days have passed.",
 		windowClosed: "The review window has closed.",
 		revealed: "The review window has ended — your review is now visible on the profile.",
 		waitingReveal:
 			"Your review is not visible yet — waiting for the other party's review or the 14-day deadline.",
-		noReviews: "No reviews yet.",
 		summary: "{{rating}} ★ ({{count}} reviews)",
 		summaryOne: "{{rating}} ★ (1 review)",
 		submitError: "Failed to submit review. Please try again.",

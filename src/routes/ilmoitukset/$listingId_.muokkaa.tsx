@@ -51,7 +51,12 @@ const updateListingFn = createServerFn({ method: "POST" })
 			throw new Error("Kirjaudu sisään");
 		}
 
-		if (data.form.images.some((img) => !isValidImageUrl(img.url))) {
+		if (
+			data.form.images.some(
+				(img) =>
+					!isValidImageUrl(img.url) || (img.thumbnail_url && !isValidImageUrl(img.thumbnail_url)),
+			)
+		) {
 			throw new AppError("listing.invalid_image", { field: "images" });
 		}
 

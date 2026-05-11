@@ -1,7 +1,7 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { categoryBrowsePath } from "~/lib/category-routes";
 import type { ListingCategory } from "~/lib/db/schema";
-import { computeListingSlug } from "~/lib/slug";
+import { computeCategorySlug } from "~/lib/slug";
 
 export const Route = createFileRoute("/ilmoitukset/$listingId_/$slug")({
 	loader: async ({ params }) => {
@@ -13,6 +13,7 @@ export const Route = createFileRoute("/ilmoitukset/$listingId_/$slug")({
 			.select([
 				"listing.short_id",
 				"listing.category",
+				"listing.title",
 				"listing.city",
 				"motorcycle_make.slug as makeSlug",
 				"motorcycle_model.name as modelName",
@@ -25,7 +26,13 @@ export const Route = createFileRoute("/ilmoitukset/$listingId_/$slug")({
 			throw notFound();
 		}
 
-		const slug = computeListingSlug(row.makeSlug ?? null, row.modelName ?? null, row.city);
+		const slug = computeCategorySlug(
+			row.category,
+			row.title,
+			row.makeSlug ?? null,
+			row.modelName ?? null,
+			row.city,
+		);
 
 		throw redirect({
 			href: `${categoryBrowsePath(row.category as ListingCategory)}/${row.short_id}/${slug}`,

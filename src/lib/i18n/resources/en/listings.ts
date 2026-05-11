@@ -11,7 +11,6 @@ export default {
 		listToggle: "List",
 		mapLoading: "Loading map...",
 		closeCityPanel: "Close",
-		hideFilters: "Hide filters",
 		showFilters: "Show filters",
 		collapseSidebar: "Collapse sidebar",
 	},
@@ -72,30 +71,14 @@ export default {
 		back: "Back",
 		negotiable: "Negotiable",
 		contactSeller: "Contact seller",
-		specs: {
-			heading: "Details",
-			brand: "Brand",
-			model: "Model",
-			year: "Year",
-			engine: "Engine",
-			engineUnit: "cc",
-			mileageLimit: "Mileage limit",
-			mileageLimitUnit: "km/day",
-		},
 		description: "Description",
 		licenseBadge: "License {{license}}",
-		viewCount: "{{n}} views",
 		pricing: {
 			perDay: "/day",
 			perWeek: "{{price}} / week",
 			perWeekend: "{{price}} / weekend (Fri–Sun)",
 		},
 		bookingCta: "Make a booking request",
-		contact: {
-			loginPrompt: "Sign in to see contact details",
-			reveal: "Show contact details",
-			fallbackName: "Lister",
-		},
 		ownerActions: {
 			edit: "Edit",
 			myListings: "My listings",
@@ -120,8 +103,6 @@ export default {
 			blocked: "Booked",
 			selected: "Selected",
 		},
-		pickRange: "Select a start and end date",
-		mustBeContiguous: "Dates must be consecutive",
 		loginRequired: "Sign in to make a booking request",
 		messageLabel: "Message to the owner",
 		messagePlaceholder: "Tell us who you are and what you need the bike for",
@@ -130,7 +111,6 @@ export default {
 		successTitle: "Booking request sent",
 		successBody:
 			"The owner will receive your request by email. You'll be notified when they respond.",
-		costSummary: "{{days}} days — {{total}}",
 		costLabelWeekend: "weekend rate",
 		costLabelWeek: "weekly rate",
 		calendar: {
@@ -150,7 +130,6 @@ export default {
 	},
 	availability: {
 		formTitle: "Availability",
-		defaultLabel: "Default state",
 		defaultOpen: "Available by default",
 		defaultClosed: "Booked by default",
 		hint: "Click days in the calendar to toggle individual day availability.",
@@ -174,14 +153,6 @@ export default {
 			rental: "Rental",
 			gear: "Gear",
 			part: "Parts",
-		},
-		gearTypes: {
-			helmet: "Helmet",
-			jacket: "Jacket",
-			pants: "Pants",
-			boots: "Boots",
-			gloves: "Gloves",
-			other: "Other",
 		},
 		conditions: {
 			new: "New",

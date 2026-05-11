@@ -1,14 +1,17 @@
 // src/lib/validators.ts
 import { z } from "zod";
-import { CURRENT_YEAR, LICENSE_CLASSES, MOTORCYCLE_TYPES } from "~/lib/constants";
+import {
+	CONDITIONS,
+	CURRENT_YEAR,
+	GEAR_TYPES,
+	LICENSE_CLASSES,
+	MOTORCYCLE_TYPES,
+} from "~/lib/constants";
 import fiCommon from "~/lib/i18n/resources/fi/common";
 import { MUNICIPALITY_NAME_SET } from "~/lib/municipalities";
 
-export const CONDITIONS = ["new", "excellent", "good", "fair", "poor"] as const;
-export type Condition = (typeof CONDITIONS)[number];
-
-export const GEAR_TYPES = ["helmet", "jacket", "pants", "boots", "gloves", "other"] as const;
-export type GearTypeValue = (typeof GEAR_TYPES)[number];
+export type { Condition, GearTypeValue } from "~/lib/constants";
+export { CONDITIONS, GEAR_TYPES };
 
 type T = (key: string) => string;
 
@@ -54,8 +57,6 @@ function sharedFields(t: T) {
 	};
 }
 
-const CONDITION_ENUM = CONDITIONS;
-
 export function listingFormSchema(t: T = defaultT) {
 	const shared = sharedFields(t);
 	return z.discriminatedUnion("category", [
@@ -91,7 +92,7 @@ export function listingFormSchema(t: T = defaultT) {
 			engine_cc: z.number().int().min(50).max(3000).nullable().optional(),
 			motorcycle_type: z.string().trim().min(1, t("validation.typeRequired")),
 			required_license: z.enum(["A1", "A2", "A"]).nullable().optional(),
-			condition: z.enum(CONDITION_ENUM),
+			condition: z.enum(CONDITIONS),
 			km_driven: z.number().int().min(0).max(999999).nullable().optional(),
 			price: z.number().int().min(1).max(100_000_000),
 			negotiable: z.boolean().default(false),
@@ -101,7 +102,7 @@ export function listingFormSchema(t: T = defaultT) {
 			category: z.literal("gear"),
 			gear_type: z.enum(GEAR_TYPES),
 			size: z.string().trim().max(20).nullable().optional(),
-			condition: z.enum(CONDITION_ENUM),
+			condition: z.enum(CONDITIONS),
 			price: z.number().int().min(1).max(10_000_000),
 		}),
 		z.object({
@@ -109,7 +110,7 @@ export function listingFormSchema(t: T = defaultT) {
 			category: z.literal("part"),
 			part_category: z.string().trim().min(1).max(100),
 			compatible_make_id: z.string().nullable().optional(),
-			condition: z.enum(CONDITION_ENUM),
+			condition: z.enum(CONDITIONS),
 			price: z.number().int().min(1).max(10_000_000),
 		}),
 	]);
