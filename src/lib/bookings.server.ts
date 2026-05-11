@@ -62,57 +62,59 @@ export async function createBookingRequest(args: {
 		throw new AppError("auth.profile_missing");
 	}
 
-	const collisions = await db
-		.selectFrom("booking")
-		.select("id")
-		.where("listing_id", "=", listing.id)
-		.where("status", "=", "confirmed")
-		.where("start_date", "<=", args.endDate)
-		.where("end_date", ">=", args.startDate)
-		.execute();
-
-	if (collisions.length > 0) {
-		throw new AppError("booking.dates_unavailable");
-	}
-
-	const [availRow, exceptions] = await Promise.all([
-		db
-			.selectFrom("listing_rental")
-			.select("availability_default")
+	const shortId = generateShortId();
+	const inserted = await db.transaction().execute(async (trx) => {
+		const collisions = await trx
+			.selectFrom("booking")
+			.select("id")
 			.where("listing_id", "=", listing.id)
-			.executeTakeFirst(),
-		db
-			.selectFrom("listing_availability_exception")
-			.select(sql<string>`to_char(date, 'YYYY-MM-DD')`.as("date"))
-			.where("listing_id", "=", listing.id)
-			.execute(),
-	]);
+			.where("status", "=", "confirmed")
+			.where("start_date", "<=", args.endDate)
+			.where("end_date", ">=", args.startDate)
+			.execute();
 
-	const availDefault = availRow?.availability_default ?? "open";
-	const exceptionSet = new Set(exceptions.map((e) => e.date));
-	const requestedDates = expandDateRange(args.startDate, args.endDate);
-
-	for (const date of requestedDates) {
-		const inException = exceptionSet.has(date);
-		const blocked = availDefault === "open" ? inException : !inException;
-		if (blocked) {
+		if (collisions.length > 0) {
 			throw new AppError("booking.dates_unavailable");
 		}
-	}
 
-	const shortId = generateShortId();
-	const inserted = await db
-		.insertInto("booking")
-		.values({
-			short_id: shortId,
-			listing_id: listing.id,
-			renter_user_id: args.userId,
-			start_date: args.startDate,
-			end_date: args.endDate,
-			message: args.message,
-		})
-		.returning(["id", "short_id"])
-		.executeTakeFirstOrThrow();
+		const [availRow, exceptions] = await Promise.all([
+			trx
+				.selectFrom("listing_rental")
+				.select("availability_default")
+				.where("listing_id", "=", listing.id)
+				.executeTakeFirst(),
+			trx
+				.selectFrom("listing_availability_exception")
+				.select(sql<string>`to_char(date, 'YYYY-MM-DD')`.as("date"))
+				.where("listing_id", "=", listing.id)
+				.execute(),
+		]);
+
+		const availDefault = availRow?.availability_default ?? "open";
+		const exceptionSet = new Set(exceptions.map((e) => e.date));
+		const requestedDates = expandDateRange(args.startDate, args.endDate);
+
+		for (const date of requestedDates) {
+			const inException = exceptionSet.has(date);
+			const blocked = availDefault === "open" ? inException : !inException;
+			if (blocked) {
+				throw new AppError("booking.dates_unavailable");
+			}
+		}
+
+		return trx
+			.insertInto("booking")
+			.values({
+				short_id: shortId,
+				listing_id: listing.id,
+				renter_user_id: args.userId,
+				start_date: args.startDate,
+				end_date: args.endDate,
+				message: args.message,
+			})
+			.returning(["id", "short_id"])
+			.executeTakeFirstOrThrow();
+	});
 
 	log.event(EVENTS.booking.requested, {
 		bookingId: inserted.id,
