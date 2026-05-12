@@ -23,6 +23,7 @@ import { detectServerLocale } from "~/lib/i18n/detect-locale";
 import type { SupportedLocale } from "~/lib/i18n/resources";
 import { supportedLngs } from "~/lib/i18n/resources";
 import { createI18nSync } from "~/lib/i18n/server";
+import { getSession } from "~/lib/session";
 import { useEmailVerified } from "~/lib/use-email-verified";
 import appCss from "~/styles/app.css?url";
 
@@ -36,7 +37,8 @@ export const Route = createRootRoute({
 		if (typeof window === "undefined") {
 			locale = await detectServerLocale();
 		}
-		return { locale };
+		const session = await getSession();
+		return { locale, session };
 	},
 	head: () => ({
 		meta: [
@@ -144,7 +146,7 @@ function RootComponent() {
 		document.documentElement.setAttribute("data-hydrated", "true");
 	}, []);
 
-	const { locale } = Route.useRouteContext();
+	const { locale, session } = Route.useRouteContext();
 
 	const [i18nInstance] = useState(() => {
 		if (typeof window === "undefined") {
@@ -156,7 +158,7 @@ function RootComponent() {
 
 	return (
 		<I18nextProvider i18n={i18nInstance}>
-			<RootDocument locale={locale}>
+			<RootDocument locale={locale} serverSession={session}>
 				<Outlet />
 			</RootDocument>
 		</I18nextProvider>
@@ -166,14 +168,16 @@ function RootComponent() {
 interface RootDocumentProps {
 	children: ReactNode;
 	locale?: SupportedLocale;
+	serverSession?: Awaited<ReturnType<typeof getSession>>;
 }
-function RootDocument({ children, locale = "fi" }: RootDocumentProps) {
+function RootDocument({ children, locale = "fi", serverSession }: RootDocumentProps) {
 	const router = useRouter();
 	const [loginOpen, setLoginOpen] = useState(false);
 	const { t, i18n } = useTranslation("common");
 	const currentLang = (i18n.language ?? locale) as SupportedLocale;
 	const { t: tAuth } = useTranslation("auth");
-	const { data: session } = useSession();
+	const { data: clientSession } = useSession();
+	const session = clientSession ?? serverSession;
 	const isAdmin = router.state.location.pathname.startsWith("/admin");
 	const [resent, setResent] = useState(false);
 	const [checkedSpam, setCheckedSpam] = useState(false);
