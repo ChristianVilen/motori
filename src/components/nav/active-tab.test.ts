@@ -12,9 +12,9 @@ describe("getActiveTab", () => {
 		expect(getActiveTab("/omat/varaukset")).toBe("bookings");
 	});
 
-	it("returns 'account' for /asetukset and sub-paths", () => {
-		expect(getActiveTab("/asetukset")).toBe("account");
-		expect(getActiveTab("/asetukset/profile")).toBe("account");
+	it("returns 'account' for /profiili/asetukset and sub-paths", () => {
+		expect(getActiveTab("/profiili/asetukset")).toBe("account");
+		expect(getActiveTab("/profiili/asetukset/profile")).toBe("account");
 	});
 
 	it("returns null for unrelated routes", () => {
