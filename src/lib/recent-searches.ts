@@ -6,9 +6,13 @@ function isBrowser(): boolean {
 }
 
 export function getRecentSearches(): string[] {
-	if (!isBrowser()) return [];
+	if (!isBrowser()) {
+		return [];
+	}
 	const raw = window.localStorage.getItem(KEY);
-	if (!raw) return [];
+	if (!raw) {
+		return [];
+	}
 	try {
 		const parsed = JSON.parse(raw);
 		return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === "string") : [];
@@ -19,7 +23,9 @@ export function getRecentSearches(): string[] {
 
 export function addRecentSearch(q: string): string[] {
 	const trimmed = q.trim();
-	if (!trimmed) return getRecentSearches();
+	if (!trimmed) {
+		return getRecentSearches();
+	}
 	const current = getRecentSearches();
 	const filtered = current.filter((s) => s.toLowerCase() !== trimmed.toLowerCase());
 	const next = [trimmed, ...filtered].slice(0, MAX);
@@ -30,6 +36,8 @@ export function addRecentSearch(q: string): string[] {
 }
 
 export function clearRecentSearches(): void {
-	if (!isBrowser()) return;
+	if (!isBrowser()) {
+		return;
+	}
 	window.localStorage.removeItem(KEY);
 }

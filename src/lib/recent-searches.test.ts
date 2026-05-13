@@ -1,9 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import {
-	addRecentSearch,
-	clearRecentSearches,
-	getRecentSearches,
-} from "./recent-searches";
+import { addRecentSearch, clearRecentSearches, getRecentSearches } from "./recent-searches";
 
 describe("recent-searches", () => {
 	beforeEach(() => {
@@ -33,7 +29,9 @@ describe("recent-searches", () => {
 	});
 
 	it("caps at 5 entries", () => {
-		for (const q of ["a", "b", "c", "d", "e", "f"]) addRecentSearch(q);
+		for (const q of ["a", "b", "c", "d", "e", "f"]) {
+			addRecentSearch(q);
+		}
 		expect(getRecentSearches()).toEqual(["f", "e", "d", "c", "b"]);
 	});
 

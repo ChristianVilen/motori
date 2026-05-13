@@ -22,13 +22,17 @@ export function MobileSearchOverlay({ open, onClose }: Props) {
 	const [recent, setRecent] = useState<string[]>([]);
 
 	useEffect(() => {
-		if (!open) return;
+		if (!open) {
+			return;
+		}
 		setRecent(getRecentSearches());
 		setQ("");
 		document.body.style.overflow = "hidden";
 		const t0 = window.setTimeout(() => inputRef.current?.focus(), 0);
 		function onKey(e: KeyboardEvent) {
-			if (e.key === "Escape") onClose();
+			if (e.key === "Escape") {
+				onClose();
+			}
 		}
 		window.addEventListener("keydown", onKey);
 		return () => {
@@ -38,11 +42,15 @@ export function MobileSearchOverlay({ open, onClose }: Props) {
 		};
 	}, [open, onClose]);
 
-	if (!open) return null;
+	if (!open) {
+		return null;
+	}
 
 	function runQuery(query: string) {
 		const trimmed = query.trim();
-		if (!trimmed) return;
+		if (!trimmed) {
+			return;
+		}
 		addRecentSearch(trimmed);
 		navigate({ to: "/pyorat/myynti", search: { q: trimmed } });
 		onClose();
@@ -54,7 +62,9 @@ export function MobileSearchOverlay({ open, onClose }: Props) {
 	}
 
 	function goCity(city: string, _region: string) {
-		if (!city) return;
+		if (!city) {
+			return;
+		}
 		navigate({ to: "/pyorat/myynti", search: { city } });
 		onClose();
 	}
