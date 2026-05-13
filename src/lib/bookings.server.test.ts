@@ -32,7 +32,12 @@ function chainable(): unknown {
 
 // biome-ignore lint/suspicious/noExplicitAny: test mock
 const mockTransaction = vi.fn((fn: (trx: any) => unknown) =>
-	fn({ selectFrom: () => chainable(), updateTable: () => chainable() }),
+	fn({
+		selectFrom: () => chainable(),
+		insertInto: () => chainable(),
+		updateTable: () => chainable(),
+		deleteFrom: () => chainable(),
+	}),
 );
 
 vi.mock("~/lib/db/index", () => ({
