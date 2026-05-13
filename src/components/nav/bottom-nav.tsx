@@ -40,11 +40,17 @@ export function BottomNav({ session, verified, onSearchClick, onSignInClick }: P
 					<Plus size={22} />
 				</TabButton>
 			) : verified ? (
-				<TabLink to="/ilmoitukset/uusi" label={labelAdd} active={false} elevated testId="bottom-nav-add">
+				<TabLink
+					to="/ilmoitukset/uusi"
+					label={labelAdd}
+					active={false}
+					elevated
+					testId="bottom-nav-add"
+				>
 					<Plus size={22} />
 				</TabLink>
 			) : (
-				<TabButton label={labelAdd} onClick={() => {}} elevated disabled testId="bottom-nav-add">
+				<TabButton label={labelAdd} elevated disabled testId="bottom-nav-add">
 					<Plus size={22} />
 				</TabButton>
 			)}
@@ -54,7 +60,12 @@ export function BottomNav({ session, verified, onSearchClick, onSignInClick }: P
 					<Calendar size={22} />
 				</TabButton>
 			) : (
-				<TabLink to="/omat/" label={labelBookings} active={active === "bookings"} testId="bottom-nav-bookings">
+				<TabLink
+					to="/omat"
+					label={labelBookings}
+					active={active === "bookings"}
+					testId="bottom-nav-bookings"
+				>
 					<Calendar size={22} />
 				</TabLink>
 			)}
@@ -64,7 +75,12 @@ export function BottomNav({ session, verified, onSearchClick, onSignInClick }: P
 					<User size={22} />
 				</TabButton>
 			) : (
-				<TabLink to="/profiili/asetukset" label={labelAccount} active={active === "account"} testId="bottom-nav-account">
+				<TabLink
+					to="/profiili/asetukset"
+					label={labelAccount}
+					active={active === "account"}
+					testId="bottom-nav-account"
+				>
 					<User size={22} />
 				</TabLink>
 			)}
@@ -116,7 +132,7 @@ function TabButton({
 	children,
 }: {
 	label: string;
-	onClick: () => void;
+	onClick?: () => void;
 	elevated?: boolean;
 	disabled?: boolean;
 	testId: string;
@@ -130,7 +146,9 @@ function TabButton({
 			className={tabClass(false)}
 			data-testid={testId}
 		>
-			<IconWrap elevated={elevated} dim={disabled}>{children}</IconWrap>
+			<IconWrap elevated={elevated} dim={disabled}>
+				{children}
+			</IconWrap>
 			<span>{label}</span>
 		</button>
 	);

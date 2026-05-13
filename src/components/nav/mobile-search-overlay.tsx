@@ -56,11 +56,6 @@ export function MobileSearchOverlay({ open, onClose }: Props) {
 		onClose();
 	}
 
-	function goCategory(to: string) {
-		navigate({ to });
-		onClose();
-	}
-
 	function goCity(city: string, _region: string) {
 		if (!city) {
 			return;
@@ -121,10 +116,13 @@ export function MobileSearchOverlay({ open, onClose }: Props) {
 							<button
 								key={c.key}
 								type="button"
-								onClick={() => goCategory(c.to)}
+								onClick={() => {
+									navigate({ to: c.to });
+									onClose();
+								}}
 								className="rounded-md border border-border bg-background px-3 py-3 text-left text-sm font-medium hover:bg-accent/5"
 							>
-								{t(`nav.${c.key}` as const)}
+								{t(`nav.${c.key}`)}
 							</button>
 						))}
 					</div>
