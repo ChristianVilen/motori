@@ -313,7 +313,9 @@ function RootDocument({ children, locale = "fi", serverSession }: RootDocumentPr
 						)}
 					</div>
 				)}
-				<main id="main-content" className="pb-16 md:pb-0">{children}</main>
+				<main id="main-content" className="pb-16 md:pb-0">
+					{children}
+				</main>
 				{!isAdmin && (
 					<footer className="relative border-t border-border px-4 py-6 text-center text-xs text-muted">
 						<div className="mb-3 flex flex-wrap justify-center gap-x-4 gap-y-1">
