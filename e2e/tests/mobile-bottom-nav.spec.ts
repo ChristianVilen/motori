@@ -1,0 +1,25 @@
+import { expect, test } from "@playwright/test";
+
+test.describe("mobile bottom nav", () => {
+	test("search overlay submits query", async ({ page }) => {
+		await page.goto("/");
+		await page.getByTestId("bottom-nav-search").click();
+		const input = page.getByPlaceholder(/etsi|search/i);
+		await expect(input).toBeVisible();
+		await input.fill("honda");
+		await input.press("Enter");
+		await expect(page).toHaveURL(/\/pyorat\/myynti\?.*q=honda/);
+	});
+
+	test("add tab opens login modal when signed out", async ({ page }) => {
+		await page.goto("/");
+		await page.getByTestId("bottom-nav-add").click();
+		await expect(page.getByTestId("login-modal")).toBeVisible();
+	});
+
+	test("bookings tab opens login modal when signed out", async ({ page }) => {
+		await page.goto("/");
+		await page.getByTestId("bottom-nav-bookings").click();
+		await expect(page.getByTestId("login-modal")).toBeVisible();
+	});
+});
