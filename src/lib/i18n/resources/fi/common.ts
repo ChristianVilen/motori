@@ -13,6 +13,23 @@ export default {
 		userMenuAriaLabel: "Käyttäjävalikko",
 		skipToContent: "Siirry sisältöön",
 		switchLanguage: "Vaihda kieli: {{lang}}",
+		bottom: {
+			browse: "Selaa",
+			search: "Haku",
+			add: "Lisää",
+			bookings: "Varaukset",
+			account: "Tili",
+			ariaLabel: "Mobiilinavigaatio",
+		},
+		search: {
+			title: "Haku",
+			close: "Sulje haku",
+			placeholder: "Etsi pyöriä, varusteita...",
+			submit: "Hae",
+			categories: "Kategoriat",
+			cities: "Kaupungit",
+			recent: "Viimeisimmät haut",
+		},
 	},
 	notFound: {
 		heading: "Sivua ei löytynyt",

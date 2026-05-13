@@ -13,6 +13,23 @@ export default {
 		userMenuAriaLabel: "User menu",
 		skipToContent: "Skip to content",
 		switchLanguage: "Switch language: {{lang}}",
+		bottom: {
+			browse: "Browse",
+			search: "Search",
+			add: "Add",
+			bookings: "Bookings",
+			account: "Account",
+			ariaLabel: "Mobile navigation",
+		},
+		search: {
+			title: "Search",
+			close: "Close search",
+			placeholder: "Search bikes, gear...",
+			submit: "Search",
+			categories: "Categories",
+			cities: "Cities",
+			recent: "Recent searches",
+		},
 	},
 	notFound: {
 		heading: "Page not found",
