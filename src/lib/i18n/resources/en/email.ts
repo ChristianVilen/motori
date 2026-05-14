@@ -52,4 +52,9 @@ export default {
 		body: "The dates {{start}} – {{end}} were booked by someone else.",
 		fallback: "You can search for another date or listing on the site.",
 	},
+	newMessage: {
+		subject: 'New message about "{{title}}"',
+		intro: 'You have a new message about "{{title}}":',
+		cta: "Open conversation on Motori:",
+	},
 } as const;

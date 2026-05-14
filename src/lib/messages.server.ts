@@ -101,6 +101,8 @@ export async function sendMessageServer(args: {
 		.innerJoin("listing", "listing.id", "conversation.listing_id")
 		.innerJoin("user as buyer_user", "buyer_user.id", "conversation.buyer_id")
 		.innerJoin("user as seller_user", "seller_user.id", "conversation.seller_id")
+		.innerJoin("profile as buyer_profile", "buyer_profile.user_id", "conversation.buyer_id")
+		.innerJoin("profile as seller_profile", "seller_profile.user_id", "conversation.seller_id")
 		.select([
 			"conversation.id",
 			"conversation.buyer_id",
@@ -114,6 +116,8 @@ export async function sendMessageServer(args: {
 			"buyer_user.emailVerified as buyer_email_verified",
 			"seller_user.email as seller_email",
 			"seller_user.emailVerified as seller_email_verified",
+			"buyer_profile.language as buyer_language",
+			"seller_profile.language as seller_language",
 		])
 		.where("conversation.id", "=", args.conversationId)
 		.executeTakeFirst();
@@ -195,6 +199,7 @@ export async function sendMessageServer(args: {
 			listingTitle: conv.listing_title,
 			conversationId: conv.id,
 			previewBody: trimmedBody,
+			language: (recipientIsBuyer ? conv.buyer_language : conv.seller_language) as "fi" | "en",
 		}).catch((err) =>
 			log.error("messages.email_failed", {
 				error: String(err),
