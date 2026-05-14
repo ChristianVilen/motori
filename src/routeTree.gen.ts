@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ViestitRouteImport } from './routes/viestit'
 import { Route as VaihdaSalasanaRouteImport } from './routes/vaihda-salasana'
 import { Route as VahvistaSahkopostiRouteImport } from './routes/vahvista-sahkoposti'
 import { Route as UnohdinSalasananRouteImport } from './routes/unohdin-salasanan'
@@ -26,6 +27,7 @@ import { Route as ToriIndexRouteImport } from './routes/tori/index'
 import { Route as OmatIndexRouteImport } from './routes/omat/index'
 import { Route as IlmoituksetIndexRouteImport } from './routes/ilmoitukset/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as ViestitConversationIdRouteImport } from './routes/viestit/$conversationId'
 import { Route as ToriUusiRouteImport } from './routes/tori/uusi'
 import { Route as ProfiiliAsetuksetRouteImport } from './routes/profiili/asetukset'
 import { Route as ProfiiliUserIdRouteImport } from './routes/profiili/$userId'
@@ -53,6 +55,11 @@ import { Route as PyoratVuokrausListingIdSlugRouteImport } from './routes/pyorat
 import { Route as PyoratMyyntiListingIdSlugRouteImport } from './routes/pyorat/myynti/$listingId_.$slug'
 import { Route as ApiMessagesStreamConversationIdRouteImport } from './routes/api/messages/stream.$conversationId'
 
+const ViestitRoute = ViestitRouteImport.update({
+  id: '/viestit',
+  path: '/viestit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VaihdaSalasanaRoute = VaihdaSalasanaRouteImport.update({
   id: '/vaihda-salasana',
   path: '/vaihda-salasana',
@@ -137,6 +144,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRouteRoute,
+} as any)
+const ViestitConversationIdRoute = ViestitConversationIdRouteImport.update({
+  id: '/$conversationId',
+  path: '/$conversationId',
+  getParentRoute: () => ViestitRoute,
 } as any)
 const ToriUusiRoute = ToriUusiRouteImport.update({
   id: '/tori/uusi',
@@ -286,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/unohdin-salasanan': typeof UnohdinSalasananRoute
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/vaihda-salasana': typeof VaihdaSalasanaRoute
+  '/viestit': typeof ViestitRouteWithChildren
   '/admin/listings': typeof AdminListingsRoute
   '/admin/makes': typeof AdminMakesRoute
   '/admin/moderation': typeof AdminModerationRoute
@@ -297,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
   '/tori/uusi': typeof ToriUusiRoute
+  '/viestit/$conversationId': typeof ViestitConversationIdRoute
   '/admin/': typeof AdminIndexRoute
   '/ilmoitukset/': typeof IlmoituksetIndexRoute
   '/omat/': typeof OmatIndexRoute
@@ -330,6 +344,7 @@ export interface FileRoutesByTo {
   '/unohdin-salasanan': typeof UnohdinSalasananRoute
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/vaihda-salasana': typeof VaihdaSalasanaRoute
+  '/viestit': typeof ViestitRouteWithChildren
   '/admin/listings': typeof AdminListingsRoute
   '/admin/makes': typeof AdminMakesRoute
   '/admin/moderation': typeof AdminModerationRoute
@@ -341,6 +356,7 @@ export interface FileRoutesByTo {
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
   '/tori/uusi': typeof ToriUusiRoute
+  '/viestit/$conversationId': typeof ViestitConversationIdRoute
   '/admin': typeof AdminIndexRoute
   '/ilmoitukset': typeof IlmoituksetIndexRoute
   '/omat': typeof OmatIndexRoute
@@ -376,6 +392,7 @@ export interface FileRoutesById {
   '/unohdin-salasanan': typeof UnohdinSalasananRoute
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/vaihda-salasana': typeof VaihdaSalasanaRoute
+  '/viestit': typeof ViestitRouteWithChildren
   '/admin/listings': typeof AdminListingsRoute
   '/admin/makes': typeof AdminMakesRoute
   '/admin/moderation': typeof AdminModerationRoute
@@ -387,6 +404,7 @@ export interface FileRoutesById {
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
   '/tori/uusi': typeof ToriUusiRoute
+  '/viestit/$conversationId': typeof ViestitConversationIdRoute
   '/admin/': typeof AdminIndexRoute
   '/ilmoitukset/': typeof IlmoituksetIndexRoute
   '/omat/': typeof OmatIndexRoute
@@ -423,6 +441,7 @@ export interface FileRouteTypes {
     | '/unohdin-salasanan'
     | '/vahvista-sahkoposti'
     | '/vaihda-salasana'
+    | '/viestit'
     | '/admin/listings'
     | '/admin/makes'
     | '/admin/moderation'
@@ -434,6 +453,7 @@ export interface FileRouteTypes {
     | '/profiili/$userId'
     | '/profiili/asetukset'
     | '/tori/uusi'
+    | '/viestit/$conversationId'
     | '/admin/'
     | '/ilmoitukset/'
     | '/omat/'
@@ -467,6 +487,7 @@ export interface FileRouteTypes {
     | '/unohdin-salasanan'
     | '/vahvista-sahkoposti'
     | '/vaihda-salasana'
+    | '/viestit'
     | '/admin/listings'
     | '/admin/makes'
     | '/admin/moderation'
@@ -478,6 +499,7 @@ export interface FileRouteTypes {
     | '/profiili/$userId'
     | '/profiili/asetukset'
     | '/tori/uusi'
+    | '/viestit/$conversationId'
     | '/admin'
     | '/ilmoitukset'
     | '/omat'
@@ -512,6 +534,7 @@ export interface FileRouteTypes {
     | '/unohdin-salasanan'
     | '/vahvista-sahkoposti'
     | '/vaihda-salasana'
+    | '/viestit'
     | '/admin/listings'
     | '/admin/makes'
     | '/admin/moderation'
@@ -523,6 +546,7 @@ export interface FileRouteTypes {
     | '/profiili/$userId'
     | '/profiili/asetukset'
     | '/tori/uusi'
+    | '/viestit/$conversationId'
     | '/admin/'
     | '/ilmoitukset/'
     | '/omat/'
@@ -558,6 +582,7 @@ export interface RootRouteChildren {
   UnohdinSalasananRoute: typeof UnohdinSalasananRoute
   VahvistaSahkopostiRoute: typeof VahvistaSahkopostiRoute
   VaihdaSalasanaRoute: typeof VaihdaSalasanaRoute
+  ViestitRoute: typeof ViestitRouteWithChildren
   ApiCronRoute: typeof ApiCronRoute
   ApiHealthRoute: typeof ApiHealthRoute
   IlmoituksetUusiRoute: typeof IlmoituksetUusiRoute
@@ -589,6 +614,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/viestit': {
+      id: '/viestit'
+      path: '/viestit'
+      fullPath: '/viestit'
+      preLoaderRoute: typeof ViestitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vaihda-salasana': {
       id: '/vaihda-salasana'
       path: '/vaihda-salasana'
@@ -707,6 +739,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRouteRoute
+    }
+    '/viestit/$conversationId': {
+      id: '/viestit/$conversationId'
+      path: '/$conversationId'
+      fullPath: '/viestit/$conversationId'
+      preLoaderRoute: typeof ViestitConversationIdRouteImport
+      parentRoute: typeof ViestitRoute
     }
     '/tori/uusi': {
       id: '/tori/uusi'
@@ -913,6 +952,17 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
   AdminRouteRouteChildren,
 )
 
+interface ViestitRouteChildren {
+  ViestitConversationIdRoute: typeof ViestitConversationIdRoute
+}
+
+const ViestitRouteChildren: ViestitRouteChildren = {
+  ViestitConversationIdRoute: ViestitConversationIdRoute,
+}
+
+const ViestitRouteWithChildren =
+  ViestitRoute._addFileChildren(ViestitRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
@@ -925,6 +975,7 @@ const rootRouteChildren: RootRouteChildren = {
   UnohdinSalasananRoute: UnohdinSalasananRoute,
   VahvistaSahkopostiRoute: VahvistaSahkopostiRoute,
   VaihdaSalasanaRoute: VaihdaSalasanaRoute,
+  ViestitRoute: ViestitRouteWithChildren,
   ApiCronRoute: ApiCronRoute,
   ApiHealthRoute: ApiHealthRoute,
   IlmoituksetUusiRoute: IlmoituksetUusiRoute,

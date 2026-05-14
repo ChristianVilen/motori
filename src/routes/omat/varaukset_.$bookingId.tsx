@@ -434,12 +434,13 @@ function BookingDetailPage() {
 						{t("bookings.detail.messageLabel")}
 					</div>
 					{booking.conversation_id ? (
-						<a
-							href={`/viestit/${booking.conversation_id}`}
+						<Link
+							to="/viestit/$conversationId"
+							params={{ conversationId: booking.conversation_id }}
 							className="mt-1 inline-block text-sm text-accent hover:underline"
 						>
 							{t("messages.openConversation", "Avaa keskustelu")}
-						</a>
+						</Link>
 					) : booking.message ? (
 						<p className="mt-1 whitespace-pre-wrap text-sm">{booking.message}</p>
 					) : null}
