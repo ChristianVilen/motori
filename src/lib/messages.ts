@@ -1,5 +1,18 @@
 /** Pure helpers — safe for client and server bundles. */
+import { createServerFn } from "@tanstack/react-start";
+import { csrfMiddleware } from "~/lib/csrf";
 import { AppError } from "~/lib/errors";
+import {
+	blockUserServer,
+	getConversationServer,
+	listConversationsServer,
+	listMessagesServer,
+	markReadServer,
+	sendMessageServer,
+	startConversationServer,
+	unblockUserServer,
+} from "~/lib/messages.server";
+import { getSession } from "~/lib/session";
 
 export const MESSAGE_MAX_LENGTH = 4000;
 
@@ -38,3 +51,62 @@ export interface ConversationListRow {
 	lastMessagePreview: string;
 	unreadCount: number;
 }
+
+async function requireUserId(): Promise<string> {
+	const session = await getSession();
+	if (!session) {
+		throw new Error("Ei istuntoa");
+	}
+	return session.user.id;
+}
+
+export const startConversation = createServerFn({ method: "POST" })
+	.middleware([csrfMiddleware()])
+	.inputValidator((d: { listingId: string }) => d)
+	.handler(async ({ data }) =>
+		startConversationServer({ listingId: data.listingId, userId: await requireUserId() }),
+	);
+
+export const listConversations = createServerFn({ method: "GET" }).handler(async () =>
+	listConversationsServer({ userId: await requireUserId() }),
+);
+
+export const getConversation = createServerFn({ method: "GET" })
+	.inputValidator((d: { conversationId: string }) => d)
+	.handler(async ({ data }) =>
+		getConversationServer({ conversationId: data.conversationId, userId: await requireUserId() }),
+	);
+
+export const listMessages = createServerFn({ method: "GET" })
+	.inputValidator((d: { conversationId: string; beforeCursor?: string }) => d)
+	.handler(async ({ data }) =>
+		listMessagesServer({ ...data, userId: await requireUserId() }),
+	);
+
+export const sendMessage = createServerFn({ method: "POST" })
+	.middleware([csrfMiddleware()])
+	.inputValidator((d: { conversationId: string; body: string }) => d)
+	.handler(async ({ data }) =>
+		sendMessageServer({ ...data, userId: await requireUserId() }),
+	);
+
+export const markRead = createServerFn({ method: "POST" })
+	.middleware([csrfMiddleware()])
+	.inputValidator((d: { conversationId: string }) => d)
+	.handler(async ({ data }) => {
+		await markReadServer({ conversationId: data.conversationId, userId: await requireUserId() });
+	});
+
+export const blockUser = createServerFn({ method: "POST" })
+	.middleware([csrfMiddleware()])
+	.inputValidator((d: { targetUserId: string }) => d)
+	.handler(async ({ data }) => {
+		await blockUserServer({ userId: await requireUserId(), targetUserId: data.targetUserId });
+	});
+
+export const unblockUser = createServerFn({ method: "POST" })
+	.middleware([csrfMiddleware()])
+	.inputValidator((d: { targetUserId: string }) => d)
+	.handler(async ({ data }) => {
+		await unblockUserServer({ userId: await requireUserId(), targetUserId: data.targetUserId });
+	});
