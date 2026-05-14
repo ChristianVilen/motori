@@ -3,6 +3,7 @@ import type { Message, MessageKind } from "~/lib/db/schema";
 import { sendNewMessageEmail } from "~/lib/email-templates/new-message";
 import { AppError } from "~/lib/errors";
 import { log } from "~/lib/log";
+import type { ConversationListRow } from "~/lib/messages";
 import { shouldNotifyByEmail, validateMessageBody } from "~/lib/messages";
 import { publish } from "~/lib/messages-bus";
 
@@ -196,4 +197,164 @@ export async function sendMessageServer(args: {
 	}
 
 	return { messageId: inserted.id };
+}
+
+export async function listConversationsServer(args: {
+	userId: string;
+}): Promise<ConversationListRow[]> {
+	const rows = await db
+		.selectFrom("conversation")
+		.innerJoin("listing", "listing.id", "conversation.listing_id")
+		.leftJoin("listing_image", (j) =>
+			j.onRef("listing_image.listing_id", "=", "listing.id").on("listing_image.order", "=", 0),
+		)
+		.innerJoin("profile as buyer_profile", "buyer_profile.user_id", "conversation.buyer_id")
+		.innerJoin("profile as seller_profile", "seller_profile.user_id", "conversation.seller_id")
+		.select((eb) => [
+			"conversation.id",
+			"conversation.listing_id",
+			"conversation.buyer_id",
+			"conversation.seller_id",
+			"conversation.last_message_at",
+			"conversation.buyer_last_read_at",
+			"conversation.seller_last_read_at",
+			"listing.title as listing_title",
+			"listing_image.thumbnail_url as listing_thumbnail_url",
+			"buyer_profile.display_name as buyer_name",
+			"seller_profile.display_name as seller_name",
+			eb
+				.selectFrom("message")
+				.select("body")
+				.whereRef("conversation_id", "=", "conversation.id")
+				.orderBy("created_at", "desc")
+				.limit(1)
+				.as("last_body"),
+		])
+		.where((eb) =>
+			eb.or([
+				eb("conversation.buyer_id", "=", args.userId),
+				eb("conversation.seller_id", "=", args.userId),
+			]),
+		)
+		.orderBy("conversation.last_message_at", "desc")
+		.execute();
+
+	const result: ConversationListRow[] = [];
+	for (const r of rows) {
+		const isBuyer = r.buyer_id === args.userId;
+		const lastReadAt = isBuyer ? r.buyer_last_read_at : r.seller_last_read_at;
+		const unread = await db
+			.selectFrom("message")
+			.select((eb) => eb.fn.countAll<string>().as("count"))
+			.where("conversation_id", "=", r.id)
+			.where("sender_id", "<>", args.userId)
+			.$if(lastReadAt !== null, (qb) => qb.where("created_at", ">", lastReadAt as Date))
+			.executeTakeFirstOrThrow();
+		result.push({
+			id: r.id,
+			listingId: r.listing_id,
+			listingTitle: r.listing_title,
+			listingThumbnailUrl: r.listing_thumbnail_url,
+			otherPartyId: isBuyer ? r.seller_id : r.buyer_id,
+			otherPartyDisplayName: isBuyer ? r.seller_name : r.buyer_name,
+			lastMessageAt: r.last_message_at.toISOString(),
+			lastMessagePreview: (r.last_body ?? "").slice(0, 140),
+			unreadCount: Number(unread.count),
+		});
+	}
+	return result;
+}
+
+export interface ConversationDetail {
+	id: string;
+	listing: { id: string; title: string; status: string; ownerId: string };
+	otherParty: { id: string; displayName: string };
+	role: "buyer" | "seller";
+	readOnly: boolean;
+}
+
+export async function getConversationServer(args: {
+	conversationId: string;
+	userId: string;
+}): Promise<ConversationDetail> {
+	const row = await db
+		.selectFrom("conversation")
+		.innerJoin("listing", "listing.id", "conversation.listing_id")
+		.innerJoin("profile as buyer_profile", "buyer_profile.user_id", "conversation.buyer_id")
+		.innerJoin("profile as seller_profile", "seller_profile.user_id", "conversation.seller_id")
+		.select([
+			"conversation.id",
+			"conversation.buyer_id",
+			"conversation.seller_id",
+			"listing.id as listing_id",
+			"listing.title as listing_title",
+			"listing.status as listing_status",
+			"listing.owner_id as listing_owner_id",
+			"buyer_profile.display_name as buyer_name",
+			"seller_profile.display_name as seller_name",
+		])
+		.where("conversation.id", "=", args.conversationId)
+		.executeTakeFirst();
+	if (!row) throw new AppError("messages.conversation_not_found");
+	if (row.buyer_id !== args.userId && row.seller_id !== args.userId) {
+		throw new AppError("messages.forbidden");
+	}
+	const role = row.buyer_id === args.userId ? "buyer" : "seller";
+	return {
+		id: row.id,
+		listing: {
+			id: row.listing_id,
+			title: row.listing_title,
+			status: row.listing_status,
+			ownerId: row.listing_owner_id,
+		},
+		otherParty: {
+			id: role === "buyer" ? row.seller_id : row.buyer_id,
+			displayName: role === "buyer" ? row.seller_name : row.buyer_name,
+		},
+		role,
+		readOnly: row.listing_status === "removed",
+	};
+}
+
+export async function listMessagesServer(args: {
+	conversationId: string;
+	userId: string;
+	beforeCursor?: string;
+	limit?: number;
+}): Promise<{ messages: Message[]; hasMore: boolean }> {
+	const detail = await getConversationServer({
+		conversationId: args.conversationId,
+		userId: args.userId,
+	});
+	const limit = args.limit ?? 50;
+	let q = db
+		.selectFrom("message")
+		.selectAll()
+		.where("conversation_id", "=", detail.id)
+		.orderBy("created_at", "desc")
+		.limit(limit + 1);
+	if (args.beforeCursor) {
+		q = q.where("created_at", "<", new Date(args.beforeCursor));
+	}
+	const rows = await q.execute();
+	const hasMore = rows.length > limit;
+	const page = (hasMore ? rows.slice(0, limit) : rows).reverse();
+	return { messages: page as Message[], hasMore };
+}
+
+export async function markReadServer(args: {
+	conversationId: string;
+	userId: string;
+}): Promise<void> {
+	const detail = await getConversationServer({
+		conversationId: args.conversationId,
+		userId: args.userId,
+	});
+	const column = detail.role === "buyer" ? "buyer_last_read_at" : "seller_last_read_at";
+	await db
+		.updateTable("conversation")
+		.set({ [column]: new Date() } as never)
+		.where("id", "=", detail.id)
+		.execute();
 }

@@ -59,7 +59,11 @@ vi.mock("~/lib/email-templates/new-message", () => ({
 }));
 
 import { AppError } from "./errors";
-import { sendMessageServer, startConversationServer } from "./messages.server";
+import {
+	getConversationServer,
+	sendMessageServer,
+	startConversationServer,
+} from "./messages.server";
 
 beforeEach(() => {
 	executeQueue.length = 0;
@@ -170,5 +174,24 @@ describe("sendMessageServer", () => {
 		await expect(
 			sendMessageServer({ conversationId: "C1", userId: "B", body: "hi" }),
 		).rejects.toMatchObject({ code: "messages.listing_readonly" });
+	});
+});
+
+describe("getConversationServer", () => {
+	it("rejects non-participant", async () => {
+		executeTakeFirstQueue.push({
+			id: "C1",
+			buyer_id: "B",
+			seller_id: "S",
+			listing_id: "L",
+			listing_title: "x",
+			listing_status: "active",
+			listing_owner_id: "S",
+			buyer_name: "B name",
+			seller_name: "S name",
+		});
+		await expect(
+			getConversationServer({ conversationId: "C1", userId: "STRANGER" }),
+		).rejects.toBeInstanceOf(AppError);
 	});
 });
