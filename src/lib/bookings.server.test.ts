@@ -82,6 +82,11 @@ vi.mock("~/lib/booking-emails", () => ({
 	sendBookingAutoRejectedEmail: (...args: unknown[]) => mockSendBookingAutoRejectedEmail(...args),
 }));
 
+vi.mock("~/lib/messages.server", () => ({
+	startConversationServer: vi.fn().mockResolvedValue({ conversationId: "conv-stub" }),
+	sendMessageServer: vi.fn().mockResolvedValue({ messageId: "msg-stub" }),
+}));
+
 vi.mock("kysely", () => {
 	const sqlResult = { as: () => sqlResult, $call: () => sqlResult };
 	const sqlProxy = new Proxy(() => sqlResult, {
