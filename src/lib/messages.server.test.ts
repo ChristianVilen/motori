@@ -50,8 +50,16 @@ vi.mock("kysely", () => {
 	return { sql: sqlProxy };
 });
 
+vi.mock("~/lib/messages-bus", () => ({
+	publish: vi.fn(),
+}));
+
+vi.mock("~/lib/email-templates/new-message", () => ({
+	sendNewMessageEmail: vi.fn(),
+}));
+
 import { AppError } from "./errors";
-import { startConversationServer } from "./messages.server";
+import { sendMessageServer, startConversationServer } from "./messages.server";
 
 beforeEach(() => {
 	executeQueue.length = 0;
@@ -110,5 +118,57 @@ describe("startConversationServer", () => {
 		} catch (err) {
 			expect(err).toBeInstanceOf(AppError);
 		}
+	});
+});
+
+describe("sendMessageServer", () => {
+	it("throws conversation_not_found when no conversation exists", async () => {
+		executeTakeFirstQueue.push(undefined);
+
+		await expect(
+			sendMessageServer({ conversationId: "missing", userId: "U1", body: "hi" }),
+		).rejects.toMatchObject({ code: "messages.conversation_not_found" });
+	});
+
+	it("throws forbidden when the user is not a participant", async () => {
+		executeTakeFirstQueue.push({
+			id: "C1",
+			buyer_id: "B",
+			seller_id: "S",
+			buyer_last_read_at: null,
+			seller_last_read_at: null,
+			listing_id: "L1",
+			listing_title: "Bike",
+			listing_status: "active",
+			buyer_email: "b@example.com",
+			buyer_email_verified: true,
+			seller_email: "s@example.com",
+			seller_email_verified: true,
+		});
+
+		await expect(
+			sendMessageServer({ conversationId: "C1", userId: "STRANGER", body: "hi" }),
+		).rejects.toMatchObject({ code: "messages.forbidden" });
+	});
+
+	it("throws listing_readonly when the listing is removed", async () => {
+		executeTakeFirstQueue.push({
+			id: "C1",
+			buyer_id: "B",
+			seller_id: "S",
+			buyer_last_read_at: null,
+			seller_last_read_at: null,
+			listing_id: "L1",
+			listing_title: "Bike",
+			listing_status: "removed",
+			buyer_email: "b@example.com",
+			buyer_email_verified: true,
+			seller_email: "s@example.com",
+			seller_email_verified: true,
+		});
+
+		await expect(
+			sendMessageServer({ conversationId: "C1", userId: "B", body: "hi" }),
+		).rejects.toMatchObject({ code: "messages.listing_readonly" });
 	});
 });
