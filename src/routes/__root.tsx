@@ -15,7 +15,9 @@ import { LoginModal } from "~/components/auth/login-modal";
 import { UserMenu } from "~/components/auth/user-menu";
 import { LanguageSelector } from "~/components/language-selector";
 import { Logo } from "~/components/logo";
+import { BottomNav } from "~/components/nav/bottom-nav";
 import { CategoryDropdown } from "~/components/nav/category-dropdown";
+import { MobileSearchOverlay } from "~/components/nav/mobile-search-overlay";
 import { authClient, signOut, useSession } from "~/lib/auth-client";
 import { SITE_NAME, SITE_URL } from "~/lib/constants";
 import { i18n as clientI18n, ensureClientI18n } from "~/lib/i18n/client";
@@ -173,6 +175,7 @@ interface RootDocumentProps {
 function RootDocument({ children, locale = "fi", serverSession }: RootDocumentProps) {
 	const router = useRouter();
 	const [loginOpen, setLoginOpen] = useState(false);
+	const [searchOpen, setSearchOpen] = useState(false);
 	const { t, i18n } = useTranslation("common");
 	const currentLang = (i18n.language ?? locale) as SupportedLocale;
 	const { t: tAuth } = useTranslation("auth");
@@ -226,59 +229,61 @@ function RootDocument({ children, locale = "fi", serverSession }: RootDocumentPr
 								<Logo variant="dark" className="h-8 w-auto" />
 							</Link>
 							<div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 sm:gap-x-6">
-								<CategoryDropdown />
-								<Link
-									to="/varusteet"
-									data-testid="nav-varusteet"
-									className="text-sm text-white/70 hover:text-white"
-								>
-									{t("nav.gear")}
-								</Link>
-								<Link
-									to="/varaosat"
-									data-testid="nav-varaosat"
-									className="text-sm text-white/70 hover:text-white"
-								>
-									{t("nav.parts")}
-								</Link>
-								{verified ? (
+								<div className="hidden flex-wrap items-center gap-x-4 gap-y-2 md:flex md:gap-x-6">
+									<CategoryDropdown />
 									<Link
-										data-testid="nav-add-listing"
-										to="/ilmoitukset/uusi"
-										className="rounded-md bg-accent px-3.5 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
-									>
-										{t("nav.listMotorcycle")}
-									</Link>
-								) : (
-									<span
-										data-testid="nav-add-listing"
-										title={tAuth("unverifiedTooltip")}
-										className="cursor-not-allowed rounded-md bg-white/20 px-3.5 py-1.5 text-sm font-medium text-white/70"
-									>
-										{t("nav.listMotorcycle")}
-									</span>
-								)}
-								{session ? (
-									<>
-										<Link
-											data-testid="nav-dashboard"
-											to="/omat"
-											className="text-sm text-white/70 hover:text-white"
-										>
-											{t("nav.myListings")}
-										</Link>
-										<UserMenu onSignOut={handleSignOut} />
-									</>
-								) : (
-									<button
-										type="button"
-										data-testid="nav-login"
-										onClick={() => setLoginOpen(true)}
+										to="/varusteet"
+										data-testid="nav-varusteet"
 										className="text-sm text-white/70 hover:text-white"
 									>
-										{t("nav.signIn")}
-									</button>
-								)}
+										{t("nav.gear")}
+									</Link>
+									<Link
+										to="/varaosat"
+										data-testid="nav-varaosat"
+										className="text-sm text-white/70 hover:text-white"
+									>
+										{t("nav.parts")}
+									</Link>
+									{verified ? (
+										<Link
+											data-testid="nav-add-listing"
+											to="/ilmoitukset/uusi"
+											className="rounded-md bg-accent px-3.5 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
+										>
+											{t("nav.listMotorcycle")}
+										</Link>
+									) : (
+										<span
+											data-testid="nav-add-listing"
+											title={tAuth("unverifiedTooltip")}
+											className="cursor-not-allowed rounded-md bg-white/20 px-3.5 py-1.5 text-sm font-medium text-white/70"
+										>
+											{t("nav.listMotorcycle")}
+										</span>
+									)}
+									{session ? (
+										<>
+											<Link
+												data-testid="nav-dashboard"
+												to="/omat"
+												className="text-sm text-white/70 hover:text-white"
+											>
+												{t("nav.myListings")}
+											</Link>
+											<UserMenu onSignOut={handleSignOut} />
+										</>
+									) : (
+										<button
+											type="button"
+											data-testid="nav-login"
+											onClick={() => setLoginOpen(true)}
+											className="text-sm text-white/70 hover:text-white"
+										>
+											{t("nav.signIn")}
+										</button>
+									)}
+								</div>
 								<LanguageSelector />
 							</div>
 						</div>
@@ -308,7 +313,9 @@ function RootDocument({ children, locale = "fi", serverSession }: RootDocumentPr
 						)}
 					</div>
 				)}
-				<main id="main-content">{children}</main>
+				<main id="main-content" className="pb-16 md:pb-0">
+					{children}
+				</main>
 				{!isAdmin && (
 					<footer className="relative border-t border-border px-4 py-6 text-center text-xs text-muted">
 						<div className="mb-3 flex flex-wrap justify-center gap-x-4 gap-y-1">
@@ -340,6 +347,17 @@ function RootDocument({ children, locale = "fi", serverSession }: RootDocumentPr
 					</footer>
 				)}
 				{!isAdmin && <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />}
+				{!isAdmin && (
+					<>
+						<BottomNav
+							session={session ?? null}
+							verified={verified ?? false}
+							onSearchClick={() => setSearchOpen(true)}
+							onSignInClick={() => setLoginOpen(true)}
+						/>
+						<MobileSearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+					</>
+				)}
 				<Toaster position="top-right" richColors />
 				<Scripts />
 
