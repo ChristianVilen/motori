@@ -22,4 +22,10 @@ test.describe("mobile bottom nav", () => {
 		await page.getByTestId("bottom-nav-bookings").click();
 		await expect(page.getByTestId("login-modal")).toBeVisible();
 	});
+
+	test("header sign-in button opens login modal when signed out", async ({ page }) => {
+		await page.goto("/");
+		await page.getByTestId("nav-login-mobile").click();
+		await expect(page.getByTestId("login-modal")).toBeVisible();
+	});
 });

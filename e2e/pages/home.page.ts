@@ -9,6 +9,7 @@ export class HomePage {
 	readonly browseAllLink: Locator;
 	readonly addListingCta: Locator;
 	readonly navLoginLink: Locator;
+	readonly navLoginMobile: Locator;
 	readonly navDashboardLink: Locator;
 	readonly navUserMenu: Locator;
 	readonly navSignOutLink: Locator;
@@ -22,6 +23,7 @@ export class HomePage {
 		this.browseAllLink = page.getByTestId("home-browse-all");
 		this.addListingCta = page.getByTestId("home-add-listing-cta");
 		this.navLoginLink = page.getByTestId("nav-login");
+		this.navLoginMobile = page.getByTestId("nav-login-mobile");
 		this.navDashboardLink = page.getByTestId("nav-dashboard");
 		this.navUserMenu = page.getByTestId("nav-user-menu");
 		this.navSignOutLink = page.getByTestId("nav-signout");
