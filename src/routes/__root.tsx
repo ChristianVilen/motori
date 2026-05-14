@@ -25,6 +25,7 @@ import { detectServerLocale } from "~/lib/i18n/detect-locale";
 import type { SupportedLocale } from "~/lib/i18n/resources";
 import { supportedLngs } from "~/lib/i18n/resources";
 import { createI18nSync } from "~/lib/i18n/server";
+import { getUnreadTotal } from "~/lib/messages";
 import { getSession } from "~/lib/session";
 import { useEmailVerified } from "~/lib/use-email-verified";
 import appCss from "~/styles/app.css?url";
@@ -40,7 +41,8 @@ export const Route = createRootRoute({
 			locale = await detectServerLocale();
 		}
 		const session = await getSession();
-		return { locale, session };
+		const unreadMessages = session ? (await getUnreadTotal()).unread : 0;
+		return { locale, session, unreadMessages };
 	},
 	head: () => ({
 		meta: [
@@ -148,7 +150,7 @@ function RootComponent() {
 		document.documentElement.setAttribute("data-hydrated", "true");
 	}, []);
 
-	const { locale, session } = Route.useRouteContext();
+	const { locale, session, unreadMessages } = Route.useRouteContext();
 
 	const [i18nInstance] = useState(() => {
 		if (typeof window === "undefined") {
@@ -160,7 +162,7 @@ function RootComponent() {
 
 	return (
 		<I18nextProvider i18n={i18nInstance}>
-			<RootDocument locale={locale} serverSession={session}>
+			<RootDocument locale={locale} serverSession={session} unreadMessages={unreadMessages}>
 				<Outlet />
 			</RootDocument>
 		</I18nextProvider>
@@ -171,8 +173,14 @@ interface RootDocumentProps {
 	children: ReactNode;
 	locale?: SupportedLocale;
 	serverSession?: Awaited<ReturnType<typeof getSession>>;
+	unreadMessages?: number;
 }
-function RootDocument({ children, locale = "fi", serverSession }: RootDocumentProps) {
+function RootDocument({
+	children,
+	locale = "fi",
+	serverSession,
+	unreadMessages = 0,
+}: RootDocumentProps) {
 	const router = useRouter();
 	const [loginOpen, setLoginOpen] = useState(false);
 	const [searchOpen, setSearchOpen] = useState(false);
@@ -270,6 +278,18 @@ function RootDocument({ children, locale = "fi", serverSession }: RootDocumentPr
 												className="text-sm text-white/70 hover:text-white"
 											>
 												{t("nav.myListings")}
+											</Link>
+											<Link
+												data-testid="nav-messages"
+												to="/viestit"
+												className="text-sm text-white/70 hover:text-white"
+											>
+												{t("nav.messages", "Viestit")}
+												{unreadMessages > 0 && (
+													<span className="ml-1 rounded-full bg-accent text-white text-xs px-2 py-0.5">
+														{unreadMessages}
+													</span>
+												)}
 											</Link>
 											<UserMenu onSignOut={handleSignOut} />
 										</>

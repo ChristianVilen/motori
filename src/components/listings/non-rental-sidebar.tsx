@@ -1,8 +1,9 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Button } from "~/components/ui/button";
 import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
+import { startConversation } from "~/lib/messages";
 
 export interface NonRentalSidebarProps {
 	price: number;
@@ -14,6 +15,7 @@ export interface NonRentalSidebarProps {
 	ownerPhoneVisible: boolean;
 	ownerPhone: string | null;
 	ownerUserId: string;
+	currentUserId?: string;
 }
 
 export function NonRentalSidebar({
@@ -26,8 +28,16 @@ export function NonRentalSidebar({
 	ownerPhoneVisible,
 	ownerPhone,
 	ownerUserId,
+	currentUserId,
 }: NonRentalSidebarProps) {
 	const { t } = useTranslation("listings");
+	const navigate = useNavigate();
+	const showMessageButton = !!currentUserId && !isOwner && listing.status === "active";
+
+	async function onMessageSeller() {
+		const { conversationId } = await startConversation({ data: { listingId: listing.id } });
+		navigate({ to: "/viestit/$conversationId", params: { conversationId } });
+	}
 	return (
 		<div id="pricing" className="space-y-4 lg:self-start">
 			<div className="rounded-l border border-border bg-card p-5 shadow-sm">
@@ -84,6 +94,15 @@ export function NonRentalSidebar({
 						</Link>
 					)
 				) : null}
+				{showMessageButton && (
+					<button
+						type="button"
+						onClick={onMessageSeller}
+						className="mt-2 block w-full rounded-lg border border-accent px-4 py-2.5 text-center text-sm font-medium text-accent hover:bg-accent/5"
+					>
+						{t("detail.messageSeller", "Lähetä viesti")}
+					</button>
+				)}
 			</div>
 		</div>
 	);

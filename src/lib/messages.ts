@@ -71,6 +71,15 @@ export const listConversations = createServerFn({ method: "GET" }).handler(async
 	listConversationsServer({ userId: await requireUserId() }),
 );
 
+export const getUnreadTotal = createServerFn({ method: "GET" }).handler(async () => {
+	const session = await getSession();
+	if (!session) {
+		return { unread: 0 };
+	}
+	const rows = await listConversationsServer({ userId: session.user.id });
+	return { unread: rows.reduce((n, c) => n + c.unreadCount, 0) };
+});
+
 export const getConversation = createServerFn({ method: "GET" })
 	.inputValidator((d: { conversationId: string }) => d)
 	.handler(async ({ data }) =>

@@ -23,6 +23,7 @@ const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute
 				ownerPhoneVisible={data.ownerContact.showPhone}
 				ownerPhone={data.ownerContact.phone}
 				ownerUserId={data.listing.owner_id}
+				currentUserId={data.session?.user.id}
 			/>
 		);
 	},
