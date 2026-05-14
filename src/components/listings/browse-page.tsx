@@ -23,6 +23,7 @@ export interface BrowsePageProps {
 	search: BrowseSearchParams;
 	browseTo: string;
 	showMap?: boolean;
+	filterBlocks: React.ReactNode;
 }
 
 function useAccumulatedPages(initialData: SearchResult, search: BrowseSearchParams) {
@@ -57,7 +58,13 @@ function searchKeyWithoutCursor(search: BrowseSearchParams): string {
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: page component with conditional view rendering
-export function BrowsePage({ initialData, search, browseTo, showMap = true }: BrowsePageProps) {
+export function BrowsePage({
+	initialData,
+	search,
+	browseTo,
+	showMap = true,
+	filterBlocks,
+}: BrowsePageProps) {
 	const { t } = useTranslation("listings");
 	const navigate = useNavigate();
 
@@ -222,7 +229,9 @@ export function BrowsePage({ initialData, search, browseTo, showMap = true }: Br
 										hasQuery={hasQuery}
 										makes={makes}
 										browseTo={browseTo}
-									/>
+									>
+										{filterBlocks}
+									</FilterSidebar>
 								</CollapsibleSidebar>
 							</div>
 						</div>
@@ -290,7 +299,9 @@ export function BrowsePage({ initialData, search, browseTo, showMap = true }: Br
 									hasQuery={hasQuery}
 									makes={makes}
 									browseTo={browseTo}
-								/>
+								>
+									{filterBlocks}
+								</FilterSidebar>
 							</CollapsibleSidebar>
 						</div>
 					</div>
@@ -367,7 +378,9 @@ export function BrowsePage({ initialData, search, browseTo, showMap = true }: Br
 				onClose={() => setDrawerOpen(false)}
 				makes={makes}
 				browseTo={browseTo}
-			/>
+			>
+				{filterBlocks}
+			</FilterDrawer>
 		</div>
 	);
 }

@@ -369,6 +369,7 @@ interface SimpleCategorySearch {
 // Return type is loose because applySimpleFilters conditionally widens the join graph
 // (innerJoin on motorcycle_make changes the builder's generic DB param from single-table to joined).
 // Callers cast result at select-time, same as the rental path's baseQuery pattern.
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: filter function grows with supported fields
 function applySimpleFilters(
 	// biome-ignore lint/suspicious/noExplicitAny: Kysely join graph widening prevents precise typing
 	query: SelectQueryBuilder<Database, any, object>,
@@ -407,6 +408,21 @@ function applySimpleFilters(
 		q = q
 			.innerJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
 			.where("motorcycle_make.slug", "=", params.make);
+	}
+	if (params.part_category && child.category === "part") {
+		q = q.where(sql`child.part_category`, "=", params.part_category);
+	}
+	if (params.size && child.category === "gear") {
+		q = q.where(sql`child.size`, "=", params.size);
+	}
+	if (params.km_max != null && child.category === "sale") {
+		q = q.where(sql`child.km_driven`, "<=", params.km_max);
+	}
+	if (params.type?.length && child.category === "sale") {
+		q = q.where("listing.motorcycle_type", "in", params.type);
+	}
+	if (params.license?.length && child.category === "sale") {
+		q = q.where("listing.required_license", "in", params.license as ("A1" | "A2" | "A")[]);
 	}
 	return q;
 }

@@ -3,9 +3,11 @@ import { z } from "zod";
 import {
 	CONDITIONS,
 	CURRENT_YEAR,
+	GEAR_SIZES,
 	GEAR_TYPES,
 	LICENSE_CLASSES,
 	MOTORCYCLE_TYPES,
+	PART_CATEGORIES,
 } from "~/lib/constants";
 import fiCommon from "~/lib/i18n/resources/fi/common";
 import { MUNICIPALITY_NAME_SET } from "~/lib/municipalities";
@@ -141,6 +143,9 @@ export const browseSearchSchema = z.object({
 	make: z.string().trim().max(100).optional(),
 	gear_type: z.enum(GEAR_TYPES).optional(),
 	condition: z.enum(CONDITIONS).optional(),
+	part_category: z.enum(PART_CATEGORIES.map((c) => c.value) as [string, ...string[]]).optional(),
+	size: z.enum(GEAR_SIZES).optional(),
+	km_max: z.number().int().min(0).optional(),
 	sort: z.enum(["newest", "price_asc", "price_desc", "relevance"]).optional(),
 	cursor: z.string().max(200).optional(),
 	view: z.enum(["list", "map"]).optional(),
@@ -162,7 +167,10 @@ export function countActiveFilters(search: BrowseSearchParams): number {
 		(search.year_max != null ? 1 : 0) +
 		(search.make ? 1 : 0) +
 		(search.gear_type ? 1 : 0) +
-		(search.condition ? 1 : 0)
+		(search.condition ? 1 : 0) +
+		(search.part_category ? 1 : 0) +
+		(search.size ? 1 : 0) +
+		(search.km_max != null ? 1 : 0)
 	);
 }
 

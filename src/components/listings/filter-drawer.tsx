@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useTranslation } from "~/lib/i18n";
 import { useFocusTrap } from "~/lib/use-focus-trap";
 import type { BrowseSearchParams } from "~/lib/validators";
-import { FilterControls, type FilterMake, useFilterActions } from "./filter-controls";
+import { type FilterMake, FilterProvider, useFilterActions } from "./filter-controls";
 
 interface FilterDrawerProps {
 	search: BrowseSearchParams;
@@ -13,6 +13,7 @@ interface FilterDrawerProps {
 	onClose: () => void;
 	makes: FilterMake[];
 	browseTo: string;
+	children: React.ReactNode;
 }
 
 export function FilterDrawer({
@@ -23,9 +24,10 @@ export function FilterDrawer({
 	onClose,
 	makes,
 	browseTo,
+	children,
 }: FilterDrawerProps) {
 	const { t } = useTranslation("listings");
-	const { clearAll } = useFilterActions(search, browseTo);
+	const { clearAll, updateFilter, toggleArrayFilter } = useFilterActions(search, browseTo);
 	const trapRef = useFocusTrap(open);
 
 	useEffect(() => {
@@ -51,7 +53,6 @@ export function FilterDrawer({
 
 	return (
 		<div className="fixed inset-0 z-[1000] flex flex-col justify-end">
-			{/* Backdrop */}
 			<button
 				type="button"
 				className="absolute inset-0 bg-black/40"
@@ -60,12 +61,10 @@ export function FilterDrawer({
 				aria-label={t("filters.closeBackdropAriaLabel")}
 			/>
 
-			{/* Drawer */}
 			<div
 				ref={trapRef}
 				className="relative z-10 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-background px-5 pt-4 pb-6"
 			>
-				{/* Handle */}
 				<div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
 
 				<div className="mb-4 flex items-center justify-between">
@@ -77,18 +76,18 @@ export function FilterDrawer({
 					</button>
 				</div>
 
-				<div className="space-y-5">
-					<FilterControls
-						search={search}
-						hasQuery={hasQuery}
-						makes={makes}
-						browseTo={browseTo}
-						idPrefix="drawer"
-						inputHeight="h-10"
-					/>
-				</div>
+				<FilterProvider
+					search={search}
+					hasQuery={hasQuery}
+					makes={makes}
+					idPrefix="drawer"
+					inputHeight="h-10"
+					updateFilter={updateFilter}
+					toggleArrayFilter={toggleArrayFilter}
+				>
+					<div className="space-y-5">{children}</div>
+				</FilterProvider>
 
-				{/* Bottom buttons */}
 				<div className="mt-6 flex gap-3">
 					<button
 						type="button"
