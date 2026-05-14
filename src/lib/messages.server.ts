@@ -65,6 +65,8 @@ export async function startConversationServer(args: {
 		return { conversationId: existing.id };
 	}
 
+	// INSERT ... ON CONFLICT DO NOTHING avoids a race when two concurrent
+	// requests try to create the same conversation.
 	const inserted = await db
 		.insertInto("conversation")
 		.values({
@@ -72,8 +74,20 @@ export async function startConversationServer(args: {
 			buyer_id: args.userId,
 			seller_id: listing.owner_id,
 		})
+		.onConflict((oc) => oc.columns(["listing_id", "buyer_id"]).doNothing())
 		.returning("id")
-		.executeTakeFirstOrThrow();
+		.executeTakeFirst();
+
+	if (!inserted) {
+		// Lost the race — another request created it. Re-fetch.
+		const winner = await db
+			.selectFrom("conversation")
+			.select("id")
+			.where("listing_id", "=", listing.id)
+			.where("buyer_id", "=", args.userId)
+			.executeTakeFirstOrThrow();
+		return { conversationId: winner.id };
+	}
 
 	log.info("messages.conversation_created", {
 		event: "messages.conversation_created",
