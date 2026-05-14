@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
 	bookingRequestSchema,
+	browseSearchSchema,
+	countActiveFilters,
 	isValidImageUrl,
 	listingFormSchema,
 	validateFinnishPhone,
@@ -96,6 +98,75 @@ describe("validateFinnishPhone", () => {
 
 	it("throws with custom error message", () => {
 		expect(() => validateFinnishPhone("abc", "Custom error")).toThrow("Custom error");
+	});
+});
+
+describe("browseSearchSchema", () => {
+	it("accepts empty object", () => {
+		expect(browseSearchSchema.safeParse({}).success).toBe(true);
+	});
+
+	it("accepts valid part_category", () => {
+		expect(browseSearchSchema.safeParse({ part_category: "brakes" }).success).toBe(true);
+	});
+
+	it("rejects unknown part_category", () => {
+		expect(browseSearchSchema.safeParse({ part_category: "wheels" }).success).toBe(false);
+	});
+
+	it("accepts valid size", () => {
+		expect(browseSearchSchema.safeParse({ size: "M" }).success).toBe(true);
+	});
+
+	it("rejects unknown size", () => {
+		expect(browseSearchSchema.safeParse({ size: "XXXL" }).success).toBe(false);
+	});
+
+	it("accepts valid km_max", () => {
+		expect(browseSearchSchema.safeParse({ km_max: 50000 }).success).toBe(true);
+	});
+
+	it("rejects negative km_max", () => {
+		expect(browseSearchSchema.safeParse({ km_max: -1 }).success).toBe(false);
+	});
+});
+
+describe("countActiveFilters", () => {
+	it("returns 0 for empty search", () => {
+		expect(countActiveFilters({})).toBe(0);
+	});
+
+	it("counts each motorcycle filter", () => {
+		expect(
+			countActiveFilters({
+				region: "uusimaa",
+				type: ["naked", "sport"],
+				license: ["A"],
+				price_min: 10,
+				price_max: 100,
+				cc_min: 125,
+				cc_max: 600,
+				year_min: 2015,
+				year_max: 2023,
+				make: "honda",
+			}),
+		).toBe(11);
+	});
+
+	it("counts new category-specific filters", () => {
+		expect(
+			countActiveFilters({
+				gear_type: "helmet",
+				condition: "good",
+				part_category: "brakes",
+				size: "L",
+				km_max: 30000,
+			}),
+		).toBe(5);
+	});
+
+	it("does not count undefined optional fields", () => {
+		expect(countActiveFilters({ region: undefined, type: undefined })).toBe(0);
 	});
 });
 

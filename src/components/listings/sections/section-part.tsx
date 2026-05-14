@@ -2,6 +2,7 @@
 // Owns: part_category, compatible_make_id, condition, price. Title is rendered by the shell.
 
 import { Input } from "~/components/ui/input";
+import { PART_CATEGORIES } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import type { CONDITIONS, ListingFormData, PartFormData } from "~/lib/validators";
 import { ConditionSelect, FieldError } from "./shared-fields";
@@ -72,13 +73,19 @@ export function PartFields({ form }: PartFieldsProps) {
 							>
 								{t("form.fields.partCategory")} <span className="text-destructive">*</span>
 							</label>
-							<Input
+							<select
 								id="part_part_category"
-								placeholder={t("form.fields.partCategoryPlaceholder")}
 								value={field.state.value ?? ""}
 								onChange={(e) => field.handleChange(e.target.value)}
-								maxLength={100}
-							/>
+								className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+							>
+								<option value="">{t("form.fields.partCategoryPlaceholder")}</option>
+								{PART_CATEGORIES.map((c) => (
+									<option key={c.value} value={c.value}>
+										{c.label}
+									</option>
+								))}
+							</select>
 							<FieldError errors={field.state.meta.errors} />
 						</div>
 					)}

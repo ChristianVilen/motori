@@ -61,9 +61,9 @@ backup:
 migrate-prod:
     ssh {{host}} "dokku run {{app}} pnpm db:migrate"
 
-# Grant admin role to a user: just make-admin email=user@example.com
+# Grant admin role to a user: just make-admin user@example.com
 make-admin email:
-    ssh {{host}} "dokku postgres:connect {{app}} -c \"UPDATE \\\"user\\\" SET role = 'admin' WHERE email = '{{email}}'; SELECT email, role FROM \\\"user\\\" WHERE email = '{{email}}';\""
+    echo "UPDATE \"user\" SET role = 'admin' WHERE email = '{{email}}'; SELECT email, role FROM \"user\" WHERE email = '{{email}}';" | ssh {{host}} "dokku postgres:connect {{app}}"
 
 # --- Config / secrets ---
 

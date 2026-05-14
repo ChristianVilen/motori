@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BrowsePage } from "~/components/listings/browse-page";
+import { GearFilters } from "~/components/listings/filter-compositions";
 import { SITE_NAME, SITE_URL } from "~/lib/constants";
 import { searchListings } from "~/lib/listings-queries";
 import { getMakes } from "~/lib/makes";
@@ -37,7 +38,8 @@ function GearBrowsePage() {
 			initialData={Route.useLoaderData()}
 			search={Route.useSearch()}
 			browseTo="/varusteet"
-			showMap={true}
+			showMap={false}
+			filterBlocks={<GearFilters />}
 		/>
 	);
 }

@@ -1,24 +1,30 @@
 import { X } from "lucide-react";
-import { MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
+import {
+	CONDITION_LABELS,
+	GEAR_TYPE_LABELS,
+	MOTORCYCLE_TYPES,
+	PART_CATEGORIES,
+	REGIONS,
+} from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { type BrowseSearchParams, countActiveFilters } from "~/lib/validators";
-import { FilterControls, type FilterMake, useFilterActions } from "./filter-controls";
+import { type FilterMake, FilterProvider, useFilterActions } from "./filter-controls";
 
 interface FilterSidebarProps {
 	search: BrowseSearchParams;
 	hasQuery: boolean;
 	makes: FilterMake[];
 	browseTo: string;
+	children: React.ReactNode;
 }
 
-export function FilterSidebar({ search, hasQuery, makes, browseTo }: FilterSidebarProps) {
+export function FilterSidebar({ search, hasQuery, makes, browseTo, children }: FilterSidebarProps) {
 	const { t } = useTranslation("listings");
 	const activeFilterCount = countActiveFilters(search);
 	const { updateFilter, toggleArrayFilter, clearAll } = useFilterActions(search, browseTo);
 
 	return (
 		<aside className="w-full shrink-0 space-y-6">
-			{/* Header */}
 			<div className="flex items-center justify-between">
 				<h2 className="font-heading text-sm font-semibold text-foreground">
 					{t("filters.heading")}
@@ -30,16 +36,18 @@ export function FilterSidebar({ search, hasQuery, makes, browseTo }: FilterSideb
 				)}
 			</div>
 
-			<FilterControls
+			<FilterProvider
 				search={search}
 				hasQuery={hasQuery}
 				makes={makes}
-				browseTo={browseTo}
 				idPrefix="filter"
 				inputHeight="h-9"
-			/>
+				updateFilter={updateFilter}
+				toggleArrayFilter={toggleArrayFilter}
+			>
+				<div className="space-y-6">{children}</div>
+			</FilterProvider>
 
-			{/* Active filter chips */}
 			{activeFilterCount > 0 && (
 				<ActiveFilterChips
 					search={search}
@@ -52,6 +60,7 @@ export function FilterSidebar({ search, hasQuery, makes, browseTo }: FilterSideb
 	);
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: chip list grows with supported filter fields
 function ActiveFilterChips({
 	search,
 	makes,
@@ -121,6 +130,36 @@ function ActiveFilterChips({
 				<FilterChip
 					label={`≤${search.year_max}`}
 					onRemove={() => onUpdateFilter({ year_max: undefined })}
+				/>
+			)}
+			{!!search.condition && (
+				<FilterChip
+					label={CONDITION_LABELS[search.condition]}
+					onRemove={() => onUpdateFilter({ condition: undefined })}
+				/>
+			)}
+			{!!search.gear_type && (
+				<FilterChip
+					label={GEAR_TYPE_LABELS[search.gear_type]}
+					onRemove={() => onUpdateFilter({ gear_type: undefined })}
+				/>
+			)}
+			{!!search.size && (
+				<FilterChip label={search.size} onRemove={() => onUpdateFilter({ size: undefined })} />
+			)}
+			{!!search.part_category && (
+				<FilterChip
+					label={
+						PART_CATEGORIES.find((c) => c.value === search.part_category)?.label ??
+						search.part_category
+					}
+					onRemove={() => onUpdateFilter({ part_category: undefined })}
+				/>
+			)}
+			{search.km_max != null && (
+				<FilterChip
+					label={`≤${search.km_max}km`}
+					onRemove={() => onUpdateFilter({ km_max: undefined })}
 				/>
 			)}
 		</div>

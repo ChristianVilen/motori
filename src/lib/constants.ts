@@ -81,6 +81,24 @@ export const TYPE_EMOJI: Record<string, string> = {
 	custom: "\uD83D\uDD27",
 };
 
+export const PART_CATEGORIES = [
+	{ value: "brakes", label: "Jarrut" },
+	{ value: "tires", label: "Renkaat" },
+	{ value: "exhaust", label: "Pakosarja" },
+	{ value: "bodywork", label: "Korit" },
+	{ value: "electrical", label: "Sähkö" },
+	{ value: "engine", label: "Moottori" },
+	{ value: "suspension", label: "Jousitus" },
+	{ value: "transmission", label: "Voimansiirto" },
+	{ value: "lights", label: "Valot" },
+	{ value: "other", label: "Muu" },
+] as const;
+
+export type PartCategory = (typeof PART_CATEGORIES)[number]["value"];
+
+export const GEAR_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "muu"] as const;
+export type GearSize = (typeof GEAR_SIZES)[number];
+
 export const CONDITIONS = ["new", "excellent", "good", "fair", "poor"] as const;
 export type Condition = (typeof CONDITIONS)[number];
 
