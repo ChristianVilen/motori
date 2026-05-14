@@ -284,6 +284,16 @@ function RootDocument({ children, locale = "fi", serverSession }: RootDocumentPr
 										</button>
 									)}
 								</div>
+								{!session && (
+									<button
+										type="button"
+										data-testid="nav-login-mobile"
+										onClick={() => setLoginOpen(true)}
+										className="text-sm text-white/70 hover:text-white md:hidden"
+									>
+										{t("nav.signIn")}
+									</button>
+								)}
 								<LanguageSelector />
 							</div>
 						</div>

@@ -62,7 +62,7 @@ export function ListingForm(props: ListingFormProps) {
 	const { t: tCommon } = useTranslation("common");
 
 	const [category, setCategory] = useState<ListingCategory>(
-		props.lockedCategory ?? props.initialCategory ?? "rental",
+		props.lockedCategory ?? props.initialCategory ?? "sale",
 	);
 	const images = useImageUpload(initialImages);
 	const [submitError, setSubmitError] = useState<string | null>(null);
