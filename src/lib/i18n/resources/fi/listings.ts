@@ -82,6 +82,7 @@ export default {
 		back: "Takaisin",
 		negotiable: "Hinta joustaa",
 		contactSeller: "Ota yhteyttä",
+		messageSeller: "Lähetä viesti",
 		description: "Kuvaus",
 		licenseBadge: "Kortti {{license}}",
 		pricing: {
