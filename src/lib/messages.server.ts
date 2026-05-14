@@ -6,6 +6,7 @@ import { log } from "~/lib/log";
 import type { ConversationListRow } from "~/lib/messages";
 import { shouldNotifyByEmail, validateMessageBody } from "~/lib/messages";
 import { publish } from "~/lib/messages-bus";
+import { checkRateLimit } from "~/lib/rate-limit";
 
 const STATUSES_BLOCKED_FOR_NEW_CONVERSATION = new Set(["removed"]);
 const STATUSES_READONLY = new Set(["removed"]);
@@ -14,6 +15,9 @@ export async function startConversationServer(args: {
 	listingId: string;
 	userId: string;
 }): Promise<{ conversationId: string }> {
+	const rl = checkRateLimit(`msg:new:${args.userId}`, 10, 60 * 60 * 1000);
+	if (!rl.allowed) throw new AppError("messages.rate_limited");
+
 	const listing = await db
 		.selectFrom("listing")
 		.select(["id", "owner_id", "status"])
@@ -87,6 +91,9 @@ export async function sendMessageServer(args: {
 	kind?: MessageKind;
 	bookingId?: string;
 }): Promise<{ messageId: string }> {
+	const rlSend = checkRateLimit(`msg:send:${args.userId}`, 30, 60 * 1000);
+	if (!rlSend.allowed) throw new AppError("messages.rate_limited");
+
 	const trimmedBody = validateMessageBody(args.body);
 
 	const conv = await db
@@ -341,6 +348,31 @@ export async function listMessagesServer(args: {
 	const hasMore = rows.length > limit;
 	const page = (hasMore ? rows.slice(0, limit) : rows).reverse();
 	return { messages: page as Message[], hasMore };
+}
+
+export async function blockUserServer(args: {
+	userId: string;
+	targetUserId: string;
+}): Promise<void> {
+	if (args.userId === args.targetUserId) {
+		throw new AppError("messages.cannot_block_self");
+	}
+	await db
+		.insertInto("user_block")
+		.values({ blocker_id: args.userId, blocked_id: args.targetUserId })
+		.onConflict((oc) => oc.columns(["blocker_id", "blocked_id"]).doNothing())
+		.execute();
+}
+
+export async function unblockUserServer(args: {
+	userId: string;
+	targetUserId: string;
+}): Promise<void> {
+	await db
+		.deleteFrom("user_block")
+		.where("blocker_id", "=", args.userId)
+		.where("blocked_id", "=", args.targetUserId)
+		.execute();
 }
 
 export async function markReadServer(args: {

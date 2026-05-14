@@ -60,6 +60,7 @@ vi.mock("~/lib/email-templates/new-message", () => ({
 
 import { AppError } from "./errors";
 import {
+	blockUserServer,
 	getConversationServer,
 	sendMessageServer,
 	startConversationServer,
@@ -174,6 +175,26 @@ describe("sendMessageServer", () => {
 		await expect(
 			sendMessageServer({ conversationId: "C1", userId: "B", body: "hi" }),
 		).rejects.toMatchObject({ code: "messages.listing_readonly" });
+	});
+});
+
+describe("block/unblock guards", () => {
+	it("blockUserServer rejects self-block", async () => {
+		await expect(
+			blockUserServer({ userId: "U1", targetUserId: "U1" }),
+		).rejects.toBeInstanceOf(AppError);
+	});
+
+	it("startConversationServer rate-limits after 10 new conversations / hour", async () => {
+		const userId = `RL-${Date.now()}-${Math.random()}`;
+		for (let i = 0; i < 10; i++) {
+			await expect(
+				startConversationServer({ listingId: "L1", userId }),
+			).rejects.toBeInstanceOf(AppError);
+		}
+		await expect(
+			startConversationServer({ listingId: "L1", userId }),
+		).rejects.toMatchObject({ code: "messages.rate_limited" });
 	});
 });
 
