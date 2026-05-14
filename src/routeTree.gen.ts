@@ -51,6 +51,7 @@ import { Route as ApiImagesUploadRouteImport } from './routes/api/images/upload'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as PyoratVuokrausListingIdSlugRouteImport } from './routes/pyorat/vuokraus/$listingId_.$slug'
 import { Route as PyoratMyyntiListingIdSlugRouteImport } from './routes/pyorat/myynti/$listingId_.$slug'
+import { Route as ApiMessagesStreamConversationIdRouteImport } from './routes/api/messages/stream.$conversationId'
 
 const VaihdaSalasanaRoute = VaihdaSalasanaRouteImport.update({
   id: '/vaihda-salasana',
@@ -266,6 +267,12 @@ const PyoratMyyntiListingIdSlugRoute =
     path: '/pyorat/myynti/$listingId/$slug',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiMessagesStreamConversationIdRoute =
+  ApiMessagesStreamConversationIdRouteImport.update({
+    id: '/api/messages/stream/$conversationId',
+    path: '/api/messages/stream/$conversationId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -308,6 +315,7 @@ export interface FileRoutesByFullPath {
   '/varusteet/$listingId/$slug': typeof VarusteetListingIdSlugRoute
   '/pyorat/myynti/': typeof PyoratMyyntiIndexRoute
   '/pyorat/vuokraus/': typeof PyoratVuokrausIndexRoute
+  '/api/messages/stream/$conversationId': typeof ApiMessagesStreamConversationIdRoute
   '/pyorat/myynti/$listingId/$slug': typeof PyoratMyyntiListingIdSlugRoute
   '/pyorat/vuokraus/$listingId/$slug': typeof PyoratVuokrausListingIdSlugRoute
 }
@@ -351,6 +359,7 @@ export interface FileRoutesByTo {
   '/varusteet/$listingId/$slug': typeof VarusteetListingIdSlugRoute
   '/pyorat/myynti': typeof PyoratMyyntiIndexRoute
   '/pyorat/vuokraus': typeof PyoratVuokrausIndexRoute
+  '/api/messages/stream/$conversationId': typeof ApiMessagesStreamConversationIdRoute
   '/pyorat/myynti/$listingId/$slug': typeof PyoratMyyntiListingIdSlugRoute
   '/pyorat/vuokraus/$listingId/$slug': typeof PyoratVuokrausListingIdSlugRoute
 }
@@ -396,6 +405,7 @@ export interface FileRoutesById {
   '/varusteet/$listingId_/$slug': typeof VarusteetListingIdSlugRoute
   '/pyorat/myynti/': typeof PyoratMyyntiIndexRoute
   '/pyorat/vuokraus/': typeof PyoratVuokrausIndexRoute
+  '/api/messages/stream/$conversationId': typeof ApiMessagesStreamConversationIdRoute
   '/pyorat/myynti/$listingId_/$slug': typeof PyoratMyyntiListingIdSlugRoute
   '/pyorat/vuokraus/$listingId_/$slug': typeof PyoratVuokrausListingIdSlugRoute
 }
@@ -442,6 +452,7 @@ export interface FileRouteTypes {
     | '/varusteet/$listingId/$slug'
     | '/pyorat/myynti/'
     | '/pyorat/vuokraus/'
+    | '/api/messages/stream/$conversationId'
     | '/pyorat/myynti/$listingId/$slug'
     | '/pyorat/vuokraus/$listingId/$slug'
   fileRoutesByTo: FileRoutesByTo
@@ -485,6 +496,7 @@ export interface FileRouteTypes {
     | '/varusteet/$listingId/$slug'
     | '/pyorat/myynti'
     | '/pyorat/vuokraus'
+    | '/api/messages/stream/$conversationId'
     | '/pyorat/myynti/$listingId/$slug'
     | '/pyorat/vuokraus/$listingId/$slug'
   id:
@@ -529,6 +541,7 @@ export interface FileRouteTypes {
     | '/varusteet/$listingId_/$slug'
     | '/pyorat/myynti/'
     | '/pyorat/vuokraus/'
+    | '/api/messages/stream/$conversationId'
     | '/pyorat/myynti/$listingId_/$slug'
     | '/pyorat/vuokraus/$listingId_/$slug'
   fileRoutesById: FileRoutesById
@@ -569,6 +582,7 @@ export interface RootRouteChildren {
   VarusteetListingIdSlugRoute: typeof VarusteetListingIdSlugRoute
   PyoratMyyntiIndexRoute: typeof PyoratMyyntiIndexRoute
   PyoratVuokrausIndexRoute: typeof PyoratVuokrausIndexRoute
+  ApiMessagesStreamConversationIdRoute: typeof ApiMessagesStreamConversationIdRoute
   PyoratMyyntiListingIdSlugRoute: typeof PyoratMyyntiListingIdSlugRoute
   PyoratVuokrausListingIdSlugRoute: typeof PyoratVuokrausListingIdSlugRoute
 }
@@ -869,6 +883,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PyoratMyyntiListingIdSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/messages/stream/$conversationId': {
+      id: '/api/messages/stream/$conversationId'
+      path: '/api/messages/stream/$conversationId'
+      fullPath: '/api/messages/stream/$conversationId'
+      preLoaderRoute: typeof ApiMessagesStreamConversationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -928,6 +949,7 @@ const rootRouteChildren: RootRouteChildren = {
   VarusteetListingIdSlugRoute: VarusteetListingIdSlugRoute,
   PyoratMyyntiIndexRoute: PyoratMyyntiIndexRoute,
   PyoratVuokrausIndexRoute: PyoratVuokrausIndexRoute,
+  ApiMessagesStreamConversationIdRoute: ApiMessagesStreamConversationIdRoute,
   PyoratMyyntiListingIdSlugRoute: PyoratMyyntiListingIdSlugRoute,
   PyoratVuokrausListingIdSlugRoute: PyoratVuokrausListingIdSlugRoute,
 }
