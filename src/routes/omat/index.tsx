@@ -261,8 +261,8 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 	return (
 		<div
 			className="flex gap-4 rounded-l border border-border bg-card p-4"
-			data-testid="tori-item-row"
-			data-item-id={item.short_id}
+			data-testid="dashboard-listing-row"
+			data-listing-id={item.short_id}
 		>
 			{/* Thumbnail */}
 			<Link
@@ -313,7 +313,11 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 				{/* Actions */}
 				<div className="mt-3 flex flex-wrap gap-2">
 					{verified ? (
-						<Link to="/tori/$itemId/muokkaa" params={{ itemId: item.short_id }}>
+						<Link
+							to="/tori/$itemId/muokkaa"
+							params={{ itemId: item.short_id }}
+							data-testid="dashboard-listing-edit"
+						>
 							<Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs">
 								<Pencil className="h-3 w-3" />
 								{t("dashboard.tori.edit")}
