@@ -157,7 +157,7 @@ export async function sendMessageServer(args: {
 			]),
 		)
 		.executeTakeFirst();
-	if (block && block.blocker_id !== args.userId) {
+	if (block) {
 		throw new AppError("messages.blocked");
 	}
 

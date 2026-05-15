@@ -176,6 +176,32 @@ describe("sendMessageServer", () => {
 			sendMessageServer({ conversationId: "C1", userId: "B", body: "hi" }),
 		).rejects.toMatchObject({ code: "messages.listing_readonly" });
 	});
+
+	it("throws blocked when the sender is the blocker", async () => {
+		// conversation found, sender is participant
+		executeTakeFirstQueue.push({
+			id: "C1",
+			buyer_id: "U1",
+			seller_id: "S",
+			buyer_last_read_at: null,
+			seller_last_read_at: null,
+			listing_id: "L1",
+			listing_title: "Bike",
+			listing_status: "active",
+			buyer_email: "u1@example.com",
+			buyer_email_verified: true,
+			seller_email: "s@example.com",
+			seller_email_verified: true,
+			buyer_language: "fi",
+			seller_language: "fi",
+		});
+		// block row: U1 is the blocker
+		executeTakeFirstQueue.push({ blocker_id: "U1" });
+
+		await expect(
+			sendMessageServer({ conversationId: "C1", userId: "U1", body: "hello" }),
+		).rejects.toMatchObject({ code: "messages.blocked" });
+	});
 });
 
 describe("block/unblock guards", () => {
