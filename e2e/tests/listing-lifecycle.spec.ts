@@ -25,6 +25,8 @@ test.describe("Listing lifecycle", () => {
 	});
 
 	test("create listing and assert detail page", async () => {
+		page.on("pageerror", (err) => console.error("[E2E pageerror]", err));
+		page.on("crash", () => console.error("[E2E crash] page crashed"));
 		const form = new ListingFormPage(page);
 		await form.gotoCreate();
 		await form.fill({
