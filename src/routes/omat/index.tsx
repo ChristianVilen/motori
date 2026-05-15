@@ -314,8 +314,8 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 				<div className="mt-3 flex flex-wrap gap-2">
 					{verified ? (
 						<Link
-							to="/tori/$itemId/muokkaa"
-							params={{ itemId: item.short_id }}
+							to="/ilmoitukset/$listingId/muokkaa"
+							params={{ listingId: item.short_id }}
 							data-testid="dashboard-listing-edit"
 						>
 							<Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs">
