@@ -1,33 +1,31 @@
 /**
  * Booking lifecycle — server only.
  * Owns: create → confirm → reject → cancel → expire.
- * Each function handles DB, logging, and email dispatch.
+ * Side effects (emails, conversation, system messages) go through an injected
+ * BookingNotifier so the state machine is testable without mocking transport modules.
  */
 import { sql } from "kysely";
-import {
-	sendBookingAutoRejectedEmail,
-	sendBookingConfirmedEmail,
-	sendBookingRejectedEmail,
-	sendBookingRequestEmail,
-} from "~/lib/booking-emails";
+import { type BookingNotifier, realNotifier } from "~/lib/booking-notifier";
 import { expandDateRange } from "~/lib/bookings";
 import { db } from "~/lib/db/index";
 import { AppError } from "~/lib/errors";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
-import { sendMessageServer, startConversationServer } from "~/lib/messages.server";
 import { generateShortId } from "~/lib/slug";
 
 // --- Create ---
 
-export async function createBookingRequest(args: {
-	listingId: string;
-	startDate: string;
-	endDate: string;
-	message: string;
-	userId: string;
-	userEmail: string;
-}): Promise<{ short_id: string }> {
+export async function createBookingRequest(
+	args: {
+		listingId: string;
+		startDate: string;
+		endDate: string;
+		message: string;
+		userId: string;
+		userEmail: string;
+	},
+	notifier: BookingNotifier = realNotifier,
+): Promise<{ short_id: string }> {
 	const listing = await db
 		.selectFrom("listing")
 		.innerJoin("user", "user.id", "listing.owner_id")
@@ -64,7 +62,7 @@ export async function createBookingRequest(args: {
 	}
 
 	const shortId = generateShortId();
-	const { conversationId } = await startConversationServer({
+	const { conversationId } = await notifier.startConversation({
 		listingId: listing.id,
 		userId: args.userId,
 	});
@@ -128,19 +126,7 @@ export async function createBookingRequest(args: {
 		renterId: args.userId,
 	});
 
-	try {
-		await sendMessageServer({
-			conversationId,
-			userId: args.userId,
-			body: args.message,
-			kind: "booking_request",
-			bookingId: inserted.id,
-		});
-	} catch (err) {
-		log.error("booking.system_message_failed", { err: String(err), bookingId: inserted.id });
-	}
-
-	sendBookingRequestEmail({
+	await notifier.notifyBookingRequested({
 		booking: {
 			short_id: inserted.short_id,
 			listing_title: listing.title,
@@ -160,17 +146,23 @@ export async function createBookingRequest(args: {
 			language: renterProfile.language,
 		},
 		message: args.message,
-	}).catch((err) => log.error("email send failed", { err }));
+		conversationId,
+		bookingId: inserted.id,
+		senderUserId: args.userId,
+	});
 
 	return { short_id: inserted.short_id };
 }
 
 // --- Confirm ---
 
-export async function confirmBooking(args: {
-	bookingId: string;
-	userId: string;
-}): Promise<{ autoRejectedCount: number }> {
+export async function confirmBooking(
+	args: {
+		bookingId: string;
+		userId: string;
+	},
+	notifier: BookingNotifier = realNotifier,
+): Promise<{ autoRejectedCount: number }> {
 	const result = await db.transaction().execute(async (trx) => {
 		const booking = await trx
 			.selectFrom("booking")
@@ -258,7 +250,7 @@ export async function confirmBooking(args: {
 
 	log.event(EVENTS.booking.confirmed, { bookingId: result.booking.id });
 
-	sendBookingConfirmedEmail({
+	await notifier.notifyBookingConfirmed({
 		booking: {
 			short_id: result.booking.short_id,
 			listing_title: result.booking.listing_title,
@@ -277,14 +269,14 @@ export async function confirmBooking(args: {
 			phone: result.booking.owner_show_phone ? result.booking.owner_phone : null,
 			language: result.booking.owner_language,
 		},
-	}).catch((err) => log.error("email send failed", { err }));
+	});
 
 	for (const o of result.overlaps) {
 		log.event(EVENTS.booking.auto_rejected_overlap, {
 			bookingId: o.id,
 			confirmedBookingId: result.booking.id,
 		});
-		sendBookingAutoRejectedEmail({
+		await notifier.notifyBookingAutoRejected({
 			booking: {
 				short_id: o.short_id,
 				listing_title: result.booking.listing_title,
@@ -292,7 +284,7 @@ export async function confirmBooking(args: {
 				end_date: o.end_date,
 			},
 			renter: { display_name: o.display_name, email: o.email, phone: null, language: o.language },
-		}).catch((err) => log.error("email send failed", { err }));
+		});
 	}
 
 	return { autoRejectedCount: result.overlaps.length };
@@ -300,11 +292,14 @@ export async function confirmBooking(args: {
 
 // --- Reject ---
 
-export async function rejectBooking(args: {
-	bookingId: string;
-	userId: string;
-	reason?: string;
-}): Promise<void> {
+export async function rejectBooking(
+	args: {
+		bookingId: string;
+		userId: string;
+		reason?: string;
+	},
+	notifier: BookingNotifier = realNotifier,
+): Promise<void> {
 	const booking = await db.transaction().execute(async (trx) => {
 		const row = await trx
 			.selectFrom("booking")
@@ -357,7 +352,7 @@ export async function rejectBooking(args: {
 
 	log.event(EVENTS.booking.rejected, { bookingId: booking.id });
 
-	sendBookingRejectedEmail({
+	await notifier.notifyBookingRejected({
 		booking: {
 			short_id: booking.short_id,
 			listing_title: booking.listing_title,
@@ -371,7 +366,7 @@ export async function rejectBooking(args: {
 			language: booking.renter_language,
 		},
 		reason: args.reason ?? null,
-	}).catch((err) => log.error("email send failed", { err }));
+	});
 }
 
 // --- Cancel ---
@@ -417,7 +412,9 @@ export async function cancelBooking(args: { bookingId: string; userId: string })
  *   - they're older than 7 days with no owner response, OR
  *   - their start_date has passed.
  */
-export async function expireStaleBookings(): Promise<number> {
+export async function expireStaleBookings(
+	notifier: BookingNotifier = realNotifier,
+): Promise<number> {
 	const result = await db
 		.updateTable("booking")
 		.set({ status: "expired", updated_at: new Date() })
@@ -456,7 +453,7 @@ export async function expireStaleBookings(): Promise<number> {
 
 	for (const b of expired) {
 		log.event(EVENTS.booking.expired, { bookingId: b.id });
-		sendBookingAutoRejectedEmail({
+		await notifier.notifyBookingAutoRejected({
 			booking: {
 				short_id: b.short_id,
 				listing_title: b.listing_title,
@@ -469,7 +466,7 @@ export async function expireStaleBookings(): Promise<number> {
 				phone: null,
 				language: b.renter_language,
 			},
-		}).catch((err) => log.error("email send failed", { err }));
+		});
 	}
 
 	return result.length;
