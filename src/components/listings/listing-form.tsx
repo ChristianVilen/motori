@@ -9,7 +9,16 @@
 // - On category switch: keep shared values, reset other sections' fields
 
 import { useForm } from "@tanstack/react-form";
-import { Key, Shield, ShoppingCart, Wrench, X } from "lucide-react";
+import {
+	ChevronLeft,
+	ChevronRight,
+	Key,
+	Shield,
+	ShoppingCart,
+	Star,
+	Wrench,
+	X,
+} from "lucide-react";
 import { useState } from "react";
 import { CitySelect } from "~/components/listings/city-select";
 import { MotorcycleFields } from "~/components/listings/sections/motorcycle-fields";
@@ -339,40 +348,67 @@ export function ListingForm(props: ListingFormProps) {
 					</span>
 				</h2>
 
-				{(images.existingImages.length > 0 || images.imagePreviews.length > 0) && (
-					<div className="mb-4 grid grid-cols-4 gap-2">
-						{images.existingImages.map((img) => (
-							<div
-								key={img.url}
-								className="group relative aspect-square overflow-hidden rounded-md bg-muted-light"
-							>
-								<img src={img.url} alt="" className="h-full w-full object-cover" />
-								<button
-									type="button"
-									onClick={() => images.removeExistingImage(img.url)}
-									className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
-									aria-label={t("form.images.removeImageAriaLabel")}
+				{images.items.length > 0 && (
+					<p className="mb-2 text-xs text-muted">{t("form.images.coverHint")}</p>
+				)}
+				{images.items.length > 0 && (
+					<div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+						{images.items.map((item, i) => {
+							const src = item.kind === "existing" ? item.url : item.preview;
+							const isCover = i === 0;
+							const isLast = i === images.items.length - 1;
+							return (
+								<div
+									key={item.key}
+									className={`relative aspect-square overflow-hidden rounded-md bg-muted-light ${isCover ? "ring-2 ring-accent" : ""}`}
 								>
-									<X className="h-3 w-3" />
-								</button>
-							</div>
-						))}
-						{images.imagePreviews.map((preview, i) => (
-							<div
-								key={`${images.pendingFiles[i]?.name ?? i}-${images.pendingFiles[i]?.size ?? i}`}
-								className="group relative aspect-square overflow-hidden rounded-md bg-muted-light"
-							>
-								<img src={preview} alt="" className="h-full w-full object-cover" />
-								<button
-									type="button"
-									onClick={() => images.removePendingImage(i)}
-									className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
-									aria-label={t("form.images.removeImageAriaLabel")}
-								>
-									<X className="h-3 w-3" />
-								</button>
-							</div>
-						))}
+									<img src={src} alt="" className="h-full w-full object-cover" />
+									{isCover && (
+										<span className="absolute left-1 top-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+											{t("form.images.coverBadge")}
+										</span>
+									)}
+									<button
+										type="button"
+										onClick={() => images.removeItem(item.key)}
+										className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white"
+										aria-label={t("form.images.removeImageAriaLabel")}
+									>
+										<X className="h-3 w-3" />
+									</button>
+									<div className="absolute inset-x-1 bottom-1 flex items-center justify-between gap-1">
+										<button
+											type="button"
+											onClick={() => images.moveItem(item.key, -1)}
+											disabled={isCover}
+											className="rounded-full bg-black/60 p-1 text-white disabled:opacity-30"
+											aria-label={t("form.images.moveLeftAriaLabel")}
+										>
+											<ChevronLeft className="h-3 w-3" />
+										</button>
+										{!isCover && (
+											<button
+												type="button"
+												onClick={() => images.setAsCover(item.key)}
+												className="rounded-full bg-black/60 p-1 text-white"
+												aria-label={t("form.images.setCoverAriaLabel")}
+											>
+												<Star className="h-3 w-3" />
+											</button>
+										)}
+										<button
+											type="button"
+											onClick={() => images.moveItem(item.key, 1)}
+											disabled={isLast}
+											className="rounded-full bg-black/60 p-1 text-white disabled:opacity-30"
+											aria-label={t("form.images.moveRightAriaLabel")}
+										>
+											<ChevronRight className="h-3 w-3" />
+										</button>
+									</div>
+								</div>
+							);
+						})}
 					</div>
 				)}
 
