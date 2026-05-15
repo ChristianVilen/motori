@@ -271,28 +271,7 @@ function RootDocument({
 										</span>
 									)}
 									{session ? (
-										<>
-											<Link
-												data-testid="nav-dashboard"
-												to="/omat"
-												className="text-sm text-white/70 hover:text-white"
-											>
-												{t("nav.myListings")}
-											</Link>
-											<Link
-												data-testid="nav-messages"
-												to="/viestit"
-												className="text-sm text-white/70 hover:text-white"
-											>
-												{t("nav.messages", "Viestit")}
-												{unreadMessages > 0 && (
-													<span className="ml-1 rounded-full bg-accent text-white text-xs px-2 py-0.5">
-														{unreadMessages}
-													</span>
-												)}
-											</Link>
-											<UserMenu onSignOut={handleSignOut} />
-										</>
+										<NavAuthLinks unreadMessages={unreadMessages} onSignOut={handleSignOut} />
 									) : (
 										<button
 											type="button"
@@ -320,28 +299,12 @@ function RootDocument({
 					</nav>
 				)}
 				{!isAdmin && showVerifyBanner && (
-					<div className="bg-warning/10 border-b border-warning/30 px-4 py-2 text-center text-sm">
-						<span className="text-foreground">{tAuth("verifyBanner.text")}</span>{" "}
-						{resent ? (
-							<span className="font-medium text-accent">{tAuth("verifyBanner.sent")}</span>
-						) : checkedSpam ? (
-							<button
-								type="button"
-								onClick={handleResendVerification}
-								className="font-medium text-accent hover:underline"
-							>
-								{tAuth("verifyBanner.resend")}
-							</button>
-						) : (
-							<button
-								type="button"
-								onClick={() => setCheckedSpam(true)}
-								className="font-medium text-accent hover:underline"
-							>
-								{tAuth("verifyBanner.checkSpam")}
-							</button>
-						)}
-					</div>
+					<VerifyBanner
+						resent={resent}
+						checkedSpam={checkedSpam}
+						onCheckSpam={() => setCheckedSpam(true)}
+						onResend={handleResendVerification}
+					/>
 				)}
 				<main id="main-content" className="pb-16 md:pb-0">
 					{children}
@@ -401,5 +364,77 @@ function RootDocument({
 				/>
 			</body>
 		</html>
+	);
+}
+
+function VerifyBanner({
+	resent,
+	checkedSpam,
+	onCheckSpam,
+	onResend,
+}: {
+	resent: boolean;
+	checkedSpam: boolean;
+	onCheckSpam: () => void;
+	onResend: () => void;
+}) {
+	const { t } = useTranslation("auth");
+	return (
+		<div className="bg-warning/10 border-b border-warning/30 px-4 py-2 text-center text-sm">
+			<span className="text-foreground">{t("verifyBanner.text")}</span>{" "}
+			{resent ? (
+				<span className="font-medium text-accent">{t("verifyBanner.sent")}</span>
+			) : checkedSpam ? (
+				<button
+					type="button"
+					onClick={onResend}
+					className="font-medium text-accent hover:underline"
+				>
+					{t("verifyBanner.resend")}
+				</button>
+			) : (
+				<button
+					type="button"
+					onClick={onCheckSpam}
+					className="font-medium text-accent hover:underline"
+				>
+					{t("verifyBanner.checkSpam")}
+				</button>
+			)}
+		</div>
+	);
+}
+
+function NavAuthLinks({
+	unreadMessages,
+	onSignOut,
+}: {
+	unreadMessages: number;
+	onSignOut: () => void;
+}) {
+	const { t } = useTranslation("common");
+	return (
+		<>
+			<Link
+				data-testid="nav-dashboard"
+				to="/omat"
+				className="text-sm text-white/70 hover:text-white"
+			>
+				{t("nav.myListings")}
+			</Link>
+			<Link
+				data-testid="nav-messages"
+				to="/viestit"
+				className="text-sm text-white/70 hover:text-white"
+			>
+				{t("nav.messages", "Viestit")}
+				{unreadMessages > 0 && (
+					<span className="ml-1 rounded-full bg-accent text-white text-xs px-2 py-0.5">
+						{unreadMessages}
+					</span>
+				)}
+			</Link>
+			<UserMenu onSignOut={onSignOut} />
+		</>
 	);
 }

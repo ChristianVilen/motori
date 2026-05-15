@@ -43,7 +43,9 @@ function ThreadPage() {
 	}, [messages]);
 
 	const onSend = async () => {
-		if (!body.trim() || sending || conv.readOnly) return;
+		if (!body.trim() || sending || conv.readOnly) {
+			return;
+		}
 		setSending(true);
 		try {
 			await sendMessage({ data: { conversationId: params.conversationId, body } });

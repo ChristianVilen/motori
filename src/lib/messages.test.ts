@@ -22,15 +22,17 @@ describe("shouldNotifyByEmail", () => {
 	const muchEarlier = new Date("2026-05-14T08:00:00Z");
 
 	it("notifies when there is no prior message", () => {
-		expect(shouldNotifyByEmail({ recipientLastReadAt: null, priorMessageCreatedAt: null })).toBe(true);
+		expect(shouldNotifyByEmail({ recipientLastReadAt: null, priorMessageCreatedAt: null })).toBe(
+			true,
+		);
 	});
 	it("notifies when recipient was caught up (lastRead >= prior.createdAt)", () => {
 		expect(
 			shouldNotifyByEmail({ recipientLastReadAt: earlier, priorMessageCreatedAt: earlier }),
 		).toBe(true);
-		expect(
-			shouldNotifyByEmail({ recipientLastReadAt: now, priorMessageCreatedAt: earlier }),
-		).toBe(true);
+		expect(shouldNotifyByEmail({ recipientLastReadAt: now, priorMessageCreatedAt: earlier })).toBe(
+			true,
+		);
 	});
 	it("suppresses when recipient still has an earlier unread message", () => {
 		expect(
@@ -38,8 +40,8 @@ describe("shouldNotifyByEmail", () => {
 		).toBe(false);
 	});
 	it("suppresses when recipient has never read and a prior message exists", () => {
-		expect(
-			shouldNotifyByEmail({ recipientLastReadAt: null, priorMessageCreatedAt: earlier }),
-		).toBe(false);
+		expect(shouldNotifyByEmail({ recipientLastReadAt: null, priorMessageCreatedAt: earlier })).toBe(
+			false,
+		);
 	});
 });

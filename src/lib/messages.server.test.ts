@@ -76,9 +76,9 @@ describe("startConversationServer", () => {
 	it("throws own_listing when the user owns the listing", async () => {
 		executeTakeFirstQueue.push({ id: "L1", owner_id: "U1", status: "active" });
 
-		await expect(
-			startConversationServer({ listingId: "L1", userId: "U1" }),
-		).rejects.toMatchObject({ code: "messages.own_listing" });
+		await expect(startConversationServer({ listingId: "L1", userId: "U1" })).rejects.toMatchObject({
+			code: "messages.own_listing",
+		});
 	});
 
 	it("throws listing_not_found when the listing does not exist", async () => {
@@ -92,18 +92,18 @@ describe("startConversationServer", () => {
 	it("throws listing_unavailable when the listing is removed", async () => {
 		executeTakeFirstQueue.push({ id: "L1", owner_id: "OTHER", status: "removed" });
 
-		await expect(
-			startConversationServer({ listingId: "L1", userId: "U1" }),
-		).rejects.toMatchObject({ code: "messages.listing_unavailable" });
+		await expect(startConversationServer({ listingId: "L1", userId: "U1" })).rejects.toMatchObject({
+			code: "messages.listing_unavailable",
+		});
 	});
 
 	it("throws blocked when a block exists in either direction", async () => {
 		executeTakeFirstQueue.push({ id: "L1", owner_id: "OTHER", status: "active" });
 		executeTakeFirstQueue.push({ blocker_id: "OTHER" });
 
-		await expect(
-			startConversationServer({ listingId: "L1", userId: "U1" }),
-		).rejects.toMatchObject({ code: "messages.blocked" });
+		await expect(startConversationServer({ listingId: "L1", userId: "U1" })).rejects.toMatchObject({
+			code: "messages.blocked",
+		});
 	});
 
 	it("returns the existing conversation id when one already exists (idempotent)", async () => {
@@ -232,21 +232,21 @@ describe("sendMessageServer", () => {
 
 describe("block/unblock guards", () => {
 	it("blockUserServer rejects self-block", async () => {
-		await expect(
-			blockUserServer({ userId: "U1", targetUserId: "U1" }),
-		).rejects.toBeInstanceOf(AppError);
+		await expect(blockUserServer({ userId: "U1", targetUserId: "U1" })).rejects.toBeInstanceOf(
+			AppError,
+		);
 	});
 
 	it("startConversationServer rate-limits after 10 new conversations / hour", async () => {
 		const userId = `RL-${Date.now()}-${Math.random()}`;
 		for (let i = 0; i < 10; i++) {
-			await expect(
-				startConversationServer({ listingId: "L1", userId }),
-			).rejects.toBeInstanceOf(AppError);
+			await expect(startConversationServer({ listingId: "L1", userId })).rejects.toBeInstanceOf(
+				AppError,
+			);
 		}
-		await expect(
-			startConversationServer({ listingId: "L1", userId }),
-		).rejects.toMatchObject({ code: "messages.rate_limited" });
+		await expect(startConversationServer({ listingId: "L1", userId })).rejects.toMatchObject({
+			code: "messages.rate_limited",
+		});
 	});
 });
 

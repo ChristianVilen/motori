@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { auth } from "~/lib/auth";
-import { subscribe } from "~/lib/messages-bus";
 import { getConversationServer } from "~/lib/messages.server";
+import { subscribe } from "~/lib/messages-bus";
 
 export const Route = createFileRoute("/api/messages/stream/$conversationId")({
 	server: {

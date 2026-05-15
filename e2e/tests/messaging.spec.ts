@@ -12,27 +12,19 @@ test.describe("Messaging", () => {
 		await authenticatedViewerPage.goto(LISTING_URL);
 		await waitForHydration(authenticatedViewerPage);
 
-		await authenticatedViewerPage
-			.getByRole("button", { name: /lähetä viesti/i })
-			.click();
+		await authenticatedViewerPage.getByRole("button", { name: /lähetä viesti/i }).click();
 		await authenticatedViewerPage.waitForURL(/\/viestit\//);
 		await waitForHydration(authenticatedViewerPage);
 
 		const body = `Onko vielä saatavilla? ${Date.now()}`;
-		await authenticatedViewerPage
-			.getByPlaceholder(/kirjoita viesti/i)
-			.fill(body);
-		await authenticatedViewerPage
-			.getByRole("button", { name: /^lähetä$/i })
-			.click();
+		await authenticatedViewerPage.getByPlaceholder(/kirjoita viesti/i).fill(body);
+		await authenticatedViewerPage.getByRole("button", { name: /^lähetä$/i }).click();
 		await expect(authenticatedViewerPage.getByText(body)).toBeVisible();
 
 		// Owner inbox: conversation appears with the listing title, then clicking marks it read.
 		await authenticatedPage.goto("/viestit");
 		await waitForHydration(authenticatedPage);
-		await expect(
-			authenticatedPage.getByText(SEEDED_LISTING_TITLE).first(),
-		).toBeVisible();
+		await expect(authenticatedPage.getByText(SEEDED_LISTING_TITLE).first()).toBeVisible();
 
 		await authenticatedPage.getByText(SEEDED_LISTING_TITLE).first().click();
 		await authenticatedPage.waitForURL(/\/viestit\//);
@@ -62,19 +54,13 @@ test.describe("Messaging", () => {
 		// Viewer opens the thread and seeds a first message so the conversation exists.
 		await authenticatedViewerPage.goto(LISTING_URL);
 		await waitForHydration(authenticatedViewerPage);
-		await authenticatedViewerPage
-			.getByRole("button", { name: /lähetä viesti/i })
-			.click();
+		await authenticatedViewerPage.getByRole("button", { name: /lähetä viesti/i }).click();
 		await authenticatedViewerPage.waitForURL(/\/viestit\//);
 		await waitForHydration(authenticatedViewerPage);
 
 		const initialBody = `Hei ${Date.now()}`;
-		await authenticatedViewerPage
-			.getByPlaceholder(/kirjoita viesti/i)
-			.fill(initialBody);
-		await authenticatedViewerPage
-			.getByRole("button", { name: /^lähetä$/i })
-			.click();
+		await authenticatedViewerPage.getByPlaceholder(/kirjoita viesti/i).fill(initialBody);
+		await authenticatedViewerPage.getByRole("button", { name: /^lähetä$/i }).click();
 		await expect(authenticatedViewerPage.getByText(initialBody)).toBeVisible();
 
 		// Owner navigates to inbox and opens the conversation.
@@ -95,13 +81,9 @@ test.describe("Messaging", () => {
 		});
 	});
 
-	test("owner cannot see message-seller button on own listing", async ({
-		authenticatedPage,
-	}) => {
+	test("owner cannot see message-seller button on own listing", async ({ authenticatedPage }) => {
 		await authenticatedPage.goto(LISTING_URL);
 		await waitForHydration(authenticatedPage);
-		await expect(
-			authenticatedPage.getByRole("button", { name: /lähetä viesti/i }),
-		).toHaveCount(0);
+		await expect(authenticatedPage.getByRole("button", { name: /lähetä viesti/i })).toHaveCount(0);
 	});
 });

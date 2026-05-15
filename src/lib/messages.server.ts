@@ -17,7 +17,9 @@ export async function startConversationServer(args: {
 	userId: string;
 }): Promise<{ conversationId: string }> {
 	const rl = checkRateLimit(`msg:new:${args.userId}`, 10, 60 * 60 * 1000);
-	if (!rl.allowed) throw new AppError("messages.rate_limited");
+	if (!rl.allowed) {
+		throw new AppError("messages.rate_limited");
+	}
 
 	const listing = await db
 		.selectFrom("listing")
@@ -40,14 +42,8 @@ export async function startConversationServer(args: {
 		.select("blocker_id")
 		.where((eb) =>
 			eb.or([
-				eb.and([
-					eb("blocker_id", "=", listing.owner_id),
-					eb("blocked_id", "=", args.userId),
-				]),
-				eb.and([
-					eb("blocker_id", "=", args.userId),
-					eb("blocked_id", "=", listing.owner_id),
-				]),
+				eb.and([eb("blocker_id", "=", listing.owner_id), eb("blocked_id", "=", args.userId)]),
+				eb.and([eb("blocker_id", "=", args.userId), eb("blocked_id", "=", listing.owner_id)]),
 			]),
 		)
 		.executeTakeFirst();
@@ -107,7 +103,9 @@ export async function sendMessageServer(args: {
 	bookingId?: string;
 }): Promise<{ messageId: string }> {
 	const rlSend = checkRateLimit(`msg:send:${args.userId}`, 30, 60 * 1000);
-	if (!rlSend.allowed) throw new AppError("messages.rate_limited");
+	if (!rlSend.allowed) {
+		throw new AppError("messages.rate_limited");
+	}
 
 	const trimmedBody = validateMessageBody(args.body);
 
@@ -194,9 +192,7 @@ export async function sendMessageServer(args: {
 	publish(conv.id, inserted as Message);
 
 	const recipientIsBuyer = conv.seller_id === args.userId;
-	const recipientLastReadAt = recipientIsBuyer
-		? conv.buyer_last_read_at
-		: conv.seller_last_read_at;
+	const recipientLastReadAt = recipientIsBuyer ? conv.buyer_last_read_at : conv.seller_last_read_at;
 	const recipientEmail = recipientIsBuyer ? conv.buyer_email : conv.seller_email;
 	const recipientVerified = recipientIsBuyer
 		? conv.buyer_email_verified
@@ -326,7 +322,9 @@ export async function getConversationServer(args: {
 		])
 		.where("conversation.id", "=", args.conversationId)
 		.executeTakeFirst();
-	if (!row) throw new AppError("messages.conversation_not_found");
+	if (!row) {
+		throw new AppError("messages.conversation_not_found");
+	}
 	if (row.buyer_id !== args.userId && row.seller_id !== args.userId) {
 		throw new AppError("messages.forbidden");
 	}

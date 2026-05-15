@@ -18,15 +18,21 @@ export function subscribe(conversationId: string, fn: Subscriber): () => void {
 	set.add(fn);
 	return () => {
 		const s = channels.get(conversationId);
-		if (!s) return;
+		if (!s) {
+			return;
+		}
 		s.delete(fn);
-		if (s.size === 0) channels.delete(conversationId);
+		if (s.size === 0) {
+			channels.delete(conversationId);
+		}
 	};
 }
 
 export function publish(conversationId: string, msg: Message): void {
 	const set = channels.get(conversationId);
-	if (!set) return;
+	if (!set) {
+		return;
+	}
 	for (const fn of set) {
 		try {
 			fn(msg);
