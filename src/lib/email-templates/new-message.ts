@@ -13,6 +13,7 @@ export async function sendNewMessageEmail(args: {
 	to: string;
 	listingTitle: string;
 	conversationId: string;
+	messageId: string;
 	previewBody: string;
 	language?: "fi" | "en";
 }): Promise<void> {
@@ -34,6 +35,6 @@ export async function sendNewMessageEmail(args: {
 			lang,
 		),
 		text: `${t("newMessage.intro", { title: args.listingTitle })}\n\n${url}`,
-		idempotencyKey: `new-message/${args.conversationId}/${Date.now()}`,
+		idempotencyKey: `new-message/${args.conversationId}/${args.messageId}`,
 	});
 }

@@ -213,6 +213,7 @@ export async function sendMessageServer(args: {
 			to: recipientEmail,
 			listingTitle: conv.listing_title,
 			conversationId: conv.id,
+			messageId: inserted.id,
 			previewBody: trimmedBody,
 			language: (recipientIsBuyer ? conv.buyer_language : conv.seller_language) as "fi" | "en",
 		}).catch((err) =>
