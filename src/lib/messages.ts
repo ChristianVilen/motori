@@ -91,18 +91,19 @@ export const listMessages = createServerFn({ method: "GET" })
 	.inputValidator((d: unknown) =>
 		z.object({ conversationId: z.string().uuid(), beforeCursor: z.string().optional() }).parse(d),
 	)
-	.handler(async ({ data }) =>
-		listMessagesServer({ ...data, userId: await requireUserId() }),
-	);
+	.handler(async ({ data }) => listMessagesServer({ ...data, userId: await requireUserId() }));
 
 export const sendMessage = createServerFn({ method: "POST" })
 	.middleware([csrfMiddleware()])
 	.inputValidator((d: unknown) =>
-		z.object({ conversationId: z.string().uuid(), body: z.string().min(1).max(4000) }).parse(d),
+		z
+			.object({
+				conversationId: z.string().uuid(),
+				body: z.string().min(1).max(MESSAGE_MAX_LENGTH),
+			})
+			.parse(d),
 	)
-	.handler(async ({ data }) =>
-		sendMessageServer({ ...data, userId: await requireUserId() }),
-	);
+	.handler(async ({ data }) => sendMessageServer({ ...data, userId: await requireUserId() }));
 
 export const markRead = createServerFn({ method: "POST" })
 	.middleware([csrfMiddleware()])
