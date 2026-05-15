@@ -16,8 +16,12 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 		)
 	`.execute(db);
 
-	await sql`CREATE INDEX conversation_buyer_recent_idx ON conversation(buyer_id, last_message_at DESC)`.execute(db);
-	await sql`CREATE INDEX conversation_seller_recent_idx ON conversation(seller_id, last_message_at DESC)`.execute(db);
+	await sql`CREATE INDEX conversation_buyer_recent_idx ON conversation(buyer_id, last_message_at DESC)`.execute(
+		db,
+	);
+	await sql`CREATE INDEX conversation_seller_recent_idx ON conversation(seller_id, last_message_at DESC)`.execute(
+		db,
+	);
 
 	await sql`
 		CREATE TABLE message (
@@ -33,7 +37,9 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 		)
 	`.execute(db);
 
-	await sql`CREATE INDEX message_conversation_created_idx ON message(conversation_id, created_at)`.execute(db);
+	await sql`CREATE INDEX message_conversation_created_idx ON message(conversation_id, created_at)`.execute(
+		db,
+	);
 
 	await sql`
 		CREATE TABLE user_block (
@@ -44,15 +50,20 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 			CONSTRAINT user_block_not_self CHECK (blocker_id <> blocked_id)
 		)
 	`.execute(db);
-	await sql`CREATE INDEX user_block_blocked_blocker_idx ON user_block(blocked_id, blocker_id)`.execute(db);
+	await sql`CREATE INDEX user_block_blocked_blocker_idx ON user_block(blocked_id, blocker_id)`.execute(
+		db,
+	);
 
-	await sql`ALTER TABLE booking ADD COLUMN conversation_id uuid REFERENCES conversation(id) ON DELETE SET NULL`.execute(db);
+	await sql`ALTER TABLE booking ADD COLUMN conversation_id uuid REFERENCES conversation(id) ON DELETE SET NULL`.execute(
+		db,
+	);
 	await sql`ALTER TABLE booking ALTER COLUMN message DROP NOT NULL`.execute(db);
 	await sql`CREATE INDEX booking_conversation_id_idx ON booking(conversation_id)`.execute(db);
 }
 
 export async function down(db: Kysely<unknown>): Promise<void> {
 	await sql`DROP INDEX IF EXISTS booking_conversation_id_idx`.execute(db);
+	await sql`UPDATE booking SET message = '' WHERE message IS NULL`.execute(db);
 	await sql`ALTER TABLE booking ALTER COLUMN message SET NOT NULL`.execute(db);
 	await sql`ALTER TABLE booking DROP COLUMN conversation_id`.execute(db);
 	await sql`DROP TABLE user_block`.execute(db);
