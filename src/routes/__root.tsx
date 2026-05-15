@@ -156,7 +156,7 @@ function RootComponent() {
 		if (typeof window === "undefined") {
 			return createI18nSync(locale);
 		}
-		ensureClientI18n();
+		ensureClientI18n(locale);
 		return clientI18n;
 	});
 
