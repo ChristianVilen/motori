@@ -23,6 +23,7 @@ function ThreadPage() {
 	const [body, setBody] = useState("");
 	const [sending, setSending] = useState(false);
 	const bottomRef = useRef<HTMLDivElement | null>(null);
+	const prevLengthRef = useRef(messages.length);
 	const { t } = useTranslation("messages");
 
 	useEffect(() => {
@@ -35,8 +36,11 @@ function ThreadPage() {
 	}, [params.conversationId]);
 
 	useEffect(() => {
-		bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, [messages.length]);
+		if (messages.length !== prevLengthRef.current) {
+			prevLengthRef.current = messages.length;
+			bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+		}
+	}, [messages]);
 
 	const onSend = async () => {
 		if (!body.trim() || sending || conv.readOnly) return;

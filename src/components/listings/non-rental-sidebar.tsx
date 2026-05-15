@@ -94,7 +94,7 @@ export function NonRentalSidebar({
 						</Link>
 					)
 				) : null}
-				{showMessageButton && (
+				{showMessageButton ? (
 					<button
 						type="button"
 						onClick={onMessageSeller}
@@ -102,7 +102,7 @@ export function NonRentalSidebar({
 					>
 						{t("detail.messageSeller", "Lähetä viesti")}
 					</button>
-				)}
+				) : null}
 			</div>
 		</div>
 	);

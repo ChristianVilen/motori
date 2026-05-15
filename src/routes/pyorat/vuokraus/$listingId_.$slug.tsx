@@ -310,7 +310,7 @@ function BookingSidebar({
 			<div className="hidden lg:block" data-testid="booking-section">
 				<BookingRequestForm {...bookingFormProps} />
 			</div>
-			{!!session && (
+			{!!session && !isOwner && (
 				<button
 					type="button"
 					onClick={async () => {
