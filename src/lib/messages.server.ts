@@ -1,3 +1,4 @@
+import { sql } from "kysely";
 import { db } from "~/lib/db/index";
 import type { Message, MessageKind } from "~/lib/db/schema";
 import { sendNewMessageEmail } from "~/lib/email-templates/new-message";
@@ -255,6 +256,19 @@ export async function listConversationsServer(args: {
 				.orderBy("created_at", "desc")
 				.limit(1)
 				.as("last_body"),
+			sql<string>`(
+				SELECT count(*)
+				FROM message
+				WHERE conversation_id = conversation.id
+				  AND sender_id <> ${sql.val(args.userId)}
+				  AND (
+				    CASE
+				      WHEN conversation.buyer_id = ${sql.val(args.userId)}
+				        THEN (conversation.buyer_last_read_at IS NULL OR created_at > conversation.buyer_last_read_at)
+				      ELSE (conversation.seller_last_read_at IS NULL OR created_at > conversation.seller_last_read_at)
+				    END
+				  )
+			)`.as("unread_count"),
 		])
 		.where((eb) =>
 			eb.or([
@@ -265,18 +279,9 @@ export async function listConversationsServer(args: {
 		.orderBy("conversation.last_message_at", "desc")
 		.execute();
 
-	const result: ConversationListRow[] = [];
-	for (const r of rows) {
+	return rows.map((r) => {
 		const isBuyer = r.buyer_id === args.userId;
-		const lastReadAt = isBuyer ? r.buyer_last_read_at : r.seller_last_read_at;
-		const unread = await db
-			.selectFrom("message")
-			.select((eb) => eb.fn.countAll<string>().as("count"))
-			.where("conversation_id", "=", r.id)
-			.where("sender_id", "<>", args.userId)
-			.$if(lastReadAt !== null, (qb) => qb.where("created_at", ">", lastReadAt as Date))
-			.executeTakeFirstOrThrow();
-		result.push({
+		return {
 			id: r.id,
 			listingId: r.listing_id,
 			listingTitle: r.listing_title,
@@ -285,10 +290,9 @@ export async function listConversationsServer(args: {
 			otherPartyDisplayName: isBuyer ? r.seller_name : r.buyer_name,
 			lastMessageAt: r.last_message_at.toISOString(),
 			lastMessagePreview: (r.last_body ?? "").slice(0, 140),
-			unreadCount: Number(unread.count),
-		});
-	}
-	return result;
+			unreadCount: Number(r.unread_count ?? 0),
+		};
+	});
 }
 
 export interface ConversationDetail {
