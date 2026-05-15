@@ -71,6 +71,7 @@ export default {
 		back: "Back",
 		negotiable: "Negotiable",
 		contactSeller: "Contact seller",
+		messageSeller: "Message seller",
 		description: "Description",
 		licenseBadge: "License {{license}}",
 		pricing: {

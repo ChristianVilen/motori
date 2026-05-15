@@ -7,6 +7,7 @@ export default {
 		parts: "Parts",
 		listMotorcycle: "List a bike",
 		myListings: "My listings",
+		messages: "Messages",
 		signIn: "Sign in",
 		signOut: "Sign out",
 		settings: "Settings",

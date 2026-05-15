@@ -1,6 +1,6 @@
 // src/routes/pyorat/vuokraus/$listingId_.$slug.tsx
 // $slug is decorative — only $listingId (the short_id) is used for DB lookup.
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { useState } from "react";
@@ -16,6 +16,7 @@ import { centsToEuros } from "~/lib/currency";
 import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { getListingAvailability, getListingForDisplay, recordView } from "~/lib/listings-queries";
+import { startConversation } from "~/lib/messages";
 import { protectedMutation } from "~/lib/middleware";
 import { getReviewSummaryForUser } from "~/lib/reviews.server";
 import { getSession } from "~/lib/session";
@@ -264,6 +265,8 @@ function BookingSidebar({
 	session: { user: { id: string } } | null;
 	images: { thumbnail_url?: string | null; url: string }[];
 }) {
+	const { t } = useTranslation("listings");
+	const navigate = useNavigate();
 	const isOwner = session?.user.id === listing.owner_id;
 
 	if (isOwner) {
@@ -307,6 +310,20 @@ function BookingSidebar({
 			<div className="hidden lg:block" data-testid="booking-section">
 				<BookingRequestForm {...bookingFormProps} />
 			</div>
+			{!!session && !isOwner && (
+				<button
+					type="button"
+					onClick={async () => {
+						const { conversationId } = await startConversation({
+							data: { listingId: listing.id },
+						});
+						navigate({ to: "/viestit/$conversationId", params: { conversationId } });
+					}}
+					className="mt-2 block w-full rounded-lg border border-accent px-4 py-2.5 text-center text-sm font-medium text-accent hover:bg-accent/5"
+				>
+					{t("detail.messageSeller", "Lähetä viesti")}
+				</button>
+			)}
 			{!!session && (
 				<div className="text-center">
 					<ReportButton targetType="listing" targetId={listing.id} />

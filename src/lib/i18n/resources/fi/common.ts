@@ -7,6 +7,7 @@ export default {
 		parts: "Varaosat",
 		listMotorcycle: "Ilmoita pyörä",
 		myListings: "Omat",
+		messages: "Viestit",
 		signIn: "Kirjaudu",
 		signOut: "Kirjaudu ulos",
 		settings: "Asetukset",

@@ -15,6 +15,7 @@ import { db } from "~/lib/db/index";
 import { AppError } from "~/lib/errors";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
+import { sendMessageServer, startConversationServer } from "~/lib/messages.server";
 import { generateShortId } from "~/lib/slug";
 
 // --- Create ---
@@ -63,6 +64,10 @@ export async function createBookingRequest(args: {
 	}
 
 	const shortId = generateShortId();
+	const { conversationId } = await startConversationServer({
+		listingId: listing.id,
+		userId: args.userId,
+	});
 	const inserted = await db.transaction().execute(async (trx) => {
 		const collisions = await trx
 			.selectFrom("booking")
@@ -110,7 +115,8 @@ export async function createBookingRequest(args: {
 				renter_user_id: args.userId,
 				start_date: args.startDate,
 				end_date: args.endDate,
-				message: args.message,
+				message: null,
+				conversation_id: conversationId,
 			})
 			.returning(["id", "short_id"])
 			.executeTakeFirstOrThrow();
@@ -121,6 +127,18 @@ export async function createBookingRequest(args: {
 		listingId: listing.id,
 		renterId: args.userId,
 	});
+
+	try {
+		await sendMessageServer({
+			conversationId,
+			userId: args.userId,
+			body: args.message,
+			kind: "booking_request",
+			bookingId: inserted.id,
+		});
+	} catch (err) {
+		log.error("booking.system_message_failed", { err: String(err), bookingId: inserted.id });
+	}
 
 	sendBookingRequestEmail({
 		booking: {

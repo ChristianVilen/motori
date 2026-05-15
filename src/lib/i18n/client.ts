@@ -5,7 +5,7 @@ import { defaultNS, resources, supportedLngs } from "./resources";
 
 let bootstrapped = false;
 
-export function ensureClientI18n(): void {
+export function ensureClientI18n(lng?: string): void {
 	if (bootstrapped) {
 		return;
 	}
@@ -14,6 +14,7 @@ export function ensureClientI18n(): void {
 		.use(LanguageDetector)
 		.use(initReactI18next)
 		.init({
+			lng,
 			fallbackLng: "fi",
 			supportedLngs: [...supportedLngs],
 			defaultNS,

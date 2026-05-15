@@ -4,6 +4,7 @@ import enEmail from "./en/email";
 import enErrors from "./en/errors";
 import enHome from "./en/home";
 import enListings from "./en/listings";
+import enMessages from "./en/messages";
 import enProfile from "./en/profile";
 import fiAuth from "./fi/auth";
 import fiCommon from "./fi/common";
@@ -11,6 +12,7 @@ import fiEmail from "./fi/email";
 import fiErrors from "./fi/errors";
 import fiHome from "./fi/home";
 import fiListings from "./fi/listings";
+import fiMessages from "./fi/messages";
 import fiProfile from "./fi/profile";
 
 export const resources = {
@@ -22,6 +24,7 @@ export const resources = {
 		profile: fiProfile,
 		email: fiEmail,
 		errors: fiErrors,
+		messages: fiMessages,
 	},
 	en: {
 		common: enCommon,
@@ -31,6 +34,7 @@ export const resources = {
 		profile: enProfile,
 		email: enEmail,
 		errors: enErrors,
+		messages: enMessages,
 	},
 } as const;
 

@@ -52,4 +52,9 @@ export default {
 		body: "Päivät {{start}} – {{end}} ehdittiin varata toiselle vuokraajalle.",
 		fallback: "Voit etsiä toisen ajankohdan tai toisen ilmoituksen sivustoltamme.",
 	},
+	newMessage: {
+		subject: 'Uusi viesti ilmoituksesta "{{title}}"',
+		intro: 'Sait uuden viestin ilmoituksesta "{{title}}":',
+		cta: "Avaa keskustelu Motorissa:",
+	},
 } as const;

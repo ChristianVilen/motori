@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ViestitRouteImport } from './routes/viestit'
 import { Route as VaihdaSalasanaRouteImport } from './routes/vaihda-salasana'
 import { Route as VahvistaSahkopostiRouteImport } from './routes/vahvista-sahkoposti'
 import { Route as UnohdinSalasananRouteImport } from './routes/unohdin-salasanan'
@@ -26,6 +27,7 @@ import { Route as ToriIndexRouteImport } from './routes/tori/index'
 import { Route as OmatIndexRouteImport } from './routes/omat/index'
 import { Route as IlmoituksetIndexRouteImport } from './routes/ilmoitukset/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as ViestitConversationIdRouteImport } from './routes/viestit/$conversationId'
 import { Route as ToriUusiRouteImport } from './routes/tori/uusi'
 import { Route as ProfiiliAsetuksetRouteImport } from './routes/profiili/asetukset'
 import { Route as ProfiiliUserIdRouteImport } from './routes/profiili/$userId'
@@ -51,7 +53,13 @@ import { Route as ApiImagesUploadRouteImport } from './routes/api/images/upload'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as PyoratVuokrausListingIdSlugRouteImport } from './routes/pyorat/vuokraus/$listingId_.$slug'
 import { Route as PyoratMyyntiListingIdSlugRouteImport } from './routes/pyorat/myynti/$listingId_.$slug'
+import { Route as ApiMessagesStreamConversationIdRouteImport } from './routes/api/messages/stream.$conversationId'
 
+const ViestitRoute = ViestitRouteImport.update({
+  id: '/viestit',
+  path: '/viestit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VaihdaSalasanaRoute = VaihdaSalasanaRouteImport.update({
   id: '/vaihda-salasana',
   path: '/vaihda-salasana',
@@ -136,6 +144,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRouteRoute,
+} as any)
+const ViestitConversationIdRoute = ViestitConversationIdRouteImport.update({
+  id: '/$conversationId',
+  path: '/$conversationId',
+  getParentRoute: () => ViestitRoute,
 } as any)
 const ToriUusiRoute = ToriUusiRouteImport.update({
   id: '/tori/uusi',
@@ -266,6 +279,12 @@ const PyoratMyyntiListingIdSlugRoute =
     path: '/pyorat/myynti/$listingId/$slug',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiMessagesStreamConversationIdRoute =
+  ApiMessagesStreamConversationIdRouteImport.update({
+    id: '/api/messages/stream/$conversationId',
+    path: '/api/messages/stream/$conversationId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -279,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/unohdin-salasanan': typeof UnohdinSalasananRoute
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/vaihda-salasana': typeof VaihdaSalasanaRoute
+  '/viestit': typeof ViestitRouteWithChildren
   '/admin/listings': typeof AdminListingsRoute
   '/admin/makes': typeof AdminMakesRoute
   '/admin/moderation': typeof AdminModerationRoute
@@ -290,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
   '/tori/uusi': typeof ToriUusiRoute
+  '/viestit/$conversationId': typeof ViestitConversationIdRoute
   '/admin/': typeof AdminIndexRoute
   '/ilmoitukset/': typeof IlmoituksetIndexRoute
   '/omat/': typeof OmatIndexRoute
@@ -308,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/varusteet/$listingId/$slug': typeof VarusteetListingIdSlugRoute
   '/pyorat/myynti/': typeof PyoratMyyntiIndexRoute
   '/pyorat/vuokraus/': typeof PyoratVuokrausIndexRoute
+  '/api/messages/stream/$conversationId': typeof ApiMessagesStreamConversationIdRoute
   '/pyorat/myynti/$listingId/$slug': typeof PyoratMyyntiListingIdSlugRoute
   '/pyorat/vuokraus/$listingId/$slug': typeof PyoratVuokrausListingIdSlugRoute
 }
@@ -322,6 +344,7 @@ export interface FileRoutesByTo {
   '/unohdin-salasanan': typeof UnohdinSalasananRoute
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/vaihda-salasana': typeof VaihdaSalasanaRoute
+  '/viestit': typeof ViestitRouteWithChildren
   '/admin/listings': typeof AdminListingsRoute
   '/admin/makes': typeof AdminMakesRoute
   '/admin/moderation': typeof AdminModerationRoute
@@ -333,6 +356,7 @@ export interface FileRoutesByTo {
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
   '/tori/uusi': typeof ToriUusiRoute
+  '/viestit/$conversationId': typeof ViestitConversationIdRoute
   '/admin': typeof AdminIndexRoute
   '/ilmoitukset': typeof IlmoituksetIndexRoute
   '/omat': typeof OmatIndexRoute
@@ -351,6 +375,7 @@ export interface FileRoutesByTo {
   '/varusteet/$listingId/$slug': typeof VarusteetListingIdSlugRoute
   '/pyorat/myynti': typeof PyoratMyyntiIndexRoute
   '/pyorat/vuokraus': typeof PyoratVuokrausIndexRoute
+  '/api/messages/stream/$conversationId': typeof ApiMessagesStreamConversationIdRoute
   '/pyorat/myynti/$listingId/$slug': typeof PyoratMyyntiListingIdSlugRoute
   '/pyorat/vuokraus/$listingId/$slug': typeof PyoratVuokrausListingIdSlugRoute
 }
@@ -367,6 +392,7 @@ export interface FileRoutesById {
   '/unohdin-salasanan': typeof UnohdinSalasananRoute
   '/vahvista-sahkoposti': typeof VahvistaSahkopostiRoute
   '/vaihda-salasana': typeof VaihdaSalasanaRoute
+  '/viestit': typeof ViestitRouteWithChildren
   '/admin/listings': typeof AdminListingsRoute
   '/admin/makes': typeof AdminMakesRoute
   '/admin/moderation': typeof AdminModerationRoute
@@ -378,6 +404,7 @@ export interface FileRoutesById {
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
   '/tori/uusi': typeof ToriUusiRoute
+  '/viestit/$conversationId': typeof ViestitConversationIdRoute
   '/admin/': typeof AdminIndexRoute
   '/ilmoitukset/': typeof IlmoituksetIndexRoute
   '/omat/': typeof OmatIndexRoute
@@ -396,6 +423,7 @@ export interface FileRoutesById {
   '/varusteet/$listingId_/$slug': typeof VarusteetListingIdSlugRoute
   '/pyorat/myynti/': typeof PyoratMyyntiIndexRoute
   '/pyorat/vuokraus/': typeof PyoratVuokrausIndexRoute
+  '/api/messages/stream/$conversationId': typeof ApiMessagesStreamConversationIdRoute
   '/pyorat/myynti/$listingId_/$slug': typeof PyoratMyyntiListingIdSlugRoute
   '/pyorat/vuokraus/$listingId_/$slug': typeof PyoratVuokrausListingIdSlugRoute
 }
@@ -413,6 +441,7 @@ export interface FileRouteTypes {
     | '/unohdin-salasanan'
     | '/vahvista-sahkoposti'
     | '/vaihda-salasana'
+    | '/viestit'
     | '/admin/listings'
     | '/admin/makes'
     | '/admin/moderation'
@@ -424,6 +453,7 @@ export interface FileRouteTypes {
     | '/profiili/$userId'
     | '/profiili/asetukset'
     | '/tori/uusi'
+    | '/viestit/$conversationId'
     | '/admin/'
     | '/ilmoitukset/'
     | '/omat/'
@@ -442,6 +472,7 @@ export interface FileRouteTypes {
     | '/varusteet/$listingId/$slug'
     | '/pyorat/myynti/'
     | '/pyorat/vuokraus/'
+    | '/api/messages/stream/$conversationId'
     | '/pyorat/myynti/$listingId/$slug'
     | '/pyorat/vuokraus/$listingId/$slug'
   fileRoutesByTo: FileRoutesByTo
@@ -456,6 +487,7 @@ export interface FileRouteTypes {
     | '/unohdin-salasanan'
     | '/vahvista-sahkoposti'
     | '/vaihda-salasana'
+    | '/viestit'
     | '/admin/listings'
     | '/admin/makes'
     | '/admin/moderation'
@@ -467,6 +499,7 @@ export interface FileRouteTypes {
     | '/profiili/$userId'
     | '/profiili/asetukset'
     | '/tori/uusi'
+    | '/viestit/$conversationId'
     | '/admin'
     | '/ilmoitukset'
     | '/omat'
@@ -485,6 +518,7 @@ export interface FileRouteTypes {
     | '/varusteet/$listingId/$slug'
     | '/pyorat/myynti'
     | '/pyorat/vuokraus'
+    | '/api/messages/stream/$conversationId'
     | '/pyorat/myynti/$listingId/$slug'
     | '/pyorat/vuokraus/$listingId/$slug'
   id:
@@ -500,6 +534,7 @@ export interface FileRouteTypes {
     | '/unohdin-salasanan'
     | '/vahvista-sahkoposti'
     | '/vaihda-salasana'
+    | '/viestit'
     | '/admin/listings'
     | '/admin/makes'
     | '/admin/moderation'
@@ -511,6 +546,7 @@ export interface FileRouteTypes {
     | '/profiili/$userId'
     | '/profiili/asetukset'
     | '/tori/uusi'
+    | '/viestit/$conversationId'
     | '/admin/'
     | '/ilmoitukset/'
     | '/omat/'
@@ -529,6 +565,7 @@ export interface FileRouteTypes {
     | '/varusteet/$listingId_/$slug'
     | '/pyorat/myynti/'
     | '/pyorat/vuokraus/'
+    | '/api/messages/stream/$conversationId'
     | '/pyorat/myynti/$listingId_/$slug'
     | '/pyorat/vuokraus/$listingId_/$slug'
   fileRoutesById: FileRoutesById
@@ -545,6 +582,7 @@ export interface RootRouteChildren {
   UnohdinSalasananRoute: typeof UnohdinSalasananRoute
   VahvistaSahkopostiRoute: typeof VahvistaSahkopostiRoute
   VaihdaSalasanaRoute: typeof VaihdaSalasanaRoute
+  ViestitRoute: typeof ViestitRouteWithChildren
   ApiCronRoute: typeof ApiCronRoute
   ApiHealthRoute: typeof ApiHealthRoute
   IlmoituksetUusiRoute: typeof IlmoituksetUusiRoute
@@ -569,12 +607,20 @@ export interface RootRouteChildren {
   VarusteetListingIdSlugRoute: typeof VarusteetListingIdSlugRoute
   PyoratMyyntiIndexRoute: typeof PyoratMyyntiIndexRoute
   PyoratVuokrausIndexRoute: typeof PyoratVuokrausIndexRoute
+  ApiMessagesStreamConversationIdRoute: typeof ApiMessagesStreamConversationIdRoute
   PyoratMyyntiListingIdSlugRoute: typeof PyoratMyyntiListingIdSlugRoute
   PyoratVuokrausListingIdSlugRoute: typeof PyoratVuokrausListingIdSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/viestit': {
+      id: '/viestit'
+      path: '/viestit'
+      fullPath: '/viestit'
+      preLoaderRoute: typeof ViestitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vaihda-salasana': {
       id: '/vaihda-salasana'
       path: '/vaihda-salasana'
@@ -693,6 +739,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRouteRoute
+    }
+    '/viestit/$conversationId': {
+      id: '/viestit/$conversationId'
+      path: '/$conversationId'
+      fullPath: '/viestit/$conversationId'
+      preLoaderRoute: typeof ViestitConversationIdRouteImport
+      parentRoute: typeof ViestitRoute
     }
     '/tori/uusi': {
       id: '/tori/uusi'
@@ -869,6 +922,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PyoratMyyntiListingIdSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/messages/stream/$conversationId': {
+      id: '/api/messages/stream/$conversationId'
+      path: '/api/messages/stream/$conversationId'
+      fullPath: '/api/messages/stream/$conversationId'
+      preLoaderRoute: typeof ApiMessagesStreamConversationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -892,6 +952,17 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
   AdminRouteRouteChildren,
 )
 
+interface ViestitRouteChildren {
+  ViestitConversationIdRoute: typeof ViestitConversationIdRoute
+}
+
+const ViestitRouteChildren: ViestitRouteChildren = {
+  ViestitConversationIdRoute: ViestitConversationIdRoute,
+}
+
+const ViestitRouteWithChildren =
+  ViestitRoute._addFileChildren(ViestitRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
@@ -904,6 +975,7 @@ const rootRouteChildren: RootRouteChildren = {
   UnohdinSalasananRoute: UnohdinSalasananRoute,
   VahvistaSahkopostiRoute: VahvistaSahkopostiRoute,
   VaihdaSalasanaRoute: VaihdaSalasanaRoute,
+  ViestitRoute: ViestitRouteWithChildren,
   ApiCronRoute: ApiCronRoute,
   ApiHealthRoute: ApiHealthRoute,
   IlmoituksetUusiRoute: IlmoituksetUusiRoute,
@@ -928,6 +1000,7 @@ const rootRouteChildren: RootRouteChildren = {
   VarusteetListingIdSlugRoute: VarusteetListingIdSlugRoute,
   PyoratMyyntiIndexRoute: PyoratMyyntiIndexRoute,
   PyoratVuokrausIndexRoute: PyoratVuokrausIndexRoute,
+  ApiMessagesStreamConversationIdRoute: ApiMessagesStreamConversationIdRoute,
   PyoratMyyntiListingIdSlugRoute: PyoratMyyntiListingIdSlugRoute,
   PyoratVuokrausListingIdSlugRoute: PyoratVuokrausListingIdSlugRoute,
 }

@@ -58,6 +58,7 @@ export class ListingFormPage {
 		region: string;
 		description: string;
 	}) {
+		await this.page.getByTestId("category-tile-rental").click();
 		await this.titleInput.fill(data.title);
 		await this.selectMake(data.make);
 		await this.yearInput.fill(String(data.year));

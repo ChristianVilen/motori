@@ -45,6 +45,7 @@ const getBooking = createServerFn({ method: "GET" })
 				"booking.short_id",
 				"booking.status",
 				"booking.message",
+				"booking.conversation_id",
 				"booking.rejection_reason",
 				sql<string>`to_char(booking.start_date, 'YYYY-MM-DD')`.as("start_date"),
 				sql<string>`to_char(booking.end_date, 'YYYY-MM-DD')`.as("end_date"),
@@ -97,6 +98,7 @@ const getBooking = createServerFn({ method: "GET" })
 				short_id: row.short_id,
 				status: row.status as BookingStatus,
 				message: row.message,
+				conversation_id: row.conversation_id,
 				rejection_reason: row.rejection_reason,
 				start_date: row.start_date,
 				end_date: row.end_date,
@@ -431,7 +433,17 @@ function BookingDetailPage() {
 					<div className="text-xs font-semibold uppercase text-muted">
 						{t("bookings.detail.messageLabel")}
 					</div>
-					<p className="mt-1 whitespace-pre-wrap text-sm">{booking.message}</p>
+					{booking.conversation_id ? (
+						<Link
+							to="/viestit/$conversationId"
+							params={{ conversationId: booking.conversation_id }}
+							className="mt-1 inline-block text-sm text-accent hover:underline"
+						>
+							{t("messages.openConversation", "Avaa keskustelu")}
+						</Link>
+					) : booking.message ? (
+						<p className="mt-1 whitespace-pre-wrap text-sm">{booking.message}</p>
+					) : null}
 				</div>
 				{booking.rejection_reason ? (
 					<div className="mt-4">

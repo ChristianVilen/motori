@@ -235,7 +235,8 @@ export interface BookingTable {
 	// for clarity (no TZ confusion). When selecting, cast with `sql<string>` (see bookings.ts).
 	start_date: string;
 	end_date: string;
-	message: string;
+	message: string | null;
+	conversation_id: string | null;
 	status: Generated<BookingStatus>;
 	rejection_reason: string | null;
 	responded_at: ColumnType<Date, Date | undefined, Date> | null;
@@ -269,6 +270,45 @@ export interface ReviewTable {
 export type Review = Selectable<ReviewTable>;
 export type NewReview = Insertable<ReviewTable>;
 
+export type MessageKind = "text" | "booking_request";
+
+export interface ConversationTable {
+	id: Generated<string>;
+	listing_id: string;
+	buyer_id: string;
+	seller_id: string;
+	last_message_at: ColumnType<Date, Date | undefined, Date>;
+	buyer_last_read_at: ColumnType<Date, Date | undefined, Date> | null;
+	seller_last_read_at: ColumnType<Date, Date | undefined, Date> | null;
+	created_at: ColumnType<Date, Date | undefined, Date>;
+}
+
+export type Conversation = Selectable<ConversationTable>;
+export type NewConversation = Insertable<ConversationTable>;
+export type ConversationUpdate = Updateable<ConversationTable>;
+
+export interface MessageTable {
+	id: Generated<string>;
+	conversation_id: string;
+	sender_id: string;
+	kind: Generated<MessageKind>;
+	body: string;
+	booking_id: string | null;
+	created_at: ColumnType<Date, Date | undefined, Date>;
+}
+
+export type Message = Selectable<MessageTable>;
+export type NewMessage = Insertable<MessageTable>;
+
+export interface UserBlockTable {
+	blocker_id: string;
+	blocked_id: string;
+	created_at: ColumnType<Date, Date | undefined, Date>;
+}
+
+export type UserBlock = Selectable<UserBlockTable>;
+export type NewUserBlock = Insertable<UserBlockTable>;
+
 // ─── Database interface ───────────────────────────────────────────────────────
 
 export interface Database {
@@ -290,4 +330,7 @@ export interface Database {
 	booking: BookingTable;
 	listing_availability_exception: ListingAvailabilityExceptionTable;
 	review: ReviewTable;
+	conversation: ConversationTable;
+	message: MessageTable;
+	user_block: UserBlockTable;
 }
