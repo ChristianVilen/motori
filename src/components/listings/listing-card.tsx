@@ -37,7 +37,7 @@ export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: Lis
 			className="group block overflow-hidden rounded-xl border border-border bg-card card-hover hover:card-hover-active"
 		>
 			{/* Image */}
-			<div className="relative aspect-[16/10] overflow-hidden bg-muted-light">
+			<div className="relative aspect-video sm:aspect-[16/10] overflow-hidden bg-muted-light">
 				{firstImage ? (
 					<img
 						src={firstImage.url}
@@ -102,7 +102,7 @@ export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: Lis
 			</div>
 
 			{/* Content */}
-			<div className="p-4">
+			<div className="p-3 sm:p-4">
 				<div className="mb-1 flex items-start justify-between gap-2">
 					<h3
 						data-testid="listing-card-title"
@@ -123,18 +123,20 @@ export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: Lis
 				</p>
 
 				{/* Footer with border-top */}
-				<div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+				<div className="mt-2 flex items-center justify-between border-t border-border pt-2 sm:mt-3 sm:pt-3">
 					<span className="text-xs text-muted">
 						{listing.city}, {regionLabel}
 					</span>
 					<div className="text-right">
 						<span
 							data-testid="listing-card-price"
-							className="font-heading text-lg font-bold text-accent"
+							className="font-heading text-base sm:text-lg font-bold text-accent"
 						>
 							{formatEur(listing.price_per_day ?? 0)}
 						</span>
-						<span className="text-xs text-muted">{t("card.perDay")}</span>
+						{listing.category === "rental" && (
+							<span className="text-xs text-muted">{t("card.perDay")}</span>
+						)}
 					</div>
 				</div>
 			</div>

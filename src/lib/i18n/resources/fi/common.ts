@@ -15,10 +15,10 @@ export default {
 		skipToContent: "Siirry sisältöön",
 		switchLanguage: "Vaihda kieli: {{lang}}",
 		bottom: {
-			browse: "Selaa",
+			browse: "Koti",
 			search: "Haku",
 			add: "Lisää",
-			bookings: "Varaukset",
+			messages: "Viestit",
 			account: "Tili",
 			ariaLabel: "Mobiilinavigaatio",
 		},

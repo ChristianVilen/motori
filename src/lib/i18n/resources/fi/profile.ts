@@ -3,6 +3,14 @@ export default {
 		fallbackName: "Profiili",
 		stats: "{{active}} aktiivista · {{paused}} tauolla · {{rented}} vuokrattu",
 		newListing: "Uusi ilmoitus",
+		settingsAriaLabel: "Asetukset",
+		signOutAriaLabel: "Kirjaudu ulos",
+		statsCombined: "{{active}} aktiivista · {{paused}} tauolla",
+		filter: {
+			all: "Kaikki",
+			motorcycles: "Pyörät",
+			tori: "Tori",
+		},
 		emptyState: "Sinulla ei ole vielä ilmoituksia.",
 		createFirst: "Luo ensimmäinen ilmoitus",
 		tori: {

@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Calendar, Home, Plus, Search, User } from "lucide-react";
+import { Home, MessageSquare, Plus, Search, User } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { getActiveTab } from "./active-tab";
@@ -19,7 +19,7 @@ export function BottomNav({ session, verified, onSearchClick, onSignInClick }: P
 	const labelBrowse = t("nav.bottom.browse");
 	const labelSearch = t("nav.bottom.search");
 	const labelAdd = t("nav.bottom.add");
-	const labelBookings = t("nav.bottom.bookings");
+	const labelMessages = t("nav.bottom.messages");
 	const labelAccount = t("nav.bottom.account");
 
 	return (
@@ -56,17 +56,17 @@ export function BottomNav({ session, verified, onSearchClick, onSignInClick }: P
 			)}
 
 			{!session ? (
-				<TabButton label={labelBookings} onClick={onSignInClick} testId="bottom-nav-bookings">
-					<Calendar size={22} />
+				<TabButton label={labelMessages} onClick={onSignInClick} testId="bottom-nav-messages">
+					<MessageSquare size={22} />
 				</TabButton>
 			) : (
 				<TabLink
-					to="/omat"
-					label={labelBookings}
-					active={active === "bookings"}
-					testId="bottom-nav-bookings"
+					to="/viestit"
+					label={labelMessages}
+					active={active === "messages"}
+					testId="bottom-nav-messages"
 				>
-					<Calendar size={22} />
+					<MessageSquare size={22} />
 				</TabLink>
 			)}
 
@@ -76,7 +76,7 @@ export function BottomNav({ session, verified, onSearchClick, onSignInClick }: P
 				</TabButton>
 			) : (
 				<TabLink
-					to="/profiili/asetukset"
+					to="/omat"
 					label={labelAccount}
 					active={active === "account"}
 					testId="bottom-nav-account"

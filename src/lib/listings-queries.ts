@@ -533,14 +533,27 @@ export const getLatestListings = createServerFn({ method: "GET" })
 	.inputValidator((category: unknown) => categorySchema.parse(category))
 	.handler(async ({ data: category }) => {
 		const db = await getDb();
-		const listings = await db
-			.selectFrom("listing")
-			.selectAll()
-			.where("status", "=", "active")
-			.where("category", "=", category)
-			.orderBy("created_at", "desc")
+		const childTable =
+			category === "rental"
+				? "listing_rental"
+				: category === "sale"
+					? "listing_sale"
+					: category === "gear"
+						? "listing_gear"
+						: "listing_part";
+		const priceExpr =
+			category === "rental" ? sql<number>`child.price_per_day` : sql<number>`child.price`;
+
+		// biome-ignore lint/suspicious/noExplicitAny: Kysely join graph widening prevents precise typing
+		const listings = (await (db.selectFrom("listing") as any)
+			.innerJoin(`${childTable} as child`, "child.listing_id", "listing.id")
+			.selectAll("listing")
+			.select(priceExpr.as("price_per_day"))
+			.where("listing.status", "=", "active")
+			.where("listing.category", "=", category)
+			.orderBy("listing.created_at", "desc")
 			.limit(6)
-			.execute();
+			.execute()) as (Listing & { price_per_day: number })[];
 
 		if (listings.length === 0) {
 			return [] as ListingWithImages[];

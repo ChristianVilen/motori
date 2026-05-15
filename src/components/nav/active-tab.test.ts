@@ -7,9 +7,9 @@ describe("getActiveTab", () => {
 		expect(getActiveTab("/pyorat/myynti")).toBe(null);
 	});
 
-	it("returns 'bookings' for /omat and sub-paths", () => {
-		expect(getActiveTab("/omat")).toBe("bookings");
-		expect(getActiveTab("/omat/varaukset")).toBe("bookings");
+	it("returns 'account' for /omat and sub-paths", () => {
+		expect(getActiveTab("/omat")).toBe("account");
+		expect(getActiveTab("/omat/varaukset")).toBe("account");
 	});
 
 	it("returns 'account' for /profiili/asetukset and sub-paths", () => {

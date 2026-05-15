@@ -2,8 +2,10 @@
 // User dashboard — my listings + tori items, with quick actions
 import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { MapPin, Pencil, Plus } from "lucide-react";
+import { LogOut, MapPin, Pencil, Plus, Settings } from "lucide-react";
+import { useState } from "react";
 import { Button } from "~/components/ui/button";
+import { signOut } from "~/lib/auth-client";
 import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, SITE_NAME } from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
@@ -23,32 +25,12 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 	}
 
 	const { db } = await import("~/lib/db/index");
-	const { listings, images } = await getOwnerListings(session.user.id);
-
-	const [profile, toriItems] = await Promise.all([
+	const [{ listings, images }, profile] = await Promise.all([
+		getOwnerListings(session.user.id),
 		db.selectFrom("profile").selectAll().where("user_id", "=", session.user.id).executeTakeFirst(),
-		db
-			.selectFrom("listing")
-			.selectAll()
-			.where("owner_id", "=", session.user.id)
-			.where("category", "in", ["gear", "part"])
-			.where("status", "!=", "removed")
-			.orderBy("created_at", "desc")
-			.execute(),
 	]);
 
-	const toriItemIds = toriItems.map((i) => i.id);
-	const toriImages =
-		toriItemIds.length > 0
-			? await db
-					.selectFrom("listing_image")
-					.selectAll()
-					.where("listing_id", "in", toriItemIds)
-					.where("order", "=", 0)
-					.execute()
-			: [];
-
-	return { listings, images, profile, session, toriItems, toriImages };
+	return { listings, images, profile, session };
 });
 
 const setListingStatusFn = createServerFn({ method: "POST" })
@@ -368,85 +350,129 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 	);
 }
 
+type FilterTab = "all" | "pyorat" | "tori";
+
 function ProfilePage() {
-	const { listings, images, profile, toriItems, toriImages } = Route.useLoaderData();
+	const { listings, images, profile } = Route.useLoaderData();
 	const router = useRouter();
+
+	async function handleSignOut() {
+		await signOut();
+		router.invalidate();
+		router.navigate({ to: "/" });
+	}
 	const { t } = useTranslation("profile");
 	const { t: tAuth } = useTranslation("auth");
 	const verified = useEmailVerified();
+	const [filter, setFilter] = useState<FilterTab>("all");
 
 	function refresh() {
 		router.invalidate();
 	}
 
-	const active = listings.filter((l) => l.status === "active");
-	const paused = listings.filter((l) => l.status === "paused");
-	const rented = listings.filter((l) => l.status === "rented");
-
-	const firstImageByListing = new Map<string, ListingImage>();
+	const firstImageById = new Map<string, ListingImage>();
 	for (const img of images) {
-		if (!firstImageByListing.has(img.listing_id)) {
-			firstImageByListing.set(img.listing_id, img);
+		if (!firstImageById.has(img.listing_id)) {
+			firstImageById.set(img.listing_id, img);
 		}
 	}
 
-	const firstToriImageByItem = new Map<string, ListingImage>();
-	for (const img of toriImages) {
-		if (!firstToriImageByItem.has(img.listing_id)) {
-			firstToriImageByItem.set(img.listing_id, img);
+	const allItems = [...listings].sort(
+		(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+	);
+
+	const isToriCategory = (cat: string) => cat === "gear" || cat === "part";
+
+	const filtered = allItems.filter((item) => {
+		if (filter === "pyorat") {
+			return !isToriCategory(item.category);
 		}
-	}
+		if (filter === "tori") {
+			return isToriCategory(item.category);
+		}
+		return true;
+	});
+
+	const totalActive = allItems.filter((i) => i.status === "active").length;
+	const totalPaused = allItems.filter((i) => i.status === "paused").length;
+
+	const filters: { key: FilterTab; label: string }[] = [
+		{ key: "all", label: t("dashboard.filter.all") },
+		{ key: "pyorat", label: t("dashboard.filter.motorcycles") },
+		{ key: "tori", label: t("dashboard.filter.tori") },
+	];
 
 	return (
 		<div className="min-h-screen bg-background">
 			<div className="mx-auto max-w-3xl px-4 py-8">
-				{/* Header */}
-				<div className="mb-8 flex items-center justify-between">
-					<div>
-						<h1 className="text-2xl font-bold text-primary">
-							{profile?.display_name ?? t("dashboard.fallbackName")}
-						</h1>
-						<p className="mt-0.5 text-sm text-muted">
-							{t("dashboard.stats", {
-								active: active.length,
-								paused: paused.length,
-								rented: rented.length,
-							})}
-						</p>
+				{/* Header card */}
+				<div className="mb-6 overflow-hidden rounded-xl border border-border bg-card">
+					{/* Name + avatar row */}
+					<div className="flex items-center gap-3 px-4 pt-4 pb-3">
+						<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-base font-bold text-white">
+							{(profile?.display_name ?? t("dashboard.fallbackName"))
+								.split(" ")
+								.slice(0, 2)
+								.map((w: string) => w[0])
+								.join("")
+								.toUpperCase()}
+						</div>
+						<div>
+							<h1 className="text-lg font-bold text-primary leading-tight">
+								{profile?.display_name ?? t("dashboard.fallbackName")}
+							</h1>
+							<p className="text-xs text-muted">
+								{t("dashboard.statsCombined", { active: totalActive, paused: totalPaused })}
+							</p>
+						</div>
 					</div>
-					<div className="flex items-center gap-3">
+
+					{/* Action strip */}
+					<div className="flex border-t border-border">
 						<Link
-							to="/omat/varaukset"
-							className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-accent hover:text-accent"
+							to="/profiili/asetukset"
+							className="flex flex-1 flex-col items-center gap-1 py-3 text-xs text-muted transition-colors hover:bg-muted-light hover:text-foreground"
+							aria-label={t("dashboard.settingsAriaLabel")}
 						>
-							{t("bookings.navTitle")}
+							<Settings className="h-4 w-4" />
+							{t("dashboard.settingsAriaLabel")}
 						</Link>
-						{verified ? (
-							<Link to="/ilmoitukset/uusi">
-								<Button
-									data-testid="dashboard-new-listing"
-									className="gap-2 bg-accent text-white hover:bg-accent-hover"
-								>
-									<Plus className="h-4 w-4" />
-									{t("dashboard.newListing")}
-								</Button>
-							</Link>
-						) : (
-							<Button
-								data-testid="dashboard-new-listing"
-								className="gap-2"
-								disabled
-								title={tAuth("unverifiedTooltip")}
-							>
-								<Plus className="h-4 w-4" />
-								{t("dashboard.newListing")}
-							</Button>
-						)}
+						<div className="w-px bg-border" />
+						<button
+							type="button"
+							onClick={handleSignOut}
+							className="flex flex-1 flex-col items-center gap-1 py-3 text-xs text-accent transition-colors hover:bg-accent/5"
+							aria-label={t("dashboard.signOutAriaLabel")}
+						>
+							<LogOut className="h-4 w-4" />
+							{t("dashboard.signOutAriaLabel")}
+						</button>
 					</div>
 				</div>
 
-				{/* Listings */}
-				{listings.length === 0 ? (
+				{/* Filter chips */}
+				{allItems.length > 0 && (
+					<div className="mb-4 flex gap-2">
+						{filters.map(({ key, label }) => (
+							<button
+								key={key}
+								type="button"
+								onClick={() => setFilter(key)}
+								className={[
+									"rounded-full px-3 py-1 text-sm font-medium transition-colors",
+									filter === key
+										? "bg-accent text-white"
+										: "bg-muted-light text-muted hover:text-foreground",
+								].join(" ")}
+							>
+								{label}
+							</button>
+						))}
+					</div>
+				)}
+
+				{/* Unified list */}
+				{allItems.length === 0 ? (
 					<div className="flex flex-col items-center gap-4 rounded-l border border-dashed border-border py-16 text-center">
 						<p className="text-muted">{t("dashboard.emptyState")}</p>
 						{verified ? (
@@ -463,62 +489,27 @@ function ProfilePage() {
 					</div>
 				) : (
 					<div className="space-y-3">
-						{listings.map((listing) => (
-							<ListingRow
-								key={listing.id}
-								listing={listing}
-								firstImage={firstImageByListing.get(listing.id)}
-								onStatusChange={refresh}
-								verified={verified}
-							/>
-						))}
-					</div>
-				)}
-
-				{/* Tori section */}
-				<div className="mt-12">
-					<div className="mb-4 flex items-center justify-between">
-						<h2 className="text-lg font-bold text-primary">{t("dashboard.tori.heading")}</h2>
-						{verified ? (
-							<Link to="/tori/uusi">
-								<Button size="sm" className="gap-2 bg-accent text-white hover:bg-accent-hover">
-									<Plus className="h-4 w-4" />
-									{t("dashboard.tori.newItem")}
-								</Button>
-							</Link>
-						) : (
-							<Button size="sm" disabled title={tAuth("unverifiedTooltip")} className="gap-2">
-								<Plus className="h-4 w-4" />
-								{t("dashboard.tori.newItem")}
-							</Button>
-						)}
-					</div>
-
-					{toriItems.length === 0 ? (
-						<div className="flex flex-col items-center gap-4 rounded-l border border-dashed border-border py-12 text-center">
-							<p className="text-muted">{t("dashboard.tori.emptyState")}</p>
-							{verified ? (
-								<Link to="/tori/uusi">
-									<Button className="bg-accent text-white hover:bg-accent-hover">
-										{t("dashboard.tori.createFirst")}
-									</Button>
-								</Link>
-							) : null}
-						</div>
-					) : (
-						<div className="space-y-3">
-							{toriItems.map((item) => (
+						{filtered.map((item) =>
+							isToriCategory(item.category) ? (
 								<ToriItemRow
 									key={item.id}
 									item={item}
-									firstImage={firstToriImageByItem.get(item.id)}
+									firstImage={firstImageById.get(item.id)}
 									onStatusChange={refresh}
 									verified={verified}
 								/>
-							))}
-						</div>
-					)}
-				</div>
+							) : (
+								<ListingRow
+									key={item.id}
+									listing={item as Listing & { makeSlug: string | null; modelName: string | null }}
+									firstImage={firstImageById.get(item.id)}
+									onStatusChange={refresh}
+									verified={verified}
+								/>
+							),
+						)}
+					</div>
+				)}
 			</div>
 		</div>
 	);
