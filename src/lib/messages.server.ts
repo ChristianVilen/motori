@@ -259,13 +259,13 @@ export async function listConversationsServer(args: {
 			sql<string>`(
 				SELECT count(*)
 				FROM message
-				WHERE conversation_id = conversation.id
-				  AND sender_id <> ${sql.val(args.userId)}
+				WHERE message.conversation_id = conversation.id
+				  AND message.sender_id <> ${sql.val(args.userId)}
 				  AND (
 				    CASE
 				      WHEN conversation.buyer_id = ${sql.val(args.userId)}
-				        THEN (conversation.buyer_last_read_at IS NULL OR created_at > conversation.buyer_last_read_at)
-				      ELSE (conversation.seller_last_read_at IS NULL OR created_at > conversation.seller_last_read_at)
+				        THEN (conversation.buyer_last_read_at IS NULL OR message.created_at > conversation.buyer_last_read_at)
+				      ELSE (conversation.seller_last_read_at IS NULL OR message.created_at > conversation.seller_last_read_at)
 				    END
 				  )
 			)`.as("unread_count"),
