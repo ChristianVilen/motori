@@ -1,5 +1,6 @@
 /** Pure helpers — safe for client and server bundles. */
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { csrfMiddleware } from "~/lib/csrf";
 import { AppError } from "~/lib/errors";
 import {
@@ -62,7 +63,7 @@ async function requireUserId(): Promise<string> {
 
 export const startConversation = createServerFn({ method: "POST" })
 	.middleware([csrfMiddleware()])
-	.inputValidator((d: { listingId: string }) => d)
+	.inputValidator((d: unknown) => z.object({ listingId: z.string().min(1) }).parse(d))
 	.handler(async ({ data }) =>
 		startConversationServer({ listingId: data.listingId, userId: await requireUserId() }),
 	);
@@ -81,41 +82,45 @@ export const getUnreadTotal = createServerFn({ method: "GET" }).handler(async ()
 });
 
 export const getConversation = createServerFn({ method: "GET" })
-	.inputValidator((d: { conversationId: string }) => d)
+	.inputValidator((d: unknown) => z.object({ conversationId: z.string().uuid() }).parse(d))
 	.handler(async ({ data }) =>
 		getConversationServer({ conversationId: data.conversationId, userId: await requireUserId() }),
 	);
 
 export const listMessages = createServerFn({ method: "GET" })
-	.inputValidator((d: { conversationId: string; beforeCursor?: string }) => d)
+	.inputValidator((d: unknown) =>
+		z.object({ conversationId: z.string().uuid(), beforeCursor: z.string().optional() }).parse(d),
+	)
 	.handler(async ({ data }) =>
 		listMessagesServer({ ...data, userId: await requireUserId() }),
 	);
 
 export const sendMessage = createServerFn({ method: "POST" })
 	.middleware([csrfMiddleware()])
-	.inputValidator((d: { conversationId: string; body: string }) => d)
+	.inputValidator((d: unknown) =>
+		z.object({ conversationId: z.string().uuid(), body: z.string().min(1).max(4000) }).parse(d),
+	)
 	.handler(async ({ data }) =>
 		sendMessageServer({ ...data, userId: await requireUserId() }),
 	);
 
 export const markRead = createServerFn({ method: "POST" })
 	.middleware([csrfMiddleware()])
-	.inputValidator((d: { conversationId: string }) => d)
+	.inputValidator((d: unknown) => z.object({ conversationId: z.string().uuid() }).parse(d))
 	.handler(async ({ data }) => {
 		await markReadServer({ conversationId: data.conversationId, userId: await requireUserId() });
 	});
 
 export const blockUser = createServerFn({ method: "POST" })
 	.middleware([csrfMiddleware()])
-	.inputValidator((d: { targetUserId: string }) => d)
+	.inputValidator((d: unknown) => z.object({ targetUserId: z.string().min(1) }).parse(d))
 	.handler(async ({ data }) => {
 		await blockUserServer({ userId: await requireUserId(), targetUserId: data.targetUserId });
 	});
 
 export const unblockUser = createServerFn({ method: "POST" })
 	.middleware([csrfMiddleware()])
-	.inputValidator((d: { targetUserId: string }) => d)
+	.inputValidator((d: unknown) => z.object({ targetUserId: z.string().min(1) }).parse(d))
 	.handler(async ({ data }) => {
 		await unblockUserServer({ userId: await requireUserId(), targetUserId: data.targetUserId });
 	});
