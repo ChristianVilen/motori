@@ -56,7 +56,7 @@ export interface ConversationListRow {
 async function requireUserId(): Promise<string> {
 	const session = await getSession();
 	if (!session) {
-		throw new Error("Ei istuntoa");
+		throw new AppError("auth.unauthorized");
 	}
 	return session.user.id;
 }

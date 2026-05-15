@@ -14,7 +14,6 @@ export interface NonRentalSidebarProps {
 	isOwner: boolean;
 	ownerPhoneVisible: boolean;
 	ownerPhone: string | null;
-	ownerUserId: string;
 	currentUserId?: string;
 }
 
@@ -27,7 +26,6 @@ export function NonRentalSidebar({
 	isOwner,
 	ownerPhoneVisible,
 	ownerPhone,
-	ownerUserId,
 	currentUserId,
 }: NonRentalSidebarProps) {
 	const { t } = useTranslation("listings");
@@ -60,50 +58,76 @@ export function NonRentalSidebar({
 					</dl>
 				)}
 				{isOwner ? (
-					<div className="flex gap-2">
-						<Link
-							to="/ilmoitukset/$listingId/muokkaa"
-							params={{ listingId: listing.short_id }}
-							className="flex-1"
-						>
-							<Button variant="outline" className="w-full" size="sm">
-								{t("detail.ownerActions.edit")}
-							</Button>
-						</Link>
-						<Link to="/omat" className="flex-1">
-							<Button variant="outline" className="w-full" size="sm">
-								{t("detail.ownerActions.myListings")}
-							</Button>
-						</Link>
-					</div>
+					<OwnerActions listingShortId={listing.short_id} />
 				) : listing.status === "active" ? (
-					ownerPhoneVisible && ownerPhone ? (
-						<a
-							href={`tel:${ownerPhone}`}
-							className="block w-full rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-accent-hover"
-						>
-							{ownerPhone}
-						</a>
-					) : (
-						<Link
-							to="/profiili/$userId"
-							params={{ userId: ownerUserId }}
-							className="block w-full rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-accent-hover"
-						>
-							{t("detail.contactSeller")}
-						</Link>
-					)
-				) : null}
-				{showMessageButton ? (
-					<button
-						type="button"
-						onClick={onMessageSeller}
-						className="mt-2 block w-full rounded-lg border border-accent px-4 py-2.5 text-center text-sm font-medium text-accent hover:bg-accent/5"
-					>
-						{t("detail.messageSeller", "Lähetä viesti")}
-					</button>
+					<SellerCta
+						showMessageButton={showMessageButton}
+						ownerPhoneVisible={ownerPhoneVisible}
+						ownerPhone={ownerPhone}
+						onMessage={onMessageSeller}
+					/>
 				) : null}
 			</div>
 		</div>
+	);
+}
+
+function OwnerActions({ listingShortId }: { listingShortId: string }) {
+	const { t } = useTranslation("listings");
+	return (
+		<div className="flex gap-2">
+			<Link
+				to="/ilmoitukset/$listingId/muokkaa"
+				params={{ listingId: listingShortId }}
+				className="flex-1"
+			>
+				<Button variant="outline" className="w-full" size="sm">
+					{t("detail.ownerActions.edit")}
+				</Button>
+			</Link>
+			<Link to="/omat" className="flex-1">
+				<Button variant="outline" className="w-full" size="sm">
+					{t("detail.ownerActions.myListings")}
+				</Button>
+			</Link>
+		</div>
+	);
+}
+
+function SellerCta({
+	showMessageButton,
+	ownerPhoneVisible,
+	ownerPhone,
+	onMessage,
+}: {
+	showMessageButton: boolean;
+	ownerPhoneVisible: boolean;
+	ownerPhone: string | null;
+	onMessage: () => void;
+}) {
+	const { t } = useTranslation("listings");
+	const phoneClass = showMessageButton
+		? "mt-2 border-border text-muted hover:border-accent hover:text-accent"
+		: "border-accent text-accent hover:bg-accent/5";
+	return (
+		<>
+			{showMessageButton ? (
+				<button
+					type="button"
+					onClick={onMessage}
+					className="block w-full rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-accent-hover"
+				>
+					{t("detail.messageSeller", "Lähetä viesti")}
+				</button>
+			) : null}
+			{ownerPhoneVisible && ownerPhone ? (
+				<a
+					href={`tel:${ownerPhone}`}
+					className={`block w-full rounded-lg border px-4 py-2.5 text-center text-sm font-medium transition-colors ${phoneClass}`}
+				>
+					{ownerPhone}
+				</a>
+			) : null}
+		</>
 	);
 }
