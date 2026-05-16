@@ -266,8 +266,8 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 		>
 			{/* Thumbnail */}
 			<Link
-				to="/tori/$itemId/$slug"
-				params={{ itemId: item.short_id, slug }}
+				to="/ilmoitukset/$listingId/$slug"
+				params={{ listingId: item.short_id, slug }}
 				className="h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-muted-light"
 			>
 				{firstImage ? (
@@ -287,8 +287,8 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 			<div className="min-w-0 flex-1">
 				<div className="flex flex-wrap items-start justify-between gap-2">
 					<Link
-						to="/tori/$itemId/$slug"
-						params={{ itemId: item.short_id, slug }}
+						to="/ilmoitukset/$listingId/$slug"
+						params={{ listingId: item.short_id, slug }}
 						className="text-sm font-semibold text-foreground hover:text-accent"
 					>
 						{item.title}
@@ -362,7 +362,6 @@ function ProfilePage() {
 
 	async function handleSignOut() {
 		await signOut();
-		router.invalidate();
 		router.navigate({ to: "/" });
 	}
 	const { t } = useTranslation("profile");
@@ -493,6 +492,20 @@ function ProfilePage() {
 					</div>
 				) : (
 					<div className="space-y-3">
+						<div className="flex justify-end">
+							<Link
+								to="/ilmoitukset/uusi"
+								className={verified ? undefined : "pointer-events-none opacity-50"}
+							>
+								<Button
+									className="bg-accent text-white hover:bg-accent-hover"
+									size="sm"
+									disabled={!verified}
+								>
+									{t("dashboard.newListing")}
+								</Button>
+							</Link>
+						</div>
 						{filtered.map((item) =>
 							isToriCategory(item.category) ? (
 								<ToriItemRow

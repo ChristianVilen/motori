@@ -126,7 +126,7 @@ export async function createBookingRequest(
 		renterId: args.userId,
 	});
 
-	await notifier.notifyBookingRequested({
+	void notifier.notifyBookingRequested({
 		booking: {
 			short_id: inserted.short_id,
 			listing_title: listing.title,
@@ -250,7 +250,7 @@ export async function confirmBooking(
 
 	log.event(EVENTS.booking.confirmed, { bookingId: result.booking.id });
 
-	await notifier.notifyBookingConfirmed({
+	void notifier.notifyBookingConfirmed({
 		booking: {
 			short_id: result.booking.short_id,
 			listing_title: result.booking.listing_title,
@@ -276,7 +276,7 @@ export async function confirmBooking(
 			bookingId: o.id,
 			confirmedBookingId: result.booking.id,
 		});
-		await notifier.notifyBookingAutoRejected({
+		void notifier.notifyBookingAutoRejected({
 			booking: {
 				short_id: o.short_id,
 				listing_title: result.booking.listing_title,
@@ -352,7 +352,7 @@ export async function rejectBooking(
 
 	log.event(EVENTS.booking.rejected, { bookingId: booking.id });
 
-	await notifier.notifyBookingRejected({
+	void notifier.notifyBookingRejected({
 		booking: {
 			short_id: booking.short_id,
 			listing_title: booking.listing_title,
@@ -453,7 +453,7 @@ export async function expireStaleBookings(
 
 	for (const b of expired) {
 		log.event(EVENTS.booking.expired, { bookingId: b.id });
-		await notifier.notifyBookingAutoRejected({
+		void notifier.notifyBookingAutoRejected({
 			booking: {
 				short_id: b.short_id,
 				listing_title: b.listing_title,

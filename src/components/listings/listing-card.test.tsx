@@ -21,7 +21,7 @@ vi.mock("@tanstack/react-router", () => ({
 
 afterEach(cleanup);
 
-const baseListing: Listing & { price_per_day?: number } = {
+const baseListing: Listing & { price?: number } = {
 	id: "uuid-1",
 	short_id: "abc123XY",
 	owner_id: "owner-1",
@@ -37,7 +37,7 @@ const baseListing: Listing & { price_per_day?: number } = {
 	region: "uusimaa",
 	postal_code: null,
 	description: "Hyvä pyörä",
-	price_per_day: 5000,
+	price: 5000,
 	status: "active",
 	view_count: 10,
 	expires_at: null,

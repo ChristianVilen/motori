@@ -7,7 +7,7 @@ import { formatEur, useTranslation } from "~/lib/i18n";
 import { computeListingSlug } from "~/lib/slug";
 
 interface ListingCardProps {
-	listing: Listing & { price_per_day?: number };
+	listing: Listing & { price?: number };
 	images: ListingImage[];
 	makeSlug: string | null;
 	modelName: string | null;
@@ -132,7 +132,7 @@ export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: Lis
 							data-testid="listing-card-price"
 							className="font-heading text-base sm:text-lg font-bold text-accent"
 						>
-							{formatEur(listing.price_per_day ?? 0)}
+							{formatEur(listing.price ?? 0)}
 						</span>
 						{listing.category === "rental" && (
 							<span className="text-xs text-muted">{t("card.perDay")}</span>

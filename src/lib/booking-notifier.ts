@@ -5,6 +5,7 @@ import {
 	sendBookingRequestEmail,
 } from "~/lib/booking-emails";
 import { log } from "~/lib/log";
+import { EVENTS } from "~/lib/log/events";
 import { sendMessageServer, startConversationServer } from "~/lib/messages.server";
 
 export interface PartyInfo {
@@ -58,39 +59,37 @@ export const realNotifier: BookingNotifier = {
 	},
 
 	async notifyBookingRequested(args) {
-		try {
-			await sendMessageServer({
-				conversationId: args.conversationId,
-				userId: args.senderUserId,
-				body: args.message,
-				kind: "booking_request",
-				bookingId: args.bookingId,
-			});
-		} catch (err) {
-			log.error("booking.system_message_failed", {
+		sendMessageServer({
+			conversationId: args.conversationId,
+			userId: args.senderUserId,
+			body: args.message,
+			kind: "booking_request",
+			bookingId: args.bookingId,
+		}).catch((err) =>
+			log.event(EVENTS.booking.system_message_failed, {
 				err: String(err),
 				bookingId: args.bookingId,
-			});
-		}
+			}),
+		);
 
 		sendBookingRequestEmail({
 			booking: args.booking,
 			owner: args.owner,
 			renter: args.renter,
 			message: args.message,
-		}).catch((err) => log.error("email send failed", { err }));
+		}).catch((err) => log.event(EVENTS.email.failed, { err }));
 	},
 
 	async notifyBookingConfirmed(args) {
-		sendBookingConfirmedEmail(args).catch((err) => log.error("email send failed", { err }));
+		sendBookingConfirmedEmail(args).catch((err) => log.event(EVENTS.email.failed, { err }));
 	},
 
 	async notifyBookingRejected(args) {
-		sendBookingRejectedEmail(args).catch((err) => log.error("email send failed", { err }));
+		sendBookingRejectedEmail(args).catch((err) => log.event(EVENTS.email.failed, { err }));
 	},
 
 	async notifyBookingAutoRejected(args) {
-		sendBookingAutoRejectedEmail(args).catch((err) => log.error("email send failed", { err }));
+		sendBookingAutoRejectedEmail(args).catch((err) => log.event(EVENTS.email.failed, { err }));
 	},
 };
 

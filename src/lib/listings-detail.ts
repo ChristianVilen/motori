@@ -291,7 +291,7 @@ const viewedRecently = new Set<string>();
 
 export function recordView(shortId: string, viewerId: string | undefined, ip: string): void {
 	const dedupKey = viewerId ? `view:${shortId}:${viewerId}` : `view:${shortId}:${ip}`;
-	if (viewedRecently.size < VIEW_DEDUP_MAX && viewedRecently.has(dedupKey)) {
+	if (viewedRecently.has(dedupKey)) {
 		return;
 	}
 	if (viewedRecently.size < VIEW_DEDUP_MAX) {

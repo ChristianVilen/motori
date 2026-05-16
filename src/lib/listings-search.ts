@@ -271,7 +271,7 @@ function applyCursor(
 // NOTE: For "relevance" sort, the cursor falls back to created_at which may skip
 // results with lower relevance but newer timestamps. Acceptable for MVP.
 function buildNextCursor(
-	listings: Array<Listing & { price_per_day?: number }>,
+	listings: Array<Listing & { price?: number }>,
 	sort: SortMode,
 ): string | null {
 	if (listings.length < PAGE_SIZE) {
@@ -282,7 +282,7 @@ function buildNextCursor(
 		return null;
 	}
 	if (sort === "price_asc" || sort === "price_desc") {
-		return `${last.price_per_day}__${last.id}`;
+		return `${last.price}__${last.id}`;
 	}
 	return `${last.created_at.toISOString()}__${last.id}`;
 }
@@ -384,16 +384,14 @@ async function searchForCategory(
 		.select(sql<number>`count(*)::int`.as("count"))
 		.executeTakeFirstOrThrow();
 
-	let query: AnyQuery = baseQuery
-		.selectAll("listing")
-		.select(config.priceColumn.as("price_per_day"));
+	let query: AnyQuery = baseQuery.selectAll("listing").select(config.priceColumn.as("price"));
 	if (params.cursor) {
 		query = applyCursor(query, params.cursor, sort, config);
 	}
 	query = applySort(query, sort, searchMode, config);
 	query = query.limit(PAGE_SIZE);
 
-	const listings = (await query.execute()) as (Listing & { price_per_day: number })[];
+	const listings = (await query.execute()) as (Listing & { price: number })[];
 	return {
 		listings: await hydrateListings(listings),
 		nextCursor: buildNextCursor(listings, sort),
@@ -420,12 +418,12 @@ export const getLatestListings = createServerFn({ method: "GET" })
 		const listings = (await (db.selectFrom("listing") as AnyQuery)
 			.innerJoin(`${config.childTable} as child`, "child.listing_id", "listing.id")
 			.selectAll()
-			.select(config.priceColumn.as("price_per_day"))
+			.select(config.priceColumn.as("price"))
 			.where("listing.status", "=", "active")
 			.where("listing.category", "=", category)
 			.orderBy("listing.created_at", "desc")
 			.limit(6)
-			.execute()) as (Listing & { price_per_day: number })[];
+			.execute()) as (Listing & { price: number })[];
 
 		if (listings.length === 0) {
 			return [] as ListingWithImages[];
