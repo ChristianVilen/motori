@@ -1,19 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import {
-	type RawBuilder,
-	type SelectQueryBuilder,
-	type SqlBool,
-	sql,
-} from "kysely";
+import { type RawBuilder, type SelectQueryBuilder, type SqlBool, sql } from "kysely";
 import { z } from "zod";
 import { eurosToCents } from "~/lib/currency";
 import { db } from "~/lib/db/index";
-import type {
-	Database,
-	Listing,
-	ListingCategory,
-	ListingImage,
-} from "~/lib/db/schema";
+import type { Database, Listing, ListingCategory, ListingImage } from "~/lib/db/schema";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { toPrefixTsQuery, toTsQuery } from "~/lib/search";
 import type { BrowseSearchParams } from "~/lib/validators";
@@ -62,7 +52,7 @@ type FilterKey =
 interface CategoryConfig {
 	childTable: "listing_rental" | "listing_sale" | "listing_gear" | "listing_part";
 	priceColumn: RawBuilder<number>;
-	supportedFilters: ReadonlyArray<FilterKey>;
+	supportedFilters: readonly FilterKey[];
 }
 
 const CATEGORY_CONFIGS: Record<ListingCategory, CategoryConfig> = {
@@ -99,26 +89,12 @@ const CATEGORY_CONFIGS: Record<ListingCategory, CategoryConfig> = {
 	gear: {
 		childTable: "listing_gear",
 		priceColumn: sql<number>`child.price`,
-		supportedFilters: [
-			"region",
-			"price_min",
-			"price_max",
-			"condition",
-			"gear_type",
-			"size",
-		],
+		supportedFilters: ["region", "price_min", "price_max", "condition", "gear_type", "size"],
 	},
 	part: {
 		childTable: "listing_part",
 		priceColumn: sql<number>`child.price`,
-		supportedFilters: [
-			"region",
-			"price_min",
-			"price_max",
-			"make",
-			"condition",
-			"part_category",
-		],
+		supportedFilters: ["region", "price_min", "price_max", "make", "condition", "part_category"],
 	},
 };
 
@@ -135,8 +111,7 @@ type FilterPredicate = (
 
 const FILTER_PREDICATES: Record<FilterKey, FilterPredicate> = {
 	region: (q, p) => (p.region ? q.where("listing.region", "=", p.region) : q),
-	type: (q, p) =>
-		p.type?.length ? q.where("listing.motorcycle_type", "in", p.type) : q,
+	type: (q, p) => (p.type?.length ? q.where("listing.motorcycle_type", "in", p.type) : q),
 	license: (q, p) =>
 		p.license?.length
 			? q.where("listing.required_license", "in", p.license as ("A1" | "A2" | "A")[])
@@ -270,10 +245,7 @@ function applyCursor(
 		return query.where((eb) =>
 			eb.or([
 				eb(config.priceColumn, ">", Number(cursorVal)),
-				eb.and([
-					eb(config.priceColumn, "=", Number(cursorVal)),
-					eb("listing.id", ">", cursorId),
-				]),
+				eb.and([eb(config.priceColumn, "=", Number(cursorVal)), eb("listing.id", ">", cursorId)]),
 			]),
 		);
 	}
@@ -281,10 +253,7 @@ function applyCursor(
 		return query.where((eb) =>
 			eb.or([
 				eb(config.priceColumn, "<", Number(cursorVal)),
-				eb.and([
-					eb(config.priceColumn, "=", Number(cursorVal)),
-					eb("listing.id", "<", cursorId),
-				]),
+				eb.and([eb(config.priceColumn, "=", Number(cursorVal)), eb("listing.id", "<", cursorId)]),
 			]),
 		);
 	}
@@ -410,7 +379,9 @@ async function searchForCategory(
 		.select(sql<number>`count(*)::int`.as("count"))
 		.executeTakeFirstOrThrow();
 
-	let query: AnyQuery = baseQuery.selectAll("listing").select(config.priceColumn.as("price_per_day"));
+	let query: AnyQuery = baseQuery
+		.selectAll("listing")
+		.select(config.priceColumn.as("price_per_day"));
 	if (params.cursor) {
 		query = applyCursor(query, params.cursor, sort, config);
 	}

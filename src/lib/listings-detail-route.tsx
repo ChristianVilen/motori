@@ -13,7 +13,11 @@ import type { FC, ReactNode } from "react";
 import { z } from "zod";
 import { ListingDetailShell } from "~/components/listings/listing-detail-shell";
 import { useTranslation } from "~/lib/i18n";
-import { getListingForDisplay, type ListingForDisplay, recordView } from "~/lib/listings-detail.server";
+import {
+	getListingForDisplay,
+	type ListingForDisplay,
+	recordView,
+} from "~/lib/listings-detail.server";
 import { getReviewSummaryForUser } from "~/lib/reviews.server";
 import { getSession } from "~/lib/session";
 
