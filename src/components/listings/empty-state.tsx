@@ -2,7 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "~/lib/i18n";
-import { getNeighborRegionCount } from "~/lib/listings-stats.server";
+import { getNeighborRegionCount } from "~/lib/listings-stats";
 import { useEmailVerified } from "~/lib/use-email-verified";
 import type { BrowseSearchParams } from "~/lib/validators";
 

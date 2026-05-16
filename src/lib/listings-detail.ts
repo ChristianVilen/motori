@@ -2,7 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { sql } from "kysely";
 import { expandDateRange } from "~/lib/bookings";
 import type { Condition, GearTypeValue } from "~/lib/constants";
-import { db } from "~/lib/db/index";
+
+const getDb = async () => (await import("~/lib/db/index")).db;
+
 import type { Listing, ListingImage } from "~/lib/db/schema";
 
 export type ListingForDisplay = {
@@ -41,6 +43,7 @@ export type ListingForDisplay = {
 };
 
 export async function getListingForDisplay(shortId: string): Promise<ListingForDisplay | null> {
+	const db = await getDb();
 	const row = await db
 		.selectFrom("listing")
 		.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
@@ -169,6 +172,7 @@ export async function getListingForEdit(
 	shortId: string,
 	ownerId: string,
 ): Promise<ListingForEdit | null> {
+	const db = await getDb();
 	const row = await db
 		.selectFrom("listing")
 		.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
@@ -243,6 +247,7 @@ export async function getListingForEdit(
 export const getListingAvailability = createServerFn({ method: "GET" })
 	.inputValidator((listingId: string) => listingId)
 	.handler(async ({ data: listingId }) => {
+		const db = await getDb();
 		const [listing, exceptions, confirmed] = await Promise.all([
 			db
 				.selectFrom("listing_rental")
@@ -293,10 +298,12 @@ export function recordView(shortId: string, viewerId: string | undefined, ip: st
 		viewedRecently.add(dedupKey);
 		setTimeout(() => viewedRecently.delete(dedupKey), 60_000);
 	}
-	void db
-		.updateTable("listing")
-		.set({ view_count: sql`view_count + 1` })
-		.where("short_id", "=", shortId)
-		.execute()
-		.catch(() => {});
+	void getDb().then((db) =>
+		db
+			.updateTable("listing")
+			.set({ view_count: sql`view_count + 1` })
+			.where("short_id", "=", shortId)
+			.execute()
+			.catch(() => {}),
+	);
 }

@@ -5,7 +5,7 @@ import { ListingGallery } from "~/components/listings/listing-gallery";
 import { ReportButton } from "~/components/report-button";
 import { LICENSE_CLASSES, LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
-import type { ListingForDisplay } from "~/lib/listings-detail.server";
+import type { ListingForDisplay } from "~/lib/listings-detail";
 
 interface ReviewSummary {
 	averageRating: number | null;

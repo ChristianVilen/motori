@@ -15,11 +15,7 @@ import { SITE_NAME, SITE_URL } from "~/lib/constants";
 import { centsToEuros } from "~/lib/currency";
 import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
-import {
-	getListingAvailability,
-	getListingForDisplay,
-	recordView,
-} from "~/lib/listings-detail.server";
+import { getListingAvailability, getListingForDisplay, recordView } from "~/lib/listings-detail";
 import { startConversation } from "~/lib/messages";
 import { protectedMutation } from "~/lib/middleware";
 import { getReviewSummaryForUser } from "~/lib/reviews.server";

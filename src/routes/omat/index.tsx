@@ -10,7 +10,7 @@ import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, SITE_NAME } from "~/lib/co
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
 import { setListingStatus } from "~/lib/listings-commands";
-import { getOwnerListings } from "~/lib/listings-owner.server";
+import { getOwnerListings } from "~/lib/listings-owner";
 import { protectedMutation } from "~/lib/middleware";
 import { getSession } from "~/lib/session";
 import { computeListingSlug, slugify } from "~/lib/slug";

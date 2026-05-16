@@ -1,4 +1,5 @@
-import { db } from "~/lib/db/index";
+const getDb = async () => (await import("~/lib/db/index")).db;
+
 import type { Listing, ListingImage } from "~/lib/db/schema";
 
 export type OwnerListingsResult = {
@@ -7,6 +8,7 @@ export type OwnerListingsResult = {
 };
 
 export async function getOwnerListings(ownerId: string): Promise<OwnerListingsResult> {
+	const db = await getDb();
 	const listings = await db
 		.selectFrom("listing")
 		.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")

@@ -1,8 +1,8 @@
-// src/lib/listings-stats.server.ts
 import { createServerFn } from "@tanstack/react-start";
 import { sql } from "kysely";
 import { centsToEuros } from "~/lib/currency";
-import { db } from "~/lib/db/index";
+
+const getDb = async () => (await import("~/lib/db/index")).db;
 
 const ADJACENT_REGIONS: Record<string, string[]> = {
 	uusimaa: ["paijat-hame", "kanta-hame", "kymenlaakso"],
@@ -27,6 +27,7 @@ const ADJACENT_REGIONS: Record<string, string[]> = {
 };
 
 export const getHomepageStats = createServerFn({ method: "GET" }).handler(async () => {
+	const db = await getDb();
 	const [countResult, priceResult] = await Promise.all([
 		db
 			.selectFrom("listing")
@@ -63,7 +64,7 @@ export const getNeighborRegionCount = createServerFn({ method: "GET" })
 		if (!neighbors || neighbors.length === 0) {
 			return 0;
 		}
-
+		const db = await getDb();
 		const result = await db
 			.selectFrom("listing")
 			.select(sql<number>`count(*)::int`.as("count"))

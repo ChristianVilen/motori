@@ -2,7 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { type RawBuilder, type SelectQueryBuilder, type SqlBool, sql } from "kysely";
 import { z } from "zod";
 import { eurosToCents } from "~/lib/currency";
-import { db } from "~/lib/db/index";
+
+const getDb = async () => (await import("~/lib/db/index")).db;
+
 import type { Database, Listing, ListingCategory, ListingImage } from "~/lib/db/schema";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { toPrefixTsQuery, toTsQuery } from "~/lib/search";
@@ -156,6 +158,7 @@ async function resolveListingSearchMode(
 	}
 
 	try {
+		const db = await getDb();
 		const ftsCheck = await db
 			.selectFrom("listing")
 			.select(sql<number>`1`.as("hit"))
@@ -291,7 +294,7 @@ async function fetchFirstImages(listingIds: string[]): Promise<Map<string, Listi
 	if (listingIds.length === 0) {
 		return imageMap;
 	}
-
+	const db = await getDb();
 	const images = await db
 		.selectFrom("listing_image")
 		.selectAll()
@@ -321,6 +324,7 @@ async function attachMakeModel<T extends Listing>(
 		...new Set(listings.map((l) => l.model_id).filter((id): id is string => id !== null)),
 	];
 
+	const db = await getDb();
 	const [makes, models] = await Promise.all([
 		makeIds.length > 0
 			? db.selectFrom("motorcycle_make").select(["id", "slug"]).where("id", "in", makeIds).execute()
@@ -365,6 +369,7 @@ async function searchForCategory(
 	const searchMode = await resolveListingSearchMode(params.q);
 	const sort: SortMode = params.sort ?? (searchMode.type !== "none" ? "relevance" : "newest");
 
+	const db = await getDb();
 	const baseQuery = applyFilters(
 		db
 			.selectFrom("listing")
@@ -411,7 +416,7 @@ export const getLatestListings = createServerFn({ method: "GET" })
 	.inputValidator((category: unknown) => categorySchema.parse(category))
 	.handler(async ({ data: category }) => {
 		const config = CATEGORY_CONFIGS[category];
-
+		const db = await getDb();
 		const listings = (await (db.selectFrom("listing") as AnyQuery)
 			.innerJoin(`${config.childTable} as child`, "child.listing_id", "listing.id")
 			.selectAll()
