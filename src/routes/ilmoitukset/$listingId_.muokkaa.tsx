@@ -267,7 +267,7 @@ function EditListingPage() {
 			engine_cc: listing.engine_cc,
 			motorcycle_type: listing.motorcycle_type ?? undefined,
 			required_license: listing.required_license,
-			price: sale?.price ?? 0,
+			price: sale?.price ? centsToEuros(sale.price) : 0,
 			condition: (sale?.condition ?? "good") as "new" | "excellent" | "good" | "fair" | "poor",
 			km_driven: sale?.km_driven ?? null,
 			negotiable: sale?.negotiable ?? false,
@@ -285,7 +285,7 @@ function EditListingPage() {
 				| "other",
 			size: gear?.size ?? null,
 			condition: (gear?.condition ?? "good") as "new" | "excellent" | "good" | "fair" | "poor",
-			price: gear?.price ?? 0,
+			price: gear?.price ? centsToEuros(gear.price) : 0,
 		} as Partial<ListingFormData>;
 	} else {
 		initialValues = {
@@ -294,7 +294,7 @@ function EditListingPage() {
 			part_category: part?.part_category ?? "",
 			compatible_make_id: part?.compatible_make_id ?? null,
 			condition: (part?.condition ?? "good") as "new" | "excellent" | "good" | "fair" | "poor",
-			price: part?.price ?? 0,
+			price: part?.price ? centsToEuros(part.price) : 0,
 		} as Partial<ListingFormData>;
 	}
 

@@ -68,7 +68,7 @@ export async function createListing(
 				.insertInto("listing_sale")
 				.values({
 					listing_id: id,
-					price: data.price,
+					price: eurosToCents(data.price),
 					condition: data.condition,
 					km_driven: data.km_driven ?? null,
 					negotiable: data.negotiable,
@@ -82,7 +82,7 @@ export async function createListing(
 					gear_type: data.gear_type as GearType,
 					size: data.size ?? null,
 					condition: data.condition,
-					price: data.price,
+					price: eurosToCents(data.price),
 				})
 				.execute();
 		} else {
@@ -94,7 +94,7 @@ export async function createListing(
 					compatible_make_id: data.compatible_make_id ?? null,
 					compatible_model_id: null,
 					condition: data.condition,
-					price: data.price,
+					price: eurosToCents(data.price),
 				})
 				.execute();
 		}
@@ -208,7 +208,7 @@ export async function updateListing(
 			await trx
 				.updateTable("listing_sale")
 				.set({
-					price: data.price,
+					price: eurosToCents(data.price),
 					condition: data.condition,
 					km_driven: data.km_driven ?? null,
 					negotiable: data.negotiable,
@@ -222,7 +222,7 @@ export async function updateListing(
 					gear_type: data.gear_type as GearType,
 					size: data.size ?? null,
 					condition: data.condition,
-					price: data.price,
+					price: eurosToCents(data.price),
 				})
 				.where("listing_id", "=", id)
 				.execute();
@@ -233,7 +233,7 @@ export async function updateListing(
 					part_category: data.part_category,
 					compatible_make_id: data.compatible_make_id ?? null,
 					condition: data.condition,
-					price: data.price,
+					price: eurosToCents(data.price),
 				})
 				.where("listing_id", "=", id)
 				.execute();

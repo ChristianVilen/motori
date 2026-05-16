@@ -96,7 +96,7 @@ export function listingFormSchema(t: T = defaultT) {
 			required_license: z.enum(["A1", "A2", "A"]).nullable().optional(),
 			condition: z.enum(CONDITIONS),
 			km_driven: z.number().int().min(0).max(999999).nullable().optional(),
-			price: z.number().int().min(1).max(100_000_000),
+			price: z.number().int().min(1).max(1_000_000),
 			negotiable: z.boolean().default(false),
 		}),
 		z.object({
@@ -105,7 +105,7 @@ export function listingFormSchema(t: T = defaultT) {
 			gear_type: z.enum(GEAR_TYPES),
 			size: z.string().trim().max(20).nullable().optional(),
 			condition: z.enum(CONDITIONS),
-			price: z.number().int().min(1).max(10_000_000),
+			price: z.number().int().min(1).max(100_000),
 		}),
 		z.object({
 			...shared,
@@ -113,7 +113,7 @@ export function listingFormSchema(t: T = defaultT) {
 			part_category: z.string().trim().min(1).max(100),
 			compatible_make_id: z.string().nullable().optional(),
 			condition: z.enum(CONDITIONS),
-			price: z.number().int().min(1).max(10_000_000),
+			price: z.number().int().min(1).max(100_000),
 		}),
 	]);
 }
