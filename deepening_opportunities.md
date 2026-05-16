@@ -1,29 +1,5 @@
 # Deepening Opportunities
 
-## 1. Booking state machine — email dispatch inside transition logic
-
-**Files:** `src/lib/bookings.server.ts` (476 LOC), `src/lib/booking-emails.ts`, `src/lib/messages.server.ts`
-
-**Problem:** Each state transition (`createBookingRequest`, `confirmBooking`, `rejectBooking`) embeds email dispatch and conversation side-effects inline. The interface to test booking logic is inseparable from the interface to the email system. The test file mocks 4 email functions just to test a date overlap check. The interface is nearly as complex as the implementation — callers must understand both the booking lifecycle *and* all its side effects.
-
-**Solution:** Define a seam between the booking state machine and its side-effects. The pure transition logic (availability check, overlap detection, cost calculation) sits inside the module; email and messaging are injected adapters. Two adapters are justified: a real one (email + DB) and an in-process one (in-memory, no email) for tests.
-
-**Benefits:** *Locality* — booking rules live in one place, email rules in another, bugs can't hide across the join. *Leverage* — the booking module's interface shrinks to "attempt transition, get result"; callers don't reason about email. Tests assert on booking state through the interface without mocking email.
-
----
-
-## 2. Listing hydration — shallow multi-step assembly hidden in a 950-LOC file
-
-**Files:** `src/lib/listings-queries.ts` (950 LOC), `src/lib/listings-commands.ts` (287 LOC)
-
-**Problem:** Callers must assemble a listing from `hydrateListings()` → `attachMakeModel()` → `fetchFirstImages()` — three functions across the same file, called in sequence. Understanding what "a fully-hydrated listing" is requires reading all three. The 4-category branching (`rental`, `sale`, `gear`, `part`) means `applyFilters()` and `applySimpleFilters()` are near-identical with minor divergence — the interface grows with every new category.
-
-**Solution:** A single `searchListings(params)` module that returns fully-hydrated listings. The assembly pipeline becomes an implementation detail behind the interface. Category-specific SQL fragments are internal seams, not part of the external interface.
-
-**Benefits:** *Leverage* — one function, one return type, no assembly steps for callers. *Locality* — adding a new filterable field is one edit, not three. Tests target the interface (given filters → expected results) using a real PGLite stand-in, replacing the current per-function unit tests.
-
----
-
 ## 3. Filter state — split across URL, context, and component state with no single source of truth
 
 **Files:** `src/components/listings/browse-page.tsx` (386 LOC), `filter-sidebar.tsx`, `filter-controls.tsx`, `filter-compositions.tsx`, `filter-drawer.tsx`, `src/lib/validators.ts`
@@ -32,7 +8,7 @@
 
 **Solution:** A single filter module that owns all filter state and exposes a typed interface: `parseFilters(searchParams)`, `applyFilter(current, change)`, `serializeFilters(state)`. The URL remains the backing store, but the module is the seam — components never touch search params directly.
 
-**Benefits:** *Leverage* — components call `applyFilter`, they don't construct URL strings. *Locality* — adding a new filter field is one edit in the filter module. Tests run against the module interface, not against DOM navigation.
+**Benefits:** _Leverage_ — components call `applyFilter`, they don't construct URL strings. _Locality_ — adding a new filter field is one edit in the filter module. Tests run against the module interface, not against DOM navigation.
 
 ---
 
@@ -44,7 +20,7 @@
 
 **Solution:** An image management module whose interface is `syncImages(listingId, newImages[])` — it diffs the current DB state, deletes orphaned objects, uploads new ones, and updates the DB atomically (or as close as possible given S3's lack of transactions). The `local-substitutable` dependency category applies: tests use a fake S3 stand-in.
 
-**Benefits:** *Locality* — image sync bugs have one home. *Leverage* — listing create/update calls one function instead of orchestrating three. Tests assert "after sync, DB and storage agree" without mocking 3 systems.
+**Benefits:** _Locality_ — image sync bugs have one home. _Leverage_ — listing create/update calls one function instead of orchestrating three. Tests assert "after sync, DB and storage agree" without mocking 3 systems.
 
 ---
 
@@ -56,4 +32,4 @@
 
 **Solution:** Merge `requireAdmin()` into `middleware.ts`. No new abstraction, just fewer files.
 
-**Benefits:** *Locality* — all route guards in one place. Callers compose `requireAuth + requireAdmin` the same way they compose other middleware.
+**Benefits:** _Locality_ — all route guards in one place. Callers compose `requireAuth + requireAdmin` the same way they compose other middleware.
