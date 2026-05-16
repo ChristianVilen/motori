@@ -88,6 +88,8 @@ export default {
 			"Your review is not visible yet — waiting for the other party's review or the 14-day deadline.",
 		summary: "{{rating}} ★ ({{count}} reviews)",
 		summaryOne: "{{rating}} ★ (1 review)",
+		reviewCount: " reviews",
+		reviewOne: " review",
 		submitError: "Failed to submit review. Please try again.",
 	},
 	settings: {

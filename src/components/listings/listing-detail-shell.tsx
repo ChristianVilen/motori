@@ -1,9 +1,10 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
-import { ArrowLeft, MapPin, Tag } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Tag, User } from "lucide-react";
 import type { ReactNode } from "react";
 import { ListingGallery } from "~/components/listings/listing-gallery";
 import { ReportButton } from "~/components/report-button";
 import { LICENSE_CLASSES, LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
+import type { Listing } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
 import type { ListingForDisplay } from "~/lib/listings-detail";
 
@@ -19,6 +20,67 @@ export interface ListingDetailShellProps {
 	backLabel: string;
 	sidebar: ReactNode;
 	mobileBar?: ReactNode;
+}
+
+function SellerCard({
+	listing,
+	data,
+	ownerReviewSummary,
+	t,
+	tProfile,
+}: {
+	listing: Listing;
+	data: ListingForDisplay;
+	ownerReviewSummary: ReviewSummary;
+	t: (key: string) => string;
+	tProfile: (key: string) => string;
+}) {
+	return (
+		<div>
+			<h2 className="mb-2 text-sm font-semibold text-foreground">{t("detail.sellerLabel")}</h2>
+			<Link
+				data-testid="seller-profile-link"
+				to="/profiili/$userId"
+				params={{ userId: listing.owner_id }}
+				className="group flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition-all hover:border-accent/40 hover:shadow-sm"
+			>
+				<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-muted-light transition-colors group-hover:bg-accent/10">
+					<User className="h-6 w-6 text-muted transition-colors group-hover:text-accent" />
+				</div>
+				<div className="min-w-0 flex-1">
+					<div className="flex items-center justify-between gap-2">
+						<p className="truncate text-base font-medium text-foreground">{data.ownerName}</p>
+						<span className="text-xs font-medium text-accent opacity-0 transition-opacity group-hover:opacity-100">
+							{t("detail.viewProfile")} <span aria-hidden="true">&rarr;</span>
+						</span>
+					</div>
+					<div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
+						{ownerReviewSummary.averageRating !== null ? (
+							<div className="flex items-center gap-1 font-medium text-foreground">
+								<Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
+								{ownerReviewSummary.averageRating}
+								<span className="font-normal text-muted">
+									({ownerReviewSummary.reviewCount}
+									{ownerReviewSummary.reviewCount === 1
+										? tProfile("reviews.reviewOne")
+										: tProfile("reviews.reviewCount")}
+									)
+								</span>
+							</div>
+						) : (
+							<span>{t("detail.noReviews")}</span>
+						)}
+						{data.ownerCity && (
+							<>
+								<span className="text-border">&bull;</span>
+								<span className="truncate">{data.ownerCity}</span>
+							</>
+						)}
+					</div>
+				</div>
+			</Link>
+		</div>
+	);
 }
 
 export function ListingDetailShell({
@@ -104,22 +166,20 @@ export function ListingDetailShell({
 										{t("detail.licenseBadge", { license: licenseLabel })}
 									</span>
 								)}
-								{ownerReviewSummary.averageRating !== null && (
-									<Link
-										to="/profiili/$userId"
-										params={{ userId: listing.owner_id }}
-										className="rounded-full bg-muted-light px-2.5 py-0.5 text-xs text-muted hover:text-accent"
-									>
-										{ownerReviewSummary.reviewCount === 1
-											? tProfile("reviews.summaryOne", { rating: ownerReviewSummary.averageRating })
-											: tProfile("reviews.summary", {
-													rating: ownerReviewSummary.averageRating,
-													count: ownerReviewSummary.reviewCount,
-												})}
-									</Link>
-								)}
 							</div>
 						</div>
+
+						{!isOwner && (
+							<div className="block lg:hidden">
+								<SellerCard
+									listing={listing}
+									data={data}
+									ownerReviewSummary={ownerReviewSummary}
+									t={t}
+									tProfile={tProfile}
+								/>
+							</div>
+						)}
 
 						<div>
 							<h2 className="mb-1.5 text-sm font-semibold text-foreground">
@@ -137,7 +197,20 @@ export function ListingDetailShell({
 						)}
 					</div>
 
-					{sidebar}
+					<div className="flex flex-col gap-4 lg:self-start">
+						{sidebar}
+						{!isOwner && (
+							<div className="hidden lg:block">
+								<SellerCard
+									listing={listing}
+									data={data}
+									ownerReviewSummary={ownerReviewSummary}
+									t={t}
+									tProfile={tProfile}
+								/>
+							</div>
+						)}
+					</div>
 				</div>
 			</div>
 			{mobileBar}

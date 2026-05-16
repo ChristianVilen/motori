@@ -39,6 +39,8 @@ export type ListingForDisplay = {
 	makeName: string | null;
 	makeSlug: string | null;
 	modelName: string | null;
+	ownerName: string | null;
+	ownerCity: string | null;
 	ownerContact: { phone: string | null; showPhone: boolean };
 };
 
@@ -112,7 +114,7 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 			: Promise.resolve(null),
 		db
 			.selectFrom("profile")
-			.select(["phone", "show_phone"])
+			.select(["display_name", "city", "phone", "show_phone"])
 			.where("user_id", "=", listing.owner_id)
 			.executeTakeFirst(),
 	]);
@@ -127,6 +129,8 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 		makeName: makeName ?? null,
 		makeSlug: makeSlug ?? null,
 		modelName: modelName ?? null,
+		ownerName: ownerProfile?.display_name ?? null,
+		ownerCity: ownerProfile?.city ?? null,
 		ownerContact: {
 			phone: ownerProfile?.phone ?? null,
 			showPhone: ownerProfile?.show_phone ?? false,

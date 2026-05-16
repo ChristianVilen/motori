@@ -85,6 +85,9 @@ export default {
 		messageSeller: "Lähetä viesti",
 		description: "Kuvaus",
 		licenseBadge: "Kortti {{license}}",
+		sellerLabel: "Ilmoittaja",
+		viewProfile: "Katso profiili",
+		noReviews: "Ei arvosteluja vielä",
 		pricing: {
 			perDay: "/päivä",
 			perWeek: "{{price}} / viikko",

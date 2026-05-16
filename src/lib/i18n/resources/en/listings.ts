@@ -74,6 +74,9 @@ export default {
 		messageSeller: "Message seller",
 		description: "Description",
 		licenseBadge: "License {{license}}",
+		sellerLabel: "Seller",
+		viewProfile: "View profile",
+		noReviews: "No reviews yet",
 		pricing: {
 			perDay: "/day",
 			perWeek: "{{price}} / week",
