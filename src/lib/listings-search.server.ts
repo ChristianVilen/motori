@@ -103,7 +103,6 @@ const CATEGORY_CONFIGS: Record<ListingCategory, CategoryConfig> = {
 			"region",
 			"price_min",
 			"price_max",
-			"make",
 			"condition",
 			"gear_type",
 			"size",
