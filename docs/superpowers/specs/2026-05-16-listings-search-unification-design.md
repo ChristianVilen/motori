@@ -36,7 +36,7 @@ interface CategoryConfig {
 
 One implementation each replaces the duplicated pairs:
 
-- `applyFilters(query, params, searchMode, config)` walks `config.supportedFilters` and applies the matching predicate. No per-category branching inside the function body.
+- `applyFilters(query, params, searchMode, config)` walks `config.supportedFilters` and dispatches each to a predicate in a `FILTER_PREDICATES: Record<FilterKey, (q, value) => q>` table. Each predicate is responsible for any join it requires (e.g. the `make` predicate adds the `motorcycle_make` join). No per-category branching inside the function body.
 - `applyCursor(query, cursor, sort, config)` and `applySort(query, sort, searchMode, config)` reference `config.priceColumn` instead of hardcoded columns.
 - `searchListingsForCategory(params, config)` replaces `searchRentalListings` and `searchSimpleCategory`. The exported `searchListings` server function looks up the config by category and delegates.
 
@@ -81,6 +81,7 @@ Update each existing importer of `~/lib/listings-queries` to the appropriate new
 - `src/components/listings/browse-page.tsx` → `listings-search.server` (type only)
 - `src/components/listings/listing-detail-shell.tsx` → `listings-detail.server` (type only)
 - `src/lib/listings-detail-route.tsx` → `listings-detail.server`
+- `src/lib/listings-detail-route.test.ts` → update `vi.mock("~/lib/listings-queries", ...)` target to `~/lib/listings-detail.server`
 
 ## Testing
 
