@@ -52,14 +52,6 @@ test.describe("Unverified user flow", () => {
 		expect(tag).toBe("span");
 	});
 
-	test("dashboard new-listing button is disabled", async () => {
-		await page.goto("/omat");
-		await waitForHydration(page);
-		const btn = page.getByTestId("dashboard-new-listing");
-		await expect(btn).toBeVisible();
-		await expect(btn).toBeDisabled();
-	});
-
 	test("direct navigation to /ilmoitukset/uusi is blocked", async () => {
 		await page.goto("/ilmoitukset/uusi");
 		await waitForHydration(page);

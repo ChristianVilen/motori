@@ -33,6 +33,7 @@ export const EVENTS = {
 		cancelled: "booking.cancelled",
 		expired: "booking.expired",
 		auto_rejected_overlap: "booking.auto_rejected_overlap",
+		system_message_failed: "booking.system_message_failed",
 	},
 	review: {
 		submitted: "review.submitted",

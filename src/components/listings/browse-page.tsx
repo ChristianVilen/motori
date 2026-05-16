@@ -11,7 +11,7 @@ import { ListingCardSkeleton } from "~/components/listings/listing-card-skeleton
 import { REGIONS } from "~/lib/constants";
 import type { MotorcycleMake } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
-import type { SearchResult } from "~/lib/listings-queries";
+import type { SearchResult } from "~/lib/listings-search";
 import { type BrowseSearchParams, countActiveFilters } from "~/lib/validators";
 
 const ListingsMap = lazy(() =>

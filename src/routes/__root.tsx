@@ -310,7 +310,7 @@ function RootDocument({
 					{children}
 				</main>
 				{!isAdmin && (
-					<footer className="relative border-t border-border px-4 py-6 text-center text-xs text-muted">
+					<footer className="relative border-t border-border px-4 pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom)+4rem)] md:py-6 text-center text-xs text-muted">
 						<div className="mb-3 flex flex-wrap justify-center gap-x-4 gap-y-1">
 							<Link to="/pyorat/myynti" className="hover:text-foreground">
 								{t("footer.sale")}

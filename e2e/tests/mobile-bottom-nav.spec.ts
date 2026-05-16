@@ -17,9 +17,9 @@ test.describe("mobile bottom nav", () => {
 		await expect(page.getByTestId("login-modal")).toBeVisible();
 	});
 
-	test("bookings tab opens login modal when signed out", async ({ page }) => {
+	test("messages tab opens login modal when signed out", async ({ page }) => {
 		await page.goto("/");
-		await page.getByTestId("bottom-nav-bookings").click();
+		await page.getByTestId("bottom-nav-messages").click();
 		await expect(page.getByTestId("login-modal")).toBeVisible();
 	});
 

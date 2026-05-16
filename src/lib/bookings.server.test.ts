@@ -70,23 +70,6 @@ vi.mock("~/lib/log/events", () => ({
 	},
 }));
 
-const mockSendBookingRequestEmail = vi.fn().mockResolvedValue(undefined);
-const mockSendBookingConfirmedEmail = vi.fn().mockResolvedValue(undefined);
-const mockSendBookingRejectedEmail = vi.fn().mockResolvedValue(undefined);
-const mockSendBookingAutoRejectedEmail = vi.fn().mockResolvedValue(undefined);
-
-vi.mock("~/lib/booking-emails", () => ({
-	sendBookingRequestEmail: (...args: unknown[]) => mockSendBookingRequestEmail(...args),
-	sendBookingConfirmedEmail: (...args: unknown[]) => mockSendBookingConfirmedEmail(...args),
-	sendBookingRejectedEmail: (...args: unknown[]) => mockSendBookingRejectedEmail(...args),
-	sendBookingAutoRejectedEmail: (...args: unknown[]) => mockSendBookingAutoRejectedEmail(...args),
-}));
-
-vi.mock("~/lib/messages.server", () => ({
-	startConversationServer: vi.fn().mockResolvedValue({ conversationId: "conv-stub" }),
-	sendMessageServer: vi.fn().mockResolvedValue({ messageId: "msg-stub" }),
-}));
-
 vi.mock("kysely", () => {
 	const sqlResult = { as: () => sqlResult, $call: () => sqlResult };
 	const sqlProxy = new Proxy(() => sqlResult, {
@@ -96,6 +79,7 @@ vi.mock("kysely", () => {
 	return { sql: sqlProxy };
 });
 
+import { createInMemoryNotifier } from "./booking-notifier";
 import {
 	cancelBooking,
 	confirmBooking,
@@ -105,7 +89,6 @@ import {
 } from "./bookings.server";
 
 beforeEach(() => {
-	vi.clearAllMocks();
 	executeQueue.length = 0;
 	executeTakeFirstQueue.length = 0;
 	executeTakeFirstOrThrowQueue.length = 0;
@@ -126,26 +109,34 @@ describe("createBookingRequest", () => {
 	it("throws when listing not found", async () => {
 		executeTakeFirstQueue.push(null);
 
-		await expect(createBookingRequest(baseArgs)).rejects.toThrow("booking.listing_unavailable");
+		await expect(createBookingRequest(baseArgs, createInMemoryNotifier())).rejects.toThrow(
+			"booking.listing_unavailable",
+		);
 	});
 
 	it("throws when listing is not active", async () => {
 		executeTakeFirstQueue.push({ id: "listing-1", status: "draft", owner_id: "owner-1" });
 
-		await expect(createBookingRequest(baseArgs)).rejects.toThrow("booking.listing_unavailable");
+		await expect(createBookingRequest(baseArgs, createInMemoryNotifier())).rejects.toThrow(
+			"booking.listing_unavailable",
+		);
 	});
 
 	it("throws when user tries to book own listing", async () => {
 		executeTakeFirstQueue.push({ id: "listing-1", status: "active", owner_id: "user-renter" });
 
-		await expect(createBookingRequest(baseArgs)).rejects.toThrow("booking.own_listing");
+		await expect(createBookingRequest(baseArgs, createInMemoryNotifier())).rejects.toThrow(
+			"booking.own_listing",
+		);
 	});
 
 	it("throws when renter profile is missing", async () => {
 		executeTakeFirstQueue.push({ id: "listing-1", status: "active", owner_id: "owner-1" });
 		executeTakeFirstQueue.push(null); // no profile
 
-		await expect(createBookingRequest(baseArgs)).rejects.toThrow("auth.profile_missing");
+		await expect(createBookingRequest(baseArgs, createInMemoryNotifier())).rejects.toThrow(
+			"auth.profile_missing",
+		);
 	});
 
 	it("throws when dates collide with confirmed booking", async () => {
@@ -158,7 +149,9 @@ describe("createBookingRequest", () => {
 		});
 		executeQueue.push([{ id: "existing-booking" }]); // collisions
 
-		await expect(createBookingRequest(baseArgs)).rejects.toThrow("booking.dates_unavailable");
+		await expect(createBookingRequest(baseArgs, createInMemoryNotifier())).rejects.toThrow(
+			"booking.dates_unavailable",
+		);
 	});
 
 	it("throws when dates are blocked by availability exception", async () => {
@@ -173,10 +166,12 @@ describe("createBookingRequest", () => {
 		executeTakeFirstQueue.push({ availability_default: "open" }); // default open
 		executeQueue.push([{ date: "2026-06-02" }]); // exception blocks Jun 2
 
-		await expect(createBookingRequest(baseArgs)).rejects.toThrow("booking.dates_unavailable");
+		await expect(createBookingRequest(baseArgs, createInMemoryNotifier())).rejects.toThrow(
+			"booking.dates_unavailable",
+		);
 	});
 
-	it("creates booking and sends email on success", async () => {
+	it("creates booking and notifies on success", async () => {
 		executeTakeFirstQueue.push({
 			id: "listing-1",
 			title: "Honda CB500",
@@ -199,16 +194,18 @@ describe("createBookingRequest", () => {
 		executeQueue.push([]); // no exception dates
 		executeTakeFirstOrThrowQueue.push({ id: "booking-1", short_id: "abc123XY" });
 
-		const result = await createBookingRequest(baseArgs);
+		const notifier = createInMemoryNotifier();
+		const result = await createBookingRequest(baseArgs, notifier);
 
 		expect(result).toEqual({ short_id: "abc123XY" });
-		expect(mockSendBookingRequestEmail).toHaveBeenCalledWith(
-			expect.objectContaining({
-				booking: expect.objectContaining({ listing_title: "Honda CB500" }),
-				owner: expect.objectContaining({ email: "owner@test.fi" }),
-				renter: expect.objectContaining({ email: "renter@test.fi" }),
-			}),
-		);
+		expect(notifier.calls.map((c) => c.kind)).toEqual(["startConversation", "bookingRequested"]);
+		const requested = notifier.calls.find((c) => c.kind === "bookingRequested");
+		expect(requested?.args).toMatchObject({
+			booking: expect.objectContaining({ listing_title: "Honda CB500" }),
+			owner: expect.objectContaining({ email: "owner@test.fi" }),
+			renter: expect.objectContaining({ email: "renter@test.fi" }),
+			bookingId: "booking-1",
+		});
 	});
 });
 
@@ -216,28 +213,28 @@ describe("confirmBooking", () => {
 	it("throws when booking not found", async () => {
 		executeTakeFirstQueue.push(null);
 
-		await expect(confirmBooking({ bookingId: "b-1", userId: "owner-1" })).rejects.toThrow(
-			"booking.not_found",
-		);
+		await expect(
+			confirmBooking({ bookingId: "b-1", userId: "owner-1" }, createInMemoryNotifier()),
+		).rejects.toThrow("booking.not_found");
 	});
 
 	it("throws when user is not the owner", async () => {
 		executeTakeFirstQueue.push({ id: "b-1", status: "pending", owner_id: "other-owner" });
 
-		await expect(confirmBooking({ bookingId: "b-1", userId: "owner-1" })).rejects.toThrow(
-			"booking.forbidden",
-		);
+		await expect(
+			confirmBooking({ bookingId: "b-1", userId: "owner-1" }, createInMemoryNotifier()),
+		).rejects.toThrow("booking.forbidden");
 	});
 
 	it("throws when booking is not pending", async () => {
 		executeTakeFirstQueue.push({ id: "b-1", status: "confirmed", owner_id: "owner-1" });
 
-		await expect(confirmBooking({ bookingId: "b-1", userId: "owner-1" })).rejects.toThrow(
-			"booking.not_pending",
-		);
+		await expect(
+			confirmBooking({ bookingId: "b-1", userId: "owner-1" }, createInMemoryNotifier()),
+		).rejects.toThrow("booking.not_pending");
 	});
 
-	it("confirms booking, auto-rejects overlaps, and sends emails", async () => {
+	it("confirms booking, auto-rejects overlaps, and notifies", async () => {
 		executeTakeFirstQueue.push({
 			id: "b-1",
 			short_id: "conf1",
@@ -273,11 +270,13 @@ describe("confirmBooking", () => {
 		// update overlaps to rejected
 		executeQueue.push(undefined);
 
-		const result = await confirmBooking({ bookingId: "b-1", userId: "owner-1" });
+		const notifier = createInMemoryNotifier();
+		const result = await confirmBooking({ bookingId: "b-1", userId: "owner-1" }, notifier);
 
 		expect(result).toEqual({ autoRejectedCount: 1 });
-		expect(mockSendBookingConfirmedEmail).toHaveBeenCalledTimes(1);
-		expect(mockSendBookingAutoRejectedEmail).toHaveBeenCalledTimes(1);
+		const kinds = notifier.calls.map((c) => c.kind);
+		expect(kinds.filter((k) => k === "bookingConfirmed")).toHaveLength(1);
+		expect(kinds.filter((k) => k === "bookingAutoRejected")).toHaveLength(1);
 	});
 });
 
@@ -285,28 +284,28 @@ describe("rejectBooking", () => {
 	it("throws when booking not found", async () => {
 		executeTakeFirstQueue.push(null);
 
-		await expect(rejectBooking({ bookingId: "b-1", userId: "owner-1" })).rejects.toThrow(
-			"booking.not_found",
-		);
+		await expect(
+			rejectBooking({ bookingId: "b-1", userId: "owner-1" }, createInMemoryNotifier()),
+		).rejects.toThrow("booking.not_found");
 	});
 
 	it("throws when user is not the owner", async () => {
 		executeTakeFirstQueue.push({ id: "b-1", status: "pending", owner_id: "other-owner" });
 
-		await expect(rejectBooking({ bookingId: "b-1", userId: "owner-1" })).rejects.toThrow(
-			"booking.forbidden",
-		);
+		await expect(
+			rejectBooking({ bookingId: "b-1", userId: "owner-1" }, createInMemoryNotifier()),
+		).rejects.toThrow("booking.forbidden");
 	});
 
 	it("throws when booking is not pending", async () => {
 		executeTakeFirstQueue.push({ id: "b-1", status: "confirmed", owner_id: "owner-1" });
 
-		await expect(rejectBooking({ bookingId: "b-1", userId: "owner-1" })).rejects.toThrow(
-			"booking.not_pending",
-		);
+		await expect(
+			rejectBooking({ bookingId: "b-1", userId: "owner-1" }, createInMemoryNotifier()),
+		).rejects.toThrow("booking.not_pending");
 	});
 
-	it("rejects booking and sends email", async () => {
+	it("rejects booking and notifies", async () => {
 		executeTakeFirstQueue.push({
 			id: "b-1",
 			short_id: "abc123",
@@ -321,14 +320,14 @@ describe("rejectBooking", () => {
 		});
 		executeTakeFirstQueue.push({ numUpdatedRows: 1n }); // update
 
-		await rejectBooking({ bookingId: "b-1", userId: "owner-1", reason: "Ei sovi" });
+		const notifier = createInMemoryNotifier();
+		await rejectBooking({ bookingId: "b-1", userId: "owner-1", reason: "Ei sovi" }, notifier);
 
-		expect(mockSendBookingRejectedEmail).toHaveBeenCalledWith(
-			expect.objectContaining({
-				booking: expect.objectContaining({ short_id: "abc123" }),
-				reason: "Ei sovi",
-			}),
-		);
+		const rejected = notifier.calls.find((c) => c.kind === "bookingRejected");
+		expect(rejected?.args).toMatchObject({
+			booking: expect.objectContaining({ short_id: "abc123" }),
+			reason: "Ei sovi",
+		});
 	});
 });
 
@@ -362,9 +361,6 @@ describe("cancelBooking", () => {
 		executeTakeFirstQueue.push({ numUpdatedRows: 1n }); // update
 
 		await cancelBooking({ bookingId: "b-1", userId: "renter-1" });
-
-		// No email sent for cancellation
-		expect(mockSendBookingRequestEmail).not.toHaveBeenCalled();
 	});
 });
 
@@ -372,13 +368,14 @@ describe("expireStaleBookings", () => {
 	it("returns 0 when no bookings to expire", async () => {
 		executeQueue.push([]); // update returning []
 
-		const count = await expireStaleBookings();
+		const notifier = createInMemoryNotifier();
+		const count = await expireStaleBookings(notifier);
 
 		expect(count).toBe(0);
-		expect(mockSendBookingAutoRejectedEmail).not.toHaveBeenCalled();
+		expect(notifier.calls).toHaveLength(0);
 	});
 
-	it("expires bookings and sends emails", async () => {
+	it("expires bookings and notifies", async () => {
 		executeQueue.push([{ id: "b-1" }, { id: "b-2" }]); // update returning
 		executeQueue.push([
 			// select expired details
@@ -404,9 +401,10 @@ describe("expireStaleBookings", () => {
 			},
 		]);
 
-		const count = await expireStaleBookings();
+		const notifier = createInMemoryNotifier();
+		const count = await expireStaleBookings(notifier);
 
 		expect(count).toBe(2);
-		expect(mockSendBookingAutoRejectedEmail).toHaveBeenCalledTimes(2);
+		expect(notifier.calls.filter((c) => c.kind === "bookingAutoRejected")).toHaveLength(2);
 	});
 });

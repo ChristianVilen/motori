@@ -15,10 +15,10 @@ export default {
 		skipToContent: "Skip to content",
 		switchLanguage: "Switch language: {{lang}}",
 		bottom: {
-			browse: "Browse",
+			browse: "Home",
 			search: "Search",
 			add: "Add",
-			bookings: "Bookings",
+			messages: "Messages",
 			account: "Account",
 			ariaLabel: "Mobile navigation",
 		},

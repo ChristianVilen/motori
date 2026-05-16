@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BrowsePage } from "~/components/listings/browse-page";
 import { GearFilters } from "~/components/listings/filter-compositions";
 import { SITE_NAME, SITE_URL } from "~/lib/constants";
-import { searchListings } from "~/lib/listings-queries";
+import { searchListings } from "~/lib/listings-search";
 import { getMakes } from "~/lib/makes";
 import { getSession } from "~/lib/session";
 import { browseSearchSchema } from "~/lib/validators";

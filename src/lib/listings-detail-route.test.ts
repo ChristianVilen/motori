@@ -13,7 +13,7 @@ vi.mock("@tanstack/react-start", () => ({
 }));
 vi.mock("@tanstack/react-start/server", () => ({ getRequest: () => null }));
 vi.mock("~/components/listings/listing-detail-shell", () => ({ ListingDetailShell: () => null }));
-vi.mock("~/lib/listings-queries", () => ({
+vi.mock("~/lib/listings-detail", () => ({
 	getListingForDisplay: vi.fn(),
 	recordView: vi.fn(),
 }));

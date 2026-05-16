@@ -13,7 +13,7 @@ import type { ListingCategory } from "~/lib/db/schema";
 import { AppError } from "~/lib/errors";
 import { useTranslation } from "~/lib/i18n";
 import { updateListing } from "~/lib/listings-commands";
-import { getListingAvailability, getListingForEdit } from "~/lib/listings-queries";
+import { getListingAvailability, getListingForEdit } from "~/lib/listings-detail";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { protectedMutation } from "~/lib/middleware";

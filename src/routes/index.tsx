@@ -5,7 +5,8 @@ import { ListingCard } from "~/components/listings/listing-card";
 import { CATEGORY_BROWSE_PATH } from "~/lib/category-routes";
 import type { ListingCategory } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
-import { getHomepageStats, getLatestListings } from "~/lib/listings-queries";
+import { getLatestListings } from "~/lib/listings-search";
+import { getHomepageStats } from "~/lib/listings-stats";
 import { getSession } from "~/lib/session";
 
 export const Route = createFileRoute("/")({

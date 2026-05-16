@@ -3,6 +3,14 @@ export default {
 		fallbackName: "Profile",
 		stats: "{{active}} active · {{paused}} paused · {{rented}} rented",
 		newListing: "New listing",
+		settingsAriaLabel: "Settings",
+		signOutAriaLabel: "Sign out",
+		statsCombined: "{{active}} active · {{paused}} paused",
+		filter: {
+			all: "All",
+			motorcycles: "Motorcycles",
+			tori: "Marketplace",
+		},
 		emptyState: "You don't have any listings yet.",
 		createFirst: "Create your first listing",
 		tori: {
