@@ -61,6 +61,23 @@ backup:
 migrate-prod:
     ssh {{host}} "dokku run {{app}} pnpm db:migrate"
 
+# Rotate the Postgres password, update dokku config, and re-encrypt secrets
+rotate-db-password:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    NEW_PASS=$(openssl rand -hex 20)
+    echo "ALTER USER postgres PASSWORD '${NEW_PASS}';" | ssh {{host}} "dokku postgres:connect {{app}}"
+    ssh {{host}} "dokku config:set {{app}} DATABASE_URL=postgres://postgres:${NEW_PASS}@dokku-postgres-motori:5432/{{app}}"
+    # Update secrets/dokku-config.sh and re-encrypt
+    age -d -i {{age_key}} secrets/dokku-config.sh.age > secrets/dokku-config.sh
+    sed -i "s|DATABASE_URL=postgres://postgres:[^@]*@|DATABASE_URL=postgres://postgres:${NEW_PASS}@|" secrets/dokku-config.sh
+    age -r {{age_pub}} -o secrets/dokku-config.sh.age secrets/dokku-config.sh
+    rm secrets/dokku-config.sh
+    just secrets-export
+    echo "✓ password rotated and secrets re-encrypted"
+    echo "  New password: ${NEW_PASS}"
+    echo "  Update DataGrip with the new password"
+
 # Grant admin role to a user: just make-admin user@example.com
 make-admin email:
     echo "UPDATE \"user\" SET role = 'admin' WHERE email = '{{email}}'; SELECT email, role FROM \"user\" WHERE email = '{{email}}';" | ssh {{host}} "dokku postgres:connect {{app}}"
