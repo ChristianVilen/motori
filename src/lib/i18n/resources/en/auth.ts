@@ -12,7 +12,8 @@ export default {
 	},
 	register: {
 		tagline: "Create an account",
-		nameLabel: "Name",
+		firstNameLabel: "First name",
+		lastNameLabel: "Last name",
 		emailLabel: "Email",
 		passwordLabel: "Password",
 		strengthWeak: "Weak",
@@ -47,7 +48,6 @@ export default {
 		displayNameLabel: "Display name",
 		cityLabel: "City",
 		phoneLabel: "Phone number",
-		licenseClassLabel: "License class",
 		submitIdle: "Done",
 		submitLoading: "Saving...",
 		errorGeneric: "Failed to save profile. Please try again.",

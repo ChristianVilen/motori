@@ -3,10 +3,11 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
+import { CitySelect } from "~/components/listings/city-select";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { authClient } from "~/lib/auth-client";
-import { LICENSE_CLASSES, type LicenseClass, SITE_NAME } from "~/lib/constants";
+import { SITE_NAME } from "~/lib/constants";
 import { exportMyData } from "~/lib/data-export";
 import { deleteAccount } from "~/lib/delete-account";
 import { useTranslation } from "~/lib/i18n";
@@ -14,8 +15,6 @@ import { csrfOnly } from "~/lib/middleware";
 import { passwordStrength } from "~/lib/password-strength";
 import { getSession } from "~/lib/session";
 import { validateFinnishPhone } from "~/lib/validators";
-
-const LICENSE_CLASS_VALUES = LICENSE_CLASSES.map((c) => c.value) as LicenseClass[];
 
 const loadSettings = createServerFn({ method: "GET" }).handler(async () => {
 	const session = await getSession();
@@ -34,27 +33,17 @@ const loadSettings = createServerFn({ method: "GET" }).handler(async () => {
 const saveSettings = createServerFn({ method: "POST" })
 	.middleware(csrfOnly())
 	.inputValidator(
-		(data: {
-			displayName: string;
-			city: string;
-			phone: string;
-			showPhone: boolean;
-			licenseClass: string;
-		}) => {
+		(data: { displayName: string; city: string; phone: string; showPhone: boolean }) => {
 			const displayName = data.displayName.trim();
 			if (!displayName) {
 				throw new Error("Näyttönimi on pakollinen");
 			}
 			const phone = validateFinnishPhone(data.phone);
-			const licenseClass = LICENSE_CLASS_VALUES.includes(data.licenseClass as LicenseClass)
-				? (data.licenseClass as LicenseClass)
-				: "";
 			return {
 				displayName,
 				city: data.city.trim(),
 				phone,
 				showPhone: data.showPhone,
-				licenseClass,
 			};
 		},
 	)
@@ -63,7 +52,6 @@ const saveSettings = createServerFn({ method: "POST" })
 		if (!session) {
 			throw new Error("Ei istuntoa");
 		}
-		const licenseClass = data.licenseClass as LicenseClass | "";
 		const { db } = await import("~/lib/db/index");
 		await db
 			.insertInto("profile")
@@ -73,7 +61,6 @@ const saveSettings = createServerFn({ method: "POST" })
 				city: data.city || null,
 				phone: data.phone || null,
 				show_phone: data.showPhone,
-				license_class: licenseClass || null,
 				language: "fi",
 			})
 			.onConflict((oc) =>
@@ -82,7 +69,6 @@ const saveSettings = createServerFn({ method: "POST" })
 					city: data.city || null,
 					phone: data.phone || null,
 					show_phone: data.showPhone,
-					license_class: licenseClass || null,
 					updated_at: new Date(),
 				}),
 			)
@@ -111,7 +97,6 @@ function SettingsPage() {
 	const [city, setCity] = useState(profile?.city ?? "");
 	const [phone, setPhone] = useState(profile?.phone ?? "");
 	const [showPhone, setShowPhone] = useState(profile?.show_phone ?? false);
-	const [licenseClass, setLicenseClass] = useState<string>(profile?.license_class ?? "");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [saved, setSaved] = useState(false);
@@ -123,7 +108,7 @@ function SettingsPage() {
 		setLoading(true);
 		try {
 			await saveSettings({
-				data: { displayName, city, phone, showPhone, licenseClass },
+				data: { displayName, city, phone, showPhone },
 			});
 			setSaved(true);
 		} catch {
@@ -165,10 +150,10 @@ function SettingsPage() {
 						<label htmlFor="city" className="text-sm font-medium text-foreground">
 							{t("settings.cityLabel")}
 						</label>
-						<Input
+						<CitySelect
 							id="city"
 							value={city}
-							onChange={(e) => setCity(e.target.value)}
+							onChange={(newCity) => setCity(newCity)}
 							placeholder="Helsinki"
 						/>
 					</div>
@@ -193,28 +178,6 @@ function SettingsPage() {
 							/>
 							{t("settings.showPhoneLabel")}
 						</label>
-					</div>
-
-					<div className="space-y-2">
-						<span className="text-sm font-medium text-foreground">
-							{t("settings.licenseClassLabel")}
-						</span>
-						<div className="flex gap-2">
-							{LICENSE_CLASSES.map((cls) => (
-								<button
-									key={cls.value}
-									type="button"
-									onClick={() => setLicenseClass(licenseClass === cls.value ? "" : cls.value)}
-									className={`flex-1 rounded-md border py-2 text-sm font-medium transition-colors ${
-										licenseClass === cls.value
-											? "border-accent bg-accent text-white"
-											: "border-border bg-background text-foreground hover:bg-muted-light"
-									}`}
-								>
-									{cls.label}
-								</button>
-							))}
-						</div>
 					</div>
 
 					<div className="flex items-center gap-3 pt-2">

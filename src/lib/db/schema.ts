@@ -72,7 +72,6 @@ export interface ProfileTable {
 	city: string | null;
 	phone: string | null;
 	show_phone: Generated<boolean>; // DB default false — omit on insert to use default
-	license_class: "A1" | "A2" | "A" | null;
 	language: "fi" | "en";
 	account_type: Generated<"private" | "business">;
 	business_name: string | null;

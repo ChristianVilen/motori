@@ -4,7 +4,8 @@ import { waitForHydration } from "../helpers";
 export class RegisterPage {
 	readonly page: Page;
 	readonly form: Locator;
-	readonly nameInput: Locator;
+	readonly firstNameInput: Locator;
+	readonly lastNameInput: Locator;
 	readonly emailInput: Locator;
 	readonly passwordInput: Locator;
 	readonly submitButton: Locator;
@@ -17,7 +18,8 @@ export class RegisterPage {
 	constructor(page: Page) {
 		this.page = page;
 		this.form = page.getByTestId("register-form");
-		this.nameInput = page.getByTestId("register-name");
+		this.firstNameInput = page.getByTestId("register-first-name");
+		this.lastNameInput = page.getByTestId("register-last-name");
 		this.emailInput = page.getByTestId("register-email");
 		this.passwordInput = page.getByTestId("register-password");
 		this.submitButton = page.getByTestId("register-submit");
@@ -35,7 +37,9 @@ export class RegisterPage {
 	}
 
 	async register(name: string, email: string, password: string) {
-		await this.nameInput.fill(name);
+		const [firstName = "", lastName = ""] = name.split(" ");
+		await this.firstNameInput.fill(firstName);
+		await this.lastNameInput.fill(lastName);
 		await this.emailInput.fill(email);
 		// pressSequentially so React's onChange fires per-keystroke for the strength meter
 		await this.passwordInput.pressSequentially(password, { delay: 30 });

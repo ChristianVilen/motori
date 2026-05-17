@@ -2,37 +2,29 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
+import { CitySelect } from "~/components/listings/city-select";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { LICENSE_CLASSES, type LicenseClass } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { csrfOnly } from "~/lib/middleware";
 import { getSession } from "~/lib/session";
 import { validateFinnishPhone } from "~/lib/validators";
 
-const LICENSE_CLASS_VALUES = LICENSE_CLASSES.map((c) => c.value) as LicenseClass[];
-
 const saveProfile = createServerFn({ method: "POST" })
 	.middleware(csrfOnly())
-	.inputValidator(
-		(data: { displayName: string; city: string; phone: string; licenseClass: string }) => {
-			const displayName = data.displayName.trim();
-			if (!displayName) {
-				throw new Error("Näyttönimi on pakollinen");
-			}
-			const phone = validateFinnishPhone(data.phone);
-			const licenseClass = LICENSE_CLASS_VALUES.includes(data.licenseClass as LicenseClass)
-				? (data.licenseClass as LicenseClass)
-				: "";
-			return { displayName, city: data.city.trim(), phone, licenseClass };
-		},
-	)
+	.inputValidator((data: { displayName: string; city: string; phone: string }) => {
+		const displayName = data.displayName.trim();
+		if (!displayName) {
+			throw new Error("Näyttönimi on pakollinen");
+		}
+		const phone = validateFinnishPhone(data.phone);
+		return { displayName, city: data.city.trim(), phone };
+	})
 	.handler(async ({ data }) => {
 		const session = await getSession();
 		if (!session) {
 			throw new Error("Ei istuntoa");
 		}
-		const licenseClass = data.licenseClass as LicenseClass | "";
 		const { db } = await import("~/lib/db/index");
 		await db
 			.insertInto("profile")
@@ -41,7 +33,6 @@ const saveProfile = createServerFn({ method: "POST" })
 				display_name: data.displayName,
 				city: data.city || null,
 				phone: data.phone || null,
-				license_class: licenseClass || null,
 				language: "fi",
 				terms_accepted_at: new Date(),
 			})
@@ -50,7 +41,6 @@ const saveProfile = createServerFn({ method: "POST" })
 					display_name: data.displayName,
 					city: data.city || null,
 					phone: data.phone || null,
-					license_class: licenseClass || null,
 					updated_at: new Date(),
 				}),
 			)
@@ -75,7 +65,6 @@ function CompleteProfilePage() {
 	const [displayName, setDisplayName] = useState(session.user.name ?? "");
 	const [city, setCity] = useState("");
 	const [phone, setPhone] = useState("");
-	const [licenseClass, setLicenseClass] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -90,7 +79,6 @@ function CompleteProfilePage() {
 					displayName,
 					city,
 					phone,
-					licenseClass,
 				},
 			});
 			navigate({ to: "/" });
@@ -127,12 +115,7 @@ function CompleteProfilePage() {
 						<label htmlFor="city" className="text-sm font-medium text-foreground">
 							{t("completeProfile.cityLabel")}
 						</label>
-						<Input
-							id="city"
-							value={city}
-							onChange={(e) => setCity(e.target.value)}
-							placeholder="Helsinki"
-						/>
+						<CitySelect id="city" value={city} onChange={(newCity, _region) => setCity(newCity)} />
 					</div>
 
 					<div className="space-y-2">
@@ -146,28 +129,6 @@ function CompleteProfilePage() {
 							onChange={(e) => setPhone(e.target.value)}
 							placeholder="+358 40 123 4567"
 						/>
-					</div>
-
-					<div className="space-y-2">
-						<span className="text-sm font-medium text-foreground">
-							{t("completeProfile.licenseClassLabel")}
-						</span>
-						<div className="flex gap-2">
-							{LICENSE_CLASSES.map((cls) => (
-								<button
-									key={cls.value}
-									type="button"
-									onClick={() => setLicenseClass(licenseClass === cls.value ? "" : cls.value)}
-									className={`flex-1 rounded-md border py-2 text-sm font-medium transition-colors ${
-										licenseClass === cls.value
-											? "border-accent bg-accent text-white"
-											: "border-border bg-background text-foreground hover:bg-muted-light"
-									}`}
-								>
-									{cls.label}
-								</button>
-							))}
-						</div>
 					</div>
 
 					<Button

@@ -5,7 +5,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { ListingCard } from "~/components/listings/listing-card";
 import { ReportButton } from "~/components/report-button";
-import { LICENSE_CLASSES, SITE_NAME } from "~/lib/constants";
+import { SITE_NAME } from "~/lib/constants";
 import type { ListingImage } from "~/lib/db/schema";
 import { formatDate, useTranslation } from "~/lib/i18n";
 import { computeReviewSummary, getReviewsForUser } from "~/lib/reviews.server";
@@ -17,7 +17,7 @@ const getPublicProfile = createServerFn({ method: "GET" })
 		const { db } = await import("~/lib/db/index");
 		const profile = await db
 			.selectFrom("profile")
-			.select(["user_id", "display_name", "city", "license_class", "created_at"])
+			.select(["user_id", "display_name", "city", "created_at"])
 			.where("user_id", "=", userId)
 			.executeTakeFirst();
 
@@ -90,9 +90,6 @@ function PublicProfilePage() {
 	const { t } = useTranslation("profile");
 	const { profile, listings, images, session, reviewSummary, reviews } = Route.useLoaderData();
 	const isOwnProfile = session?.user.id === profile.user_id;
-	const licenseLabel =
-		LICENSE_CLASSES.find((l) => l.value === profile.license_class)?.label ?? null;
-
 	const imagesByListing = new Map<string, ListingImage[]>();
 	for (const img of images) {
 		const arr = imagesByListing.get(img.listing_id) ?? [];
@@ -124,11 +121,6 @@ function PublicProfilePage() {
 							<span className="flex items-center gap-1">
 								<MapPin className="h-3 w-3" />
 								{profile.city}
-							</span>
-						)}
-						{!!licenseLabel && (
-							<span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
-								{t("publicProfile.licenseBadge", { license: licenseLabel })}
 							</span>
 						)}
 						<span>{t("publicProfile.memberSince", { date: memberSince })}</span>

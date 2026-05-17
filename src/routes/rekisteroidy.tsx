@@ -19,7 +19,8 @@ export const Route = createFileRoute("/rekisteroidy")({
 function RegisterPage() {
 	const navigate = useNavigate();
 	const { t } = useTranslation("auth");
-	const [name, setName] = useState("");
+	const [firstName, setFirstName] = useState("");
+	const [lastName, setLastName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [termsAccepted, setTermsAccepted] = useState(false);
@@ -33,8 +34,9 @@ function RegisterPage() {
 		setError(null);
 		setLoading(true);
 
+		const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
 		const result = await signUp.email({
-			name,
+			name: fullName,
 			email,
 			password,
 			callbackURL: "/taydenna-profiili",
@@ -63,19 +65,35 @@ function RegisterPage() {
 				</div>
 
 				<form onSubmit={handleSubmit} data-testid="register-form" className="space-y-4">
-					<div className="space-y-2">
-						<label htmlFor="name" className="text-sm font-medium text-foreground">
-							{t("register.nameLabel")}
-						</label>
-						<Input
-							id="name"
-							data-testid="register-name"
-							type="text"
-							autoComplete="name"
-							required
-							value={name}
-							onChange={(e) => setName(e.target.value)}
-						/>
+					<div className="grid grid-cols-2 gap-3">
+						<div className="space-y-2">
+							<label htmlFor="firstName" className="text-sm font-medium text-foreground">
+								{t("register.firstNameLabel")}
+							</label>
+							<Input
+								id="firstName"
+								data-testid="register-first-name"
+								type="text"
+								autoComplete="given-name"
+								required
+								value={firstName}
+								onChange={(e) => setFirstName(e.target.value)}
+							/>
+						</div>
+						<div className="space-y-2">
+							<label htmlFor="lastName" className="text-sm font-medium text-foreground">
+								{t("register.lastNameLabel")}
+							</label>
+							<Input
+								id="lastName"
+								data-testid="register-last-name"
+								type="text"
+								autoComplete="family-name"
+								required
+								value={lastName}
+								onChange={(e) => setLastName(e.target.value)}
+							/>
+						</div>
 					</div>
 
 					<div className="space-y-2">

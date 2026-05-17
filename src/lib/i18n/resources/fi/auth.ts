@@ -12,7 +12,8 @@ export default {
 	},
 	register: {
 		tagline: "Luo tili",
-		nameLabel: "Nimi",
+		firstNameLabel: "Etunimi",
+		lastNameLabel: "Sukunimi",
 		emailLabel: "Sähköposti",
 		passwordLabel: "Salasana",
 		strengthWeak: "Heikko",
@@ -47,7 +48,6 @@ export default {
 		displayNameLabel: "Näyttönimi",
 		cityLabel: "Kaupunki",
 		phoneLabel: "Puhelinnumero",
-		licenseClassLabel: "Ajokorttilaji",
 		submitIdle: "Valmis",
 		submitLoading: "Tallennetaan...",
 		errorGeneric: "Profiilin tallentaminen epäonnistui. Yritä uudelleen.",

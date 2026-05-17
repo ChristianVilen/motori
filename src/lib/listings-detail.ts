@@ -1,11 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { Kysely } from "kysely";
 import { sql } from "kysely";
 import { expandDateRange } from "~/lib/bookings";
 import type { Condition, GearTypeValue } from "~/lib/constants";
+import type { Database, Listing, ListingImage } from "~/lib/db/schema";
 
 const getDb = async () => (await import("~/lib/db/index")).db;
-
-import type { Listing, ListingImage } from "~/lib/db/schema";
 
 export type ListingForDisplay = {
 	listing: Listing;
@@ -44,6 +44,54 @@ export type ListingForDisplay = {
 	ownerContact: { phone: string | null; showPhone: boolean };
 };
 
+async function fetchRental(db: Kysely<Database>, listing: { id: string; category: string }) {
+	if (listing.category !== "rental") {
+		return null;
+	}
+	const row = await db
+		.selectFrom("listing_rental")
+		.selectAll()
+		.where("listing_id", "=", listing.id)
+		.executeTakeFirst();
+	return row ?? null;
+}
+
+async function fetchSale(db: Kysely<Database>, listing: { id: string; category: string }) {
+	if (listing.category !== "sale") {
+		return null;
+	}
+	const row = await db
+		.selectFrom("listing_sale")
+		.selectAll()
+		.where("listing_id", "=", listing.id)
+		.executeTakeFirst();
+	return row ?? null;
+}
+
+async function fetchGear(db: Kysely<Database>, listing: { id: string; category: string }) {
+	if (listing.category !== "gear") {
+		return null;
+	}
+	const row = await db
+		.selectFrom("listing_gear")
+		.selectAll()
+		.where("listing_id", "=", listing.id)
+		.executeTakeFirst();
+	return row ?? null;
+}
+
+async function fetchPart(db: Kysely<Database>, listing: { id: string; category: string }) {
+	if (listing.category !== "part") {
+		return null;
+	}
+	const row = await db
+		.selectFrom("listing_part")
+		.selectAll()
+		.where("listing_id", "=", listing.id)
+		.executeTakeFirst();
+	return row ?? null;
+}
+
 export async function getListingForDisplay(shortId: string): Promise<ListingForDisplay | null> {
 	const db = await getDb();
 	const row = await db
@@ -72,46 +120,10 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 			.where("listing_id", "=", listing.id)
 			.orderBy("order", "asc")
 			.execute(),
-		listing.category === "rental"
-			? db
-					.selectFrom("listing_rental")
-					.select([
-						"price_per_day",
-						"price_per_week",
-						"price_per_weekend",
-						"price_description",
-						"mileage_limit",
-					])
-					.where("listing_id", "=", listing.id)
-					.executeTakeFirst()
-			: Promise.resolve(null),
-		listing.category === "sale"
-			? db
-					.selectFrom("listing_sale")
-					.select(["price", "condition", "km_driven", "negotiable"])
-					.where("listing_id", "=", listing.id)
-					.executeTakeFirst()
-			: Promise.resolve(null),
-		listing.category === "gear"
-			? db
-					.selectFrom("listing_gear")
-					.select(["gear_type", "size", "condition", "price"])
-					.where("listing_id", "=", listing.id)
-					.executeTakeFirst()
-			: Promise.resolve(null),
-		listing.category === "part"
-			? db
-					.selectFrom("listing_part")
-					.select([
-						"part_category",
-						"compatible_make_id",
-						"compatible_model_id",
-						"condition",
-						"price",
-					])
-					.where("listing_id", "=", listing.id)
-					.executeTakeFirst()
-			: Promise.resolve(null),
+		fetchRental(db, listing),
+		fetchSale(db, listing),
+		fetchGear(db, listing),
+		fetchPart(db, listing),
 		db
 			.selectFrom("profile")
 			.select(["display_name", "city", "phone", "show_phone"])
@@ -121,10 +133,10 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 
 	return {
 		listing,
-		rental: rental ?? null,
-		sale: sale ?? null,
-		gear: gear ?? null,
-		part: part ?? null,
+		rental,
+		sale,
+		gear,
+		part,
 		images,
 		makeName: makeName ?? null,
 		makeSlug: makeSlug ?? null,
@@ -200,48 +212,18 @@ export async function getListingForEdit(
 			.where("listing_id", "=", listing.id)
 			.orderBy("order", "asc")
 			.execute(),
-		listing.category === "rental"
-			? db
-					.selectFrom("listing_rental")
-					.selectAll()
-					.where("listing_id", "=", listing.id)
-					.executeTakeFirst()
-			: Promise.resolve(null),
-		listing.category === "sale"
-			? db
-					.selectFrom("listing_sale")
-					.select(["price", "condition", "km_driven", "negotiable"])
-					.where("listing_id", "=", listing.id)
-					.executeTakeFirst()
-			: Promise.resolve(null),
-		listing.category === "gear"
-			? db
-					.selectFrom("listing_gear")
-					.select(["gear_type", "size", "condition", "price"])
-					.where("listing_id", "=", listing.id)
-					.executeTakeFirst()
-			: Promise.resolve(null),
-		listing.category === "part"
-			? db
-					.selectFrom("listing_part")
-					.select([
-						"part_category",
-						"compatible_make_id",
-						"compatible_model_id",
-						"condition",
-						"price",
-					])
-					.where("listing_id", "=", listing.id)
-					.executeTakeFirst()
-			: Promise.resolve(null),
+		fetchRental(db, listing),
+		fetchSale(db, listing),
+		fetchGear(db, listing),
+		fetchPart(db, listing),
 	]);
 
 	return {
 		listing,
-		rental: rental ?? null,
-		sale: sale ?? null,
-		gear: gear ?? null,
-		part: part ?? null,
+		rental,
+		sale,
+		gear,
+		part,
 		images,
 		makeSlug: makeSlug ?? null,
 		modelName: modelName ?? null,

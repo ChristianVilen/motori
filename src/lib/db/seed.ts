@@ -297,7 +297,6 @@ async function main() {
 			user_id: userId,
 			display_name: SEED_NAME,
 			city: "Helsinki",
-			license_class: "A",
 			language: "fi",
 			created_at: new Date(),
 			updated_at: new Date(),

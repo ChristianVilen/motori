@@ -43,7 +43,9 @@ test.describe("Auth flow", () => {
 	test("register new account redirects to profile completion", async () => {
 		const register = new RegisterPage(page);
 		await register.goto();
-		await register.nameInput.fill(name);
+		const [firstName = "", lastName = ""] = name.split(" ");
+		await register.firstNameInput.fill(firstName);
+		await register.lastNameInput.fill(lastName);
 		await register.emailInput.fill(email);
 		await register.passwordInput.pressSequentially(password, { delay: 30 });
 		await register.termsCheckbox.check();

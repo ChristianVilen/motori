@@ -29,11 +29,12 @@ export interface Account {
 }
 
 export interface Booking {
+	conversation_id: string | null;
 	created_at: Generated<Timestamp>;
 	end_date: Timestamp;
 	id: Generated<string>;
 	listing_id: string;
-	message: string;
+	message: string | null;
 	rejection_reason: string | null;
 	renter_user_id: string;
 	responded_at: Timestamp | null;
@@ -43,6 +44,17 @@ export interface Booking {
 	updated_at: Generated<Timestamp>;
 }
 
+export interface Conversation {
+	buyer_id: string;
+	buyer_last_read_at: Timestamp | null;
+	created_at: Generated<Timestamp>;
+	id: Generated<string>;
+	last_message_at: Generated<Timestamp>;
+	listing_id: string;
+	seller_id: string;
+	seller_last_read_at: Timestamp | null;
+}
+
 export interface Favorite {
 	created_at: Generated<Timestamp>;
 	listing_id: string;
@@ -50,7 +62,7 @@ export interface Favorite {
 }
 
 export interface Listing {
-	availability_default: Generated<string>;
+	category: string;
 	city: string;
 	created_at: Generated<Timestamp>;
 	description: string;
@@ -58,16 +70,11 @@ export interface Listing {
 	expires_at: Timestamp | null;
 	expiry_notified_at: Timestamp | null;
 	id: string;
-	make_id: string;
-	mileage_limit: number | null;
+	make_id: string | null;
 	model_id: string | null;
-	motorcycle_type: string;
+	motorcycle_type: string | null;
 	owner_id: string;
 	postal_code: string | null;
-	price_description: string | null;
-	price_per_day: number;
-	price_per_week: number | null;
-	price_per_weekend: number | null;
 	region: string;
 	required_license: string | null;
 	reviewed_at: Timestamp | null;
@@ -77,7 +84,7 @@ export interface Listing {
 	title: string;
 	updated_at: Generated<Timestamp>;
 	view_count: Generated<number>;
-	year: number;
+	year: number | null;
 }
 
 export interface ListingAvailabilityException {
@@ -86,12 +93,57 @@ export interface ListingAvailabilityException {
 	listing_id: string;
 }
 
+export interface ListingGear {
+	condition: string;
+	gear_type: string;
+	listing_id: string;
+	price: number;
+	size: string | null;
+}
+
 export interface ListingImage {
 	id: string;
 	listing_id: string;
 	order: Generated<number>;
 	thumbnail_url: string | null;
 	url: string;
+}
+
+export interface ListingPart {
+	compatible_make_id: string | null;
+	compatible_model_id: string | null;
+	condition: string;
+	listing_id: string;
+	part_category: string;
+	price: number;
+}
+
+export interface ListingRental {
+	availability_default: Generated<string>;
+	listing_id: string;
+	mileage_limit: number | null;
+	price_description: string | null;
+	price_per_day: number;
+	price_per_week: number | null;
+	price_per_weekend: number | null;
+}
+
+export interface ListingSale {
+	condition: string;
+	km_driven: number | null;
+	listing_id: string;
+	negotiable: Generated<boolean>;
+	price: number;
+}
+
+export interface Message {
+	body: string;
+	booking_id: string | null;
+	conversation_id: string;
+	created_at: Generated<Timestamp>;
+	id: Generated<string>;
+	kind: Generated<string>;
+	sender_id: string;
 }
 
 export interface MotorcycleMake {
@@ -111,11 +163,12 @@ export interface MotorcycleModel {
 }
 
 export interface Profile {
+	account_type: Generated<string>;
+	business_name: string | null;
 	city: string | null;
 	created_at: Generated<Timestamp>;
 	display_name: string;
 	language: Generated<string>;
-	license_class: string | null;
 	phone: string | null;
 	show_phone: Generated<boolean>;
 	terms_accepted_at: Timestamp | null;
@@ -158,35 +211,6 @@ export interface Session {
 	userId: string;
 }
 
-export interface ToriItem {
-	category: string;
-	city: string;
-	condition: string;
-	created_at: Generated<Timestamp>;
-	description: string;
-	expires_at: Timestamp;
-	expiry_notified_at: Timestamp | null;
-	id: string;
-	owner_id: string;
-	postal_code: string | null;
-	price_cents: number;
-	region: string;
-	search_vector: string | null;
-	short_id: string;
-	status: Generated<string>;
-	title: string;
-	updated_at: Generated<Timestamp>;
-	view_count: Generated<number>;
-}
-
-export interface ToriItemImage {
-	id: string;
-	item_id: string;
-	order: Generated<number>;
-	thumbnail_url: string | null;
-	url: string;
-}
-
 export interface User {
 	banExpires: Timestamp | null;
 	banned: Generated<boolean>;
@@ -201,6 +225,12 @@ export interface User {
 	updatedAt: Timestamp;
 }
 
+export interface UserBlock {
+	blocked_id: string;
+	blocker_id: string;
+	created_at: Generated<Timestamp>;
+}
+
 export interface Verification {
 	createdAt: Timestamp | null;
 	expiresAt: Timestamp;
@@ -213,18 +243,23 @@ export interface Verification {
 export interface DB {
 	account: Account;
 	booking: Booking;
+	conversation: Conversation;
 	favorite: Favorite;
 	listing: Listing;
 	listing_availability_exception: ListingAvailabilityException;
+	listing_gear: ListingGear;
 	listing_image: ListingImage;
+	listing_part: ListingPart;
+	listing_rental: ListingRental;
+	listing_sale: ListingSale;
+	message: Message;
 	motorcycle_make: MotorcycleMake;
 	motorcycle_model: MotorcycleModel;
 	profile: Profile;
 	report: Report;
 	review: Review;
 	session: Session;
-	tori_item: ToriItem;
-	tori_item_image: ToriItemImage;
 	user: User;
+	user_block: UserBlock;
 	verification: Verification;
 }

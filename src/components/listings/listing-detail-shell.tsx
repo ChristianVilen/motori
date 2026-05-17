@@ -70,7 +70,7 @@ function SellerCard({
 						) : (
 							<span>{t("detail.noReviews")}</span>
 						)}
-						{data.ownerCity && (
+						{!!data.ownerCity && (
 							<>
 								<span className="text-border">&bull;</span>
 								<span className="truncate">{data.ownerCity}</span>
