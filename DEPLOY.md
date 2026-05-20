@@ -92,7 +92,7 @@ rm secrets/dokku-config.sh   # keep only the .age in git
 ### 5. First deploy + smoke test
 
 ```bash
-just add-remote 204.168.221.250    # one-time, registers `dokku` git remote
+just add-remote <your-vps-ip>      # one-time, registers `dokku` git remote
 just deploy                        # = git push dokku main
 just logs                          # tail
 ```
