@@ -4,9 +4,12 @@ set shell := ["bash", "-c"]
 host := "root@motori"
 app := "motori"
 
-# Age recipients for encrypting secrets (public key from ~/.config/sops/age/keys.txt).
-age_pub := "age1pk32xkk4hx7frnnyjaf9rk3myxz2xjczv7th97czlc7lf5mv8qaqqp6wgx"
-age_key := "~/.config/sops/age/keys.txt"
+# Age recipients for encrypting secrets (public key — safe to commit).
+age_pub := "age1gh73uxuev6n4x40tajwyqdqm0rfug7j4uvpnant5l2w9z56hu9jq9f59uy"
+
+# Age private key fetched from 1Password on demand. Requires `op` CLI signed in
+# (either via the desktop-app integration or OP_SERVICE_ACCOUNT_TOKEN).
+age_key_ref := "op://Vuokramoto/motori age key/password"
 
 # List available commands
 default:
@@ -69,7 +72,7 @@ rotate-db-password:
     echo "ALTER USER postgres PASSWORD '${NEW_PASS}';" | ssh {{host}} "dokku postgres:connect {{app}}"
     ssh {{host}} "dokku config:set {{app}} DATABASE_URL=postgres://postgres:${NEW_PASS}@dokku-postgres-motori:5432/{{app}}"
     # Update secrets/dokku-config.sh and re-encrypt
-    age -d -i {{age_key}} secrets/dokku-config.sh.age > secrets/dokku-config.sh
+    age -d -i <(op read "{{age_key_ref}}") secrets/dokku-config.sh.age > secrets/dokku-config.sh
     sed -i "s|DATABASE_URL=postgres://postgres:[^@]*@|DATABASE_URL=postgres://postgres:${NEW_PASS}@|" secrets/dokku-config.sh
     age -r {{age_pub}} -o secrets/dokku-config.sh.age secrets/dokku-config.sh
     rm secrets/dokku-config.sh
@@ -100,8 +103,8 @@ config-encrypt:
 
 # Decrypt secrets/dokku-config.sh.age and run it on the VPS (sets all dokku config in one go)
 config-apply:
-    @test -f {{age_key}} || (echo "error: {{age_key}} not found" && exit 1)
-    age -d -i {{age_key}} secrets/dokku-config.sh.age | ssh {{host}} bash
+    @op whoami >/dev/null 2>&1 || (echo "error: not signed in to 1Password (run: eval \"\$(op signin)\")" && exit 1)
+    age -d -i <(op read "{{age_key_ref}}") secrets/dokku-config.sh.age | ssh {{host}} bash
 
 # Encrypt secrets/backup-setup.sh → secrets/backup-setup.sh.age (postgres backup auth + encryption + schedule)
 backup-encrypt:
@@ -111,8 +114,8 @@ backup-encrypt:
 
 # Decrypt secrets/backup-setup.sh.age and run it on the VPS (configures dokku-postgres backups)
 backup-setup:
-    @test -f {{age_key}} || (echo "error: {{age_key}} not found" && exit 1)
-    age -d -i {{age_key}} secrets/backup-setup.sh.age | ssh {{host}} bash
+    @op whoami >/dev/null 2>&1 || (echo "error: not signed in to 1Password (run: eval \"\$(op signin)\")" && exit 1)
+    age -d -i <(op read "{{age_key_ref}}") secrets/backup-setup.sh.age | ssh {{host}} bash
 
 # Install host crontab + wrapper script for /api/cron tasks
 cron-install:
@@ -125,9 +128,10 @@ cron-install:
 certs-apply:
     @test -f secrets/certs/motori.fi.pem.age || (echo "error: secrets/certs/motori.fi.pem.age not found" && exit 1)
     @test -f secrets/certs/motori.fi.key.age || (echo "error: secrets/certs/motori.fi.key.age not found" && exit 1)
-    tmp=$(mktemp -d) && \
-      age -d -i {{age_key}} secrets/certs/motori.fi.pem.age > "$tmp/server.crt" && \
-      age -d -i {{age_key}} secrets/certs/motori.fi.key.age > "$tmp/server.key" && \
+    key=$(op read "{{age_key_ref}}") && \
+      tmp=$(mktemp -d) && \
+      age -d -i <(printf '%s' "$key") secrets/certs/motori.fi.pem.age > "$tmp/server.crt" && \
+      age -d -i <(printf '%s' "$key") secrets/certs/motori.fi.key.age > "$tmp/server.key" && \
       tar -C "$tmp" -cf "$tmp/certs.tar" server.crt server.key && \
       ssh {{host}} "dokku certs:add {{app}}" < "$tmp/certs.tar" && \
       rm -rf "$tmp"
@@ -141,4 +145,31 @@ secrets-export:
 
 # Decrypt secrets/motori.env.age to stdout
 secrets-decrypt:
-    age -d -i {{age_key}} secrets/motori.env.age
+    age -d -i <(op read "{{age_key_ref}}") secrets/motori.env.age
+
+# Decrypt every secrets/**/*.age to a matching plaintext file (strips .age, mode 600).
+# Edit them, then run `just secrets-encrypt-all` to re-encrypt and shred plaintext.
+secrets-decrypt-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    op whoami >/dev/null 2>&1 || { echo "error: not signed in to 1Password (run: eval \"\$(op signin)\")" >&2; exit 1; }
+    key=$(op read "{{age_key_ref}}")
+    while IFS= read -r -d '' f; do
+      out="${f%.age}"
+      age -d -i <(printf '%s' "$key") "$f" > "$out"
+      chmod 600 "$out"
+      echo "✓ $out"
+    done < <(find secrets -type f -name '*.age' -print0)
+    echo "edit the plaintext files, then run: just secrets-encrypt-all"
+
+# Re-encrypt every plaintext counterpart of secrets/**/*.age, then shred the plaintext.
+secrets-encrypt-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    while IFS= read -r -d '' f; do
+      plain="${f%.age}"
+      [ -f "$plain" ] || { echo "skip (no plaintext): $f"; continue; }
+      age -r {{age_pub}} -o "$f" "$plain"
+      command -v shred >/dev/null && shred -u "$plain" || rm -f "$plain"
+      echo "✓ $f (plaintext removed)"
+    done < <(find secrets -type f -name '*.age' -print0)
