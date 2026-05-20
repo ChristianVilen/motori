@@ -12,6 +12,7 @@ dist
 .tanstack
 .superpowers/
 .claude/worktrees/
+.claude/settings.local.json
 .pi
 .idea
 
