@@ -68,6 +68,7 @@ migrate-prod:
 rotate-db-password:
     #!/usr/bin/env bash
     set -euo pipefail
+    op whoami >/dev/null 2>&1 || { echo "error: not signed in to 1Password (run: eval \"\$(op signin)\")" >&2; exit 1; }
     NEW_PASS=$(openssl rand -hex 20)
     echo "ALTER USER postgres PASSWORD '${NEW_PASS}';" | ssh {{host}} "dokku postgres:connect {{app}}"
     ssh {{host}} "dokku config:set {{app}} DATABASE_URL=postgres://postgres:${NEW_PASS}@dokku-postgres-motori:5432/{{app}}"
@@ -128,7 +129,8 @@ cron-install:
 certs-apply:
     @test -f secrets/certs/motori.fi.pem.age || (echo "error: secrets/certs/motori.fi.pem.age not found" && exit 1)
     @test -f secrets/certs/motori.fi.key.age || (echo "error: secrets/certs/motori.fi.key.age not found" && exit 1)
-    key=$(op read "{{age_key_ref}}") && \
+    @op whoami >/dev/null 2>&1 || (echo "error: not signed in to 1Password (run: eval \"\$(op signin)\")" && exit 1)
+    key="$(op read "{{age_key_ref}}")" && \
       tmp=$(mktemp -d) && \
       age -d -i <(printf '%s' "$key") secrets/certs/motori.fi.pem.age > "$tmp/server.crt" && \
       age -d -i <(printf '%s' "$key") secrets/certs/motori.fi.key.age > "$tmp/server.key" && \
@@ -145,6 +147,7 @@ secrets-export:
 
 # Decrypt secrets/motori.env.age to stdout
 secrets-decrypt:
+    @op whoami >/dev/null 2>&1 || (echo "error: not signed in to 1Password (run: eval \"\$(op signin)\")" && exit 1)
     age -d -i <(op read "{{age_key_ref}}") secrets/motori.env.age
 
 # Decrypt every secrets/**/*.age to a matching plaintext file (strips .age, mode 600).
