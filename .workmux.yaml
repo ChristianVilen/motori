@@ -7,6 +7,8 @@ files:
   copy:
     - .env
     - .env.prod
+  symlink:
+    - .claude/settings.local.json
 
 post_create: |
   source scripts/worktree-ports.sh
