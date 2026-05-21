@@ -8,8 +8,20 @@ files:
     - .env
     - .env.prod
 
+post_create: |
+  source scripts/worktree-ports.sh
+  ./scripts/patch-worktree-env.sh
+  docker compose up -d db
+  pnpm install
+  pnpm db:migrate
+  pnpm db:seed
+
+pre_remove: |
+  source scripts/worktree-ports.sh
+  docker compose down -v
+
 panes:
   - command: <agent>
     focus: true
-  - command: pnpm install
+  - command: pnpm dev
     split: vertical
