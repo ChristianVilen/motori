@@ -10,17 +10,11 @@ files:
   symlink:
     - .claude/settings.local.json
 
-post_create: |
-  source scripts/worktree-ports.sh
-  ./scripts/patch-worktree-env.sh
-  docker compose up -d db
-  pnpm install
-  pnpm db:migrate
-  pnpm db:seed
+post_create:
+  - bash -c "source scripts/worktree-ports.sh && ./scripts/patch-worktree-env.sh && docker compose up -d db && pnpm install && pnpm db:migrate && pnpm db:seed"
 
-pre_remove: |
-  source scripts/worktree-ports.sh
-  docker compose down -v
+pre_remove:
+  - bash -c "source scripts/worktree-ports.sh && docker compose down -v"
 
 panes:
   - command: <agent>
