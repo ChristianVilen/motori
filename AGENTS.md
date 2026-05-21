@@ -2,6 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+- IMPORTANT: Whenever making any changes, always ensure CLAUDE.md stays up to date.
+- Whenever you come up with an idea for how to improve CLAUDE.md, alert the human user and confirm if they want to add it
+- When you correct me on the same thing twice, suggest a CLAUDE.md rule that would prevent it.
+- If you spot anything in CLAUDE. md that's outdated or contradictory or useless, flag it to the human user for removal.
+
 ## Project
 
 Motori is a P2P motorcycle rental noticeboard for Finland. Lean MVP — prefer minimal, direct solutions over abstractions and premature generalisation. UI copy is Finnish.
@@ -39,7 +44,7 @@ Hydration signal: `__root.tsx` sets `data-hydrated="true"` on `<html>` after mou
 
 ### SSR / client boundary
 
-TanStack Start ships `src/start.ts`, `src/router.tsx`, and the route tree to **both** server and client bundles. `.server(...)` strips the *callback* but **not module-top-level code or imports**.
+TanStack Start ships `src/start.ts`, `src/router.tsx`, and the route tree to **both** server and client bundles. `.server(...)` strips the _callback_ but **not module-top-level code or imports**.
 
 - Never put `node:*` imports or `new`-constructed node primitives at module top level in any file the client can reach. Vite stubs `node:async_hooks` / `node:crypto` etc. to `{}` on the client, so `new AsyncLocalStorage()` becomes `new undefined()` and crashes hydration.
 - If a server-only value (e.g. a per-request nonce) needs to flow into a shared module, lazy-import it inside the `.server` callback and expose it via a server-only side channel — guard registration with `if (typeof window === "undefined")`. See `src/lib/nonce.ts` for the pattern.
@@ -68,6 +73,7 @@ BetterAuth with Kysely adapter. `src/lib/auth.ts` (server) and `src/lib/auth-cli
 ### Security
 
 Every POST `createServerFn` must include, in order:
+
 1. `csrfMiddleware()` — validates `Origin` header against `BETTER_AUTH_URL` (see `src/lib/csrf.ts`).
 2. `rateLimitMiddleware(max, windowSec, prefix)` — per-IP fixed-window limiter (see `src/lib/rate-limit.ts`).
 3. `requireVerifiedEmail()` where the action requires a verified account.
@@ -95,14 +101,13 @@ Structured logging via pino with AsyncLocalStorage context (`withLogContext`) �
 Use the `gh` CLI for all GitHub interactions — never open the web UI for things `gh` can do.
 
 **Issues** are the feature backlog and bug tracker. Labels: `bug`, `enhancement`, `p1`, `p2`, `auth`, `i18n`, `deferred`. Common commands:
+
 - `gh issue list` — browse open issues
 - `gh issue list -l p1` — filter by label
 - `gh issue create --title "..." --label enhancement,p2` — open a new issue
 - `gh issue view <number>` — read an issue with full body
 
 **CI** runs on every PR and push to `main` (`.github/workflows/ci.yml`). Four parallel jobs: `lint`, `format`, `typecheck`, `test` (unit). Plus an `e2e` job sharded 2-way that spins up a Postgres 17 service container, runs migrations, builds, then runs Playwright against Chromium and WebKit. E2e failures upload a `playwright-report` artifact (7-day retention). CI uses `.env.ci` (not `.env.example`) — keep that file in sync when adding required env vars.
-
-**Dependabot** auto-merges patch/minor dependency bumps (`dependabot-auto-merge.yml`) when CI passes.
 
 ## Conventions
 
@@ -111,3 +116,4 @@ Use the `gh` CLI for all GitHub interactions — never open the web UI for thing
 - Production deploy runbook: `DEPLOY.md`. Design specs and implementation plans produced via the superpowers skills go under `docs/superpowers/` (specs in `docs/superpowers/specs/`, plans in `docs/superpowers/plans/`).
 - Commits: no `Co-Authored-By` lines.
 - Issues and feature tracking: GitHub Issues on this repo (labels: `bug`, `enhancement`, `p1`, `p2`, `auth`, `i18n`). Use `gh issue list` to browse, `gh issue create` to add new ones.
+- Dont consider your work done, until all tests, format, lint and build pass
