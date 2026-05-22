@@ -1,11 +1,9 @@
-name: motori
-
 services:
   db:
     image: postgres:17-alpine
 
     ports:
-      - "5433:5432"
+      - "${DB_PORT:-5433}:5432"
     environment:
       POSTGRES_USER: motori
       POSTGRES_PASSWORD: motori

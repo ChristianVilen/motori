@@ -6,6 +6,7 @@ playwright-report/
 dist
 .env
 .env.prod
+.worktree-offset
 *.local
 .vinxi
 .vite
@@ -29,3 +30,4 @@ secrets/**
 !secrets/.gitkeep
 !secrets/**/
 !secrets/**/*.age
+.DS_store
