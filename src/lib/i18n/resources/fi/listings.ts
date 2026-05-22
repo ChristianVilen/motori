@@ -212,7 +212,7 @@ export default {
 		images: {
 			addImages: "Lisää kuvia",
 			dragHere: "tai vedä tähän",
-			fileConstraints: "JPEG, PNG tai WebP · max 5 MB per kuva",
+			fileConstraints: "JPEG, PNG tai WebP · max 10 MB per kuva",
 			removeImageAriaLabel: "Poista kuva",
 			coverBadge: "Kansikuva",
 			coverHint: "Ensimmäinen kuva on kansikuva. Järjestä kuvat tai aseta toinen kansikuvaksi.",
@@ -220,7 +220,7 @@ export default {
 			moveLeftAriaLabel: "Siirrä vasemmalle",
 			moveRightAriaLabel: "Siirrä oikealle",
 			errorInvalidType: "Vain JPEG, PNG ja WebP tiedostot ovat sallittuja",
-			errorFileTooLarge: "Kuvan maksimikoko on 5 MB",
+			errorFileTooLarge: "Kuvan maksimikoko on 10 MB",
 			uploading: "Ladataan kuvaa {{current}}/{{total}}...",
 		},
 		submit: {

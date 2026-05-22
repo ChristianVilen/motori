@@ -17,7 +17,7 @@ interface ToriItemFormProps {
 }
 
 const MAX_IMAGES = 8;
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 function FieldError({ errors }: { errors: unknown[] }) {
@@ -122,7 +122,7 @@ export function ToriItemForm({
 				return;
 			}
 			if (file.size > MAX_FILE_SIZE) {
-				setImageError("Kuva saa olla enintään 5 MB.");
+				setImageError("Kuva saa olla enintään 10 MB.");
 				return;
 			}
 		}
