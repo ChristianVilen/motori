@@ -3,6 +3,7 @@ import { ArrowRight, Key, Shield, ShoppingCart, Wrench } from "lucide-react";
 import { useState } from "react";
 import { ListingCard } from "~/components/listings/listing-card";
 import { CATEGORY_BROWSE_PATH } from "~/lib/category-routes";
+import { SITE_URL } from "~/lib/constants";
 import type { ListingCategory } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
 import { getLatestListings } from "~/lib/listings-search";
@@ -10,6 +11,9 @@ import { getHomepageStats } from "~/lib/listings-stats";
 import { getSession } from "~/lib/session";
 
 export const Route = createFileRoute("/")({
+	head: () => ({
+		links: [{ rel: "canonical", href: `${SITE_URL}/` }],
+	}),
 	loader: async () => {
 		const [saleListings, rentalListings, gearListings, partListings, stats, session] =
 			await Promise.all([
