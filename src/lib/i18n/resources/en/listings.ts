@@ -202,7 +202,7 @@ export default {
 		images: {
 			addImages: "Add images",
 			dragHere: "or drag here",
-			fileConstraints: "JPEG, PNG or WebP · max 5 MB per image",
+			fileConstraints: "JPEG, PNG or WebP · max 10 MB per image",
 			removeImageAriaLabel: "Remove image",
 			coverBadge: "Cover",
 			coverHint: "The first image is the cover. Reorder images or set another as the cover.",
@@ -210,7 +210,7 @@ export default {
 			moveLeftAriaLabel: "Move left",
 			moveRightAriaLabel: "Move right",
 			errorInvalidType: "Only JPEG, PNG and WebP files are allowed",
-			errorFileTooLarge: "Maximum image size is 5 MB",
+			errorFileTooLarge: "Maximum image size is 10 MB",
 			uploading: "Uploading image {{current}}/{{total}}...",
 		},
 		submit: {

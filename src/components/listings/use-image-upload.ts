@@ -3,7 +3,7 @@ import { useTranslation } from "~/lib/i18n";
 import type { ListingImageInput } from "~/lib/validators";
 
 const MAX_IMAGES = 8;
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export type ImageItem =
