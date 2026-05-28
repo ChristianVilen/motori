@@ -108,16 +108,14 @@ function HomePage() {
 		<div className="min-h-screen">
 			{/* Hero */}
 			<section className="relative overflow-hidden bg-primary">
-				{/* Hero video — full bleed on mobile, right half on lg */}
-				<video
-					autoPlay
-					loop
-					muted
-					playsInline
+				{/* Hero image — full bleed on mobile, right half on lg */}
+				<img
+					src="/images/kawasaki-ninja-rider-sunset-1200w.webp"
+					srcSet="/images/kawasaki-ninja-rider-sunset-400w.webp 400w, /images/kawasaki-ninja-rider-sunset-800w.webp 800w, /images/kawasaki-ninja-rider-sunset-1200w.webp 1200w, /images/kawasaki-ninja-rider-sunset-1920w.webp 1920w"
+					sizes="(min-width: 1024px) 50vw, 100vw"
+					alt={t("hero.imgAlt")}
 					className="absolute inset-0 h-full w-full object-cover lg:left-1/2 lg:w-1/2"
-				>
-					<source src="/hero_video.mp4" type="video/mp4" />
-				</video>
+				/>
 				{/* Mobile darken */}
 				<div className="absolute inset-0 bg-gradient-to-b from-primary/90 via-primary/75 to-primary/90 lg:hidden" />
 				{/* Desktop left-edge fade */}
