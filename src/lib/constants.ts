@@ -1,6 +1,12 @@
 export const SITE_URL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 export const SITE_NAME = "Motori";
 
+// Single source of truth for the image upload size cap. Enforced client-side
+// (use-image-upload, tori-item-form) and server-side (api/images/upload) — these
+// must not diverge, or uploads pass client validation then fail at the server.
+export const MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024;
+export const MAX_IMAGE_UPLOAD_MB = MAX_IMAGE_UPLOAD_BYTES / (1024 * 1024);
+
 export const REGIONS = [
 	{ value: "uusimaa", label: "Uusimaa" },
 	{ value: "pirkanmaa", label: "Pirkanmaa" },

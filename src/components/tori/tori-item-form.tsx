@@ -5,6 +5,7 @@ import { CitySelect } from "~/components/listings/city-select";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
+import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { TORI_CATEGORIES, TORI_CONDITIONS } from "~/lib/tori/constants";
 import { type ToriItemFormData, toriItemFormSchema } from "~/lib/tori/validators";
@@ -17,7 +18,6 @@ interface ToriItemFormProps {
 }
 
 const MAX_IMAGES = 8;
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 function FieldError({ errors }: { errors: unknown[] }) {
@@ -121,8 +121,8 @@ export function ToriItemForm({
 				setImageError("Sallitut tiedostotyypit: JPEG, PNG, WebP.");
 				return;
 			}
-			if (file.size > MAX_FILE_SIZE) {
-				setImageError("Kuva saa olla enintään 10 MB.");
+			if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+				setImageError(`Kuva saa olla enintään ${MAX_IMAGE_UPLOAD_MB} MB.`);
 				return;
 			}
 		}

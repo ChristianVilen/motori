@@ -2,9 +2,64 @@ import { eurosToCents } from "~/lib/currency";
 import type { GearType } from "~/lib/db/schema";
 import { AppError } from "~/lib/errors";
 import { generateShortId } from "~/lib/slug";
-import type { ListingFormData } from "~/lib/validators";
+import type {
+	GearFormData,
+	ListingFormData,
+	PartFormData,
+	RentalFormData,
+	SaleFormData,
+} from "~/lib/validators";
 
 const getDb = async () => (await import("~/lib/db/index")).db;
+
+// Listing columns editable by both create and update. Bike fields are nulled for
+// gear/part. Create layers id/owner/timestamps on top; update adds updated_at.
+// `bike` is an aliased condition so TS narrows data.make_id etc. to the bike variants.
+function editableListingColumns(data: ListingFormData) {
+	const bike = data.category === "sale" || data.category === "rental";
+	return {
+		title: data.title,
+		make_id: bike ? data.make_id : null,
+		model_id: bike ? (data.model_id ?? null) : null,
+		year: bike ? data.year : null,
+		engine_cc: bike ? (data.engine_cc ?? null) : null,
+		required_license: bike ? (data.required_license ?? null) : null,
+		motorcycle_type: bike ? data.motorcycle_type : null,
+		city: data.city,
+		region: data.region,
+		postal_code: data.postal_code ?? null,
+		description: data.description,
+	};
+}
+
+// Child-table column values shared by create (insert) and update (set).
+// Callers add listing_id for inserts; updates match on it in the where clause.
+const rentalValues = (data: RentalFormData) => ({
+	price_per_day: eurosToCents(data.price_per_day),
+	price_per_week: data.price_per_week ? eurosToCents(data.price_per_week) : null,
+	price_per_weekend: data.price_per_weekend ? eurosToCents(data.price_per_weekend) : null,
+	price_description: data.price_description ?? null,
+	mileage_limit: data.mileage_limit ?? null,
+});
+const saleValues = (data: SaleFormData) => ({
+	price: eurosToCents(data.price),
+	condition: data.condition,
+	km_driven: data.km_driven ?? null,
+	negotiable: data.negotiable,
+});
+const gearValues = (data: GearFormData) => ({
+	gear_type: data.gear_type as GearType,
+	size: data.size ?? null,
+	condition: data.condition,
+	price: eurosToCents(data.price),
+});
+const partValues = (data: PartFormData) => ({
+	part_category: data.part_category,
+	compatible_make_id: data.compatible_make_id ?? null,
+	compatible_model_id: null,
+	condition: data.condition,
+	price: eurosToCents(data.price),
+});
 
 export type CreateListingResult = {
 	id: string;
@@ -23,9 +78,8 @@ export async function createListing(
 	const id = crypto.randomUUID();
 	const shortId = generateShortId();
 	const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
-	const hasBike = data.category === "sale" || data.category === "rental";
+	const bike = data.category === "sale" || data.category === "rental";
 
-	// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: core write path — splitting would obscure transactional integrity
 	await db.transaction().execute(async (trx) => {
 		await trx
 			.insertInto("listing")
@@ -34,17 +88,7 @@ export async function createListing(
 				short_id: shortId,
 				owner_id: ownerId,
 				category: data.category,
-				title: data.title,
-				make_id: hasBike ? data.make_id : null,
-				model_id: hasBike ? (data.model_id ?? null) : null,
-				year: hasBike ? data.year : null,
-				engine_cc: hasBike ? (data.engine_cc ?? null) : null,
-				required_license: hasBike ? (data.required_license ?? null) : null,
-				motorcycle_type: hasBike ? data.motorcycle_type : null,
-				city: data.city,
-				region: data.region,
-				postal_code: data.postal_code ?? null,
-				description: data.description,
+				...editableListingColumns(data),
 				expires_at: expiresAt,
 				created_at: new Date(),
 				updated_at: new Date(),
@@ -54,48 +98,22 @@ export async function createListing(
 		if (data.category === "rental") {
 			await trx
 				.insertInto("listing_rental")
-				.values({
-					listing_id: id,
-					price_per_day: eurosToCents(data.price_per_day),
-					price_per_week: data.price_per_week ? eurosToCents(data.price_per_week) : null,
-					price_per_weekend: data.price_per_weekend ? eurosToCents(data.price_per_weekend) : null,
-					price_description: data.price_description ?? null,
-					mileage_limit: data.mileage_limit ?? null,
-				})
+				.values({ listing_id: id, ...rentalValues(data) })
 				.execute();
 		} else if (data.category === "sale") {
 			await trx
 				.insertInto("listing_sale")
-				.values({
-					listing_id: id,
-					price: eurosToCents(data.price),
-					condition: data.condition,
-					km_driven: data.km_driven ?? null,
-					negotiable: data.negotiable,
-				})
+				.values({ listing_id: id, ...saleValues(data) })
 				.execute();
 		} else if (data.category === "gear") {
 			await trx
 				.insertInto("listing_gear")
-				.values({
-					listing_id: id,
-					gear_type: data.gear_type as GearType,
-					size: data.size ?? null,
-					condition: data.condition,
-					price: eurosToCents(data.price),
-				})
+				.values({ listing_id: id, ...gearValues(data) })
 				.execute();
 		} else {
 			await trx
 				.insertInto("listing_part")
-				.values({
-					listing_id: id,
-					part_category: data.part_category,
-					compatible_make_id: data.compatible_make_id ?? null,
-					compatible_model_id: null,
-					condition: data.condition,
-					price: eurosToCents(data.price),
-				})
+				.values({ listing_id: id, ...partValues(data) })
 				.execute();
 		}
 
@@ -116,14 +134,14 @@ export async function createListing(
 	});
 
 	const [make, model] = await Promise.all([
-		hasBike
+		bike
 			? db
 					.selectFrom("motorcycle_make")
 					.select(["slug"])
 					.where("id", "=", data.make_id)
 					.executeTakeFirst()
 			: Promise.resolve(null),
-		hasBike && data.model_id
+		bike && data.model_id
 			? db
 					.selectFrom("motorcycle_model")
 					.select(["name"])
@@ -164,26 +182,10 @@ export async function updateListing(
 		throw new AppError("listing.forbidden");
 	}
 
-	const hasBike = data.category === "sale" || data.category === "rental";
-
-	// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: transactional block — must remain atomic
 	await db.transaction().execute(async (trx) => {
 		const result = await trx
 			.updateTable("listing")
-			.set({
-				title: data.title,
-				make_id: hasBike ? data.make_id : null,
-				model_id: hasBike ? (data.model_id ?? null) : null,
-				year: hasBike ? data.year : null,
-				engine_cc: hasBike ? (data.engine_cc ?? null) : null,
-				required_license: hasBike ? (data.required_license ?? null) : null,
-				motorcycle_type: hasBike ? data.motorcycle_type : null,
-				city: data.city,
-				region: data.region,
-				postal_code: data.postal_code ?? null,
-				description: data.description,
-				updated_at: new Date(),
-			})
+			.set({ ...editableListingColumns(data), updated_at: new Date() })
 			.where("id", "=", id)
 			.where("owner_id", "=", ownerId)
 			.executeTakeFirst();
@@ -195,46 +197,25 @@ export async function updateListing(
 		if (data.category === "rental") {
 			await trx
 				.updateTable("listing_rental")
-				.set({
-					price_per_day: eurosToCents(data.price_per_day),
-					price_per_week: data.price_per_week ? eurosToCents(data.price_per_week) : null,
-					price_per_weekend: data.price_per_weekend ? eurosToCents(data.price_per_weekend) : null,
-					price_description: data.price_description ?? null,
-					mileage_limit: data.mileage_limit ?? null,
-				})
+				.set(rentalValues(data))
 				.where("listing_id", "=", id)
 				.execute();
 		} else if (data.category === "sale") {
 			await trx
 				.updateTable("listing_sale")
-				.set({
-					price: eurosToCents(data.price),
-					condition: data.condition,
-					km_driven: data.km_driven ?? null,
-					negotiable: data.negotiable,
-				})
+				.set(saleValues(data))
 				.where("listing_id", "=", id)
 				.execute();
 		} else if (data.category === "gear") {
 			await trx
 				.updateTable("listing_gear")
-				.set({
-					gear_type: data.gear_type as GearType,
-					size: data.size ?? null,
-					condition: data.condition,
-					price: eurosToCents(data.price),
-				})
+				.set(gearValues(data))
 				.where("listing_id", "=", id)
 				.execute();
 		} else {
 			await trx
 				.updateTable("listing_part")
-				.set({
-					part_category: data.part_category,
-					compatible_make_id: data.compatible_make_id ?? null,
-					condition: data.condition,
-					price: eurosToCents(data.price),
-				})
+				.set(partValues(data))
 				.where("listing_id", "=", id)
 				.execute();
 		}

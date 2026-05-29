@@ -2,39 +2,24 @@ import { createServerFn } from "@tanstack/react-start";
 import type { Kysely } from "kysely";
 import { sql } from "kysely";
 import { expandDateRange } from "~/lib/bookings";
-import type { Condition, GearTypeValue } from "~/lib/constants";
-import type { Database, Listing, ListingImage } from "~/lib/db/schema";
+import type {
+	Database,
+	Listing,
+	ListingGear,
+	ListingImage,
+	ListingPart,
+	ListingRental,
+	ListingSale,
+} from "~/lib/db/schema";
 
 const getDb = async () => (await import("~/lib/db/index")).db;
 
 export type ListingForDisplay = {
 	listing: Listing;
-	rental: {
-		price_per_day: number;
-		price_per_week: number | null;
-		price_per_weekend: number | null;
-		price_description: string | null;
-		mileage_limit: number | null;
-	} | null;
-	sale: {
-		price: number;
-		condition: Condition;
-		km_driven: number | null;
-		negotiable: boolean;
-	} | null;
-	gear: {
-		gear_type: GearTypeValue;
-		size: string | null;
-		condition: Condition;
-		price: number;
-	} | null;
-	part: {
-		part_category: string;
-		compatible_make_id: string | null;
-		compatible_model_id: string | null;
-		condition: Condition;
-		price: number;
-	} | null;
+	rental: ListingRental | null;
+	sale: ListingSale | null;
+	gear: ListingGear | null;
+	part: ListingPart | null;
 	images: ListingImage[];
 	makeName: string | null;
 	makeSlug: string | null;
@@ -44,52 +29,68 @@ export type ListingForDisplay = {
 	ownerContact: { phone: string | null; showPhone: boolean };
 };
 
-async function fetchRental(db: Kysely<Database>, listing: { id: string; category: string }) {
-	if (listing.category !== "rental") {
-		return null;
-	}
-	const row = await db
-		.selectFrom("listing_rental")
-		.selectAll()
-		.where("listing_id", "=", listing.id)
-		.executeTakeFirst();
-	return row ?? null;
-}
+type ListingChildren = {
+	images: ListingImage[];
+	rental: ListingRental | null;
+	sale: ListingSale | null;
+	gear: ListingGear | null;
+	part: ListingPart | null;
+};
 
-async function fetchSale(db: Kysely<Database>, listing: { id: string; category: string }) {
-	if (listing.category !== "sale") {
-		return null;
-	}
-	const row = await db
-		.selectFrom("listing_sale")
-		.selectAll()
-		.where("listing_id", "=", listing.id)
-		.executeTakeFirst();
-	return row ?? null;
-}
+const orNull = <T>(p: Promise<T | undefined>): Promise<T | null> => p.then((row) => row ?? null);
 
-async function fetchGear(db: Kysely<Database>, listing: { id: string; category: string }) {
-	if (listing.category !== "gear") {
-		return null;
-	}
-	const row = await db
-		.selectFrom("listing_gear")
-		.selectAll()
-		.where("listing_id", "=", listing.id)
-		.executeTakeFirst();
-	return row ?? null;
-}
-
-async function fetchPart(db: Kysely<Database>, listing: { id: string; category: string }) {
-	if (listing.category !== "part") {
-		return null;
-	}
-	const row = await db
-		.selectFrom("listing_part")
-		.selectAll()
-		.where("listing_id", "=", listing.id)
-		.executeTakeFirst();
-	return row ?? null;
+// Images plus the single populated child table for this listing's category.
+// Only the matching child query fires; the others resolve to null without a round-trip.
+// (selectFrom needs a literal table name to type the row, so the four cases stay inline.)
+async function fetchListingChildren(
+	db: Kysely<Database>,
+	listing: { id: string; category: string },
+): Promise<ListingChildren> {
+	const [images, rental, sale, gear, part] = await Promise.all([
+		db
+			.selectFrom("listing_image")
+			.selectAll()
+			.where("listing_id", "=", listing.id)
+			.orderBy("order", "asc")
+			.execute(),
+		listing.category === "rental"
+			? orNull(
+					db
+						.selectFrom("listing_rental")
+						.selectAll()
+						.where("listing_id", "=", listing.id)
+						.executeTakeFirst(),
+				)
+			: null,
+		listing.category === "sale"
+			? orNull(
+					db
+						.selectFrom("listing_sale")
+						.selectAll()
+						.where("listing_id", "=", listing.id)
+						.executeTakeFirst(),
+				)
+			: null,
+		listing.category === "gear"
+			? orNull(
+					db
+						.selectFrom("listing_gear")
+						.selectAll()
+						.where("listing_id", "=", listing.id)
+						.executeTakeFirst(),
+				)
+			: null,
+		listing.category === "part"
+			? orNull(
+					db
+						.selectFrom("listing_part")
+						.selectAll()
+						.where("listing_id", "=", listing.id)
+						.executeTakeFirst(),
+				)
+			: null,
+	]);
+	return { images, rental, sale, gear, part };
 }
 
 export async function getListingForDisplay(shortId: string): Promise<ListingForDisplay | null> {
@@ -113,17 +114,8 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 	}
 	const { makeName, makeSlug, modelName, ...listing } = row;
 
-	const [images, rental, sale, gear, part, ownerProfile] = await Promise.all([
-		db
-			.selectFrom("listing_image")
-			.selectAll()
-			.where("listing_id", "=", listing.id)
-			.orderBy("order", "asc")
-			.execute(),
-		fetchRental(db, listing),
-		fetchSale(db, listing),
-		fetchGear(db, listing),
-		fetchPart(db, listing),
+	const [children, ownerProfile] = await Promise.all([
+		fetchListingChildren(db, listing),
 		db
 			.selectFrom("profile")
 			.select(["display_name", "city", "phone", "show_phone"])
@@ -133,11 +125,7 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 
 	return {
 		listing,
-		rental,
-		sale,
-		gear,
-		part,
-		images,
+		...children,
 		makeName: makeName ?? null,
 		makeSlug: makeSlug ?? null,
 		modelName: modelName ?? null,
@@ -152,33 +140,10 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 
 export type ListingForEdit = {
 	listing: Listing;
-	rental: {
-		price_per_day: number;
-		price_per_week: number | null;
-		price_per_weekend: number | null;
-		price_description: string | null;
-		mileage_limit: number | null;
-		availability_default: "open" | "closed";
-	} | null;
-	sale: {
-		price: number;
-		condition: string;
-		km_driven: number | null;
-		negotiable: boolean;
-	} | null;
-	gear: {
-		gear_type: string;
-		size: string | null;
-		condition: string;
-		price: number;
-	} | null;
-	part: {
-		part_category: string;
-		compatible_make_id: string | null;
-		compatible_model_id: string | null;
-		condition: string;
-		price: number;
-	} | null;
+	rental: ListingRental | null;
+	sale: ListingSale | null;
+	gear: ListingGear | null;
+	part: ListingPart | null;
 	images: ListingImage[];
 	makeSlug: string | null;
 	modelName: string | null;
@@ -204,27 +169,11 @@ export async function getListingForEdit(
 	}
 
 	const { makeSlug, modelName, ...listing } = row;
-
-	const [images, rental, sale, gear, part] = await Promise.all([
-		db
-			.selectFrom("listing_image")
-			.selectAll()
-			.where("listing_id", "=", listing.id)
-			.orderBy("order", "asc")
-			.execute(),
-		fetchRental(db, listing),
-		fetchSale(db, listing),
-		fetchGear(db, listing),
-		fetchPart(db, listing),
-	]);
+	const children = await fetchListingChildren(db, listing);
 
 	return {
 		listing,
-		rental,
-		sale,
-		gear,
-		part,
-		images,
+		...children,
 		makeSlug: makeSlug ?? null,
 		modelName: modelName ?? null,
 	};

@@ -6,6 +6,7 @@ import { eurosToCents } from "~/lib/currency";
 const getDb = async () => (await import("~/lib/db/index")).db;
 
 import type { Database, Listing, ListingCategory, ListingImage } from "~/lib/db/schema";
+import { CATEGORY_CHILD_TABLE } from "~/lib/listings-category";
 import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { toPrefixTsQuery, toTsQuery } from "~/lib/search";
 import type { BrowseSearchParams } from "~/lib/validators";
@@ -52,14 +53,14 @@ type FilterKey =
 	| "part_category";
 
 interface CategoryConfig {
-	childTable: "listing_rental" | "listing_sale" | "listing_gear" | "listing_part";
+	childTable: (typeof CATEGORY_CHILD_TABLE)[ListingCategory];
 	priceColumn: RawBuilder<number>;
 	supportedFilters: readonly FilterKey[];
 }
 
 const CATEGORY_CONFIGS: Record<ListingCategory, CategoryConfig> = {
 	rental: {
-		childTable: "listing_rental",
+		childTable: CATEGORY_CHILD_TABLE.rental,
 		priceColumn: sql<number>`child.price_per_day`,
 		supportedFilters: [
 			"region",
@@ -75,7 +76,7 @@ const CATEGORY_CONFIGS: Record<ListingCategory, CategoryConfig> = {
 		],
 	},
 	sale: {
-		childTable: "listing_sale",
+		childTable: CATEGORY_CHILD_TABLE.sale,
 		priceColumn: sql<number>`child.price`,
 		supportedFilters: [
 			"region",
@@ -89,12 +90,12 @@ const CATEGORY_CONFIGS: Record<ListingCategory, CategoryConfig> = {
 		],
 	},
 	gear: {
-		childTable: "listing_gear",
+		childTable: CATEGORY_CHILD_TABLE.gear,
 		priceColumn: sql<number>`child.price`,
 		supportedFilters: ["region", "price_min", "price_max", "condition", "gear_type", "size"],
 	},
 	part: {
-		childTable: "listing_part",
+		childTable: CATEGORY_CHILD_TABLE.part,
 		priceColumn: sql<number>`child.price`,
 		supportedFilters: ["region", "price_min", "price_max", "make", "condition", "part_category"],
 	},
