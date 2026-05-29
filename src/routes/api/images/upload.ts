@@ -3,12 +3,12 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { auth } from "~/lib/auth";
+import { MAX_IMAGE_UPLOAD_BYTES } from "~/lib/constants";
 import { optimizeAndUpload } from "~/lib/image-storage";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit";
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB raw input
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 function jsonError(error: string, status: number) {
@@ -64,7 +64,7 @@ export const Route = createFileRoute("/api/images/upload")({
 				if (!ALLOWED_TYPES.has(file.type)) {
 					return jsonError("Vain JPEG, PNG ja WebP sallittu", 400);
 				}
-				if (file.size > MAX_FILE_SIZE) {
+				if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
 					return jsonError("Tiedosto on liian suuri (max 10 MB)", 400);
 				}
 

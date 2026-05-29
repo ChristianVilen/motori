@@ -1,9 +1,9 @@
 import { useState } from "react";
+import { MAX_IMAGE_UPLOAD_BYTES } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import type { ListingImageInput } from "~/lib/validators";
 
 const MAX_IMAGES = 8;
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export type ImageItem =
@@ -44,7 +44,7 @@ export function useImageUpload(initialImages: ListingImageInput[]) {
 				setImageError(t("form.images.errorInvalidType"));
 				continue;
 			}
-			if (file.size > MAX_FILE_SIZE) {
+			if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
 				setImageError(t("form.images.errorFileTooLarge"));
 				continue;
 			}
