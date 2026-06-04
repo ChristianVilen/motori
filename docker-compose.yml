@@ -11,5 +11,58 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  # Local observability for dev: the app pushes pino logs straight to Loki (pino-loki,
+  # gated on LOKI_URL) and Grafana visualises them. Prod uses a separate Promtail-based
+  # stack — see infra/observability/. Config files are reused from there.
+  loki:
+    image: grafana/loki:3.3.2
+    command: -config.file=/etc/loki/config.yml
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${LOKI_PORT:-3100}:3100"
+    volumes:
+      - ./infra/observability/loki-config.yml:/etc/loki/config.yml:ro
+      - loki-data:/loki
+
+  grafana:
+    image: grafana/grafana-oss:11.4.0
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3001}:3000"
+    environment:
+      # Dev convenience: open Grafana at localhost:3001 with no login. Admin creds still
+      # work (admin/admin). Datasource + dashboards are provisioned; alerting is not
+      # mounted in dev (no SMTP), so no alert emails fire locally.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      # Motori SSO (off unless GRAFANA_OAUTH_ENABLED=true — worktrees stay anonymous-admin).
+      GF_AUTH_GENERIC_OAUTH_ENABLED: "${GRAFANA_OAUTH_ENABLED:-false}"
+      GF_AUTH_GENERIC_OAUTH_NAME: Motori
+      GF_AUTH_GENERIC_OAUTH_CLIENT_ID: grafana
+      GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: "${GRAFANA_OIDC_SECRET:-}"
+      GF_AUTH_GENERIC_OAUTH_SCOPES: openid profile email
+      GF_AUTH_GENERIC_OAUTH_USE_PKCE: "true"
+      # Browser hits localhost; Grafana's back-channel hits the host.
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: "http://localhost:3000/api/auth/oauth2/authorize"
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "http://host.docker.internal:3000/api/auth/oauth2/token"
+      GF_AUTH_GENERIC_OAUTH_API_URL: "http://host.docker.internal:3000/api/auth/oauth2/userinfo"
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "contains(role, 'admin') && 'Admin' || ''"
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_STRICT: "true"
+      GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "true"
+      GF_SERVER_ROOT_URL: "http://localhost:3001/"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./infra/observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./infra/observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - loki
+
 volumes:
   pgdata:
+  loki-data:
+  grafana-data:

@@ -1,0 +1,44 @@
+# Loki + Promtail observability stack. Grafana is NOT here — it runs as a Dokku app
+# so it inherits Dokku's nginx vhost + TLS + proxy (see DEPLOY.md §11). Grafana reaches
+# Loki over the shared external `observability` network at http://loki:3100.
+#
+# Bring-up (on the VPS):
+#   docker network create observability   # once (or: dokku network:create observability)
+#   docker compose -f infra/observability/docker-compose.yml up -d
+services:
+  loki:
+    image: grafana/loki:3.3.2
+    command: -config.file=/etc/loki/config.yml
+    restart: unless-stopped
+    # Bound to loopback only — Loki is never public; Grafana reaches it via the network.
+    ports:
+      - "127.0.0.1:3100:3100"
+    volumes:
+      - ./loki-config.yml:/etc/loki/config.yml:ro
+      - loki-data:/loki
+    networks:
+      - observability
+
+  promtail:
+    image: grafana/promtail:3.3.2
+    command: -config.file=/etc/promtail/config.yml -config.expand-env=true
+    restart: unless-stopped
+    environment:
+      # Surfaced as the `host` label; override per-host if ever multi-VPS.
+      HOST_HOSTNAME: ${HOST_HOSTNAME:-motori}
+    volumes:
+      - ./promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - promtail-positions:/tmp
+    depends_on:
+      - loki
+    networks:
+      - observability
+
+volumes:
+  loki-data:
+  promtail-positions:
+
+networks:
+  observability:
+    external: true

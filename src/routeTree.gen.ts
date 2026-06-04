@@ -17,6 +17,7 @@ import { Route as TietosuojaRouteImport } from './routes/tietosuoja'
 import { Route as TaydennaProfiiliRouteImport } from './routes/taydenna-profiili'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RekisteroidyRouteImport } from './routes/rekisteroidy'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as KirjauduRouteImport } from './routes/kirjaudu'
 import { Route as KayttoehdotRouteImport } from './routes/kayttoehdot'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
@@ -93,6 +94,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const RekisteroidyRoute = RekisteroidyRouteImport.update({
   id: '/rekisteroidy',
   path: '/rekisteroidy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KirjauduRoute = KirjauduRouteImport.update({
@@ -291,6 +297,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteRouteWithChildren
   '/kayttoehdot': typeof KayttoehdotRoute
   '/kirjaudu': typeof KirjauduRoute
+  '/login': typeof LoginRoute
   '/rekisteroidy': typeof RekisteroidyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/taydenna-profiili': typeof TaydennaProfiiliRoute
@@ -337,6 +344,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/kayttoehdot': typeof KayttoehdotRoute
   '/kirjaudu': typeof KirjauduRoute
+  '/login': typeof LoginRoute
   '/rekisteroidy': typeof RekisteroidyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/taydenna-profiili': typeof TaydennaProfiiliRoute
@@ -385,6 +393,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteRouteWithChildren
   '/kayttoehdot': typeof KayttoehdotRoute
   '/kirjaudu': typeof KirjauduRoute
+  '/login': typeof LoginRoute
   '/rekisteroidy': typeof RekisteroidyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/taydenna-profiili': typeof TaydennaProfiiliRoute
@@ -434,6 +443,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/kayttoehdot'
     | '/kirjaudu'
+    | '/login'
     | '/rekisteroidy'
     | '/sitemap.xml'
     | '/taydenna-profiili'
@@ -480,6 +490,7 @@ export interface FileRouteTypes {
     | '/'
     | '/kayttoehdot'
     | '/kirjaudu'
+    | '/login'
     | '/rekisteroidy'
     | '/sitemap.xml'
     | '/taydenna-profiili'
@@ -527,6 +538,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/kayttoehdot'
     | '/kirjaudu'
+    | '/login'
     | '/rekisteroidy'
     | '/sitemap.xml'
     | '/taydenna-profiili'
@@ -575,6 +587,7 @@ export interface RootRouteChildren {
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
   KayttoehdotRoute: typeof KayttoehdotRoute
   KirjauduRoute: typeof KirjauduRoute
+  LoginRoute: typeof LoginRoute
   RekisteroidyRoute: typeof RekisteroidyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TaydennaProfiiliRoute: typeof TaydennaProfiiliRoute
@@ -668,6 +681,13 @@ declare module '@tanstack/react-router' {
       path: '/rekisteroidy'
       fullPath: '/rekisteroidy'
       preLoaderRoute: typeof RekisteroidyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kirjaudu': {
@@ -968,6 +988,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRouteRoute: AdminRouteRouteWithChildren,
   KayttoehdotRoute: KayttoehdotRoute,
   KirjauduRoute: KirjauduRoute,
+  LoginRoute: LoginRoute,
   RekisteroidyRoute: RekisteroidyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TaydennaProfiiliRoute: TaydennaProfiiliRoute,

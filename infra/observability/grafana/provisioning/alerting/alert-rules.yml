@@ -1,0 +1,122 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: motori
+    folder: Motori
+    interval: 1m
+    rules:
+      # Any error-level log line in the last 5 minutes.
+      - uid: motori-errors
+        title: "Motori: error log lines"
+        condition: C
+        for: 0m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: critical
+        annotations:
+          summary: "One or more error-level log lines in the last 5 minutes."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 300, to: 0 }
+            datasourceUid: loki-main
+            model:
+              refId: A
+              datasource: { type: loki, uid: loki-main }
+              expr: 'sum(count_over_time({app="motori", level="error"} [5m]))'
+              queryType: range
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              reducer: last
+              expression: A
+              datasource: { type: __expr__, uid: __expr__ }
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              datasource: { type: __expr__, uid: __expr__ }
+              conditions:
+                - evaluator: { type: gt, params: [0] }
+
+      # App down: no log lines from the app for 2 minutes (NoData → fire).
+      - uid: motori-app-down
+        title: "Motori: app down (no logs 2m)"
+        condition: C
+        for: 2m
+        noDataState: Alerting
+        execErrState: Error
+        labels:
+          severity: critical
+        annotations:
+          summary: "No Motori log lines received for 2 minutes — app may be down."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 120, to: 0 }
+            datasourceUid: loki-main
+            model:
+              refId: A
+              datasource: { type: loki, uid: loki-main }
+              expr: 'sum(count_over_time({app="motori"} [2m]))'
+              queryType: range
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              reducer: last
+              expression: A
+              datasource: { type: __expr__, uid: __expr__ }
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              datasource: { type: __expr__, uid: __expr__ }
+              conditions:
+                - evaluator: { type: lt, params: [1] }
+
+      # VPS disk usage > 80%. Fed by the host-metrics push job (app="host"); see
+      # infra/observability/host-metrics.sh + DEPLOY.md §11. NoData → OK until installed.
+      - uid: motori-disk
+        title: "Motori VPS: disk usage > 80%"
+        condition: C
+        for: 5m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+        annotations:
+          summary: "Root volume usage above 80% on the Motori VPS."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 1200, to: 0 }
+            datasourceUid: loki-main
+            model:
+              refId: A
+              datasource: { type: loki, uid: loki-main }
+              expr: 'last_over_time({app="host", host="motori"} | json | unwrap disk_used_pct [20m])'
+              queryType: range
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              reducer: last
+              expression: A
+              datasource: { type: __expr__, uid: __expr__ }
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              datasource: { type: __expr__, uid: __expr__ }
+              conditions:
+                - evaluator: { type: gt, params: [80] }

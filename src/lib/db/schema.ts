@@ -61,6 +61,76 @@ export type DbSession = Selectable<SessionTable>;
 export type DbAccount = Selectable<AccountTable>;
 export type DbVerification = Selectable<VerificationTable>;
 
+export interface OauthClientTable {
+	id: string;
+	clientId: string;
+	clientSecret: string | null;
+	disabled: Generated<boolean>;
+	skipConsent: boolean | null;
+	enableEndSession: boolean | null;
+	subjectType: string | null;
+	scopes: string[] | null;
+	userId: string | null;
+	createdAt: Date | null;
+	updatedAt: Date | null;
+	name: string | null;
+	uri: string | null;
+	icon: string | null;
+	contacts: string[] | null;
+	tos: string | null;
+	policy: string | null;
+	softwareId: string | null;
+	softwareVersion: string | null;
+	softwareStatement: string | null;
+	redirectUris: string[];
+	postLogoutRedirectUris: string[] | null;
+	tokenEndpointAuthMethod: string | null;
+	grantTypes: string[] | null;
+	responseTypes: string[] | null;
+	public: boolean | null;
+	type: string | null;
+	requirePKCE: boolean | null;
+	referenceId: string | null;
+	metadata: unknown | null;
+}
+
+export interface OauthRefreshTokenTable {
+	id: string;
+	token: string;
+	clientId: string;
+	sessionId: string | null;
+	userId: string;
+	referenceId: string | null;
+	expiresAt: Date;
+	createdAt: Date;
+	revoked: Date | null;
+	authTime: Date | null;
+	scopes: string[];
+}
+
+export interface OauthAccessTokenTable {
+	id: string;
+	token: string | null;
+	clientId: string;
+	sessionId: string | null;
+	userId: string | null;
+	referenceId: string | null;
+	refreshId: string | null;
+	expiresAt: Date;
+	createdAt: Date;
+	scopes: string[];
+}
+
+export interface OauthConsentTable {
+	id: string;
+	clientId: string;
+	userId: string | null;
+	referenceId: string | null;
+	scopes: string[];
+	createdAt: Date;
+	updatedAt: Date;
+}
+
 // ─── App tables ───────────────────────────────────────────────────────────────
 // Column names are snake_case — idiomatic PostgreSQL for app-owned tables.
 // updated_at: defaultTo(now()) fires only on INSERT. Every UPDATE query must
@@ -332,4 +402,8 @@ export interface Database {
 	conversation: ConversationTable;
 	message: MessageTable;
 	user_block: UserBlockTable;
+	oauthClient: OauthClientTable;
+	oauthRefreshToken: OauthRefreshTokenTable;
+	oauthAccessToken: OauthAccessTokenTable;
+	oauthConsent: OauthConsentTable;
 }

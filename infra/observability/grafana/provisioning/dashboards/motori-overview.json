@@ -1,0 +1,97 @@
+{
+	"uid": "motori-overview",
+	"title": "Motori — Overview",
+	"tags": ["motori"],
+	"timezone": "browser",
+	"schemaVersion": 39,
+	"version": 1,
+	"refresh": "30s",
+	"time": { "from": "now-6h", "to": "now" },
+	"templating": { "list": [] },
+	"annotations": { "list": [] },
+	"panels": [
+		{
+			"id": 1,
+			"type": "timeseries",
+			"title": "Requests/min by route (top 10)",
+			"datasource": { "type": "loki", "uid": "loki-main" },
+			"gridPos": { "h": 9, "w": 12, "x": 0, "y": 0 },
+			"fieldConfig": {
+				"defaults": { "custom": { "drawStyle": "line", "fillOpacity": 10 } },
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"datasource": { "type": "loki", "uid": "loki-main" },
+					"expr": "topk(10, sum by (path) (count_over_time({app=\"motori\"} | json | msg=`request` [$__interval])))",
+					"legendFormat": "{{path}}"
+				}
+			]
+		},
+		{
+			"id": 2,
+			"type": "timeseries",
+			"title": "Latency p95 / p99 (ms, all routes)",
+			"datasource": { "type": "loki", "uid": "loki-main" },
+			"gridPos": { "h": 9, "w": 12, "x": 12, "y": 0 },
+			"fieldConfig": {
+				"defaults": { "unit": "ms", "custom": { "drawStyle": "line", "fillOpacity": 10 } },
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"datasource": { "type": "loki", "uid": "loki-main" },
+					"expr": "quantile_over_time(0.95, {app=\"motori\"} | json | msg=`request` | unwrap durationMs [$__interval])",
+					"legendFormat": "p95"
+				},
+				{
+					"refId": "B",
+					"datasource": { "type": "loki", "uid": "loki-main" },
+					"expr": "quantile_over_time(0.99, {app=\"motori\"} | json | msg=`request` | unwrap durationMs [$__interval])",
+					"legendFormat": "p99"
+				}
+			]
+		},
+		{
+			"id": 3,
+			"type": "timeseries",
+			"title": "Error rate (level=error) over time",
+			"datasource": { "type": "loki", "uid": "loki-main" },
+			"gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
+			"fieldConfig": {
+				"defaults": {
+					"custom": { "drawStyle": "bars", "fillOpacity": 50 },
+					"color": { "mode": "fixed", "fixedColor": "red" }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"datasource": { "type": "loki", "uid": "loki-main" },
+					"expr": "sum(count_over_time({app=\"motori\", level=\"error\"} [$__interval]))",
+					"legendFormat": "errors"
+				}
+			]
+		},
+		{
+			"id": 4,
+			"type": "table",
+			"title": "Top error events",
+			"datasource": { "type": "loki", "uid": "loki-main" },
+			"gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
+			"options": { "showHeader": true },
+			"targets": [
+				{
+					"refId": "A",
+					"datasource": { "type": "loki", "uid": "loki-main" },
+					"expr": "topk(10, sum by (event) (count_over_time({app=\"motori\", level=\"error\"} | json | event!=`` [$__range])))",
+					"instant": true,
+					"format": "table"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,59 @@
+# Promtail discovers running Docker containers via the daemon socket and streams
+# their logs through the Docker API (already de-enveloped — each entry is the raw
+# pino JSON line, no {"log":...} wrapper to strip).
+#
+# Label discipline: only low-cardinality fields become Loki labels
+# (app, level, host, container). High-cardinality fields (requestId, path, status,
+# event, durationMs) stay in the log body and are queried with LogQL `| json`.
+# requestId is also attached as structured metadata so it is indexed for lookups
+# without inflating the label set. See DEPLOY.md §11.
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: warn
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 15s
+    relabel_configs:
+      # Keep only the Motori app's containers (Dokku names them `motori.<proc>.<n>`).
+      - source_labels: [__meta_docker_container_name]
+        regex: '/?motori\..*'
+        action: keep
+      - source_labels: [__meta_docker_container_name]
+        regex: '/?(.*)'
+        target_label: container
+        replacement: '$1'
+      - target_label: app
+        replacement: motori
+      - target_label: host
+        replacement: "${HOST_HOSTNAME:-motori}"
+    pipeline_stages:
+      # Parse the pino JSON line into the extracted-values map.
+      - json:
+          expressions:
+            level: level
+            requestId: requestId
+            time: time
+      # pino emits numeric levels (30=info …). Map to text for a friendly `level` label.
+      - template:
+          source: level
+          template: >-
+            {{ if eq .Value "10" }}trace{{ else if eq .Value "20" }}debug{{ else if eq .Value "30" }}info{{ else if eq .Value "40" }}warn{{ else if eq .Value "50" }}error{{ else if eq .Value "60" }}fatal{{ else }}unknown{{ end }}
+      - labels:
+          level:
+      # requestId: indexed for correlation without becoming a high-cardinality label.
+      - structured_metadata:
+          requestId:
+      # Use pino's ISO `time` as the log timestamp (falls back to scrape time if absent).
+      - timestamp:
+          source: time
+          format: RFC3339Nano

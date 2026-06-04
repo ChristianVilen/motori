@@ -1,6 +1,7 @@
 // src/lib/auth.ts
 
 import { kyselyAdapter } from "@better-auth/kysely-adapter";
+import { oauthProvider } from "@better-auth/oauth-provider";
 import { betterAuth } from "better-auth";
 import { hashPassword, verifyPassword } from "better-auth/crypto";
 import { admin } from "better-auth/plugins";
@@ -66,7 +67,32 @@ export const auth = betterAuth({
 			id,
 		}),
 	},
-	plugins: [admin()],
+	plugins: [
+		admin(),
+		oauthProvider({
+			loginPage: "/login",
+			// Grafana always has skipConsent=true — this page is only reached by future clients
+			// that require explicit consent.
+			consentPage: "/login",
+			allowDynamicClientRegistration: false,
+			// Skips the external JWT key-pair requirement; ID tokens use HS256 with the client
+			// secret. Grafana uses the userinfo endpoint for claims, so this is sufficient.
+			disableJwtPlugin: true,
+			// The Grafana client is seeded in migration 029. Caching it avoids a DB lookup per
+			// request and makes it immutable via the CRUD endpoints.
+			cachedTrustedClients: new Set(["grafana"]),
+			// Expose the Motori role so Grafana can map admin -> Admin.
+			customUserInfoClaims: ({ user }) => ({
+				role: (user as { role?: string }).role ?? "user",
+			}),
+			// Plain-text storage: the migration seeds the raw secret, and Grafana sends it as-is
+			// over HTTPS. If the secret changes, update oauthClient.clientSecret directly in the DB.
+			storeClientSecret: {
+				encrypt: (s) => s,
+				decrypt: (s) => s,
+			},
+		}),
+	],
 	rateLimit: {
 		enabled: process.env.NODE_ENV === "production",
 		window: 60,

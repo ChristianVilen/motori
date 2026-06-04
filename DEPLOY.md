@@ -203,6 +203,93 @@ Re-run any time prod env changes. Decrypt with:
 age -d -i ~/.config/sops/age/keys.txt secrets/motori.env.age
 ```
 
+### 11. Observability (Grafana + Loki + Promtail)
+
+Centralises the app's pino stdout JSON into a searchable, dashboarded, alertable store on
+the same VPS. **Loki + Promtail** run as a standalone compose stack (`infra/observability/`);
+**Grafana** runs as a Dokku app so it inherits Dokku's nginx vhost, TLS, and proxy. See
+`infra/observability/README.md` for the architecture and LogQL cheatsheet.
+
+**Log model / label discipline.** Promtail discovers the `motori.*` containers via the Docker
+socket, parses the pino JSON, and maps pino's numeric levels to text. Only low-cardinality
+fields become Loki **labels**: `app`, `level`, `host`, `container`. Everything else stays in the
+log body — query with `| json` (e.g. `{app="motori"} | json | status >= 500`). `requestId` is
+attached as **structured metadata** (`{app="motori"} | requestId = `abc-123``), never a label,
+to keep index cardinality bounded.
+
+```bash
+# Loki + Promtail stack (creates the `observability` network, brings up the stack)
+just obs-deploy
+
+# Grafana as a Dokku app, reusing the existing wildcard *.motori.fi cert
+ssh root@motori 'dokku apps:create grafana'
+ssh root@motori 'dokku network:create observability && dokku network:set grafana attach-post-deploy observability'
+ssh root@motori 'dokku storage:ensure-directory grafana && dokku storage:mount grafana /var/lib/dokku/data/storage/grafana:/var/lib/grafana'
+# provisioning (datasource, dashboards, alerts) is rsynced by obs-deploy to {{obs_dir}};
+# mount it read-only into Grafana:
+ssh root@motori 'dokku storage:mount grafana /opt/motori-observability/grafana/provisioning:/etc/grafana/provisioning'
+ssh root@motori 'dokku git:from-image grafana/grafana-oss:11.4.0'
+ssh root@motori 'dokku domains:set grafana grafana.motori.fi && dokku ports:set grafana http:80:3000 https:443:3000'
+just certs-apply-grafana   # reuse the wildcard cert tarball; or: dokku certs:add grafana < certs.tar
+ssh root@motori 'dokku proxy:build-config grafana'
+
+# Grafana env (admin pw, SMTP via Resend gateway, alert recipient) — age-encrypted
+just grafana-config
+
+# Host disk-usage → Loki push job (feeds the "disk > 80%" alert)
+just host-metrics-install
+```
+
+**DNS:** add a Cloudflare record for `grafana`, **proxied (orange cloud)**, pointing at the VPS
+IPs — same as the `motori.fi` rows in §7. SSL/TLS mode is already Full (strict) globally.
+
+**`secrets/observability.sh.age`** (create via the `config-encrypt` pattern, then `just grafana-config`)
+sets the Grafana app env:
+```bash
+dokku config:set grafana \
+  GF_SECURITY_ADMIN_PASSWORD='<rotate-me>' \
+  GF_SERVER_ROOT_URL='https://grafana.motori.fi' \
+  GF_SMTP_ENABLED=true GF_SMTP_HOST='smtp.resend.com:465' \
+  GF_SMTP_USER='resend' GF_SMTP_PASSWORD='<RESEND_API_KEY>' \
+  GF_SMTP_FROM_ADDRESS='alerts@motori.fi' GF_SMTP_FROM_NAME='Motori Grafana' \
+  ALERT_EMAIL_TO='<your-inbox>'
+```
+SMTP reuses Resend's SMTP gateway with the existing `RESEND_API_KEY` (the `motori.fi` domain is
+already verified there). Rotate the default `admin/admin` on first login.
+
+**Retention & disk.** Loki retention is **30 days** (`loki-config.yml`, enforced by the
+compactor). Logs are recreatable, so Loki chunks are **not** backed up. Monitor with
+`just loki-disk`; the "disk > 80%" alert covers the root volume.
+
+**Backups.** `grafana.db` (dashboards, alerts, users) backs up off-VPS with
+`just grafana-backup` → `./backups/grafana-<ts>.db`. For a nightly schedule, add a host cron
+that runs the same `cat` to the `motori-backups` bucket.
+
+**Grafana SSO (Motori OIDC).** Admins sign into Grafana with their Motori account.
+1. Set the shared secret on the Motori app: `just config-set GRAFANA_OIDC_SECRET=<hex>`
+   (and add it to `secrets/dokku-config.sh` before re-encrypting — see §4).
+2. Set Grafana's OAuth env on the grafana Dokku app (or in `secrets/observability.sh`):
+   `GF_AUTH_GENERIC_OAUTH_ENABLED=true`, `GF_AUTH_GENERIC_OAUTH_NAME=Motori`,
+   `GF_AUTH_GENERIC_OAUTH_CLIENT_ID=grafana`, `GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=<hex>`,
+   `GF_AUTH_GENERIC_OAUTH_SCOPES="openid profile email"`, `GF_AUTH_GENERIC_OAUTH_USE_PKCE=true`,
+   `GF_AUTH_GENERIC_OAUTH_AUTH_URL=https://motori.fi/api/auth/oauth2/authorize`,
+   `GF_AUTH_GENERIC_OAUTH_TOKEN_URL=https://motori.fi/api/auth/oauth2/token`,
+   `GF_AUTH_GENERIC_OAUTH_API_URL=https://motori.fi/api/auth/oauth2/userinfo`,
+   `GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH="contains(role, 'admin') && 'Admin' || ''"`,
+   `GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_STRICT=true`,
+   `GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=true`, `GF_SERVER_ROOT_URL=https://grafana.motori.fi`.
+3. Disable anonymous access (remove the dev `GF_AUTH_ANONYMOUS_*`). Keep the admin password as
+   break-glass.
+4. Run the oidc migration on prod (`just migrate-prod` / release phase runs `db:migrate`).
+5. The redirect URI `https://grafana.motori.fi/login/generic_oauth` is already in the trusted
+   client in `src/lib/auth.ts`.
+6. Test: open `https://grafana.motori.fi`, click "Sign in with Motori", log in as an admin →
+   Grafana Admin; log in as a non-admin → denied.
+
+**Verify.** `grafana.motori.fi` loads with valid TLS and admin login works; a fresh prod log
+line is searchable within ~10s; the "Motori — Overview" dashboard populates; forcing an
+error fires the email alert.
+
 ## Restore from backup
 
 ```bash

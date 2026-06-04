@@ -176,3 +176,60 @@ secrets-encrypt-all:
       command -v shred >/dev/null && shred -u "$plain" || rm -f "$plain"
       echo "✓ $f (plaintext removed)"
     done < <(find secrets -type f -name '*.age' -print0)
+
+# --- Observability (Grafana + Loki + Promtail) — see DEPLOY.md §11 ---
+
+obs_dir := "/opt/motori-observability"
+
+# Ship the Loki+Promtail stack to the VPS and (re)start it
+obs-deploy:
+    ssh {{host}} "docker network inspect observability >/dev/null 2>&1 || docker network create observability"
+    ssh {{host}} "mkdir -p {{obs_dir}}"
+    rsync -az --delete infra/observability/ {{host}}:{{obs_dir}}/
+    ssh {{host}} "cd {{obs_dir}} && docker compose up -d"
+    @echo "✓ observability stack deployed"
+
+# Tail Loki + Promtail logs
+obs-logs:
+    ssh {{host}} "cd {{obs_dir}} && docker compose logs -f --tail=100"
+
+# Tail the Grafana (Dokku app) logs
+grafana-logs:
+    ssh {{host}} "dokku logs grafana -t"
+
+# Report Loki on-disk usage (chunks + index)
+loki-disk:
+    ssh {{host}} "cd {{obs_dir}} && docker compose exec -T loki du -sh /loki"
+
+# Apply Grafana env (admin pw, SMTP, alert recipient) from the age-encrypted secret
+grafana-config:
+    @op whoami >/dev/null 2>&1 || (echo "error: not signed in to 1Password (run: eval \"\$(op signin)\")" && exit 1)
+    age -d -i <(op read "{{age_key_ref}}") secrets/observability.sh.age | ssh {{host}} bash
+
+# Back up grafana.db off the VPS to ./backups (timestamped). Loki chunks are NOT backed up.
+grafana-backup:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p backups
+    ts=$(date -u +%Y%m%dT%H%M%SZ)
+    ssh {{host}} "cat /var/lib/dokku/data/storage/grafana/grafana.db" > "backups/grafana-${ts}.db"
+    echo "✓ wrote backups/grafana-${ts}.db"
+
+# Install the host disk-usage → Loki push job + its cron on the VPS
+host-metrics-install:
+    scp infra/observability/host-metrics.sh {{host}}:/usr/local/bin/motori-host-metrics
+    ssh {{host}} "chmod 755 /usr/local/bin/motori-host-metrics && printf '%s\\n' '*/5 * * * * root /usr/local/bin/motori-host-metrics >/dev/null 2>&1' > /etc/cron.d/motori-host-metrics && chmod 644 /etc/cron.d/motori-host-metrics"
+    @echo "✓ host-metrics installed"
+
+# Install the wildcard *.motori.fi cert on the Grafana Dokku app (covers grafana.motori.fi)
+certs-apply-grafana:
+    @test -f secrets/certs/motori.fi.pem.age || (echo "error: secrets/certs/motori.fi.pem.age not found" && exit 1)
+    @op whoami >/dev/null 2>&1 || (echo "error: not signed in to 1Password (run: eval \"\$(op signin)\")" && exit 1)
+    key="$(op read "{{age_key_ref}}")" && \
+      tmp=$(mktemp -d) && \
+      age -d -i <(printf '%s' "$key") secrets/certs/motori.fi.pem.age > "$tmp/server.crt" && \
+      age -d -i <(printf '%s' "$key") secrets/certs/motori.fi.key.age > "$tmp/server.key" && \
+      tar -C "$tmp" -cf "$tmp/certs.tar" server.crt server.key && \
+      ssh {{host}} "dokku certs:add grafana" < "$tmp/certs.tar" && \
+      rm -rf "$tmp"
+    @echo "✓ cert installed on grafana app"

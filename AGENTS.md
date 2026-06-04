@@ -15,7 +15,7 @@ Motori is a P2P motorcycle rental noticeboard for Finland. Lean MVP — prefer m
 
 Always use `pnpm` (not npm/bun — lockfile is pnpm-lock.yaml).
 
-- `pnpm dev` — Vite dev server at http://localhost:3000 (also auto-regenerates `routeTree.gen.ts` on file changes)
+- `pnpm dev` — one command (`scripts/dev.sh`) that brings up the whole dev stack (Postgres + Loki + Grafana via docker compose) **and** runs the Vite dev server at http://localhost:3000. **Ctrl+C stops everything**, containers included (a trap runs `docker compose down`). Grafana: http://localhost:3001 (anonymous admin). `pnpm dev:down` is a manual teardown if ever needed.
 - `pnpm build` / `pnpm start` — production build and node server (also regenerates `routeTree.gen.ts`)
 - `pnpm typecheck` — `tsc --noEmit`
 - `pnpm lint` / `pnpm lint:fix` — Biome (tabs, 100-col, strict rules incl. `noExplicitAny`, `noConsole` warn, `noNonNullAssertion`)
@@ -94,7 +94,11 @@ Image uploads go through `POST /api/images/upload` — the server receives the f
 
 ### Logging (`src/lib/log/`)
 
-Structured logging via pino with AsyncLocalStorage context (`withLogContext`) — request-scoped bindings flow through without passing a logger. Use `log.info/warn/error/debug` for free-form, `log.event(name, fields)` for the typed event catalog in `events.ts`. Do not `console.log` (Biome warns).
+Structured logging via pino with AsyncLocalStorage context (`withLogContext`) — request-scoped bindings flow through without passing a logger. Use `log.info/warn/error/debug` for free-form, `log.event(name, fields)` for the typed event catalog in `events.ts`. Do not `console.log` (Biome warns). `loggingMiddleware` (registered in `src/start.ts`) binds `requestId`/`method`/`path` per request and logs each request's `status`+`durationMs` (>1000ms at `warn`). `getRequestId()` reads the current request's id from the log context; it's rendered on 500 pages (`__root.tsx` errorComponent) so bug reports can be correlated.
+
+In prod, this stdout JSON is shipped to a self-hosted **Grafana + Loki** stack on the VPS (Promtail tails the Docker logs). Only low-cardinality fields are Loki labels (`app`, `level`, `host`, `container`); query the rest with `| json`, and look up `requestId` via structured metadata. Infra lives in `infra/observability/`; ops runbook is `DEPLOY.md` §11; `just` recipes: `obs-deploy`, `grafana-logs`, `loki-disk`, `grafana-backup`.
+
+In **local dev**, the app instead pushes logs straight to a local Loki via the `pino-loki` transport (dev-only, gated on `LOKI_URL`; `pino-loki` is a devDependency). Loki + Grafana run from the root `docker-compose.yml`, reusing the configs under `infra/observability/`. `level` still arrives as a text label (pino-loki maps it), so the same dashboards work. Prod never loads `pino-loki` (the transport target is only added when `!isProd && LOKI_URL`).
 
 ## GitHub
 
