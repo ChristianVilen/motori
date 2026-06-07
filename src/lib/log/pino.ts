@@ -31,36 +31,15 @@ const PRETTY_OPTIONS = {
 	ignore: "pid,hostname",
 };
 
-// Optional OpenObserve sink — enabled when OPENOBSERVE_URL is set (prod, or an
-// opt-in local OO container) and we are server-side. Uses an in-process
-// multistream (NOT a pino worker transport, which doesn't resolve cleanly in
-// the bundled Nitro output). The default (no-OO) path below is left untouched.
-function buildOpenObserveMultistream(pinoOptions: LoggerOptions, pretty: boolean): Logger {
-	// multistream defaults each stream to `info`; pass the logger's level so
-	// e.g. LOG_LEVEL=debug still reaches both the console and OpenObserve.
-	const level = pinoOptions.level as pino.LevelWithSilentOrString;
-	const consoleStream: Writable = pretty
-		? (prettyStream(PRETTY_OPTIONS) as unknown as Writable)
-		: process.stdout;
-	const ooStream = createOpenObserveStream({
-		url: process.env.OPENOBSERVE_URL as string,
-		org: process.env.OPENOBSERVE_ORG ?? "default",
-		stream: process.env.OPENOBSERVE_STREAM ?? "motori",
-		user: process.env.OPENOBSERVE_USER ?? "",
-		password: process.env.OPENOBSERVE_PASSWORD ?? "",
-	});
-	return pino(
-		pinoOptions,
-		pino.multistream([
-			{ stream: consoleStream, level },
-			{ stream: ooStream, level },
-		]),
-	);
-}
-
 /**
  * Build the root pino instance. Accepts an optional destination stream so tests
  * can capture output without touching process.stdout.
+ *
+ * Without an injected destination the logger fans out over a multistream: a
+ * console sink (pino-pretty in-process when `pretty`, else stdout) and, when
+ * OPENOBSERVE_URL is set server-side, the best-effort OpenObserve sink. We use
+ * in-process pino-pretty rather than a worker transport because the worker
+ * doesn't resolve cleanly in the bundled Nitro output.
  */
 export function createRootLogger(opts: RootLoggerOptions = {}, destination?: Writable): Logger {
 	const isProd = opts.isProd ?? process.env.NODE_ENV === "production";
@@ -73,20 +52,31 @@ export function createRootLogger(opts: RootLoggerOptions = {}, destination?: Wri
 		redact: isProd ? { paths: REDACT_PATHS, censor: "[REDACTED]" } : undefined,
 	};
 
-	if (!destination && typeof window === "undefined" && !!process.env.OPENOBSERVE_URL) {
-		return buildOpenObserveMultistream(pinoOptions, pretty);
+	// Tests inject a destination — keep that path single-stream.
+	if (destination) {
+		return pino(pinoOptions, destination);
 	}
 
-	// pino's `transport` spawns a worker and cannot be combined with a custom
-	// destination stream. Only enable pretty when no stream was injected.
-	if (pretty && !destination) {
-		pinoOptions.transport = {
-			target: "pino-pretty",
-			options: PRETTY_OPTIONS,
-		};
+	// multistream defaults each stream to `info`; pass the logger's level so
+	// e.g. LOG_LEVEL=debug still reaches every sink.
+	const streamLevel = level as pino.Level;
+	const streams: pino.StreamEntry[] = [
+		{ stream: pretty ? prettyStream(PRETTY_OPTIONS) : process.stdout, level: streamLevel },
+	];
+	if (typeof window === "undefined" && process.env.OPENOBSERVE_URL) {
+		streams.push({
+			stream: createOpenObserveStream({
+				url: process.env.OPENOBSERVE_URL,
+				org: process.env.OPENOBSERVE_ORG ?? "default",
+				stream: process.env.OPENOBSERVE_STREAM ?? "motori",
+				user: process.env.OPENOBSERVE_USER ?? "",
+				password: process.env.OPENOBSERVE_PASSWORD ?? "",
+			}),
+			level: streamLevel,
+		});
 	}
 
-	return destination ? pino(pinoOptions, destination) : pino(pinoOptions);
+	return pino(pinoOptions, pino.multistream(streams));
 }
 
 export const rootLogger = createRootLogger();
