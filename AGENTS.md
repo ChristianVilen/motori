@@ -96,6 +96,8 @@ Image uploads go through `POST /api/images/upload` — the server receives the f
 
 Structured logging via pino with AsyncLocalStorage context (`withLogContext`) — request-scoped bindings flow through without passing a logger. Use `log.info/warn/error/debug` for free-form, `log.event(name, fields)` for the typed event catalog in `events.ts`. Do not `console.log` (Biome warns). `loggingMiddleware` (registered in `src/start.ts`) binds `requestId`/`method`/`path` per request and logs each request's `status`+`durationMs` (>1000ms at `warn`). `getRequestId()` reads the current request's id from the log context; it's rendered on 500 pages (`__root.tsx` errorComponent) so bug reports can be correlated.
 
+Logs optionally ship to a self-hosted **OpenObserve** instance: when `OPENOBSERVE_URL` is set, `createRootLogger` (`src/lib/log/pino.ts`) adds an in-process `pino.multistream` sink (`src/lib/log/openobserve-stream.ts`) that batches records and POSTs them to OO's native JSON ingest, alongside the unchanged stdout sink. The sink is best-effort — if OO is down the app is unaffected and Dokku stdout remains the durable log source. PII redaction applies to the OO sink too (it runs in the pino core before any stream). Deploy/runbook: `DEPLOY.md` §11. Traces (Phase 2) and metrics (Phase 3) are tracked as GitHub issues.
+
 ## GitHub
 
 Use the `gh` CLI for all GitHub interactions — never open the web UI for things `gh` can do.
