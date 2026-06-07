@@ -176,3 +176,16 @@ secrets-encrypt-all:
       command -v shred >/dev/null && shred -u "$plain" || rm -f "$plain"
       echo "✓ $f (plaintext removed)"
     done < <(find secrets -type f -name '*.age' -print0)
+
+# --- Observability (OpenObserve) ---
+
+# Sync the OO compose file to the VPS and (re)start the container.
+# First run requires /opt/observability/.env present on the host (see DEPLOY.md §11).
+oo-deploy:
+    ssh {{host}} "mkdir -p /opt/observability"
+    scp infra/observability/docker-compose.yml {{host}}:/opt/observability/docker-compose.yml
+    ssh {{host}} "cd /opt/observability && docker compose up -d"
+
+# Tail the OpenObserve container logs.
+oo-logs:
+    ssh {{host}} "docker logs openobserve -f --tail 100"
