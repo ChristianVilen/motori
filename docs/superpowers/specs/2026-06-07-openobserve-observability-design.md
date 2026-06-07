@@ -35,7 +35,7 @@ PROD (Hetzner VPS)
 - **S3 offload into the existing private `motori-backups` bucket** (prefix `openobserve/`), keeping the VPS disk small. The app's *image* bucket (`motori-images`) is public-read so logs can't go there — but `motori-backups` is already private (encrypted DB backups) and the Hetzner keys are project-wide, so OO reuses it under its own prefix with **no new bucket**. Backup objects live at the bucket root (`postgres-motori-*.tgz.gpg`); the `openobserve/` prefix keeps the two from colliding, and OO's compactor manages its own retention within its prefix.
 - **Native JSON ingest, not the OTel SDK, for logs.** pino ships to OO's `POST /api/{org}/{stream}/_json` (Basic auth). This avoids pulling `@opentelemetry/*` into the Node process for Phase 1 (lower RAM, fewer deps). OO's OTLP receiver (`/api/{org}/v1/{logs,traces,metrics}` on :5080) is built in and stays available, so Phase 2 only adds an app-side OTel SDK pointed at `/v1/traces` — no infra change.
 - **No OTel Collector container.** The app talks to OO directly. One less process competing for RAM.
-- **stdout logging stays on.** The OO transport runs in a pino worker thread and is best-effort; if OO is down or slow it must never block or crash the app, and Dokku still captures stdout as a durable fallback log source.
+- **stdout logging stays on.** The OO sink is best-effort and async-batched; if OO is down or slow it must never block or crash the app, and Dokku still captures stdout as a durable fallback log source.
 
 ## Components
 
@@ -74,7 +74,7 @@ ZO_FILE_MOVE_THREAD_NUM=1                  # single compactor thread
 (`ZO_MEMORY_CACHE_MAX_SIZE` is intentionally **omitted** — it only sizes the file cache, which is disabled.) Plus, in the prod compose: `mem_limit` (~768MB–1GB) and `restart: unless-stopped`. A **1–2GB swapfile** on the VPS as an OOM safety net (runbook step). Dev compose can skip `mem_limit` but keeps the same caps for parity.
 
 ### 4. Log shipping (app side)
-- New pino transport module (e.g. `src/lib/log/openobserve-transport.ts`) built on `pino-abstract-transport`: batches records and POSTs a JSON array to `/api/{org}/{stream}/_json` with Basic auth, runs in a worker thread.
+- New OO stream module (`src/lib/log/openobserve-stream.ts`): an in-process `Writable` that batches records and POSTs a JSON array to `/api/{org}/{stream}/_json` with Basic auth. Wired via `pino.multistream` — **not** a pino *worker* transport, which doesn't resolve cleanly as a standalone module in the bundled Nitro output. The POST is async/batched so it stays non-blocking on the main thread.
 - **Batch / flush policy (explicit):**
   - Flush when **either** ~100 records are buffered **or** 5 seconds elapse, whichever first.
   - In-memory buffer cap ~1,000 records; if ingest is failing and the cap is hit, **drop oldest** (bounded memory — never grow unboundedly under an OO outage).
@@ -111,7 +111,7 @@ Phase 1 works from request logs + the existing typed event catalog (`src/lib/log
 
 1. `docker-compose.yml` — add `openobserve` service (image pinned `v0.90.3`) under an opt-in `obs` profile (dev).
 2. `infra/observability/docker-compose.yml` (+ `.env` template) — standalone prod OO stack with S3 offload to `motori-backups/openobserve/`, 30-day retention, mem caps, `mem_limit`.
-3. `src/lib/log/openobserve-transport.ts` + wiring in `src/lib/log/pino.ts` (multi-target, gated on `OPENOBSERVE_URL`, batch/flush policy per §4).
+3. `src/lib/log/openobserve-stream.ts` + wiring in `src/lib/log/pino.ts` (`pino.multistream`, gated on `OPENOBSERVE_URL`, batch/flush policy per §4).
 4. Env: `.env.example`, `.env.ci` updated with the `OPENOBSERVE_*` vars (gated off in CI).
 5. `DEPLOY.md` — new §11 (OpenObserve runbook: deploy, swapfile, root + ingestion users, retention, Tailscale access, verify ingestion, import dashboards/alerts). Replaces the abandoned Grafana §11.
 6. `CLAUDE.md` / `AGENTS.md` — short observability section describing the pino→OO path and the gating env var.
@@ -131,7 +131,7 @@ Phase 1 works from request logs + the existing typed event catalog (`src/lib/log
 
 Per project convention, no new automated tests unless requested. Verification is:
 - `pnpm typecheck` / `pnpm lint` / `pnpm build` pass.
-- **Client-bundle safety (concrete mechanism):** the OO transport is referenced only by **module-path string** inside `pino.transport({ targets: [...] })` and executes in a worker thread — it is never statically `import`ed by client-reachable code, so it cannot enter the client graph. Verify with the existing bundle grep check pattern documented in CLAUDE.md (`grep -L` the transport's symbols across `.output/public/assets/*.js`), same as the `AsyncLocalStorage` guard.
+- **Client-bundle safety (concrete mechanism):** the OO stream is imported only by `pino.ts`, which is server-only (pino is node-only and already excluded from the client bundle), and its construction is additionally guarded by `typeof window === "undefined"`. Verify with the existing bundle grep check pattern documented in CLAUDE.md (`grep -l` for `createOpenObserveStream`/`OPENOBSERVE_URL` across `.output/public/assets/*.js` — expect no matches), same as the `AsyncLocalStorage` guard.
 - Gating: with `OPENOBSERVE_URL` unset, logging behaves exactly as today (CI stays green, no OO dependency in tests).
 - Manual smoke test: bring up the dev `obs` profile, generate requests, confirm logs land in the OO UI; then the prod runbook's "verify ingestion" step after deploy.
 
