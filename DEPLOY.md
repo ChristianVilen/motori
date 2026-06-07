@@ -203,6 +203,51 @@ Re-run any time prod env changes. Decrypt with:
 age -d -i ~/.config/sops/age/keys.txt secrets/motori.env.age
 ```
 
+### 11. Observability (OpenObserve)
+
+Self-hosted OpenObserve ships the app's pino logs (Phase 1). One container, parquet offloaded to the private `motori-backups` bucket under `openobserve/`, UI reached over the Tailnet.
+
+```bash
+# 1. Swapfile (OOM safety net — OO wants ~512MB-1GB; do once)
+ssh root@motori 'fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile && echo "/swapfile none swap sw 0 0" >> /etc/fstab'
+
+# 2. Env file on the host (from infra/observability/.env.example; fill secrets)
+ssh root@motori 'mkdir -p /opt/observability'
+#   scp a filled .env up, or edit in place:
+ssh root@motori 'vim /opt/observability/.env'   # ZO_ROOT_USER_*, ZO_S3_* (reuse project Hetzner keys)
+
+# 3. Deploy the container
+just oo-deploy
+just oo-logs            # confirm it boots and connects to S3
+
+# 4. Attach the Dokku app to the shared network + point it at OO
+ssh root@motori 'dokku docker-options:add motori deploy,run "--network=observability"'
+ssh root@motori 'dokku config:set --no-restart motori \
+  OPENOBSERVE_URL=http://openobserve:5080 \
+  OPENOBSERVE_ORG=default \
+  OPENOBSERVE_STREAM=motori \
+  OPENOBSERVE_USER=ingest@motori.fi \
+  OPENOBSERVE_PASSWORD=<ingest-user-password>'
+ssh root@motori 'dokku ps:rebuild motori'   # picks up the network + config
+
+# 5. Create the non-root ingestion user (least privilege; root is UI-only)
+#    OO UI → Management → Users → add `ingest@motori.fi` with an Ingestion role,
+#    then set its password into the OPENOBSERVE_PASSWORD config above.
+
+# 6. Operator UI access (loopback-bound; pick one)
+ssh -L 5080:localhost:5080 root@motori   # then open http://localhost:5080
+#    or: tailscale serve --bg https / proxy 5080   (persistent Tailnet URL)
+
+# 7. Verify ingestion: generate traffic, then in the OO UI → Logs → stream `motori`,
+#    confirm records arrive. Check `just oo-logs` for any `[openobserve] ingest …` warnings.
+```
+
+**Dashboards & alerts.** Build them once in the UI, then export and commit the JSON to `infra/observability/dashboards/` and `infra/observability/alerts/` (the only version control for them — re-import after a container rebuild).
+- Dashboards: 5xx error rate + p50/p95 latency; auth failures + rate-limit rejections; image-upload failures; DB error volume; business events (listing-created, contact/booking).
+- Alerts: sustained 5xx spike; **ingestion dead-man's switch — no logs for 20 min** (chosen so a quiet overnight stretch doesn't false-positive); VPS disk high (meta/WAL/cache — parquet is in S3).
+
+**Memory note.** OO is capped (`ZO_MEM*` + `mem_limit: 1g`) and the 2GB swapfile backstops Postgres + Node + OO. If OO restart-loops, check `docker logs openobserve` for OOM and lower `ZO_MEM_TABLE_MAX_SIZE`.
+
 ## Restore from backup
 
 ```bash
