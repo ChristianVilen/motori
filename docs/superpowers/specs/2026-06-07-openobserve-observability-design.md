@@ -84,7 +84,7 @@ ZO_FILE_MOVE_THREAD_NUM=1                  # single compactor thread
 - **Gated on `OPENOBSERVE_URL`** — if unset (default in CI, and in dev when the `obs` profile isn't running), the transport is disabled and logging behaves exactly as today. Mirrors how the abandoned `pino-loki` transport was gated.
 - **Dedicated ingestion user — not root.** Create a non-root OO user scoped to ingestion for the app to authenticate with; root creds are only for the operator UI. Limits blast radius if the app's creds leak. (Runbook step; cheap enough to do in Phase 1 rather than defer.)
 - pino numeric levels are preserved (do not rebuild `src/lib/log/` core — `events.test.ts` asserts level 30). OO indexes `level` as a field; dashboards filter on the numeric value.
-- New env vars: `OPENOBSERVE_URL`, `OPENOBSERVE_ORG` (default `default`), `OPENOBSERVE_STREAM` (e.g. `motori`), `OPENOBSERVE_USER` (the ingestion user), `OPENOBSERVE_PASSWORD`. Added to `.env.example` and `.env.ci` (empty/gated-off in CI).
+- New env vars: `OPENOBSERVE_URL`, `OPENOBSERVE_ORG` (default `default`), `OPENOBSERVE_STREAM` (e.g. `motori`), `OPENOBSERVE_USER` (the ingestion user), `OPENOBSERVE_PASSWORD`. Documented (commented) in `.env.example`. `.env.ci` is intentionally left unchanged — the vars are optional and the sink is gated on `OPENOBSERVE_URL`, so CI needs nothing (absence = disabled).
 
 ### 5. Prod networking (Dokku app → OO container)
 - OO joins an **external docker network** `observability`; the Dokku app is attached via `dokku docker-options:add motori deploy,run "--network=observability"` so it resolves OO by container name (`http://openobserve:5080`).
@@ -112,7 +112,7 @@ Phase 1 works from request logs + the existing typed event catalog (`src/lib/log
 1. `docker-compose.yml` — add `openobserve` service (image pinned `v0.90.3`) under an opt-in `obs` profile (dev).
 2. `infra/observability/docker-compose.yml` (+ `.env` template) — standalone prod OO stack with S3 offload to `motori-backups/openobserve/`, 30-day retention, mem caps, `mem_limit`.
 3. `src/lib/log/openobserve-stream.ts` + wiring in `src/lib/log/pino.ts` (`pino.multistream`, gated on `OPENOBSERVE_URL`, batch/flush policy per §4).
-4. Env: `.env.example`, `.env.ci` updated with the `OPENOBSERVE_*` vars (gated off in CI).
+4. Env: `.env.example` documents the `OPENOBSERVE_*` vars (commented). `.env.ci` deliberately unchanged (vars optional/gated; absence = disabled).
 5. `DEPLOY.md` — new §11 (OpenObserve runbook: deploy, swapfile, root + ingestion users, retention, Tailscale access, verify ingestion, import dashboards/alerts). Replaces the abandoned Grafana §11.
 6. `CLAUDE.md` / `AGENTS.md` — short observability section describing the pino→OO path and the gating env var.
 7. `justfile` recipes: `oo-deploy` and `oo-logs` (both required — `oo-logs` for quick operator log tailing).

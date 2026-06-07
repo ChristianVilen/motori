@@ -229,10 +229,12 @@ ssh root@motori 'dokku config:set --no-restart motori \
   OPENOBSERVE_USER=ingest@motori.fi \
   OPENOBSERVE_PASSWORD=<ingest-user-password>'
 ssh root@motori 'dokku ps:rebuild motori'   # picks up the network + config
+#    NOTE: until step 5 creates the ingest user, the app's log POSTs get 401 —
+#    harmless (swallowed, one stderr warn; stdout/Dokku logs are unaffected).
 
 # 5. Create the non-root ingestion user (least privilege; root is UI-only)
-#    OO UI → Management → Users → add `ingest@motori.fi` with an Ingestion role,
-#    then set its password into the OPENOBSERVE_PASSWORD config above.
+#    OO UI (see step 6 for access) → Management → Users → add `ingest@motori.fi`
+#    with an Ingestion role, matching the OPENOBSERVE_PASSWORD set in step 4.
 
 # 6. Operator UI access (loopback-bound; pick one)
 ssh -L 5080:localhost:5080 root@motori   # then open http://localhost:5080
