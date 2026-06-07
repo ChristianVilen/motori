@@ -1,5 +1,5 @@
 import { createMiddleware } from "@tanstack/react-start";
-import { withLogContext } from "./context";
+import { getRequestId, withLogContext } from "./context";
 import { log } from "./index";
 
 const SLOW_REQUEST_MS = 1000;
@@ -7,6 +7,13 @@ const REQUEST_ID_SHAPE = /^[A-Za-z0-9._-]{1,128}$/;
 
 export const loggingMiddleware = createMiddleware({ type: "request" }).server(
 	async ({ request, next }) => {
+		// Expose getRequestId to client-reachable code (the 500 page reads it via this
+		// globalThis side channel — same pattern as src/lib/nonce.ts). Registered inside the
+		// .server callback (stripped from the client) so the log context, which imports
+		// node:async_hooks at module top level, never enters the client bundle.
+		(globalThis as { __motoriGetRequestId?: () => string | undefined }).__motoriGetRequestId ??=
+			getRequestId;
+
 		const url = new URL(request.url);
 		const method = request.method;
 		const path = url.pathname;

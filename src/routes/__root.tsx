@@ -37,12 +37,18 @@ import "@fontsource/jetbrains-mono/index.css";
 export const Route = createRootRoute({
 	beforeLoad: async () => {
 		let locale: SupportedLocale = "fi";
+		// Read the request id from the server-only side channel (set in loggingMiddleware)
+		// so the 500 page can render it; client-side navigations have no request to correlate.
+		let requestId: string | undefined;
 		if (typeof window === "undefined") {
 			locale = await detectServerLocale();
+			requestId = (
+				globalThis as { __motoriGetRequestId?: () => string | undefined }
+			).__motoriGetRequestId?.();
 		}
 		const session = await getSession();
 		const unreadMessages = session ? (await getUnreadTotal()).unread : 0;
-		return { locale, session, unreadMessages };
+		return { locale, session, unreadMessages, requestId };
 	},
 	head: () => ({
 		meta: [
@@ -80,6 +86,9 @@ export const Route = createRootRoute({
 	}),
 	component: RootComponent,
 	errorComponent: ({ error }) => {
+		// Set in beforeLoad and serialized into context, so it renders identically on
+		// SSR and hydration. Surfaced so bug reports can be correlated to logs.
+		const { requestId } = Route.useRouteContext();
 		return (
 			<RootDocument locale="fi">
 				<div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
@@ -87,6 +96,9 @@ export const Route = createRootRoute({
 					<p className="mt-4 max-w-md text-sm text-muted">
 						Jotain meni pieleen. Yritä ladata sivu uudelleen.
 					</p>
+					{requestId ? (
+						<p className="mt-2 font-mono text-xs text-muted">Pyynnön tunniste: {requestId}</p>
+					) : null}
 					{process.env.NODE_ENV !== "production" && (
 						<pre className="mt-4 max-w-lg overflow-auto rounded bg-muted-light p-3 text-left text-xs">
 							{error.message}

@@ -8,7 +8,8 @@
 	},
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "bash scripts/dev.sh",
+		"dev:down": "docker compose down",
 		"build": "vite build",
 		"start": "node --env-file-if-exists=.env .output/server/index.mjs",
 		"db:migrate": "tsx --env-file-if-exists=.env src/lib/db/migrate.ts",
