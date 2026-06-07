@@ -9,6 +9,11 @@ export function getLogger(): Logger {
 	return storage.getStore() ?? rootLogger;
 }
 
+/** The current request's id, read from the active log context bindings. */
+export function getRequestId(): string | undefined {
+	return getLogger().bindings().requestId as string | undefined;
+}
+
 export function withLogContext<T>(
 	bindings: Record<string, unknown>,
 	fn: () => Promise<T> | T,

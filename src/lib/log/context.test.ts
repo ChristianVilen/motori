@@ -1,6 +1,6 @@
 import { Writable } from "node:stream";
 import { describe, expect, it } from "vitest";
-import { __setRootLoggerForTest, getLogger, withLogContext } from "./context";
+import { __setRootLoggerForTest, getLogger, getRequestId, withLogContext } from "./context";
 import { createRootLogger } from "./pino";
 
 function memoryStream() {
@@ -53,5 +53,26 @@ describe("log context", () => {
 		const line = JSON.parse(lines[0]);
 		expect(line.requestId).toBe("r1");
 		expect(line.userId).toBe("u1");
+	});
+});
+
+describe("getRequestId", () => {
+	it("returns undefined outside a log context", () => {
+		__setRootLoggerForTest(createRootLogger({ isProd: false, pretty: false, level: "trace" }));
+		expect(getRequestId()).toBeUndefined();
+	});
+
+	it("returns the requestId bound by withLogContext", async () => {
+		__setRootLoggerForTest(createRootLogger({ isProd: false, pretty: false, level: "trace" }));
+		const id = await withLogContext({ requestId: "r1" }, () => getRequestId());
+		expect(id).toBe("r1");
+	});
+
+	it("returns the innermost requestId in nested contexts", async () => {
+		__setRootLoggerForTest(createRootLogger({ isProd: false, pretty: false, level: "trace" }));
+		const id = await withLogContext({ requestId: "outer" }, () =>
+			withLogContext({ requestId: "inner" }, () => getRequestId()),
+		);
+		expect(id).toBe("inner");
 	});
 });
