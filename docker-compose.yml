@@ -13,7 +13,6 @@ services:
 
   openobserve:
     image: public.ecr.aws/zinclabs/openobserve:v0.90.3
-    profiles: ["obs"]
     ports:
       - "${OO_PORT:-5080}:5080"
     environment:

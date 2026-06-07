@@ -19,7 +19,7 @@ Stand up self-hosted observability for Motori using a single OpenObserve (OO) co
 ## Architecture
 
 ```
-DEV (docker-compose, opt-in `--profile obs`)
+DEV (docker-compose; OO starts with `docker compose up -d` / `pnpm dev`)
   app (pino) ──HTTP──> openobserve:5080 ──> local disk /data (sqlite meta + parquet)
   app also ──> stdout (unchanged)
 
@@ -109,7 +109,7 @@ Phase 1 works from request logs + the existing typed event catalog (`src/lib/log
 
 ## Deliverables
 
-1. `docker-compose.yml` — add `openobserve` service (image pinned `v0.90.3`) under an opt-in `obs` profile (dev).
+1. `docker-compose.yml` — add `openobserve` service (image pinned `v0.90.3`) for dev (starts with `docker compose up -d`).
 2. `infra/observability/docker-compose.yml` (+ `.env` template) — standalone prod OO stack with S3 offload to `motori-backups/openobserve/`, 30-day retention, mem caps, `mem_limit`.
 3. `src/lib/log/openobserve-stream.ts` + wiring in `src/lib/log/pino.ts` (`pino.multistream`, gated on `OPENOBSERVE_URL`, batch/flush policy per §4).
 4. Env: `.env.example` documents the `OPENOBSERVE_*` vars (commented). `.env.ci` deliberately unchanged (vars optional/gated; absence = disabled).
@@ -138,7 +138,7 @@ Per project convention, no new automated tests unless requested. Verification is
 ## Open questions resolved
 
 - Signals scope → logs first, OTLP scaffolded; traces/metrics are GH issues. ✅
-- Dev parity → OO in dev via opt-in `obs` profile + prod. ✅
+- Dev parity → OO in dev via `docker compose up -d` (no profile) + prod. ✅
 - Branch base → independent from `main`. ✅
 - Ingestion → pino native JSON ingest now, OTLP receiver ready for Phase 2. ✅
 - Exposure → Tailscale-only, no public route. ✅
