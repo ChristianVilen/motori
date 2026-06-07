@@ -1,5 +1,7 @@
 # OpenObserve Observability (Phase 1: logs) — Implementation Plan
 
+> **Update (post-implementation):** prod **exposure changed** after this plan was written — OO is now deployed as a **Dokku app at `https://logs.motori.fi`** (public UI, OO built-in login) instead of a standalone compose stack reached over Tailscale, and local OO starts with plain `docker compose up -d` (no profile). The spec and `DEPLOY.md` §11 are authoritative for prod; Tasks 4–7 below reflect the original compose approach.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Ship Motori's pino logs to a single self-hosted OpenObserve container (durable, queryable, with dashboards/alerts), parquet offloaded to the existing private `motori-backups` bucket, tuned for a low-RAM VPS.

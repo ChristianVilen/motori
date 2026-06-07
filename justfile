@@ -179,13 +179,11 @@ secrets-encrypt-all:
 
 # --- Observability (OpenObserve) ---
 
-# Sync the OO compose file to the VPS and (re)start the container.
-# First run requires /opt/observability/.env present on the host (see DEPLOY.md §11).
+# Redeploy/update the OpenObserve Dokku app from its pinned image (--force re-pulls
+# the same tag). First-time setup is in DEPLOY.md §11. Bump the tag when upgrading.
 oo-deploy:
-    ssh {{host}} "mkdir -p /opt/observability"
-    scp infra/observability/docker-compose.yml {{host}}:/opt/observability/docker-compose.yml
-    ssh {{host}} "cd /opt/observability && docker compose up -d"
+    ssh {{host}} "dokku git:from-image --force openobserve public.ecr.aws/zinclabs/openobserve:v0.90.3"
 
-# Tail the OpenObserve container logs.
+# Tail the OpenObserve app logs.
 oo-logs:
-    ssh {{host}} "docker logs openobserve -f --tail 100"
+    ssh {{host}} "dokku logs openobserve -t"
