@@ -203,6 +203,77 @@ Re-run any time prod env changes. Decrypt with:
 age -d -i ~/.config/sops/age/keys.txt secrets/motori.env.age
 ```
 
+### 11. Observability (OpenObserve)
+
+Self-hosted OpenObserve ships the app's pino logs (Phase 1). It runs as a **Dokku app** (`openobserve`) served at **https://logs.motori.fi** (Dokku nginx + the wildcard `*.motori.fi` cert), parquet offloaded to the private `motori-backups` bucket under `openobserve/`. The `motori` app ships logs over a private Docker network, not the public URL. UI auth is OpenObserve's built-in login — use a strong root password (OSS has no SSO/MFA).
+
+First-time setup — run on the VPS (`ssh root@motori`, then `dokku …`):
+
+```bash
+# 0. Swapfile (OOM safety net — OO wants ~512MB-1GB; do once)
+fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile && echo "/swapfile none swap sw 0 0" >> /etc/fstab
+
+# 1. Create the app + domain (set domain before first deploy so port maps aren't reset)
+dokku apps:create openobserve
+dokku domains:set openobserve logs.motori.fi
+
+# 2. Config — values from infra/observability/.env.example (fill secrets; reuse the
+#    project-wide Hetzner keys for ZO_S3_ACCESS_KEY/SECRET_KEY). Single --no-restart set:
+dokku config:set --no-restart openobserve \
+  ZO_ROOT_USER_EMAIL=admin@motori.fi ZO_ROOT_USER_PASSWORD='<strong-unique>' \
+  ZO_TELEMETRY=false ZO_LOCAL_MODE=true ZO_DATA_DIR=/data \
+  ZO_LOCAL_MODE_STORAGE=s3 ZO_S3_PROVIDER=s3 \
+  ZO_S3_SERVER_URL=https://hel1.your-objectstorage.com ZO_S3_REGION_NAME=hel1 \
+  ZO_S3_BUCKET_NAME=motori-backups ZO_S3_BUCKET_PREFIX=openobserve/ \
+  ZO_S3_ACCESS_KEY='<key>' ZO_S3_SECRET_KEY='<secret>' \
+  ZO_S3_FEATURE_FORCE_HOSTED_STYLE=false ZO_COMPACT_DATA_RETENTION_DAYS=30 \
+  ZO_MEMORY_CACHE_ENABLED=false ZO_MEMORY_CACHE_DATAFUSION_MAX_SIZE=256 \
+  ZO_MEM_TABLE_MAX_SIZE=128 ZO_MAX_FILE_SIZE_IN_MEMORY=128 ZO_FILE_MOVE_THREAD_NUM=1
+
+# 3. Persistent /data + memory cap
+dokku storage:ensure-directory openobserve
+dokku storage:mount openobserve /var/lib/dokku/data/storage/openobserve:/data
+dokku resource:limit --memory 1g --process-type web openobserve
+
+# 4. Private network so `motori` can reach OO internally
+dokku network:create observability
+dokku network:set openobserve attach-post-create observability
+dokku network:set motori attach-post-create observability
+
+# 5. Deploy from the pinned image
+dokku git:from-image openobserve public.ecr.aws/zinclabs/openobserve:v0.90.3
+
+# 6. Map the public proxy to OO's port 5080 (from-image does NOT honour EXPOSE — set manually)
+dokku ports:set openobserve http:80:5080 https:443:5080
+
+# 7. TLS — apply the wildcard *.motori.fi cert (cert+key already on the host)
+tar cvf /tmp/oo-cert.tar -C /path/to/certs server.crt server.key
+dokku certs:add openobserve < /tmp/oo-cert.tar
+
+# 8. Cloudflare: add a DNS record  logs.motori.fi → the VPS (proxied is fine).
+
+# 9. Create the non-root ingestion user (least privilege; root is UI-only):
+#    open https://logs.motori.fi, log in as root → Management → Users →
+#    add `ingest@motori.fi` with an Ingestion role; note its password.
+
+# 10. Wire the motori app to ship logs over the private network, then rebuild it:
+dokku config:set --no-restart motori \
+  OPENOBSERVE_URL=http://openobserve.web:5080 \
+  OPENOBSERVE_ORG=default OPENOBSERVE_STREAM=motori \
+  OPENOBSERVE_USER=ingest@motori.fi OPENOBSERVE_PASSWORD='<ingest-user-password>'
+dokku ps:rebuild motori    # joins the network + picks up config
+```
+
+Updates later: `just oo-deploy` (re-pulls the pinned image; bump the tag in the recipe + image when upgrading). Logs: `just oo-logs`. Verify ingestion: generate traffic, then logs.motori.fi → Logs → stream `motori`; `just oo-logs` shows any `[openobserve] ingest …` warnings on the app side.
+
+**Dashboards & alerts.** Build them once in the UI, then export and commit the JSON to `infra/observability/dashboards/` and `infra/observability/alerts/` (the only version control for them — re-import after a rebuild).
+- Dashboards: 5xx error rate + p50/p95 latency; auth failures + rate-limit rejections; image-upload failures; DB error volume; business events (listing-created, contact/booking).
+- Alerts: sustained 5xx spike; **ingestion dead-man's switch — no logs for 20 min** (chosen so a quiet overnight stretch doesn't false-positive); VPS disk high (meta/WAL/cache — parquet is in S3).
+
+**Memory note.** OO is capped (`ZO_MEM*` + `dokku resource:limit --memory 1g`) and the 2GB swapfile backstops Postgres + Node + OO. If OO restart-loops, check `dokku logs openobserve` for OOM and lower `ZO_MEM_TABLE_MAX_SIZE`.
+
+**Security note.** `logs.motori.fi` is publicly reachable and OO OSS auth is username/password only (no MFA). Use a strong, unique root password. To add a stronger gate later, put Cloudflare Access in front of the hostname (and keep app ingest on the internal `observability` network so it isn't blocked).
+
 ## Restore from backup
 
 ```bash

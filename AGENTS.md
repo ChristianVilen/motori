@@ -88,13 +88,15 @@ Image URLs stored in listings must be validated against `STORAGE_PUBLIC_URL` whe
 
 ### Storage
 
-Hetzner Object Storage (S3-compatible, `hel1`). Env vars: `STORAGE_ENDPOINT`, `STORAGE_BUCKET`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`, `STORAGE_PUBLIC_URL`. The bucket must have public read access so objects are served directly via `STORAGE_PUBLIC_URL`.
+Hetzner Object Storage (S3-compatible, `hel1`). The project has two buckets, sharing one set of project-wide access keys: **`motori-images`** — the app's `STORAGE_BUCKET`, which must have **public read** access so objects are served directly via `STORAGE_PUBLIC_URL`; and **`motori-backups`** — **private**, holding the encrypted nightly Postgres backups (see `DEPLOY.md` §8). Never store non-public data in `motori-images`. Env vars: `STORAGE_ENDPOINT`, `STORAGE_BUCKET`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`, `STORAGE_PUBLIC_URL`.
 
 Image uploads go through `POST /api/images/upload` — the server receives the file, optimises it with sharp (1600px main WebP + 400px thumbnail WebP), and stores both via `getImageStorage()` in `src/lib/image-storage.ts`. When `STORAGE_ENDPOINT` is set, `HetznerStorage` is used; otherwise `LocalStorage` saves to `/uploads/` for dev. Image URLs are validated against `STORAGE_PUBLIC_URL` (or `/api/uploads/` in dev) in `isValidImageUrl()`.
 
 ### Logging (`src/lib/log/`)
 
 Structured logging via pino with AsyncLocalStorage context (`withLogContext`) — request-scoped bindings flow through without passing a logger. Use `log.info/warn/error/debug` for free-form, `log.event(name, fields)` for the typed event catalog in `events.ts`. Do not `console.log` (Biome warns). `loggingMiddleware` (registered in `src/start.ts`) binds `requestId`/`method`/`path` per request and logs each request's `status`+`durationMs` (>1000ms at `warn`). `getRequestId()` reads the current request's id from the log context; it's rendered on 500 pages (`__root.tsx` errorComponent) so bug reports can be correlated.
+
+Logs optionally ship to a self-hosted **OpenObserve** instance: when `OPENOBSERVE_URL` is set, `createRootLogger` (`src/lib/log/pino.ts`) adds an in-process `pino.multistream` sink (`src/lib/log/openobserve-stream.ts`) that batches records and POSTs them to OO's native JSON ingest, alongside the unchanged stdout sink. The sink is best-effort — if OO is down the app is unaffected and Dokku stdout remains the durable log source. PII redaction applies to the OO sink too (it runs in the pino core before any stream). Deploy/runbook: `DEPLOY.md` §11. Traces (Phase 2) and metrics (Phase 3) are tracked as GitHub issues.
 
 ## GitHub
 
