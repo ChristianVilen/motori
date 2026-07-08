@@ -1,0 +1,47 @@
+@theme {
+	--font-sans: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+	--font-heading: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+	--font-mono:
+		"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+		"Courier New", monospace;
+
+	/* Core palette */
+	--color-primary: #1a1a2e;
+	--color-primary-foreground: #ffffff;
+	--color-accent: #ad5016;
+	--color-accent-hover: #a34b13;
+	--color-accent-light: #e07a3a;
+	--color-accent-foreground: #ffffff;
+	--color-background: #fafaf9;
+	--color-foreground: #1a1a2e;
+	--color-muted: #6b6966;
+	--color-muted-foreground: #6b6966;
+	--color-muted-light: #f0efed;
+	--color-card: #ffffff;
+	--color-card-foreground: #1a1a2e;
+	--color-border: #e5e4e1;
+	--color-input: #e5e4e1;
+	--color-ring: #e07a3a;
+	--color-destructive: #dc2626;
+	--color-destructive-foreground: #ffffff;
+	--color-success: #16a34a;
+	--color-warning: #d97706;
+
+	/* shadcn secondary (maps to muted-light surface) */
+	--color-secondary: #f0efed;
+	--color-secondary-foreground: #1a1a2e;
+
+	/* shadcn popover (same as card) */
+	--color-popover: #ffffff;
+	--color-popover-foreground: #1a1a2e;
+
+	/* Radius scale */
+	--radius-sm: 0.375rem;
+	--radius-md: 0.5rem;
+	--radius-lg: 0.75rem;
+
+	/* Rounded corners */
+	--rounded-sm: var(--radius-sm);
+	--rounded-md: var(--radius-md);
+	--rounded-lg: var(--radius-lg);
+}

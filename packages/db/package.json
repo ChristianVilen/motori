@@ -1,0 +1,19 @@
+{
+	"name": "@motori/db",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"kysely": "0.28.17",
+		"pg": "8.20.0"
+	},
+	"devDependencies": {
+		"@types/pg": "8.20.0",
+		"typescript": "6.0.2"
+	}
+}

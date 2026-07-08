@@ -13,12 +13,18 @@ Production runs on a single Hetzner VPS as a Dokku app using the Heroku Node bui
 - **Migrations:** auto-run via Procfile `release` phase (`pnpm db:migrate`)
 - **Secrets:** age-encrypted in `secrets/*.age`, decrypt key at `~/.config/sops/age/keys.txt`
 
+The repo is a pnpm workspace (`apps/motori` + shared `packages/*`); root `package.json`'s `build`/`start`/`db:migrate` scripts dispatch via `pnpm --filter ${DEPLOY_APP:-motori} ...`, defaulting to the `motori` app so the Procfile and buildpack config don't need to change. One-time, set it explicitly on the Dokku app so it's pinned regardless of the default: `ssh root@motori "dokku config:set --no-restart motori DEPLOY_APP=motori"`. A future `talli.motori.fi` app will be a **second** Dokku app (its own `dokku apps:create talli`) receiving the same repo/Procfile with `DEPLOY_APP=talli` set on that app's config — not a change to this app's deploy.
+
 ## Connection
 
 ```bash
 ssh root@motori                                # via Tailscale
 git remote add dokku dokku@<vps-ip>:motori     # local, one-time
 ```
+
+Auth is **Tailscale SSH** (tailnet identity, no local keys): the server runs `tailscale --ssh` and the tailnet policy must have an `ssh` rule allowing it (see below). Public port 22 is UFW-blocked; SSH is reachable only over `tailscale0`.
+
+**Gotcha — `Permission denied (publickey)` on `ssh root@motori`:** almost always means Tailscale SSH got disabled on the server (any later `tailscale up` without `--ssh` resets the flag) and the connection fell through to plain sshd. Check from your machine: `tailscale status --json | jq '.Peer[] | select(.HostName=="motori") | .sshHostKeys'` — `false`/missing means Tailscale SSH is off. Recovery: Hetzner web console → reset root password → open the `>_` console → run `tailscale set --ssh=true` (`set`, not `up` — `set` changes only that flag). Afterwards optionally `passwd -l root` to re-lock the password.
 
 ## Phases
 
@@ -124,6 +130,11 @@ In the Tailscale admin → Access Controls, ensure the policy file has:
 "acls": [
   // CI runners can SSH to servers
   { "action": "accept", "src": ["tag:ci"], "dst": ["tag:server:22"] },
+],
+// Tailscale SSH access (interactive admin SSH; without this, connections
+// fall through to plain sshd and fail with "Permission denied (publickey)")
+"ssh": [
+  { "action": "accept", "src": ["autogroup:member"], "dst": ["tag:server"], "users": ["autogroup:nonroot", "root", "dokku"] },
 ],
 ```
 

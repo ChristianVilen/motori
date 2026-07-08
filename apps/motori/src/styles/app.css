@@ -1,0 +1,66 @@
+@import "tailwindcss";
+@import "@motori/ui/theme.css";
+/* Tailwind only scans the app's module graph — without this, classes used only inside packages/ui vanish from built CSS. Path is relative to this file. */
+@source "../../../../packages/ui/src";
+
+button,
+[role="button"] {
+	cursor: pointer;
+}
+
+@utility card-hover {
+	transition:
+		transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+		box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@utility card-hover-active {
+	transform: translateY(-4px);
+	box-shadow: 0 12px 32px -8px rgba(26, 26, 46, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		/* biome-ignore lint/complexity/noImportantStyles: must override component animations for a11y */
+		animation-duration: 0.01ms !important;
+		/* biome-ignore lint/complexity/noImportantStyles: must override component animations for a11y */
+		animation-iteration-count: 1 !important;
+		/* biome-ignore lint/complexity/noImportantStyles: must override component animations for a11y */
+		transition-duration: 0.01ms !important;
+	}
+}
+
+.rdp-blocked {
+	color: var(--color-destructive);
+	background-color: rgb(239 68 68 / 0.15);
+	text-decoration: line-through;
+}
+.rdp-booked {
+	background-color: rgb(239 68 68 / 0.3);
+}
+
+/* Leaflet map badge for clustered pins */
+.motori-map-badge {
+	background: var(--color-accent);
+	color: #fff;
+	border-radius: 50%;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	font-size: 13px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+.motori-map-badge--active {
+	background: var(--color-primary);
+	width: 38px;
+	height: 38px;
+	font-size: 15px;
+	box-shadow:
+		0 0 0 3px var(--color-accent),
+		0 2px 8px rgba(0, 0, 0, 0.4);
+}

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# `pnpm dev` entrypoint: bring up the dev stack (Postgres) and run the
-# Vite dev server in the foreground. Ctrl+C stops Vite AND tears the containers down.
+# `pnpm dev` entrypoint: bring up the dev stack (Postgres) and run the dev
+# server of every app in apps/* in the foreground, with prefixed output.
+# Ctrl+C stops the dev servers AND tears the containers down.
 set -euo pipefail
 
 cleanup() {
@@ -12,4 +13,4 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 docker compose up -d
-vite dev
+pnpm --parallel --filter './apps/*' dev
