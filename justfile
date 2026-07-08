@@ -176,3 +176,14 @@ secrets-encrypt-all:
       command -v shred >/dev/null && shred -u "$plain" || rm -f "$plain"
       echo "✓ $f (plaintext removed)"
     done < <(find secrets -type f -name '*.age' -print0)
+
+# --- Observability (OpenObserve) ---
+
+# Redeploy/update the OpenObserve Dokku app from its pinned image (--force re-pulls
+# the same tag). First-time setup is in DEPLOY.md §11. Bump the tag when upgrading.
+oo-deploy:
+    ssh {{host}} "dokku git:from-image --force openobserve public.ecr.aws/zinclabs/openobserve:v0.90.3"
+
+# Tail the OpenObserve app logs.
+oo-logs:
+    ssh {{host}} "dokku logs openobserve -t"

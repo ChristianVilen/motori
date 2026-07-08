@@ -11,5 +11,27 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  openobserve:
+    image: public.ecr.aws/zinclabs/openobserve:v0.90.3
+    ports:
+      - "${OO_PORT:-5080}:5080"
+    environment:
+      ZO_ROOT_USER_EMAIL: admin@motori.local
+      ZO_ROOT_USER_PASSWORD: motori
+      ZO_TELEMETRY: "false"
+      ZO_DATA_DIR: /data
+      ZO_LOCAL_MODE: "true"
+      # Dev stores parquet on local disk (no S3) — ephemeral, no creds needed.
+      ZO_LOCAL_MODE_STORAGE: disk
+      # Same memory caps as prod so behaviour matches.
+      ZO_MEMORY_CACHE_ENABLED: "false"
+      ZO_MEMORY_CACHE_DATAFUSION_MAX_SIZE: "256"
+      ZO_MEM_TABLE_MAX_SIZE: "128"
+      ZO_MAX_FILE_SIZE_IN_MEMORY: "128"
+      ZO_FILE_MOVE_THREAD_NUM: "1"
+    volumes:
+      - oodata:/data
+
 volumes:
   pgdata:
+  oodata:
