@@ -1,15 +1,9 @@
 // Shared motorcycle fields rendered for sale + rental categories.
 // Owns: title, make/model, year, engine_cc, motorcycle_type, required_license.
 
+import { Input } from "@motori/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@motori/ui/select";
 import { MakeModelSelect } from "~/components/listings/make-model-select";
-import { Input } from "~/components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "~/components/ui/select";
 import { CURRENT_YEAR, LICENSE_CLASSES, MOTORCYCLE_TYPES } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { FieldError } from "./shared-fields";

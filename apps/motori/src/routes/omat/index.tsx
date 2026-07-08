@@ -1,10 +1,11 @@
 // src/routes/omat/index.tsx
 // User dashboard — my listings + tori items, with quick actions
+
+import { Button } from "@motori/ui/button";
 import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { LogOut, MapPin, Pencil, Plus, Settings } from "lucide-react";
 import { useState } from "react";
-import { Button } from "~/components/ui/button";
 import { signOut } from "~/lib/auth-client";
 import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, SITE_NAME } from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";

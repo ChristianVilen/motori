@@ -1,13 +1,7 @@
 // Small shared field renderers used by the category sections + the shell.
 
-import { Input } from "~/components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "~/components/ui/select";
+import { Input } from "@motori/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@motori/ui/select";
 import { useTranslation } from "~/lib/i18n";
 
 interface FieldErrorProps {

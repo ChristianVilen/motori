@@ -1,12 +1,13 @@
 // src/routes/ilmoitukset/$listingId_.muokkaa.tsx
 // Trailing underscore on $listingId_ opts out of $listingId_.$slug.tsx as parent layout.
+
+import { Button } from "@motori/ui/button";
 import { createFileRoute, Link, notFound, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { AvailabilityCalendar } from "~/components/listings/availability-calendar";
 import { ListingForm } from "~/components/listings/listing-form";
-import { Button } from "~/components/ui/button";
 import { categoryDetailPath } from "~/lib/category-routes";
 import { centsToEuros } from "~/lib/currency";
 import type { ListingCategory } from "~/lib/db/schema";

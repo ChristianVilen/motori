@@ -1,6 +1,6 @@
+import { cn } from "@motori/ui/cn";
 import { format } from "date-fns";
 import { fi } from "date-fns/locale";
-import { cn } from "~/lib/cn";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 

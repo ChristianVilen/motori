@@ -1,3 +1,4 @@
+import { cn } from "@motori/ui/cn";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
 	addDaysToIso,
@@ -11,7 +12,6 @@ import {
 	type MonthGroup,
 	toIso,
 } from "~/lib/calendar-helpers";
-import { cn } from "~/lib/cn";
 import { useTranslation } from "~/lib/i18n";
 
 const WEEK_HEADER = ["Ma", "Ti", "Ke", "To", "Pe", "La", "Su"] as const;

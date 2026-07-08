@@ -2,12 +2,12 @@
 // Profile settings — edit name, city, phone visibility, license class.
 
 import { passwordStrength } from "@motori/server/password-strength";
+import { Button } from "@motori/ui/button";
+import { Input } from "@motori/ui/input";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { CitySelect } from "~/components/listings/city-select";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 import { authClient } from "~/lib/auth-client";
 import { SITE_NAME } from "~/lib/constants";
 import { exportMyData } from "~/lib/data-export";

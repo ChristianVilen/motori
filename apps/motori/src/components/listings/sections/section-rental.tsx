@@ -2,7 +2,7 @@
 // Owns: rental price fields (per-day, per-week, per-weekend, description, mileage limit).
 // Motorcycle fields are owned by the shell and passed via MotorcyclePayload.
 
-import { Input } from "~/components/ui/input";
+import { Input } from "@motori/ui/input";
 import { useTranslation } from "~/lib/i18n";
 import type { ListingFormData } from "~/lib/validators";
 import { FieldError } from "./shared-fields";

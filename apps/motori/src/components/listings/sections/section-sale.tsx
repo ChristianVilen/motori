@@ -2,7 +2,7 @@
 // Owns: condition / km_driven / price / negotiable.
 // Motorcycle fields are owned by the shell and passed via MotorcyclePayload.
 
-import { Input } from "~/components/ui/input";
+import { Input } from "@motori/ui/input";
 import { useTranslation } from "~/lib/i18n";
 import type { CONDITIONS, ListingFormData, SaleFormData } from "~/lib/validators";
 import { ConditionSelect, FieldError } from "./shared-fields";

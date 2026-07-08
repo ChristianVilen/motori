@@ -1,6 +1,6 @@
+import { Button } from "@motori/ui/button";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Button } from "~/components/ui/button";
 import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { startConversation } from "~/lib/messages";

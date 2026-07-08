@@ -1,7 +1,7 @@
 // Part category section adapter.
 // Owns: part_category, compatible_make_id, condition, price. Title is rendered by the shell.
 
-import { Input } from "~/components/ui/input";
+import { Input } from "@motori/ui/input";
 import { PART_CATEGORIES } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import type { CONDITIONS, ListingFormData, PartFormData } from "~/lib/validators";

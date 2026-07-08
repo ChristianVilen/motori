@@ -8,6 +8,10 @@
 // - Dispatch onSubmit to the active section's toPayload
 // - On category switch: keep shared values, reset other sections' fields
 
+import { Button } from "@motori/ui/button";
+import { Input } from "@motori/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@motori/ui/select";
+import { Textarea } from "@motori/ui/textarea";
 import { useForm } from "@tanstack/react-form";
 import {
 	ChevronLeft,
@@ -29,16 +33,6 @@ import { SaleFields, saleSection } from "~/components/listings/sections/section-
 import { FieldError, TitleField } from "~/components/listings/sections/shared-fields";
 import type { SharedPayload } from "~/components/listings/sections/types";
 import { useImageUpload } from "~/components/listings/use-image-upload";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "~/components/ui/select";
-import { Textarea } from "~/components/ui/textarea";
 import { REGIONS } from "~/lib/constants";
 import type { ListingCategory } from "~/lib/db/schema";
 import { handleAppError } from "~/lib/errors-client";

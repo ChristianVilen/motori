@@ -1,14 +1,8 @@
 // Gear category section adapter.
 // Owns: gear_type, size, condition, price. Title is rendered by the shell.
 
-import { Input } from "~/components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "~/components/ui/select";
+import { Input } from "@motori/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@motori/ui/select";
 import { useTranslation } from "~/lib/i18n";
 import type { CONDITIONS, GEAR_TYPES, GearFormData, ListingFormData } from "~/lib/validators";
 import { ConditionSelect, FieldError } from "./shared-fields";

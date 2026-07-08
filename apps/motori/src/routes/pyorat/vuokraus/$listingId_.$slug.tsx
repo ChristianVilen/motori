@@ -1,5 +1,7 @@
 // src/routes/pyorat/vuokraus/$listingId_.$slug.tsx
 // $slug is decorative — only $listingId (the short_id) is used for DB lookup.
+
+import { Button } from "@motori/ui/button";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
@@ -8,7 +10,6 @@ import { z } from "zod";
 import { BookingRequestForm } from "~/components/listings/booking-request-form";
 import { ListingDetailShell } from "~/components/listings/listing-detail-shell";
 import { ReportButton } from "~/components/report-button";
-import { Button } from "~/components/ui/button";
 import { MobileFullscreenModal } from "~/components/ui/mobile-fullscreen-modal";
 import { createBookingRequest } from "~/lib/bookings.server";
 import { SITE_NAME, SITE_URL } from "~/lib/constants";

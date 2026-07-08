@@ -1,10 +1,11 @@
 // src/routes/taydenna-profiili.tsx
+
+import { Button } from "@motori/ui/button";
+import { Input } from "@motori/ui/input";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { CitySelect } from "~/components/listings/city-select";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 import { useTranslation } from "~/lib/i18n";
 import { csrfOnly } from "~/lib/middleware";
 import { getSession } from "~/lib/session";

@@ -1,9 +1,10 @@
 // src/components/auth/login-form.tsx
 // Shared email/password login form — used by /kirjaudu page and the nav login modal.
+
+import { Button } from "@motori/ui/button";
+import { Input } from "@motori/ui/input";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 import { signIn } from "~/lib/auth-client";
 import { useTranslation } from "~/lib/i18n";
 
