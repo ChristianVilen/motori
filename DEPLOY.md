@@ -131,12 +131,21 @@ In the Tailscale admin → Access Controls, ensure the policy file has:
   // CI runners can SSH to servers
   { "action": "accept", "src": ["tag:ci"], "dst": ["tag:server:22"] },
 ],
-// Tailscale SSH access (interactive admin SSH; without this, connections
-// fall through to plain sshd and fail with "Permission denied (publickey)")
+// Tailscale SSH access. With Tailscale SSH enabled on the server it intercepts ALL
+// tailnet SSH — admin logins AND the CI deploy — so both rules are required:
+// without the member rule, admin ssh fails "Permission denied (publickey)";
+// without the tag:ci rule, the deploy job fails "tailnet policy does not permit you to SSH".
 "ssh": [
   { "action": "accept", "src": ["autogroup:member"], "dst": ["tag:server"], "users": ["autogroup:nonroot", "root", "dokku"] },
+  { "action": "accept", "src": ["tag:ci"], "dst": ["tag:server"], "users": ["dokku"] },
 ],
 ```
+
+Tailscale SSH quirk: it executes commands via plain bash as the target user, bypassing dokku's
+`authorized_keys` forced-command wrapper. Consequences: remote dokku commands need the explicit
+binary (`ssh dokku@motori dokku config:set …`, not `ssh dokku@motori config:set …`), and git
+remotes must use the scp-style path (`dokku@motori:motori`, resolving to `/home/dokku/motori`) —
+`ssh://dokku@motori/motori` fails because the absolute path `/motori` doesn't exist.
 
 **3. Create a Tailscale OAuth client**
 

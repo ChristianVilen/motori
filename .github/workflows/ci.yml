@@ -149,6 +149,8 @@ jobs:
           echo "${{ secrets.DOKKU_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H motori >> ~/.ssh/known_hosts
-          ssh -i ~/.ssh/id_ed25519 dokku@motori config:set --no-restart motori SOURCE_VERSION=$GITHUB_SHA
+          # Tailscale SSH runs commands via plain bash (no dokku forced-command wrapper),
+          # so the dokku binary must be named explicitly.
+          ssh -i ~/.ssh/id_ed25519 dokku@motori dokku config:set --no-restart motori SOURCE_VERSION=$GITHUB_SHA
           git remote add dokku dokku@motori:motori
           git push dokku main --force
