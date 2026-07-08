@@ -29,8 +29,8 @@ export default defineConfig({
 	],
 	webServer: {
 		command: process.env.CI
-			? "DISABLE_EMAIL_VERIFICATION=true pnpm start"
-			: "DISABLE_EMAIL_VERIFICATION=true pnpm build && DISABLE_EMAIL_VERIFICATION=true pnpm start",
+			? "DISABLE_EMAIL_VERIFICATION=true DISABLE_AUTH_RATE_LIMIT=true pnpm start"
+			: "DISABLE_EMAIL_VERIFICATION=true DISABLE_AUTH_RATE_LIMIT=true pnpm build && DISABLE_EMAIL_VERIFICATION=true DISABLE_AUTH_RATE_LIMIT=true pnpm start",
 		url: "http://localhost:3000",
 		reuseExistingServer: !process.env.CI,
 		timeout: 180_000,

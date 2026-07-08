@@ -57,7 +57,10 @@ export function createAuth<DB>(opts: {
 		},
 		plugins: [admin()],
 		rateLimit: {
-			enabled: process.env.NODE_ENV === "production",
+			// DISABLE_AUTH_RATE_LIMIT: e2e runs the production build but signs up users
+			// far faster than the 5/min rule allows (same pattern as DISABLE_EMAIL_VERIFICATION).
+			enabled:
+				process.env.NODE_ENV === "production" && process.env.DISABLE_AUTH_RATE_LIMIT !== "true",
 			window: 60,
 			max: 100,
 			customRules: {
