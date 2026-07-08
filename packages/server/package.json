@@ -10,15 +10,27 @@
 		"./log": "./src/log/index.ts",
 		"./log/middleware": "./src/log/middleware.ts",
 		"./log/context": "./src/log/context.ts",
-		"./log/pino": "./src/log/pino.ts"
+		"./log/pino": "./src/log/pino.ts",
+		"./email": "./src/email.ts",
+		"./email-wrapper": "./src/email-wrapper.ts",
+		"./image-storage": "./src/image-storage.ts",
+		"./password-strength": "./src/password-strength.ts",
+		"./auth": "./src/auth.ts",
+		"./session": "./src/session.ts"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run"
 	},
 	"dependencies": {
+		"@aws-sdk/client-s3": "3.1030.0",
+		"@better-auth/kysely-adapter": "1.6.3",
 		"@tanstack/react-start": "1.167.32",
-		"pino": "10.3.1"
+		"better-auth": "1.6.11",
+		"kysely": "0.28.17",
+		"pino": "10.3.1",
+		"resend": "6.12.2",
+		"sharp": "0.33.5"
 	},
 	"devDependencies": {
 		"pino-pretty": "13.1.3",

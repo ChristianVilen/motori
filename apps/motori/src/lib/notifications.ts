@@ -1,7 +1,7 @@
+import { sendEmail } from "@motori/server/email";
+import { wrapEmail } from "@motori/server/email-wrapper";
 import { sql } from "kysely";
 import { db } from "~/lib/db/index";
-import { sendEmail } from "~/lib/email";
-import { wrapEmail } from "~/lib/email-wrapper";
 import { getEmailT } from "~/lib/i18n/email";
 import { log, withLogContext } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";

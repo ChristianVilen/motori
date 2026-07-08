@@ -1,5 +1,8 @@
-import { log } from "~/lib/log";
-import { EVENTS } from "~/lib/log/events";
+import { createLog } from "./log/index";
+
+// The inlined "email.sent"/"email.failed" event strings below must match
+// EVENTS.email.* in apps/motori/src/lib/log/events.ts.
+const log = createLog<string>();
 
 export interface EmailPayload {
 	to: string;
@@ -64,14 +67,14 @@ export async function sendEmail(payload: EmailPayload): Promise<void> {
 		});
 
 		if (error) {
-			log.event(EVENTS.email.failed, { template: payload.subject, reason: error.message });
+			log.event("email.failed", { template: payload.subject, reason: error.message });
 			throw new Error(error.message);
 		}
 
-		log.event(EVENTS.email.sent, { template: payload.subject, toHash, resendId: data?.id });
+		log.event("email.sent", { template: payload.subject, toHash, resendId: data?.id });
 		return;
 	}
 
 	logMockEmail(payload);
-	log.event(EVENTS.email.sent, { template: payload.subject, toHash, provider: "mock" });
+	log.event("email.sent", { template: payload.subject, toHash, provider: "mock" });
 }

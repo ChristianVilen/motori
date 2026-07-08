@@ -1,6 +1,6 @@
+import { sendEmail } from "@motori/server/email";
+import { wrapEmail } from "@motori/server/email-wrapper";
 import { SITE_URL } from "~/lib/constants";
-import { sendEmail } from "~/lib/email";
-import { wrapEmail } from "~/lib/email-wrapper";
 import { getEmailT } from "~/lib/i18n/email";
 
 interface PartyInfo {

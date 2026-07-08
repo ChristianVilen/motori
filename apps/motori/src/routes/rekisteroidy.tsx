@@ -1,4 +1,6 @@
 // src/routes/rekisteroidy.tsx
+
+import { passwordStrength } from "@motori/server/password-strength";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Logo } from "~/components/logo";
@@ -7,7 +9,6 @@ import { Input } from "~/components/ui/input";
 import { signUp } from "~/lib/auth-client";
 import { SITE_NAME } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
-import { passwordStrength } from "~/lib/password-strength";
 
 export const Route = createFileRoute("/rekisteroidy")({
 	head: () => ({

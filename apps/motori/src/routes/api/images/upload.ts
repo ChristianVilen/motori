@@ -1,11 +1,11 @@
 // src/routes/api/images/upload.ts
 // POST /api/images/upload — receives multipart file, optimizes with sharp, stores via abstraction.
 
+import { optimizeAndUpload } from "@motori/server/image-storage";
 import { checkRateLimit, getClientIp } from "@motori/server/rate-limit";
 import { createFileRoute } from "@tanstack/react-router";
 import { auth } from "~/lib/auth";
 import { MAX_IMAGE_UPLOAD_BYTES } from "~/lib/constants";
-import { optimizeAndUpload } from "~/lib/image-storage";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 

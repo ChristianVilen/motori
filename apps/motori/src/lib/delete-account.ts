@@ -2,10 +2,10 @@
 // Right-to-erasure: delete all user data (listings, images, favorites, profile, auth).
 
 import { csrfMiddleware } from "@motori/server/csrf";
+import { getImageStorage } from "@motori/server/image-storage";
 import { rateLimitMiddleware } from "@motori/server/rate-limit";
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "~/lib/db/index";
-import { getImageStorage } from "~/lib/image-storage";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { getSession } from "~/lib/session";

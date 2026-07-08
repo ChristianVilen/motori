@@ -1,10 +1,8 @@
-// src/lib/session.ts
+import { createGetSession } from "@motori/server/session";
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
 import { auth } from "~/lib/auth";
 
-export const getSession = createServerFn().handler(async () => {
-	const request = getRequest();
-	const session = await auth.api.getSession({ headers: request.headers });
-	return session;
-});
+// `auth` and createGetSession are referenced only inside the handler arrow so
+// TanStack's compiler prunes them (and their node-only deps) from the client
+// bundle. See the note in @motori/server/session.
+export const getSession = createServerFn().handler(async () => createGetSession(auth)());

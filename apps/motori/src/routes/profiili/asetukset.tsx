@@ -1,5 +1,7 @@
 // src/routes/profiili/asetukset.tsx
 // Profile settings — edit name, city, phone visibility, license class.
+
+import { passwordStrength } from "@motori/server/password-strength";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
@@ -12,7 +14,6 @@ import { exportMyData } from "~/lib/data-export";
 import { deleteAccount } from "~/lib/delete-account";
 import { useTranslation } from "~/lib/i18n";
 import { csrfOnly } from "~/lib/middleware";
-import { passwordStrength } from "~/lib/password-strength";
 import { getSession } from "~/lib/session";
 import { validateFinnishPhone } from "~/lib/validators";
 

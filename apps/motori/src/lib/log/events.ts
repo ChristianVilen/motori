@@ -18,6 +18,7 @@ export const EVENTS = {
 		uploaded: "image.uploaded",
 		upload_failed: "image.upload_failed",
 	},
+	// Mirrored as inlined literals in packages/server/src/email.ts — keep in sync.
 	email: {
 		sent: "email.sent",
 		failed: "email.failed",
