@@ -1,9 +1,9 @@
 import { Writable } from "node:stream";
+import { __setRootLoggerForTest } from "@motori/server/log/context";
+import { createRootLogger } from "@motori/server/log/pino";
 import { describe, expect, it } from "vitest";
-import { __setRootLoggerForTest } from "./context";
 import { EVENTS } from "./events";
 import { log } from "./index";
-import { createRootLogger } from "./pino";
 
 function memoryStream() {
 	const lines: string[] = [];

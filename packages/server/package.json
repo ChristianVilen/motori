@@ -1,0 +1,28 @@
+{
+	"name": "@motori/server",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./csrf": "./src/csrf.ts",
+		"./rate-limit": "./src/rate-limit.ts",
+		"./security-headers": "./src/security-headers.ts",
+		"./nonce": "./src/nonce.ts",
+		"./log": "./src/log/index.ts",
+		"./log/middleware": "./src/log/middleware.ts",
+		"./log/context": "./src/log/context.ts",
+		"./log/pino": "./src/log/pino.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run"
+	},
+	"dependencies": {
+		"@tanstack/react-start": "1.167.32",
+		"pino": "10.3.1"
+	},
+	"devDependencies": {
+		"pino-pretty": "13.1.3",
+		"typescript": "6.0.2",
+		"vitest": "4.1.4"
+	}
+}

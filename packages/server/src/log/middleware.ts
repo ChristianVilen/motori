@@ -1,9 +1,14 @@
 import { createMiddleware } from "@tanstack/react-start";
 import { getRequestId, withLogContext } from "./context";
-import { log } from "./index";
+import { createLog } from "./index";
 
 const SLOW_REQUEST_MS = 1000;
 const REQUEST_ID_SHAPE = /^[A-Za-z0-9._-]{1,128}$/;
+
+// This middleware never calls `.event()`, so no app-specific event-name union
+// is needed here — `string` keeps createLog's typed factory shape without
+// coupling the package to an app's event catalog.
+const log = createLog<string>();
 
 export const loggingMiddleware = createMiddleware({ type: "request" }).server(
 	async ({ request, next }) => {

@@ -5,9 +5,9 @@ import { eurosToCents } from "~/lib/currency";
 
 const getDb = async () => (await import("~/lib/db/index")).db;
 
+import { rateLimitMiddleware } from "@motori/server/rate-limit";
 import type { Database, Listing, ListingCategory, ListingImage } from "~/lib/db/schema";
 import { CATEGORY_CHILD_TABLE } from "~/lib/listings-category";
-import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { toPrefixTsQuery, toTsQuery } from "~/lib/search";
 import type { BrowseSearchParams } from "~/lib/validators";
 

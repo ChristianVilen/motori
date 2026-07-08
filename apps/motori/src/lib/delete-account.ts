@@ -1,13 +1,13 @@
 // src/lib/delete-account.ts
 // Right-to-erasure: delete all user data (listings, images, favorites, profile, auth).
 
+import { csrfMiddleware } from "@motori/server/csrf";
+import { rateLimitMiddleware } from "@motori/server/rate-limit";
 import { createServerFn } from "@tanstack/react-start";
-import { csrfMiddleware } from "~/lib/csrf";
 import { db } from "~/lib/db/index";
 import { getImageStorage } from "~/lib/image-storage";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
-import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { getSession } from "~/lib/session";
 
 export const deleteAccount = createServerFn({ method: "POST" })

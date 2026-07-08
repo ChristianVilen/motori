@@ -1,7 +1,8 @@
 /** Pure helpers — safe for client and server bundles. */
+
+import { csrfMiddleware } from "@motori/server/csrf";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { csrfMiddleware } from "~/lib/csrf";
 import { AppError } from "~/lib/errors";
 import {
 	blockUserServer,

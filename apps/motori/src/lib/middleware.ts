@@ -1,5 +1,5 @@
-import { csrfMiddleware } from "~/lib/csrf";
-import { rateLimitMiddleware } from "~/lib/rate-limit";
+import { csrfMiddleware } from "@motori/server/csrf";
+import { rateLimitMiddleware } from "@motori/server/rate-limit";
 import { requireVerifiedEmail } from "~/lib/require-verified-email";
 
 /**

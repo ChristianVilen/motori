@@ -1,8 +1,8 @@
+import { rateLimitMiddleware } from "@motori/server/rate-limit";
 import { createServerFn } from "@tanstack/react-start";
 import { type SqlBool, sql } from "kysely";
 import { eurosToCents } from "~/lib/currency";
 import type { Listing, ListingImage } from "~/lib/db/schema";
-import { rateLimitMiddleware } from "~/lib/rate-limit";
 import { toPrefixTsQuery, toTsQuery } from "~/lib/search";
 import type { ToriBrowseSearchParams } from "~/lib/tori/validators";
 

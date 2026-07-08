@@ -1,5 +1,5 @@
 import { createMiddleware } from "@tanstack/react-start";
-import { getNonce } from "~/lib/nonce";
+import { getNonce } from "./nonce";
 
 const storagePublicUrl = process.env.STORAGE_PUBLIC_URL ?? "";
 const isProd = process.env.NODE_ENV === "production";

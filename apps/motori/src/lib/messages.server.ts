@@ -1,3 +1,4 @@
+import { checkRateLimit } from "@motori/server/rate-limit";
 import { sql } from "kysely";
 import { db } from "~/lib/db/index";
 import type { Message, MessageKind } from "~/lib/db/schema";
@@ -7,7 +8,6 @@ import { log } from "~/lib/log";
 import type { ConversationListRow } from "~/lib/messages";
 import { shouldNotifyByEmail, validateMessageBody } from "~/lib/messages";
 import { publish } from "~/lib/messages-bus";
-import { checkRateLimit } from "~/lib/rate-limit";
 
 const STATUSES_BLOCKED_FOR_NEW_CONVERSATION = new Set(["removed"]);
 const STATUSES_READONLY = new Set(["removed"]);
