@@ -88,20 +88,20 @@ One Dokku Postgres service (`motori`), linked to both Dokku apps.
 ## Deploy
 
 - New Dokku app `talli` on the same VPS: `dokku apps:create talli`, `dokku postgres:link motori talli`, `dokku domains:add talli talli.motori.fi`, ports and nginx settings mirroring motori. The existing `*.motori.fi` Cloudflare origin cert already covers the subdomain.
-- Both Dokku apps receive the full repo on push. Dispatch happens through one env var:
+- Both Dokku apps receive the full repo on push. Dispatch happens through one env var, in the root package.json scripts — the Procfile stays byte-identical (`web: pnpm start`, `release: pnpm db:migrate`), which keeps the pipeline working before, during, and after the cutover:
 
 ```
-# Procfile (root, shared)
-release: pnpm --filter $DEPLOY_APP db:migrate
-web: pnpm --filter $DEPLOY_APP start
-
 # root package.json
-"build": "pnpm --filter $DEPLOY_APP build"
+"build":      "pnpm --filter ${DEPLOY_APP:-motori} build",
+"start":      "pnpm --filter ${DEPLOY_APP:-motori} start",
+"db:migrate": "pnpm --filter ${DEPLOY_APP:-motori} db:migrate"
 
 # one-time
 dokku config:set motori DEPLOY_APP=motori
 dokku config:set talli  DEPLOY_APP=talli
 ```
+
+The `:-motori` default means everything also works locally and before the Dokku config exists.
 
 - GHA deploy job pushes to both Dokku remotes after CI passes. Both apps redeploy on every merge to main. That is idempotent and acceptable at this scale; path-filtered deploys are a later optimization.
 - Trade-off accepted: each app's build installs the whole workspace, so slugs are bigger and builds somewhat slower than a pruned Docker image. If this ever hurts, the escape hatch is per-app Dockerfiles (`dokku builder-dockerfile:set`), which was considered and deferred.
