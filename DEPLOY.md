@@ -22,6 +22,10 @@ ssh root@motori                                # via Tailscale
 git remote add dokku dokku@<vps-ip>:motori     # local, one-time
 ```
 
+Auth is **Tailscale SSH** (tailnet identity, no local keys): the server runs `tailscale --ssh` and the tailnet policy must have an `ssh` rule allowing it (see below). Public port 22 is UFW-blocked; SSH is reachable only over `tailscale0`.
+
+**Gotcha — `Permission denied (publickey)` on `ssh root@motori`:** almost always means Tailscale SSH got disabled on the server (any later `tailscale up` without `--ssh` resets the flag) and the connection fell through to plain sshd. Check from your machine: `tailscale status --json | jq '.Peer[] | select(.HostName=="motori") | .sshHostKeys'` — `false`/missing means Tailscale SSH is off. Recovery: Hetzner web console → reset root password → open the `>_` console → run `tailscale set --ssh=true` (`set`, not `up` — `set` changes only that flag). Afterwards optionally `passwd -l root` to re-lock the password.
+
 ## Phases
 
 ### 1. Server bootstrap
@@ -126,6 +130,11 @@ In the Tailscale admin → Access Controls, ensure the policy file has:
 "acls": [
   // CI runners can SSH to servers
   { "action": "accept", "src": ["tag:ci"], "dst": ["tag:server:22"] },
+],
+// Tailscale SSH access (interactive admin SSH; without this, connections
+// fall through to plain sshd and fail with "Permission denied (publickey)")
+"ssh": [
+  { "action": "accept", "src": ["autogroup:member"], "dst": ["tag:server"], "users": ["autogroup:nonroot", "root", "dokku"] },
 ],
 ```
 
