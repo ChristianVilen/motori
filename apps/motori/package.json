@@ -22,6 +22,7 @@
 		"@fontsource-variable/manrope": "5.2.8",
 		"@fontsource-variable/space-grotesk": "5.2.10",
 		"@fontsource/jetbrains-mono": "5.2.8",
+		"@motori/db": "workspace:*",
 		"@radix-ui/react-select": "2.2.6",
 		"@radix-ui/react-slot": "1.2.4",
 		"@tanstack/react-form": "1.29.0",

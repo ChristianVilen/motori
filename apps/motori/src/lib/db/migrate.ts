@@ -1,20 +1,15 @@
-import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { FileMigrationProvider, Migrator } from "kysely";
+import { createMigrator } from "@motori/db";
 import { log, withLogContext } from "~/lib/log";
 import { db } from "./index";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 await withLogContext({ script: "migrate" }, async () => {
-	const migrator = new Migrator({
+	const migrator = createMigrator({
 		db,
-		provider: new FileMigrationProvider({
-			fs,
-			path,
-			migrationFolder: path.join(__dirname, "migrations"),
-		}),
+		migrationFolder: path.join(__dirname, "migrations"),
 	});
 
 	const { error, results } = await migrator.migrateToLatest();
