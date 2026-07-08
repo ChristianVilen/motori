@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@import "@motori/ui/theme.css";
+/* Tailwind only scans the app's module graph — without this, classes used only
+   inside packages/ui vanish from built CSS. Path is relative to this file. */
+@source "../../../../packages/ui/src";
+
+button,
+[role="button"] {
+	cursor: pointer;
+}
