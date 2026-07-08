@@ -17,6 +17,10 @@ export function createAuth<DB>(opts: {
 	// Parameterize trusted origins only if a third consumer ever appears.
 	const talliOrigin =
 		new URL(baseURL).hostname === "localhost" ? "http://localhost:3001" : "https://talli.motori.fi";
+	// Session cookie is scoped to the apex so talli.motori.fi shares the login (SSO);
+	// disabled on localhost where subdomains don't apply.
+	const hostname = new URL(baseURL).hostname;
+	const cookieDomain = hostname === "localhost" ? undefined : `.${hostname.replace(/^www\./, "")}`;
 	return betterAuth({
 		database: kyselyAdapter(opts.db, {
 			type: "postgres",
@@ -65,6 +69,7 @@ export function createAuth<DB>(opts: {
 			ipAddress: {
 				ipAddressHeaders: ["x-forwarded-for"],
 			},
+			...(cookieDomain ? { crossSubDomainCookies: { enabled: true, domain: cookieDomain } } : {}),
 		},
 		emailVerification: {
 			sendOnSignUp: true,
