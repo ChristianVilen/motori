@@ -24,7 +24,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: cp .env.ci .env
+      - run: cp apps/motori/.env.ci apps/motori/.env
       - run: pnpm build
 
   lint:
@@ -103,7 +103,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: cp .env.ci .env
+      - run: cp apps/motori/.env.ci apps/motori/.env
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v4
@@ -116,14 +116,14 @@ jobs:
       - name: Install Playwright system deps
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps chromium webkit
-      - run: pnpm db:migrate
-      - run: pnpm build
-      - run: pnpm test:e2e --shard=${{ matrix.shard }}
+      - run: pnpm --filter motori db:migrate
+      - run: pnpm --filter motori build
+      - run: pnpm --filter motori test:e2e --shard=${{ matrix.shard }}
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: e2e-report-${{ strategy.job-index }}
-          path: playwright-report/
+          path: apps/motori/playwright-report/
           retention-days: 7
 
   deploy:
