@@ -13,6 +13,8 @@ Production runs on a single Hetzner VPS as a Dokku app using the Heroku Node bui
 - **Migrations:** auto-run via Procfile `release` phase (`pnpm db:migrate`)
 - **Secrets:** age-encrypted in `secrets/*.age`, decrypt key at `~/.config/sops/age/keys.txt`
 
+The repo is a pnpm workspace (`apps/motori` + shared `packages/*`); root `package.json`'s `build`/`start`/`db:migrate` scripts dispatch via `pnpm --filter ${DEPLOY_APP:-motori} ...`, defaulting to the `motori` app so the Procfile and buildpack config don't need to change. One-time, set it explicitly on the Dokku app so it's pinned regardless of the default: `ssh root@motori "dokku config:set --no-restart motori DEPLOY_APP=motori"`. A future `talli.motori.fi` app will be a **second** Dokku app (its own `dokku apps:create talli`) receiving the same repo/Procfile with `DEPLOY_APP=talli` set on that app's config — not a change to this app's deploy.
+
 ## Connection
 
 ```bash

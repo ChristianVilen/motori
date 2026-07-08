@@ -41,15 +41,22 @@ Requires Node 24.x and pnpm 10.33.0 (see `mise.toml`).
 
 ## Project layout
 
+pnpm workspace: `apps/*` are deployable apps, `packages/*` are shared libraries (packages never import from apps).
+
 ```
-src/
-  routes/            TanStack Router file-based routes (Finnish URLs)
-  components/        UI components
-  lib/               Domain logic, db, i18n, email, auth
-  lib/db/migrations/ Kysely migrations
-e2e/                 Playwright tests
-docs/                Architecture notes (ADRs in docs/adr/)
-infra/               Cron + deploy bits
+apps/motori/
+  src/
+    routes/            TanStack Router file-based routes (Finnish URLs)
+    components/        UI components
+    lib/               Domain logic, db, i18n, email, auth
+    lib/db/migrations/ Kysely migrations
+  e2e/                 Playwright tests
+packages/
+  db/                  @motori/db — createDb / createMigrator, BetterAuth table types
+  server/              @motori/server — csrf, rate-limit, security-headers, nonce, log, email, image-storage, auth factory, session
+  ui/                  @motori/ui — theme.css tokens + button/input/select/textarea
+docs/                  Architecture notes (ADRs in docs/adr/)
+infra/                 Cron + deploy bits
 ```
 
 ## Deployment
