@@ -27,7 +27,7 @@
 		"@tanstack/react-router": "1.170.15",
 		"@tanstack/react-start": "1.168.25",
 		"@types/leaflet": "1.9.21",
-		"better-auth": "1.6.11",
+		"better-auth": "1.6.13",
 		"date-fns": "4.1.0",
 		"embla-carousel-react": "8.6.0",
 		"i18next": "25.10.10",
