@@ -10,7 +10,9 @@ import {
 } from "@tanstack/react-router";
 import { type ReactNode, useEffect } from "react";
 import { Toaster } from "sonner";
-import { MOTORI_URL, SITE_NAME } from "~/lib/constants";
+import { signOut } from "~/lib/auth-client";
+import { MOTORI_URL, SITE_NAME, SITE_URL } from "~/lib/constants";
+import { getSession } from "~/lib/session";
 import appCss from "~/styles/app.css?url";
 
 import "@fontsource-variable/manrope/index.css";
@@ -25,7 +27,8 @@ export const Route = createRootRoute({
 				globalThis as { __motoriGetRequestId?: () => string | undefined }
 			).__motoriGetRequestId?.();
 		}
-		return { requestId };
+		const session = await getSession();
+		return { requestId, session };
 	},
 	head: () => ({
 		meta: [
@@ -91,15 +94,30 @@ function RootComponent() {
 		document.documentElement.setAttribute("data-hydrated", "true");
 	}, []);
 
+	const { session } = Route.useRouteContext();
 	return (
-		<RootDocument>
+		<RootDocument session={session}>
 			<Outlet />
 		</RootDocument>
 	);
 }
 
-function RootDocument({ children }: { children: ReactNode }) {
+interface RootDocumentProps {
+	children: ReactNode;
+	session?: Awaited<ReturnType<typeof getSession>> | null;
+}
+
+function RootDocument({ children, session = null }: RootDocumentProps) {
 	const router = useRouter();
+	const loginHref = `${MOTORI_URL}/kirjaudu?redirect=${encodeURIComponent(
+		SITE_URL + router.state.location.pathname,
+	)}`;
+
+	async function handleSignOut() {
+		await signOut();
+		window.location.assign("/");
+	}
+
 	return (
 		<html lang="fi" dir="ltr" className="bg-background">
 			<head>
@@ -120,6 +138,33 @@ function RootDocument({ children }: { children: ReactNode }) {
 							>
 								Motori.fi
 							</a>
+							{session ? (
+								<>
+									<a
+										href="/asetukset"
+										data-testid="nav-asetukset"
+										className="text-sm text-white/70 hover:text-white"
+									>
+										Asetukset
+									</a>
+									<button
+										type="button"
+										data-testid="nav-signout"
+										onClick={handleSignOut}
+										className="text-sm text-white/70 hover:text-white"
+									>
+										Kirjaudu ulos
+									</button>
+								</>
+							) : (
+								<a
+									href={loginHref}
+									data-testid="nav-login"
+									className="rounded-md bg-accent px-3.5 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
+								>
+									Kirjaudu
+								</a>
+							)}
 						</div>
 					</div>
 				</nav>
