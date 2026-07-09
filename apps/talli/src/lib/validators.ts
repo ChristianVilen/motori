@@ -17,6 +17,11 @@ const imageUrl = z
 
 const isoDate = z.iso.date("Virheellinen päivämäärä");
 
+// Annual recurrence anchor: "MM-DD". Day range is generous (01-31); an overflow
+// like 02-31 normalizes via Date when the occurrence is built — acceptable for MVP.
+const mmdd = z.string().regex(/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/, "Virheellinen päivämäärä");
+const recurrenceDates = z.array(mmdd).min(1, "Anna vähintään yksi päivä").max(4);
+
 const presetKeys = REMINDER_PRESETS.map((p) => p.key) as unknown as readonly [
 	"oljynvaihto",
 	"ketju",
@@ -26,6 +31,8 @@ const presetKeys = REMINDER_PRESETS.map((p) => p.key) as unknown as readonly [
 ];
 
 const CURRENT_YEAR = new Date().getFullYear();
+
+const PRESET_TYPE = new Map(REMINDER_PRESETS.map((p) => [p.key, p.type] as const));
 
 export const vehicleFormSchema = z.object({
 	make: z.string().trim().min(1, "Merkki vaaditaan").max(50, "Merkki liian pitkä"),
@@ -43,10 +50,36 @@ export const vehicleFormSchema = z.object({
 	odometer_km: z.number().int().min(0).max(2_000_000, "Virheellinen mittarilukema"),
 	photo_url: imageUrl.nullable().optional(),
 	thumbnail_url: imageUrl.nullable().optional(),
-	presets: z.array(z.enum(presetKeys)).default([]),
+	presets: z
+		.array(
+			z.object({
+				key: z.enum(presetKeys),
+				interval_km: z.number().int().min(1).max(200_000).nullable().optional(),
+				interval_months: z.number().int().min(1).max(120).nullable().optional(),
+				recurrence_dates: recurrenceDates.optional(),
+			}),
+		)
+		.default([]),
 });
 
 export type VehicleFormData = z.infer<typeof vehicleFormSchema>;
+
+// createVehicle uses this refined variant; updateVehicle keeps the plain object
+// (it omits presets, so it needs neither the refinement nor ZodEffects).
+export const vehicleCreateSchema = vehicleFormSchema.superRefine((v, ctx) => {
+	v.presets.forEach((p, i) => {
+		if (
+			PRESET_TYPE.get(p.key) === "date" &&
+			(!p.recurrence_dates || p.recurrence_dates.length === 0)
+		) {
+			ctx.addIssue({
+				code: "custom",
+				message: "Anna eräpäivä",
+				path: ["presets", i, "recurrence_dates"],
+			});
+		}
+	});
+});
 
 export const reminderFormSchema = z
 	.object({
@@ -58,6 +91,7 @@ export const reminderFormSchema = z
 		last_done_at: isoDate.nullable().optional(),
 		last_done_km: z.number().int().min(0).max(2_000_000).nullable().optional(),
 		due_date: isoDate.nullable().optional(),
+		recurrence_dates: recurrenceDates.optional(),
 	})
 	.superRefine((r, ctx) => {
 		if (r.type === "interval" && r.interval_km == null && r.interval_months == null) {
@@ -67,7 +101,11 @@ export const reminderFormSchema = z
 				path: ["interval_km"],
 			});
 		}
-		if (r.type === "date" && r.due_date == null) {
+		if (
+			r.type === "date" &&
+			r.due_date == null &&
+			(!r.recurrence_dates || r.recurrence_dates.length === 0)
+		) {
 			ctx.addIssue({ code: "custom", message: "Anna eräpäivä", path: ["due_date"] });
 		}
 	});
