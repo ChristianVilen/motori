@@ -140,13 +140,13 @@ function RootDocument({ children, session = null }: RootDocumentProps) {
 							</a>
 							{session ? (
 								<>
-									<a
-										href="/asetukset"
+									<Link
+										to="/asetukset"
 										data-testid="nav-asetukset"
 										className="text-sm text-white/70 hover:text-white"
 									>
 										Asetukset
-									</a>
+									</Link>
 									<button
 										type="button"
 										data-testid="nav-signout"

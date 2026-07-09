@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AsetuksetRouteImport } from './routes/asetukset'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PyoratUusiRouteImport } from './routes/pyorat/uusi'
 import { Route as PyoratVehicleIdRouteImport } from './routes/pyorat/$vehicleId'
@@ -18,6 +19,11 @@ import { Route as ApiUploadsSplatRouteImport } from './routes/api/uploads/$'
 import { Route as ApiImagesUploadRouteImport } from './routes/api/images/upload'
 import { Route as PyoratVehicleIdHuoltoUusiRouteImport } from './routes/pyorat/$vehicleId_.huolto.uusi'
 
+const AsetuksetRoute = AsetuksetRouteImport.update({
+  id: '/asetukset',
+  path: '/asetukset',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -63,6 +69,7 @@ const PyoratVehicleIdHuoltoUusiRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/asetukset': typeof AsetuksetRoute
   '/api/health': typeof ApiHealthRoute
   '/pyorat/$vehicleId': typeof PyoratVehicleIdRoute
   '/pyorat/uusi': typeof PyoratUusiRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/asetukset': typeof AsetuksetRoute
   '/api/health': typeof ApiHealthRoute
   '/pyorat/$vehicleId': typeof PyoratVehicleIdRoute
   '/pyorat/uusi': typeof PyoratUusiRoute
@@ -84,6 +92,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/asetukset': typeof AsetuksetRoute
   '/api/health': typeof ApiHealthRoute
   '/pyorat/$vehicleId': typeof PyoratVehicleIdRoute
   '/pyorat/uusi': typeof PyoratUusiRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/asetukset'
     | '/api/health'
     | '/pyorat/$vehicleId'
     | '/pyorat/uusi'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/asetukset'
     | '/api/health'
     | '/pyorat/$vehicleId'
     | '/pyorat/uusi'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/asetukset'
     | '/api/health'
     | '/pyorat/$vehicleId'
     | '/pyorat/uusi'
@@ -127,6 +139,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AsetuksetRoute: typeof AsetuksetRoute
   ApiHealthRoute: typeof ApiHealthRoute
   PyoratVehicleIdRoute: typeof PyoratVehicleIdRoute
   PyoratUusiRoute: typeof PyoratUusiRoute
@@ -138,6 +151,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/asetukset': {
+      id: '/asetukset'
+      path: '/asetukset'
+      fullPath: '/asetukset'
+      preLoaderRoute: typeof AsetuksetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -199,6 +219,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AsetuksetRoute: AsetuksetRoute,
   ApiHealthRoute: ApiHealthRoute,
   PyoratVehicleIdRoute: PyoratVehicleIdRoute,
   PyoratUusiRoute: PyoratUusiRoute,
