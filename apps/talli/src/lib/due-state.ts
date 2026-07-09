@@ -105,11 +105,12 @@ export function computeDueState(
 
 /**
  * What completing a reminder writes back: interval reminders re-anchor to the
- * completion; date reminders roll due_date forward a year. Either way the
+ * completion; payment reminders (recurrence_dates set) advance to the next
+ * anchor; other date reminders roll due_date forward a year. Either way the
  * notified_at dedupe stamp clears so the next due cycle emails again.
  */
 export function reanchorOnComplete(
-	reminder: { type: ReminderType; due_date: string | null },
+	reminder: { type: ReminderType; due_date: string | null; recurrence_dates: string[] | null },
 	performedAt: string,
 	odometerKm: number | null,
 ):
@@ -119,5 +120,11 @@ export function reanchorOnComplete(
 		return { last_done_at: performedAt, last_done_km: odometerKm, notified_at: null };
 	}
 	const from = reminder.due_date ?? performedAt;
+	if (reminder.recurrence_dates && reminder.recurrence_dates.length > 0) {
+		return {
+			due_date: nextRecurrence(reminder.recurrence_dates, from, { inclusive: false }),
+			notified_at: null,
+		};
+	}
 	return { due_date: format(addYears(parseLocalDate(from), 1), "yyyy-MM-dd"), notified_at: null };
 }

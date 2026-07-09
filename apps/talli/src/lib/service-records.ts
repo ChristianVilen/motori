@@ -28,14 +28,24 @@ async function completeReminder(
 	const { sql } = await import("kysely");
 	const reminder = await trx
 		.selectFrom("talli.reminder")
-		.select(["id", "vehicle_id", "type", sql<string | null>`due_date::text`.as("due_date")])
+		.select([
+			"id",
+			"vehicle_id",
+			"type",
+			sql<string | null>`due_date::text`.as("due_date"),
+			"recurrence_dates",
+		])
 		.where("id", "=", reminderId)
 		.executeTakeFirst();
 	if (!reminder || reminder.vehicle_id !== vehicleId) {
 		throw new TalliError("Muistutusta ei löytynyt");
 	}
 	const update = reanchorOnComplete(
-		{ type: reminder.type, due_date: reminder.due_date },
+		{
+			type: reminder.type,
+			due_date: reminder.due_date,
+			recurrence_dates: reminder.recurrence_dates,
+		},
 		performedAt,
 		odometerKm,
 	);

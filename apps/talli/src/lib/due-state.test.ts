@@ -125,22 +125,38 @@ describe("computeDueState — date reminders", () => {
 
 describe("reanchorOnComplete", () => {
 	it("re-anchors an interval reminder to the completion", () => {
-		const u = reanchorOnComplete({ type: "interval", due_date: null }, "2026-07-08", 15200);
+		const u = reanchorOnComplete(
+			{ type: "interval", due_date: null, recurrence_dates: null },
+			"2026-07-08",
+			15200,
+		);
 		expect(u).toEqual({ last_done_at: "2026-07-08", last_done_km: 15200, notified_at: null });
 	});
 
 	it("keeps last_done_km null when no odometer was given", () => {
-		const u = reanchorOnComplete({ type: "interval", due_date: null }, "2026-07-08", null);
+		const u = reanchorOnComplete(
+			{ type: "interval", due_date: null, recurrence_dates: null },
+			"2026-07-08",
+			null,
+		);
 		expect(u).toEqual({ last_done_at: "2026-07-08", last_done_km: null, notified_at: null });
 	});
 
 	it("rolls a date reminder forward one year from its due date", () => {
-		const u = reanchorOnComplete({ type: "date", due_date: "2026-08-01" }, "2026-07-20", null);
+		const u = reanchorOnComplete(
+			{ type: "date", due_date: "2026-08-01", recurrence_dates: null },
+			"2026-07-20",
+			null,
+		);
 		expect(u).toEqual({ due_date: "2027-08-01", notified_at: null });
 	});
 
 	it("rolls forward from the completion date when due_date is missing", () => {
-		const u = reanchorOnComplete({ type: "date", due_date: null }, "2026-07-20", null);
+		const u = reanchorOnComplete(
+			{ type: "date", due_date: null, recurrence_dates: null },
+			"2026-07-20",
+			null,
+		);
 		expect(u).toEqual({ due_date: "2027-07-20", notified_at: null });
 	});
 });
@@ -172,5 +188,25 @@ describe("nextRecurrence", () => {
 
 	it("inclusive returns the ref date itself when it is an anchor", () => {
 		expect(nextRecurrence(["03-15"], "2026-03-15", { inclusive: true })).toBe("2026-03-15");
+	});
+});
+
+describe("reanchorOnComplete — payment reminders", () => {
+	it("advances a payment reminder to the next anchor (not +1yr)", () => {
+		const result = reanchorOnComplete(
+			{ type: "date", due_date: "2026-03-15", recurrence_dates: ["03-15", "09-15"] },
+			"2026-03-15",
+			null,
+		);
+		expect(result).toEqual({ due_date: "2026-09-15", notified_at: null });
+	});
+
+	it("ordinary date reminder (null recurrence) still rolls +1 year", () => {
+		const result = reanchorOnComplete(
+			{ type: "date", due_date: "2026-03-15", recurrence_dates: null },
+			"2026-04-01",
+			null,
+		);
+		expect(result).toEqual({ due_date: "2027-03-15", notified_at: null });
 	});
 });
