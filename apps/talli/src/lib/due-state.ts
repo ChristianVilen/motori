@@ -27,6 +27,38 @@ export function parseLocalDate(dateStr: string): Date {
 	return new Date(y, m - 1, d);
 }
 
+/**
+ * The next YYYY-MM-DD occurrence of any annual MM-DD anchor relative to `ref`.
+ * `inclusive` decides whether an anchor falling exactly on `ref` counts (create)
+ * or must be skipped to advance (mark-paid). TZ-stable — builds Dates in local
+ * time like parseLocalDate. Requires at least one anchor.
+ */
+export function nextRecurrence(
+	anchors: string[],
+	ref: string,
+	opts: { inclusive: boolean },
+): string {
+	if (anchors.length === 0) {
+		throw new Error("nextRecurrence requires at least one anchor");
+	}
+	const refDate = parseLocalDate(ref);
+	const refYear = refDate.getFullYear();
+	let best: Date | null = null;
+	// refYear+1 always yields a candidate strictly after any date in refYear,
+	// so `best` is guaranteed set.
+	for (const year of [refYear, refYear + 1]) {
+		for (const anchor of anchors) {
+			const [m, d] = anchor.split("-").map(Number);
+			const candidate = new Date(year, m - 1, d);
+			const passes = opts.inclusive ? candidate >= refDate : candidate > refDate;
+			if (passes && (best === null || candidate < best)) {
+				best = candidate;
+			}
+		}
+	}
+	return format(best as Date, "yyyy-MM-dd");
+}
+
 function kmRemaining(reminder: DueInput, vehicleOdometerKm: number): number | null {
 	if (
 		reminder.type !== "interval" ||

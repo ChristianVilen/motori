@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeDueState, reanchorOnComplete } from "./due-state";
+import { computeDueState, nextRecurrence, reanchorOnComplete } from "./due-state";
 
 // Build `today` at LOCAL noon so the hand-computed day counts hold in every TZ
 // (noon-UTC would roll to the next local calendar day at UTC+14 and skew diffs).
@@ -142,5 +142,35 @@ describe("reanchorOnComplete", () => {
 	it("rolls forward from the completion date when due_date is missing", () => {
 		const u = reanchorOnComplete({ type: "date", due_date: null }, "2026-07-20", null);
 		expect(u).toEqual({ due_date: "2027-07-20", notified_at: null });
+	});
+});
+
+describe("nextRecurrence", () => {
+	it("single anchor already passed this year → next year", () => {
+		expect(nextRecurrence(["03-15"], "2026-07-09", { inclusive: true })).toBe("2027-03-15");
+	});
+
+	it("single anchor still upcoming this year → this year", () => {
+		expect(nextRecurrence(["09-15"], "2026-07-09", { inclusive: true })).toBe("2026-09-15");
+	});
+
+	it("multi anchor picks the nearest upcoming across the pair", () => {
+		expect(nextRecurrence(["03-15", "09-15"], "2026-07-09", { inclusive: true })).toBe(
+			"2026-09-15",
+		);
+	});
+
+	it("exclusive advances past the current due date to the next anchor", () => {
+		expect(nextRecurrence(["03-15", "09-15"], "2026-09-15", { inclusive: false })).toBe(
+			"2027-03-15",
+		);
+	});
+
+	it("exclusive single anchor equals +1 year", () => {
+		expect(nextRecurrence(["03-15"], "2026-03-15", { inclusive: false })).toBe("2027-03-15");
+	});
+
+	it("inclusive returns the ref date itself when it is an anchor", () => {
+		expect(nextRecurrence(["03-15"], "2026-03-15", { inclusive: true })).toBe("2026-03-15");
 	});
 });
