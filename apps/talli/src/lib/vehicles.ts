@@ -3,14 +3,14 @@ import type { Kysely, Transaction } from "kysely";
 import { z } from "zod";
 import { REMINDER_PRESETS } from "~/lib/constants";
 import type { Database, NewReminder, Vehicle } from "~/lib/db/schema";
-import { computeDueState, type DueState } from "~/lib/due-state";
+import { computeDueState, type DueState, nextRecurrence } from "~/lib/due-state";
 import { TalliError } from "~/lib/errors";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { protectedMutation } from "~/lib/middleware";
 import { recordOdometerReading } from "~/lib/odometer";
 import { getSession, requireUserId } from "~/lib/session";
-import { isValidImageUrl, vehicleFormSchema } from "~/lib/validators";
+import { isValidImageUrl, vehicleCreateSchema, vehicleFormSchema } from "~/lib/validators";
 
 const getDb = async () => (await import("~/lib/db/index")).db;
 
@@ -41,7 +41,7 @@ function validatePhotoUrls(data: { photo_url?: string | null; thumbnail_url?: st
 
 export const createVehicle = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("talli-vehicle-create", 10, 3600))
-	.inputValidator(vehicleFormSchema)
+	.inputValidator(vehicleCreateSchema)
 	.handler(async ({ data }) => {
 		const userId = requireUserId(await getSession());
 		const db = await getDb();
@@ -72,44 +72,51 @@ export const createVehicle = createServerFn({ method: "POST" })
 				.values({ vehicle_id: vehicle.id, reading_km: data.odometer_km })
 				.execute();
 
-			// One-tap presets: interval reminders anchor to now + current odometer;
-			// date presets default to +1 year (editable in muistutukset).
-			const presets = REMINDER_PRESETS.filter((p) => data.presets.includes(p.key));
-			if (presets.length > 0) {
-				const inYear = new Date();
-				inYear.setFullYear(inYear.getFullYear() + 1);
-				const rows: NewReminder[] = presets.map((p) =>
-					p.type === "interval"
-						? {
-								vehicle_id: vehicle.id,
-								type: "interval" as const,
-								title: p.title,
-								interval_km: p.interval_km,
-								interval_months: p.interval_months,
-								last_done_at: today,
-								last_done_km: data.odometer_km,
-								due_date: null,
-								notified_at: null,
-							}
-						: {
-								vehicle_id: vehicle.id,
-								type: "date" as const,
-								title: p.title,
-								interval_km: null,
-								interval_months: null,
-								last_done_at: null,
-								last_done_km: null,
-								due_date: inYear.toISOString().slice(0, 10),
-								notified_at: null,
-							},
-				);
+			// Presets are editable at creation: interval presets carry adjustable
+			// km/months (default from the catalog); payment presets (vakuutus,
+			// ajoneuvovero) carry user-entered MM-DD anchors, and their due_date is
+			// the next upcoming occurrence.
+			const rows: NewReminder[] = data.presets.map((input) => {
+				const preset = REMINDER_PRESETS.find((p) => p.key === input.key);
+				if (!preset) {
+					throw new TalliError("Tuntematon muistutus");
+				}
+				if (preset.type === "interval") {
+					return {
+						vehicle_id: vehicle.id,
+						type: "interval" as const,
+						title: preset.title,
+						interval_km: input.interval_km ?? preset.interval_km ?? null,
+						interval_months: input.interval_months ?? preset.interval_months ?? null,
+						last_done_at: today,
+						last_done_km: data.odometer_km,
+						due_date: null,
+						recurrence_dates: null,
+						notified_at: null,
+					};
+				}
+				const anchors = input.recurrence_dates as string[];
+				return {
+					vehicle_id: vehicle.id,
+					type: "date" as const,
+					title: preset.title,
+					interval_km: null,
+					interval_months: null,
+					last_done_at: null,
+					last_done_km: null,
+					due_date: nextRecurrence(anchors, today, { inclusive: true }),
+					recurrence_dates: anchors,
+					notified_at: null,
+				};
+			});
+			if (rows.length > 0) {
 				await trx.insertInto("talli.reminder").values(rows).execute();
 			}
 
 			return vehicle.id;
 		});
 
-		log.event(EVENTS.vehicle.created, { vehicleId, presets: data.presets });
+		log.event(EVENTS.vehicle.created, { vehicleId, presets: data.presets.map((p) => p.key) });
 		return { id: vehicleId };
 	});
 
@@ -264,6 +271,7 @@ export const getVehicleDetail = createServerFn()
 				sql<string | null>`last_done_at::text`.as("last_done_at"),
 				"last_done_km",
 				sql<string | null>`due_date::text`.as("due_date"),
+				"recurrence_dates",
 			])
 			.where("vehicle_id", "=", vehicle.id)
 			.orderBy("created_at", "asc")
