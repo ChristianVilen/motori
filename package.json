@@ -27,6 +27,6 @@
 		"test:e2e:ui": "pnpm --filter motori test:e2e:ui"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.4.11"
+		"@biomejs/biome": "2.5.3"
 	}
 }
