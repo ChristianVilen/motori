@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { nextRecurrence } from "~/lib/due-state";
+import { nextRecurrence, reanchorOnComplete } from "~/lib/due-state";
 import { TalliError } from "~/lib/errors";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
@@ -147,4 +147,50 @@ export const deleteReminder = createServerFn({ method: "POST" })
 		});
 
 		log.event(EVENTS.reminder.deleted, { reminderId: id });
+	});
+
+export const markReminderPaid = createServerFn({ method: "POST" })
+	.middleware(protectedMutation("talli-reminder-paid", 30, 3600))
+	.inputValidator((input: { id: string }) => ({ id: z.string().uuid().parse(input.id) }))
+	.handler(async ({ data: { id } }) => {
+		const userId = requireUserId(await getSession());
+		const db = await getDb();
+		const { sql } = await import("kysely");
+
+		await db.transaction().execute(async (trx) => {
+			const reminder = await trx
+				.selectFrom("talli.reminder")
+				.select([
+					"id",
+					"vehicle_id",
+					"type",
+					sql<string | null>`due_date::text`.as("due_date"),
+					"recurrence_dates",
+				])
+				.where("id", "=", id)
+				.executeTakeFirst();
+			if (!reminder?.recurrence_dates?.length) {
+				throw new TalliError("Muistutusta ei löytynyt");
+			}
+			await getOwnedVehicle(trx, reminder.vehicle_id, userId);
+			const today = new Date().toISOString().slice(0, 10);
+			// reanchorOnComplete advances a payment reminder to its next anchor and
+			// clears notified_at — same logic as a service completion, no record.
+			const update = reanchorOnComplete(
+				{
+					type: reminder.type,
+					due_date: reminder.due_date,
+					recurrence_dates: reminder.recurrence_dates,
+				},
+				today,
+				null,
+			);
+			await trx
+				.updateTable("talli.reminder")
+				.set({ ...update, updated_at: new Date() })
+				.where("id", "=", id)
+				.execute();
+		});
+
+		log.event(EVENTS.reminder.paid, { reminderId: id });
 	});

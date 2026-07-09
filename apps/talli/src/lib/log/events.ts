@@ -12,6 +12,7 @@ export const EVENTS = {
 		updated: "reminder.updated",
 		deleted: "reminder.deleted",
 		completed: "reminder.completed",
+		paid: "reminder.paid",
 	},
 	odometer: {
 		updated: "odometer.updated",
