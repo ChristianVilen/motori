@@ -16,6 +16,7 @@ Motori is a P2P motorcycle rental noticeboard for Finland. Lean MVP — prefer m
 pnpm workspace: `apps/*` are deployable apps, `packages/*` are shared libraries. Packages never import from apps.
 
 - `apps/motori` — the app (routes, components, app-specific lib code, migrations)
+- `apps/talli` — the motorcycle-owner companion app at talli.motori.fi (garage, maintenance log, reminders, digest). Runs on port 3001, owns the `talli` Postgres schema with its own migration table, mounts no auth routes (SSO via motori).
 - `packages/db` (`@motori/db`) — `createDb`/`createMigrator` + BetterAuth table types
 - `packages/server` (`@motori/server`) — server-only subpath exports: csrf, rate-limit, security-headers, nonce, log (incl. OpenObserve stream), email, email-wrapper, image-storage, password-strength, the `createAuth` factory, session
 - `packages/ui` (`@motori/ui`) — `theme.css` design tokens + button/input/select/textarea + `cn`
@@ -24,12 +25,14 @@ pnpm workspace: `apps/*` are deployable apps, `packages/*` are shared libraries.
 
 Always use `pnpm` (not npm/bun — lockfile is pnpm-lock.yaml).
 
-- `pnpm dev` — one command (`scripts/dev.sh`) that brings up the dev stack (Postgres via docker compose) **and** runs every app under `apps/*` in parallel (currently just `motori`, at http://localhost:3000). **Ctrl+C stops everything**, containers included (a trap runs `docker compose down`). `pnpm dev:down` is a manual teardown if ever needed. To run a single app without the others: `pnpm --filter motori dev`.
+- `pnpm dev` — one command (`scripts/dev.sh`) that brings up the dev stack (Postgres via docker compose) **and** runs every app under `apps/*` in parallel (`motori` at http://localhost:3000, `talli` at http://localhost:3001). **Ctrl+C stops everything**, containers included (a trap runs `docker compose down`). `pnpm dev:down` is a manual teardown if ever needed. To run a single app without the others: `pnpm --filter motori dev` (or `--filter talli`).
 - `pnpm build` / `pnpm start` — dispatch to `pnpm --filter ${DEPLOY_APP:-motori} build|start` (root `package.json`). Defaults to the `motori` app so the Dokku Procfile/buildpack doesn't need to change; a future second app sets `DEPLOY_APP` on its own Dokku app config. Also regenerates `routeTree.gen.ts`.
 - `pnpm typecheck` — fans out to every workspace package via `pnpm -r typecheck`
 - `pnpm lint` / `pnpm lint:fix` — Biome, run repo-wide from the root (tabs, 100-col, strict rules incl. `noExplicitAny`, `noConsole` warn, `noNonNullAssertion`)
 - `pnpm test` — fans out to every workspace package via `pnpm -r test` (Vitest). Run a single file inside the app: `pnpm --filter motori test -- path/to/file.test.ts`
-- `pnpm test:e2e` / `pnpm test:e2e:ui` — dispatches to the `motori` app's Playwright config. Config auto-starts the dev server with `DISABLE_EMAIL_VERIFICATION=true`.
+- `pnpm test:e2e` / `pnpm test:e2e:ui` — dispatches to the `motori` app's Playwright config. Config auto-starts the dev server with `DISABLE_EMAIL_VERIFICATION=true`. `pnpm test:e2e:talli` runs talli's e2e suite.
+
+Per-app scripts run via `pnpm --filter talli <script>` (`dev`, `build`, `db:migrate`, `test`, `test:e2e`), same as `--filter motori`.
 
 ### Database
 
@@ -41,7 +44,7 @@ Postgres 17 via `docker-compose up -d db` (port 5433, user/pass/db = `motori`). 
 
 After schema changes: add a new migration file, run `db:migrate`, then `db:codegen`.
 
-A future second app owns its own Postgres schema and migration table — `createMigrator` (`packages/db/src/migrator.ts`) accepts a `migrationTableSchema` option for this. It must never migrate against `public`, which belongs to `motori`.
+`talli` shares motori's Postgres but owns only the `talli` schema and its own migration table — its migrator (`apps/talli/src/lib/db/migrate.ts`) passes `migrationTableSchema: "talli"` to `createMigrator` (`packages/db/src/migrator.ts`). It must never migrate against `public`, which belongs to `motori` (BetterAuth tables). talli's tables carry cross-schema FKs to `public."user"` by design (read-only joins; never mutate the auth tables from talli). Run talli's migrations with `DEPLOY_APP=talli pnpm db:migrate` or `pnpm --filter talli db:migrate`.
 
 ## Architecture
 
@@ -84,7 +87,7 @@ TanStack Start ships `apps/motori/src/start.ts`, `apps/motori/src/router.tsx`, a
 
 BetterAuth with Kysely adapter. The config itself is a factory, `createAuth` (`packages/server/src/auth.ts`), parameterised over `db` and the two email-sending callbacks; the app wires it up in `apps/motori/src/lib/auth.ts` (passes `db` and Resend-backed senders) and `apps/motori/src/lib/auth-client.ts` (client). Auth routes mounted under `apps/motori/src/routes/api/auth/`. Email verification can be disabled via `DISABLE_EMAIL_VERIFICATION=true` (used by Playwright).
 
-The session cookie is scoped to `.motori.fi` in prod (`crossSubDomainCookies` in `createAuth`, disabled on localhost where subdomains don't apply) so a future `talli.motori.fi` app can share the login (SSO prep — talli doesn't exist yet). `trustedOrigins` already includes `talli.motori.fi` / `localhost:3001` alongside the primary origin.
+The session cookie is scoped to `.motori.fi` in prod (`crossSubDomainCookies` in `createAuth`, disabled on localhost where subdomains don't apply) so the `talli.motori.fi` app shares the login (SSO). `trustedOrigins` includes `talli.motori.fi` / `localhost:3001` alongside the primary origin. talli mounts no auth routes of its own — it links to motori for sign-in/sign-up and relies on the shared cookie.
 
 ### Security
 
@@ -137,3 +140,9 @@ Use the `gh` CLI for all GitHub interactions — never open the web UI for thing
 - Commits: no `Co-Authored-By` lines.
 - Issues and feature tracking: GitHub Issues on this repo (labels: `bug`, `enhancement`, `p1`, `p2`, `auth`, `i18n`). Use `gh issue list` to browse, `gh issue create` to add new ones.
 - Dont consider your work done, until all tests, format, lint and build pass
+
+### talli domain rules
+
+- Domain term is `vehicle` (schema table, column names), **not** bike/motorcycle. `vehicle_type` defaults to `'motorcycle'`; cars come later.
+- No katsastus: motorcycles are exempt from periodic inspection in Finland, so there is no inspection reminder. Date-reminder presets are **vakuutus** (insurance) and **ajoneuvovero** (vehicle tax) only.
+- UI copy is Finnish (same as motori).
