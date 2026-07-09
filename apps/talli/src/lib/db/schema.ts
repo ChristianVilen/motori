@@ -43,7 +43,9 @@ export interface ReminderTable {
 	interval_months: number | null;
 	last_done_at: string | null; // date — anchor for interval reminders
 	last_done_km: number | null;
-	due_date: string | null; // date — for date reminders
+	due_date: string | null; // date — active/next absolute due date
+	// text[] of annual MM-DD anchors; non-null ⇒ payment reminder. Insert-optional (defaults NULL).
+	recurrence_dates: ColumnType<string[] | null, string[] | null | undefined, string[] | null>;
 	notified_at: Date | null; // dedupe: digest emails once per due cycle
 	created_at: ColumnType<Date, Date | undefined, Date>;
 	updated_at: ColumnType<Date, Date | undefined, Date>;
