@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PyoratUusiRouteImport } from './routes/pyorat/uusi'
+import { Route as PyoratVehicleIdRouteImport } from './routes/pyorat/$vehicleId'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiUploadsSplatRouteImport } from './routes/api/uploads/$'
 import { Route as ApiImagesUploadRouteImport } from './routes/api/images/upload'
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
 const PyoratUusiRoute = PyoratUusiRouteImport.update({
   id: '/pyorat/uusi',
   path: '/pyorat/uusi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PyoratVehicleIdRoute = PyoratVehicleIdRouteImport.update({
+  id: '/pyorat/$vehicleId',
+  path: '/pyorat/$vehicleId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -44,6 +50,7 @@ const ApiImagesUploadRoute = ApiImagesUploadRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/health': typeof ApiHealthRoute
+  '/pyorat/$vehicleId': typeof PyoratVehicleIdRoute
   '/pyorat/uusi': typeof PyoratUusiRoute
   '/api/images/upload': typeof ApiImagesUploadRoute
   '/api/uploads/$': typeof ApiUploadsSplatRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/health': typeof ApiHealthRoute
+  '/pyorat/$vehicleId': typeof PyoratVehicleIdRoute
   '/pyorat/uusi': typeof PyoratUusiRoute
   '/api/images/upload': typeof ApiImagesUploadRoute
   '/api/uploads/$': typeof ApiUploadsSplatRoute
@@ -59,6 +67,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/health': typeof ApiHealthRoute
+  '/pyorat/$vehicleId': typeof PyoratVehicleIdRoute
   '/pyorat/uusi': typeof PyoratUusiRoute
   '/api/images/upload': typeof ApiImagesUploadRoute
   '/api/uploads/$': typeof ApiUploadsSplatRoute
@@ -68,6 +77,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/api/health'
+    | '/pyorat/$vehicleId'
     | '/pyorat/uusi'
     | '/api/images/upload'
     | '/api/uploads/$'
@@ -75,6 +85,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/api/health'
+    | '/pyorat/$vehicleId'
     | '/pyorat/uusi'
     | '/api/images/upload'
     | '/api/uploads/$'
@@ -82,6 +93,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/api/health'
+    | '/pyorat/$vehicleId'
     | '/pyorat/uusi'
     | '/api/images/upload'
     | '/api/uploads/$'
@@ -90,6 +102,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  PyoratVehicleIdRoute: typeof PyoratVehicleIdRoute
   PyoratUusiRoute: typeof PyoratUusiRoute
   ApiImagesUploadRoute: typeof ApiImagesUploadRoute
   ApiUploadsSplatRoute: typeof ApiUploadsSplatRoute
@@ -109,6 +122,13 @@ declare module '@tanstack/react-router' {
       path: '/pyorat/uusi'
       fullPath: '/pyorat/uusi'
       preLoaderRoute: typeof PyoratUusiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pyorat/$vehicleId': {
+      id: '/pyorat/$vehicleId'
+      path: '/pyorat/$vehicleId'
+      fullPath: '/pyorat/$vehicleId'
+      preLoaderRoute: typeof PyoratVehicleIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/health': {
@@ -138,6 +158,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiHealthRoute: ApiHealthRoute,
+  PyoratVehicleIdRoute: PyoratVehicleIdRoute,
   PyoratUusiRoute: PyoratUusiRoute,
   ApiImagesUploadRoute: ApiImagesUploadRoute,
   ApiUploadsSplatRoute: ApiUploadsSplatRoute,

@@ -244,3 +244,74 @@ export const getGarage = createServerFn().handler(async (): Promise<GarageVehicl
 		return { ...v, nextDue: states[0] ?? null };
 	});
 });
+
+export const getVehicleDetail = createServerFn()
+	.inputValidator((input: { vehicleId: string }) => ({
+		vehicleId: z.string().uuid().parse(input.vehicleId),
+	}))
+	.handler(async ({ data }) => {
+		const session = await getSession();
+		if (!session) {
+			throw new AppError("Kirjaudu sisään");
+		}
+		const db = await getDb();
+		const { sql } = await import("kysely");
+
+		const vehicle = await getOwnedVehicle(db, data.vehicleId, session.user.id);
+
+		const reminders = await db
+			.selectFrom("talli.reminder")
+			.select([
+				"id",
+				"vehicle_id",
+				"type",
+				"title",
+				"interval_km",
+				"interval_months",
+				sql<string | null>`last_done_at::text`.as("last_done_at"),
+				"last_done_km",
+				sql<string | null>`due_date::text`.as("due_date"),
+			])
+			.where("vehicle_id", "=", vehicle.id)
+			.orderBy("created_at", "asc")
+			.execute();
+
+		const records = await db
+			.selectFrom("talli.service_record")
+			.select([
+				"id",
+				"reminder_id",
+				sql<string>`performed_at::text`.as("performed_at"),
+				"odometer_km",
+				"title",
+				"notes",
+				"cost_cents",
+				"parts",
+			])
+			.where("vehicle_id", "=", vehicle.id)
+			.orderBy("performed_at", "desc")
+			.orderBy("created_at", "desc")
+			.execute();
+
+		const photos = records.length
+			? await db
+					.selectFrom("talli.service_record_photo")
+					.selectAll()
+					.where(
+						"service_record_id",
+						"in",
+						records.map((r) => r.id),
+					)
+					.orderBy("position", "asc")
+					.execute()
+			: [];
+
+		return {
+			vehicle,
+			reminders: reminders.map((r) => ({ ...r, state: computeDueState(r, vehicle.odometer_km) })),
+			records: records.map((r) => ({
+				...r,
+				photos: photos.filter((p) => p.service_record_id === r.id),
+			})),
+		};
+	});

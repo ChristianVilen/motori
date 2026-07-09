@@ -56,9 +56,9 @@ function GaragePage() {
 			<ul className="mt-6 grid gap-4 sm:grid-cols-2">
 				{vehicles.map((v) => (
 					<li key={v.id}>
-						{/* Task 11 adds the typed /pyorat/$vehicleId route; plain anchor until then. */}
-						<a
-							href={`/pyorat/${v.id}`}
+						<Link
+							to="/pyorat/$vehicleId"
+							params={{ vehicleId: v.id }}
 							data-testid="vehicle-card"
 							data-vehicle-id={v.id}
 							className="block rounded-lg border border-border p-4 hover:border-accent"
@@ -86,7 +86,7 @@ function GaragePage() {
 									</span>
 								</div>
 							) : null}
-						</a>
+						</Link>
 					</li>
 				))}
 			</ul>

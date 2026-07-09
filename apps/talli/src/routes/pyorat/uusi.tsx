@@ -1,6 +1,6 @@
 import { Button } from "@motori/ui/button";
 import { Input } from "@motori/ui/input";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { type UploadedPhoto, uploadPhoto } from "~/components/photo-upload";
@@ -13,6 +13,7 @@ export const Route = createFileRoute("/pyorat/uusi")({
 });
 
 function NewVehiclePage() {
+	const navigate = useNavigate();
 	const [make, setMake] = useState("");
 	const [model, setModel] = useState("");
 	const [year, setYear] = useState("");
@@ -60,8 +61,7 @@ function NewVehiclePage() {
 					presets,
 				},
 			});
-			// Task 11 adds the typed /pyorat/$vehicleId route; hard nav until then.
-			window.location.assign(`/pyorat/${id}`);
+			navigate({ to: "/pyorat/$vehicleId", params: { vehicleId: id } });
 		} catch (err) {
 			toast.error(formErrorMessage(err));
 			setSaving(false);
