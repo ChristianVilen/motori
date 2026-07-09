@@ -6,6 +6,7 @@ import { DueBadge, dueDetail } from "~/components/due-badge";
 import { MOTORI_URL } from "~/lib/constants";
 import { parseLocalDate } from "~/lib/due-state";
 import { formatEur, vehicleLabel } from "~/lib/format";
+import { markReminderPaid } from "~/lib/reminders";
 import { useSubmit } from "~/lib/use-submit";
 import { getVehicleDetail, updateOdometer } from "~/lib/vehicles";
 
@@ -33,6 +34,13 @@ function VehicleDetailPage() {
 				data: { vehicle_id: vehicle.id, reading_km: Number(reading) },
 			});
 			setReading("");
+			router.invalidate();
+		});
+	}
+
+	async function handlePaid(id: string) {
+		await submit(async () => {
+			await markReminderPaid({ data: { id } });
 			router.invalidate();
 		});
 	}
@@ -119,16 +127,28 @@ function VehicleDetailPage() {
 										<div className="text-xs text-muted">{dueDetail(r.state)}</div>
 									</div>
 								</div>
-								<Button asChild size="sm" variant="outline">
-									<Link
-										to="/pyorat/$vehicleId/huolto/uusi"
-										params={{ vehicleId: vehicle.id }}
-										search={{ reminder: r.id }}
-										data-testid={`complete-reminder-${r.title}`}
+								{r.recurrence_dates ? (
+									<Button
+										size="sm"
+										variant="outline"
+										data-testid={`mark-paid-${r.title}`}
+										disabled={saving}
+										onClick={() => handlePaid(r.id)}
 									>
-										Merkitse tehdyksi
-									</Link>
-								</Button>
+										Merkitse maksetuksi
+									</Button>
+								) : (
+									<Button asChild size="sm" variant="outline">
+										<Link
+											to="/pyorat/$vehicleId/huolto/uusi"
+											params={{ vehicleId: vehicle.id }}
+											search={{ reminder: r.id }}
+											data-testid={`complete-reminder-${r.title}`}
+										>
+											Merkitse tehdyksi
+										</Link>
+									</Button>
+								)}
 							</li>
 						))}
 					</ul>
