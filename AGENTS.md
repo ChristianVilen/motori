@@ -18,7 +18,7 @@ pnpm workspace: `apps/*` are deployable apps, `packages/*` are shared libraries.
 - `apps/motori` — the app (routes, components, app-specific lib code, migrations)
 - `apps/talli` — the motorcycle-owner companion app at talli.motori.fi (garage, maintenance log, reminders, digest). Runs on port 3001, owns the `talli` Postgres schema with its own migration table, mounts no auth routes (SSO via motori).
 - `packages/db` (`@motori/db`) — `createDb`/`createMigrator` + BetterAuth table types
-- `packages/server` (`@motori/server`) — server-only subpath exports: csrf, rate-limit, security-headers, nonce, log (incl. OpenObserve stream), email, email-wrapper, image-storage, password-strength, the `createAuth` factory, session
+- `packages/server` (`@motori/server`) — server-only subpath exports: csrf, rate-limit, security-headers, nonce, log (incl. OpenObserve stream), email, email-wrapper, image-storage, image-upload, uploads-route, password-strength, the `createAuth` factory, session, require-verified-email, origins. **Cross-app server infra lives here, not copied between apps** — when a second app needs the same server logic (upload handler, verify middleware, origin derivation, …), parameterise it in `@motori/server` and have both apps call it; never copy motori's code into talli (or vice versa). The genuinely app-local exceptions are `session.ts` (must stay in-app for client-bundle pruning of the eager `auth` singleton) and `protectedMutation` (a 3-line composition of shared middleware).
 - `packages/ui` (`@motori/ui`) — `theme.css` design tokens + button/input/select/textarea + `cn`
 
 ## Commands
