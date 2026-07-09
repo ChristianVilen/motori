@@ -118,12 +118,14 @@ backup-setup:
     @op whoami >/dev/null 2>&1 || (echo "error: not signed in to 1Password (run: eval \"\$(op signin)\")" && exit 1)
     age -d -i <(op read "{{age_key_ref}}") secrets/backup-setup.sh.age | ssh {{host}} bash
 
-# Install host crontab + wrapper script for /api/cron tasks
+# Install host crontab + wrapper scripts for /api/cron tasks (both apps)
 cron-install:
     scp infra/cron/motori-cron {{host}}:/usr/local/bin/motori-cron
     scp infra/cron/motori.crontab {{host}}:/etc/cron.d/motori
-    ssh {{host}} "chmod 755 /usr/local/bin/motori-cron && chmod 644 /etc/cron.d/motori"
-    @echo "✓ cron installed; check with: ssh {{host}} 'cat /etc/cron.d/motori && systemctl status cron --no-pager'"
+    scp infra/cron/talli-cron {{host}}:/usr/local/bin/talli-cron
+    scp infra/cron/talli.crontab {{host}}:/etc/cron.d/talli
+    ssh {{host}} "chmod 755 /usr/local/bin/motori-cron /usr/local/bin/talli-cron && chmod 644 /etc/cron.d/motori /etc/cron.d/talli"
+    @echo "✓ cron installed; check with: ssh {{host}} 'cat /etc/cron.d/motori /etc/cron.d/talli'"
 
 # Decrypt secrets/certs/*.age, build a tarball, and install on Dokku as the app's TLS cert
 certs-apply:

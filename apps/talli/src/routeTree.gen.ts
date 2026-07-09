@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PyoratUusiRouteImport } from './routes/pyorat/uusi'
 import { Route as PyoratVehicleIdRouteImport } from './routes/pyorat/$vehicleId'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiCronRouteImport } from './routes/api/cron'
 import { Route as PyoratVehicleIdMuistutuksetRouteImport } from './routes/pyorat/$vehicleId_.muistutukset'
 import { Route as ApiUploadsSplatRouteImport } from './routes/api/uploads/$'
 import { Route as ApiImagesUploadRouteImport } from './routes/api/images/upload'
@@ -44,6 +45,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronRoute = ApiCronRouteImport.update({
+  id: '/api/cron',
+  path: '/api/cron',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PyoratVehicleIdMuistutuksetRoute =
   PyoratVehicleIdMuistutuksetRouteImport.update({
     id: '/pyorat/$vehicleId_/muistutukset',
@@ -70,6 +76,7 @@ const PyoratVehicleIdHuoltoUusiRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/asetukset': typeof AsetuksetRoute
+  '/api/cron': typeof ApiCronRoute
   '/api/health': typeof ApiHealthRoute
   '/pyorat/$vehicleId': typeof PyoratVehicleIdRoute
   '/pyorat/uusi': typeof PyoratUusiRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/asetukset': typeof AsetuksetRoute
+  '/api/cron': typeof ApiCronRoute
   '/api/health': typeof ApiHealthRoute
   '/pyorat/$vehicleId': typeof PyoratVehicleIdRoute
   '/pyorat/uusi': typeof PyoratUusiRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/asetukset': typeof AsetuksetRoute
+  '/api/cron': typeof ApiCronRoute
   '/api/health': typeof ApiHealthRoute
   '/pyorat/$vehicleId': typeof PyoratVehicleIdRoute
   '/pyorat/uusi': typeof PyoratUusiRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/asetukset'
+    | '/api/cron'
     | '/api/health'
     | '/pyorat/$vehicleId'
     | '/pyorat/uusi'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/asetukset'
+    | '/api/cron'
     | '/api/health'
     | '/pyorat/$vehicleId'
     | '/pyorat/uusi'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/asetukset'
+    | '/api/cron'
     | '/api/health'
     | '/pyorat/$vehicleId'
     | '/pyorat/uusi'
@@ -140,6 +152,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AsetuksetRoute: typeof AsetuksetRoute
+  ApiCronRoute: typeof ApiCronRoute
   ApiHealthRoute: typeof ApiHealthRoute
   PyoratVehicleIdRoute: typeof PyoratVehicleIdRoute
   PyoratUusiRoute: typeof PyoratUusiRoute
@@ -186,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron': {
+      id: '/api/cron'
+      path: '/api/cron'
+      fullPath: '/api/cron'
+      preLoaderRoute: typeof ApiCronRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pyorat/$vehicleId_/muistutukset': {
       id: '/pyorat/$vehicleId_/muistutukset'
       path: '/pyorat/$vehicleId/muistutukset'
@@ -220,6 +240,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AsetuksetRoute: AsetuksetRoute,
+  ApiCronRoute: ApiCronRoute,
   ApiHealthRoute: ApiHealthRoute,
   PyoratVehicleIdRoute: PyoratVehicleIdRoute,
   PyoratUusiRoute: PyoratUusiRoute,
