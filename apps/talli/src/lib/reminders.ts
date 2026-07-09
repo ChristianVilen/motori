@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { nextRecurrence } from "~/lib/due-state";
 import { TalliError } from "~/lib/errors";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
@@ -17,14 +18,25 @@ const getDb = async () => (await import("~/lib/db/index")).db;
 function reminderTypeColumns(
 	data: ReminderFormData,
 	anchor: { last_done_at: string | null; last_done_km: number | null },
+	today: string,
 ) {
 	const isInterval = data.type === "interval";
+	const isPayment =
+		data.type === "date" && !!data.recurrence_dates && data.recurrence_dates.length > 0;
 	return {
 		interval_km: isInterval ? (data.interval_km ?? null) : null,
 		interval_months: isInterval ? (data.interval_months ?? null) : null,
 		last_done_at: isInterval ? (data.last_done_at ?? anchor.last_done_at) : null,
 		last_done_km: isInterval ? (data.last_done_km ?? anchor.last_done_km) : null,
-		due_date: data.type === "date" ? (data.due_date ?? null) : null,
+		recurrence_dates: isPayment ? data.recurrence_dates : null,
+		// Payment reminders derive the active due_date from their anchors; ordinary
+		// date reminders use the user's absolute due_date.
+		due_date:
+			data.type !== "date"
+				? null
+				: isPayment
+					? nextRecurrence(data.recurrence_dates as string[], today, { inclusive: true })
+					: (data.due_date ?? null),
 	};
 }
 
@@ -46,10 +58,11 @@ export const createReminder = createServerFn({ method: "POST" })
 					vehicle_id: vehicle.id,
 					type: data.type,
 					title: data.title,
-					...reminderTypeColumns(data, {
-						last_done_at: today,
-						last_done_km: vehicle.odometer_km,
-					}),
+					...reminderTypeColumns(
+						data,
+						{ last_done_at: today, last_done_km: vehicle.odometer_km },
+						today,
+					),
 					notified_at: null,
 				})
 				.returning("id")
@@ -102,7 +115,7 @@ export const updateReminder = createServerFn({ method: "POST" })
 				.updateTable("talli.reminder")
 				.set({
 					title: data.title,
-					...reminderTypeColumns(data, anchor),
+					...reminderTypeColumns(data, anchor, today),
 					notified_at: null,
 					updated_at: new Date(),
 				})
