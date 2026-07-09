@@ -1,7 +1,6 @@
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
-import { toast } from "sonner";
-import { formErrorMessage } from "~/lib/errors";
 import { getSettings, updateSettings } from "~/lib/settings";
+import { useSubmit } from "~/lib/use-submit";
 
 export const Route = createFileRoute("/asetukset")({
 	loader: async ({ context }) => {
@@ -16,15 +15,13 @@ export const Route = createFileRoute("/asetukset")({
 function SettingsPage() {
 	const settings = Route.useLoaderData();
 	const router = useRouter();
+	const { saving, submit } = useSubmit();
 
 	async function toggle(checked: boolean) {
-		try {
+		await submit(async () => {
 			await updateSettings({ data: { email_reminders: checked } });
-		} catch (err) {
-			toast.error(formErrorMessage(err));
-		} finally {
 			router.invalidate();
-		}
+		});
 	}
 
 	return (
@@ -41,6 +38,7 @@ function SettingsPage() {
 					type="checkbox"
 					data-testid="settings-email-reminders"
 					checked={settings.email_reminders}
+					disabled={saving}
 					onChange={(e) => toggle(e.target.checked)}
 				/>
 			</label>

@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import type { Transaction } from "kysely";
 import type { Database } from "~/lib/db/schema";
 import { reanchorOnComplete } from "~/lib/due-state";
-import { AppError } from "~/lib/errors";
+import { TalliError } from "~/lib/errors";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { protectedMutation } from "~/lib/middleware";
@@ -32,7 +32,7 @@ async function completeReminder(
 		.where("id", "=", reminderId)
 		.executeTakeFirst();
 	if (!reminder || reminder.vehicle_id !== vehicleId) {
-		throw new AppError("Muistutusta ei löytynyt");
+		throw new TalliError("Muistutusta ei löytynyt");
 	}
 	const update = reanchorOnComplete(
 		{ type: reminder.type, due_date: reminder.due_date },
@@ -52,13 +52,13 @@ export const createServiceRecord = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const session = await getSession();
 		if (!session) {
-			throw new AppError("Kirjaudu sisään");
+			throw new TalliError("Kirjaudu sisään");
 		}
 		const db = await getDb();
 
 		for (const photo of data.photos) {
 			if (!isValidImageUrl(photo.url) || !isValidImageUrl(photo.thumbnail_url)) {
-				throw new AppError("Virheellinen kuva-URL");
+				throw new TalliError("Virheellinen kuva-URL");
 			}
 		}
 

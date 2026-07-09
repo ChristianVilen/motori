@@ -2,11 +2,11 @@ import { Button } from "@motori/ui/button";
 import { Input } from "@motori/ui/input";
 import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { toast } from "sonner";
 import { DueBadge, dueDetail } from "~/components/due-badge";
 import { MOTORI_URL } from "~/lib/constants";
 import { parseLocalDate } from "~/lib/due-state";
-import { formErrorMessage } from "~/lib/errors";
+import { formatEur, vehicleLabel } from "~/lib/format";
+import { useSubmit } from "~/lib/use-submit";
 import { getVehicleDetail, updateOdometer } from "~/lib/vehicles";
 
 export const Route = createFileRoute("/pyorat/$vehicleId")({
@@ -19,31 +19,22 @@ export const Route = createFileRoute("/pyorat/$vehicleId")({
 	component: VehicleDetailPage,
 });
 
-function formatEur(cents: number): string {
-	return `${(cents / 100).toLocaleString("fi-FI", { minimumFractionDigits: 0 })} €`;
-}
-
 function VehicleDetailPage() {
 	const { vehicle, reminders, records } = Route.useLoaderData();
 	const router = useRouter();
 	const [reading, setReading] = useState("");
-	const [saving, setSaving] = useState(false);
+	const { saving, submit } = useSubmit();
 	const partsUrl = `${MOTORI_URL}/varaosat?q=${encodeURIComponent(`${vehicle.make} ${vehicle.model}`)}`;
 
 	async function handleOdometer(e: React.FormEvent) {
 		e.preventDefault();
-		setSaving(true);
-		try {
+		await submit(async () => {
 			await updateOdometer({
 				data: { vehicle_id: vehicle.id, reading_km: Number(reading) },
 			});
 			setReading("");
 			router.invalidate();
-		} catch (err) {
-			toast.error(formErrorMessage(err));
-		} finally {
-			setSaving(false);
-		}
+		});
 	}
 
 	return (
@@ -54,7 +45,7 @@ function VehicleDetailPage() {
 			<div className="mt-2 flex flex-wrap items-start justify-between gap-4">
 				<div>
 					<h1 className="font-heading text-2xl font-bold" data-testid="vehicle-title">
-						{vehicle.nickname ?? `${vehicle.make} ${vehicle.model}`}
+						{vehicleLabel(vehicle)}
 					</h1>
 					<p className="text-sm text-muted">
 						{vehicle.make} {vehicle.model}

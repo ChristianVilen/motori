@@ -1,7 +1,10 @@
-export class AppError extends Error {
+// Named TalliError (not AppError) to avoid colliding with motori's structured
+// AppError — a different, same-named class. talli deliberately keeps the simpler
+// plain-message shape: its errors are pre-localized Finnish strings.
+export class TalliError extends Error {
 	constructor(message: string) {
 		super(message);
-		this.name = "AppError";
+		this.name = "TalliError";
 	}
 }
 

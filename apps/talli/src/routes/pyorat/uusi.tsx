@@ -2,10 +2,11 @@ import { Button } from "@motori/ui/button";
 import { Input } from "@motori/ui/input";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { toast } from "sonner";
-import { type UploadedPhoto, uploadPhoto } from "~/components/photo-upload";
+import type { UploadedPhoto } from "~/components/photo-upload";
 import { type PresetKey, REMINDER_PRESETS } from "~/lib/constants";
-import { formErrorMessage } from "~/lib/errors";
+import { formatInterval } from "~/lib/format";
+import { usePhotoUpload } from "~/lib/use-photo-upload";
+import { useSubmit } from "~/lib/use-submit";
 import { createVehicle } from "~/lib/vehicles";
 
 export const Route = createFileRoute("/pyorat/uusi")({
@@ -22,31 +23,23 @@ function NewVehiclePage() {
 	const [odometer, setOdometer] = useState("");
 	const [photo, setPhoto] = useState<UploadedPhoto | null>(null);
 	const [presets, setPresets] = useState<PresetKey[]>(REMINDER_PRESETS.map((p) => p.key));
-	const [saving, setSaving] = useState(false);
-	const [uploading, setUploading] = useState(false);
+	const { saving, submit } = useSubmit();
+	const { uploading, upload } = usePhotoUpload();
 
 	function togglePreset(key: PresetKey) {
 		setPresets((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
 	}
 
 	async function handlePhoto(file: File | undefined) {
-		if (!file) {
-			return;
-		}
-		setUploading(true);
-		try {
-			setPhoto(await uploadPhoto(file));
-		} catch (err) {
-			toast.error(formErrorMessage(err));
-		} finally {
-			setUploading(false);
+		const uploaded = await upload(file);
+		if (uploaded) {
+			setPhoto(uploaded);
 		}
 	}
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
-		setSaving(true);
-		try {
+		await submit(async () => {
 			const { id } = await createVehicle({
 				data: {
 					make,
@@ -62,10 +55,7 @@ function NewVehiclePage() {
 				},
 			});
 			navigate({ to: "/pyorat/$vehicleId", params: { vehicleId: id } });
-		} catch (err) {
-			toast.error(formErrorMessage(err));
-			setSaving(false);
-		}
+		});
 	}
 
 	return (
@@ -172,12 +162,7 @@ function NewVehiclePage() {
 							{p.title}
 							<span className="text-xs text-muted">
 								{p.type === "interval"
-									? [
-											p.interval_km ? `${p.interval_km} km` : null,
-											p.interval_months ? `${p.interval_months} kk` : null,
-										]
-											.filter(Boolean)
-											.join(" / ")
+									? formatInterval(p.interval_km ?? null, p.interval_months ?? null)
 									: "vuosittain"}
 							</span>
 						</label>

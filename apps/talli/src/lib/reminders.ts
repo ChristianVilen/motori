@@ -1,21 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { AppError } from "~/lib/errors";
+import { TalliError } from "~/lib/errors";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { protectedMutation } from "~/lib/middleware";
-import { getSession } from "~/lib/session";
+import { getSession, requireUserId } from "~/lib/session";
 import { type ReminderFormData, reminderFormSchema } from "~/lib/validators";
 import { getOwnedVehicle } from "~/lib/vehicles";
 
 const getDb = async () => (await import("~/lib/db/index")).db;
-
-function requireUserId(session: Awaited<ReturnType<typeof getSession>>): string {
-	if (!session) {
-		throw new AppError("Kirjaudu sisään");
-	}
-	return session.user.id;
-}
 
 // Null out cross-type fields so the DB CHECK constraints hold: an interval
 // reminder never carries a due_date, and a date reminder never carries
@@ -93,7 +86,7 @@ export const updateReminder = createServerFn({ method: "POST" })
 				.where("id", "=", id)
 				.executeTakeFirst();
 			if (!reminder) {
-				throw new AppError("Muistutusta ei löytynyt");
+				throw new TalliError("Muistutusta ei löytynyt");
 			}
 			const vehicle = await getOwnedVehicle(trx, reminder.vehicle_id, userId);
 			// Preserve the existing interval anchor across edits that don't resend it;
@@ -134,7 +127,7 @@ export const deleteReminder = createServerFn({ method: "POST" })
 				.where("id", "=", id)
 				.executeTakeFirst();
 			if (!reminder) {
-				throw new AppError("Muistutusta ei löytynyt");
+				throw new TalliError("Muistutusta ei löytynyt");
 			}
 			await getOwnedVehicle(trx, reminder.vehicle_id, userId);
 			await trx.deleteFrom("talli.reminder").where("id", "=", id).execute();

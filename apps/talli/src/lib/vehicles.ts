@@ -4,22 +4,15 @@ import { z } from "zod";
 import { REMINDER_PRESETS } from "~/lib/constants";
 import type { Database, NewReminder, Vehicle } from "~/lib/db/schema";
 import { computeDueState, type DueState } from "~/lib/due-state";
-import { AppError } from "~/lib/errors";
+import { TalliError } from "~/lib/errors";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { protectedMutation } from "~/lib/middleware";
 import { recordOdometerReading } from "~/lib/odometer";
-import { getSession } from "~/lib/session";
+import { getSession, requireUserId } from "~/lib/session";
 import { isValidImageUrl, vehicleFormSchema } from "~/lib/validators";
 
 const getDb = async () => (await import("~/lib/db/index")).db;
-
-function requireUserId(session: Awaited<ReturnType<typeof getSession>>): string {
-	if (!session) {
-		throw new AppError("Kirjaudu sisään");
-	}
-	return session.user.id;
-}
 
 /** Ownership gate — every vehicle/record/reminder mutation goes through this. */
 export async function getOwnedVehicle(
@@ -33,7 +26,7 @@ export async function getOwnedVehicle(
 		.where("id", "=", vehicleId)
 		.executeTakeFirst();
 	if (!vehicle || vehicle.user_id !== userId) {
-		throw new AppError("Pyörää ei löytynyt");
+		throw new TalliError("Pyörää ei löytynyt");
 	}
 	return vehicle;
 }
@@ -41,7 +34,7 @@ export async function getOwnedVehicle(
 function validatePhotoUrls(data: { photo_url?: string | null; thumbnail_url?: string | null }) {
 	for (const url of [data.photo_url, data.thumbnail_url]) {
 		if (url && !isValidImageUrl(url)) {
-			throw new AppError("Virheellinen kuva-URL");
+			throw new TalliError("Virheellinen kuva-URL");
 		}
 	}
 }
@@ -252,7 +245,7 @@ export const getVehicleDetail = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await getSession();
 		if (!session) {
-			throw new AppError("Kirjaudu sisään");
+			throw new TalliError("Kirjaudu sisään");
 		}
 		const db = await getDb();
 		const { sql } = await import("kysely");

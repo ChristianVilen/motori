@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { AppError } from "~/lib/errors";
+import { TalliError } from "~/lib/errors";
 import { protectedMutation } from "~/lib/middleware";
 import { getSession } from "~/lib/session";
 
@@ -8,7 +8,7 @@ const getDb = async () => (await import("~/lib/db/index")).db;
 export const getSettings = createServerFn().handler(async () => {
 	const session = await getSession();
 	if (!session) {
-		throw new AppError("Kirjaudu sisään");
+		throw new TalliError("Kirjaudu sisään");
 	}
 	const db = await getDb();
 	const row = await db
@@ -30,7 +30,7 @@ export const updateSettings = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const session = await getSession();
 		if (!session) {
-			throw new AppError("Kirjaudu sisään");
+			throw new TalliError("Kirjaudu sisään");
 		}
 		const db = await getDb();
 		await db

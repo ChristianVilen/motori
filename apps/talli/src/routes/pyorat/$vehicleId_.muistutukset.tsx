@@ -1,17 +1,24 @@
 import { Button } from "@motori/ui/button";
 import { Input } from "@motori/ui/input";
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DueBadge, dueDetail } from "~/components/due-badge";
 import type { ReminderType } from "~/lib/db/schema";
 import { parseLocalDate } from "~/lib/due-state";
 import { formErrorMessage } from "~/lib/errors";
+import { formatInterval, vehicleLabel } from "~/lib/format";
 import { createReminder, deleteReminder } from "~/lib/reminders";
+import { useSubmit } from "~/lib/use-submit";
 import { getVehicleDetail } from "~/lib/vehicles";
 
 export const Route = createFileRoute("/pyorat/$vehicleId_/muistutukset")({
-	loader: async ({ params }) => getVehicleDetail({ data: { vehicleId: params.vehicleId } }),
+	loader: async ({ params, context }) => {
+		if (!context.session) {
+			throw redirect({ to: "/" });
+		}
+		return getVehicleDetail({ data: { vehicleId: params.vehicleId } });
+	},
 	component: RemindersPage,
 });
 
@@ -23,13 +30,12 @@ function RemindersPage() {
 	const [intervalKm, setIntervalKm] = useState("");
 	const [intervalMonths, setIntervalMonths] = useState("");
 	const [dueDate, setDueDate] = useState("");
-	const [saving, setSaving] = useState(false);
 	const [deletingId, setDeletingId] = useState<string | null>(null);
+	const { saving, submit } = useSubmit();
 
 	async function handleCreate(e: React.FormEvent) {
 		e.preventDefault();
-		setSaving(true);
-		try {
+		await submit(async () => {
 			await createReminder({
 				data: {
 					vehicle_id: vehicle.id,
@@ -47,11 +53,7 @@ function RemindersPage() {
 			setIntervalMonths("");
 			setDueDate("");
 			router.invalidate();
-		} catch (err) {
-			toast.error(formErrorMessage(err));
-		} finally {
-			setSaving(false);
-		}
+		});
 	}
 
 	async function handleDelete(id: string) {
@@ -76,7 +78,7 @@ function RemindersPage() {
 				params={{ vehicleId: vehicle.id }}
 				className="text-sm text-muted hover:text-foreground"
 			>
-				← {vehicle.nickname ?? `${vehicle.make} ${vehicle.model}`}
+				← {vehicleLabel(vehicle)}
 			</Link>
 			<h1 className="mt-2 font-heading text-2xl font-bold">Muistutukset</h1>
 
@@ -94,12 +96,7 @@ function RemindersPage() {
 								<div className="text-sm font-medium">{r.title}</div>
 								<div className="text-xs text-muted">
 									{r.type === "interval"
-										? [
-												r.interval_km ? `${r.interval_km} km välein` : null,
-												r.interval_months ? `${r.interval_months} kk välein` : null,
-											]
-												.filter(Boolean)
-												.join(" / ")
+										? formatInterval(r.interval_km, r.interval_months, " välein")
 										: `eräpäivä ${r.due_date ? parseLocalDate(r.due_date).toLocaleDateString("fi-FI") : "—"}`}
 									{dueDetail(r.state) ? ` · ${dueDetail(r.state)}` : ""}
 								</div>

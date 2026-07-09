@@ -1,6 +1,7 @@
 import { Button } from "@motori/ui/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { DueBadge, dueDetail } from "~/components/due-badge";
+import { vehicleLabel } from "~/lib/format";
 import { getGarage } from "~/lib/vehicles";
 
 export const Route = createFileRoute("/")({
@@ -70,9 +71,7 @@ function GaragePage() {
 									className="mb-3 h-32 w-full rounded object-cover"
 								/>
 							) : null}
-							<div className="font-heading font-semibold">
-								{v.nickname ?? `${v.make} ${v.model}`}
-							</div>
+							<div className="font-heading font-semibold">{vehicleLabel(v)}</div>
 							<div className="text-sm text-muted">
 								{v.make} {v.model}
 								{v.year ? ` · ${v.year}` : ""} · {v.odometer_km.toLocaleString("fi-FI")} km

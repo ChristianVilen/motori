@@ -1,20 +1,26 @@
 import { Button } from "@motori/ui/button";
 import { Input } from "@motori/ui/input";
 import { Textarea } from "@motori/ui/textarea";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { type UploadedPhoto, uploadPhoto } from "~/components/photo-upload";
+import type { UploadedPhoto } from "~/components/photo-upload";
 import { MAX_PHOTOS_PER_RECORD } from "~/lib/constants";
-import { formErrorMessage } from "~/lib/errors";
 import { createServiceRecord } from "~/lib/service-records";
+import { usePhotoUpload } from "~/lib/use-photo-upload";
+import { useSubmit } from "~/lib/use-submit";
 import { getVehicleDetail } from "~/lib/vehicles";
 
 export const Route = createFileRoute("/pyorat/$vehicleId_/huolto/uusi")({
 	validateSearch: (search: Record<string, unknown>) => ({
 		reminder: typeof search.reminder === "string" ? search.reminder : undefined,
 	}),
-	loader: async ({ params }) => getVehicleDetail({ data: { vehicleId: params.vehicleId } }),
+	loader: async ({ params, context }) => {
+		if (!context.session) {
+			throw redirect({ to: "/" });
+		}
+		return getVehicleDetail({ data: { vehicleId: params.vehicleId } });
+	},
 	component: NewServiceRecordPage,
 });
 
@@ -31,32 +37,23 @@ function NewServiceRecordPage() {
 	const [notes, setNotes] = useState("");
 	const [parts, setParts] = useState("");
 	const [photos, setPhotos] = useState<UploadedPhoto[]>([]);
-	const [uploading, setUploading] = useState(false);
-	const [saving, setSaving] = useState(false);
+	const { saving, submit } = useSubmit();
+	const { uploading, upload } = usePhotoUpload();
 
 	async function handlePhoto(file: File | undefined) {
-		if (!file) {
-			return;
-		}
-		if (photos.length >= MAX_PHOTOS_PER_RECORD) {
+		if (file && photos.length >= MAX_PHOTOS_PER_RECORD) {
 			toast.error(`Enintään ${MAX_PHOTOS_PER_RECORD} kuvaa.`);
 			return;
 		}
-		setUploading(true);
-		try {
-			const photo = await uploadPhoto(file);
-			setPhotos((prev) => [...prev, photo]);
-		} catch (err) {
-			toast.error(formErrorMessage(err));
-		} finally {
-			setUploading(false);
+		const uploaded = await upload(file);
+		if (uploaded) {
+			setPhotos((prev) => [...prev, uploaded]);
 		}
 	}
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
-		setSaving(true);
-		try {
+		await submit(async () => {
 			await createServiceRecord({
 				data: {
 					vehicle_id: vehicle.id,
@@ -71,10 +68,7 @@ function NewServiceRecordPage() {
 				},
 			});
 			navigate({ to: "/pyorat/$vehicleId", params: { vehicleId: vehicle.id } });
-		} catch (err) {
-			toast.error(formErrorMessage(err));
-			setSaving(false);
-		}
+		});
 	}
 
 	return (
