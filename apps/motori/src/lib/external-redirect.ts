@@ -8,8 +8,7 @@ export function resolveExternalRedirect(
 	if (!redirect) {
 		return null;
 	}
-	// The caller passes a bare browser hostname; talliOrigin keys off it.
-	const origin = talliOrigin(`https://${hostname}`);
+	const origin = talliOrigin(hostname);
 	if (redirect === origin || redirect.startsWith(`${origin}/`)) {
 		return redirect;
 	}

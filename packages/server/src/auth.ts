@@ -23,7 +23,7 @@ export function createAuth<DB>(opts: {
 			type: "postgres",
 		}),
 		baseURL,
-		trustedOrigins: [baseURL, talliOrigin(baseURL)],
+		trustedOrigins: [baseURL, talliOrigin(hostname)],
 		secret: process.env.BETTER_AUTH_SECRET,
 		session: {
 			expiresIn: 60 * 60 * 24 * 30, // 30 days

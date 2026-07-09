@@ -78,7 +78,10 @@ export async function handleImageUpload(
 		return jsonError("Vain JPEG, PNG ja WebP sallittu", 400);
 	}
 	if (file.size > config.maxBytes) {
-		return jsonError("Tiedosto on liian suuri (max 10 MB)", 400);
+		return jsonError(
+			`Tiedosto on liian suuri (max ${Math.round(config.maxBytes / 1024 / 1024)} MB)`,
+			400,
+		);
 	}
 
 	const raw = Buffer.from(await file.arrayBuffer());

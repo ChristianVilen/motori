@@ -9,7 +9,7 @@ const allowedOrigins: string[] = [
 		.map((o) => o.trim())
 		.filter(Boolean),
 	// talli's cross-origin sign-out needs CORS (companion SSO app).
-	talliOrigin(baseURL),
+	talliOrigin(new URL(baseURL).hostname),
 ];
 
 export const corsMiddleware = createMiddleware({ type: "request" }).server(
