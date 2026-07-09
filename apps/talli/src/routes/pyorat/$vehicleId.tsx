@@ -101,14 +101,14 @@ function VehicleDetailPage() {
 			<section className="mt-6">
 				<div className="flex items-center justify-between">
 					<h2 className="font-heading text-lg font-semibold">Muistutukset</h2>
-					{/* Task 12 adds /pyorat/$vehicleId/muistutukset; typed Link upgrade then. */}
-					<a
-						href={`/pyorat/${vehicle.id}/muistutukset`}
+					<Link
+						to="/pyorat/$vehicleId/muistutukset"
+						params={{ vehicleId: vehicle.id }}
 						data-testid="manage-reminders"
 						className="text-sm text-accent hover:underline"
 					>
 						Hallitse
-					</a>
+					</Link>
 				</div>
 				{reminders.length === 0 ? (
 					<p className="mt-2 text-sm text-muted">Ei muistutuksia.</p>
@@ -129,13 +129,14 @@ function VehicleDetailPage() {
 									</div>
 								</div>
 								<Button asChild size="sm" variant="outline">
-									{/* Task 12 adds /pyorat/$vehicleId/huolto/uusi; typed Link upgrade then. */}
-									<a
-										href={`/pyorat/${vehicle.id}/huolto/uusi?reminder=${r.id}`}
+									<Link
+										to="/pyorat/$vehicleId/huolto/uusi"
+										params={{ vehicleId: vehicle.id }}
+										search={{ reminder: r.id }}
 										data-testid={`complete-reminder-${r.title}`}
 									>
 										Merkitse tehdyksi
-									</a>
+									</Link>
 								</Button>
 							</li>
 						))}
@@ -147,10 +148,14 @@ function VehicleDetailPage() {
 				<div className="flex items-center justify-between">
 					<h2 className="font-heading text-lg font-semibold">Huoltokirja</h2>
 					<Button asChild size="sm">
-						{/* Task 12 adds /pyorat/$vehicleId/huolto/uusi; typed Link upgrade then. */}
-						<a href={`/pyorat/${vehicle.id}/huolto/uusi`} data-testid="add-service-record">
+						<Link
+							to="/pyorat/$vehicleId/huolto/uusi"
+							params={{ vehicleId: vehicle.id }}
+							search={{ reminder: undefined }}
+							data-testid="add-service-record"
+						>
 							Lisää huolto
-						</a>
+						</Link>
 					</Button>
 				</div>
 				{records.length === 0 ? (
