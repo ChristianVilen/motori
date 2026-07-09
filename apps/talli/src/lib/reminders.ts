@@ -95,6 +95,8 @@ export const updateReminder = createServerFn({ method: "POST" })
 					"vehicle_id",
 					sql<string | null>`last_done_at::text`.as("last_done_at"),
 					"last_done_km",
+					sql<string | null>`due_date::text`.as("due_date"),
+					"recurrence_dates",
 				])
 				.where("id", "=", id)
 				.executeTakeFirst();
@@ -110,15 +112,24 @@ export const updateReminder = createServerFn({ method: "POST" })
 				last_done_at: reminder.last_done_at ?? today,
 				last_done_km: reminder.last_done_km ?? vehicle.odometer_km,
 			};
-			// Editing thresholds/dates changes the due cycle — clear the dedupe stamp.
+			const cols = reminderTypeColumns(data, anchor, today);
+			// A payment reminder whose anchors are unchanged must NOT have its cycle
+			// recomputed: keep the stored due_date (which markReminderPaid may have
+			// advanced) and the notified_at stamp, so a title/no-op edit can't silently
+			// skip a due payment or re-trigger the digest. A real cycle change (new
+			// anchors, or interval/date threshold edits) clears the stamp as before.
+			const key = (a: string[]) => [...a].sort().join(",");
+			const anchorsUnchanged =
+				!!cols.recurrence_dates &&
+				!!reminder.recurrence_dates &&
+				key(cols.recurrence_dates) === key(reminder.recurrence_dates);
 			await trx
 				.updateTable("talli.reminder")
-				.set({
-					title: data.title,
-					...reminderTypeColumns(data, anchor, today),
-					notified_at: null,
-					updated_at: new Date(),
-				})
+				.set(
+					anchorsUnchanged && reminder.due_date
+						? { title: data.title, ...cols, due_date: reminder.due_date, updated_at: new Date() }
+						: { title: data.title, ...cols, notified_at: null, updated_at: new Date() },
+				)
 				.where("id", "=", id)
 				.execute();
 		});
