@@ -23,6 +23,13 @@ test.describe("talli happy path", () => {
 		await page.getByTestId("vehicle-model").fill("CB500F");
 		await page.getByTestId("vehicle-year").fill("2022");
 		await page.getByTestId("vehicle-odometer").fill("12000");
+		// Vakuutus and ajoneuvovero are both date-type presets checked by default, so
+		// two required recurrence-date-0 inputs exist (Vakuutus first, ajoneuvovero
+		// second — REMINDER_PRESETS order); both must be filled or the browser's
+		// native required-field validation blocks the submit.
+		const recurrenceDateInputs = page.getByTestId("recurrence-date-0");
+		await recurrenceDateInputs.nth(0).fill("2027-03-15");
+		await recurrenceDateInputs.nth(1).fill("2027-05-20");
 		await page.getByTestId("vehicle-form-submit").click();
 		await page.waitForURL(/\/pyorat\/[0-9a-f-]{36}$/, { timeout: 15_000 });
 		await waitForHydration(page);
@@ -61,5 +68,16 @@ test.describe("talli happy path", () => {
 		await expect(page.getByTestId("service-record")).toContainText("Öljynvaihto");
 		// Re-anchored to 17650 + 6000 = 23650 vs odometer 17650 → 6000 km left → ok.
 		await expect(oljynvaihtoRow.getByTestId("due-badge")).toHaveAttribute("data-status", "ok");
+
+		// Vakuutus (2027-03-15) is a payment reminder — mark-paid advances it to the
+		// next annual anchor (2028-03-15) instead of opening the service-record form.
+		const vakuutusRow = page.locator(
+			'[data-testid="reminder-row"][data-reminder-title="Vakuutus"]',
+		);
+		await expect(vakuutusRow.getByTestId("due-badge")).toHaveAttribute("data-status", "ok");
+		await vakuutusRow.getByTestId("mark-paid-Vakuutus").click();
+		await expect(page.getByTestId("reminder-row")).toHaveCount(5);
+		await expect(vakuutusRow).toBeVisible();
+		await expect(vakuutusRow.getByTestId("due-badge")).toHaveAttribute("data-status", "ok");
 	});
 });
