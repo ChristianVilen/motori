@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 import { hashPassword, verifyPassword } from "better-auth/crypto";
 import { admin } from "better-auth/plugins";
 import type { Kysely } from "kysely";
+import { talliOrigin } from "./origins";
 import { passwordStrength } from "./password-strength";
 
 type SendEmail = (args: { user: { id: string; email: string }; url: string }) => Promise<void>;
@@ -13,10 +14,6 @@ export function createAuth<DB>(opts: {
 	sendVerificationEmail: SendEmail;
 }) {
 	const baseURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
-	// Deliberate two-app special case: motori + talli are the only apps.
-	// Parameterize trusted origins only if a third consumer ever appears.
-	const talliOrigin =
-		new URL(baseURL).hostname === "localhost" ? "http://localhost:3001" : "https://talli.motori.fi";
 	// Session cookie is scoped to the apex so talli.motori.fi shares the login (SSO);
 	// disabled on localhost where subdomains don't apply.
 	const hostname = new URL(baseURL).hostname;
@@ -26,7 +23,7 @@ export function createAuth<DB>(opts: {
 			type: "postgres",
 		}),
 		baseURL,
-		trustedOrigins: [baseURL, talliOrigin],
+		trustedOrigins: [baseURL, talliOrigin(baseURL)],
 		secret: process.env.BETTER_AUTH_SECRET,
 		session: {
 			expiresIn: 60 * 60 * 24 * 30, // 30 days

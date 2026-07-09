@@ -1,5 +1,6 @@
+import { talliOrigin } from "@motori/server/origins";
+
 // talli is the only trusted external redirect target (SSO companion app).
-// Mirrors the two-app special case in packages/server/src/auth.ts.
 export function resolveExternalRedirect(
 	redirect: string | undefined,
 	hostname: string,
@@ -7,9 +8,9 @@ export function resolveExternalRedirect(
 	if (!redirect) {
 		return null;
 	}
-	const talliOrigin =
-		hostname === "localhost" ? "http://localhost:3001" : "https://talli.motori.fi";
-	if (redirect === talliOrigin || redirect.startsWith(`${talliOrigin}/`)) {
+	// The caller passes a bare browser hostname; talliOrigin keys off it.
+	const origin = talliOrigin(`https://${hostname}`);
+	if (redirect === origin || redirect.startsWith(`${origin}/`)) {
 		return redirect;
 	}
 	return null;

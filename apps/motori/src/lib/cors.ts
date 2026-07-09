@@ -1,17 +1,15 @@
+import { talliOrigin } from "@motori/server/origins";
 import { createMiddleware } from "@tanstack/react-start";
 
 const baseURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
-// Deliberate two-app special case: talli's cross-origin sign-out needs CORS.
-// Mirrors createAuth's talliOrigin derivation (packages/server/src/auth.ts).
-const talliOrigin =
-	new URL(baseURL).hostname === "localhost" ? "http://localhost:3001" : "https://talli.motori.fi";
 
 const allowedOrigins: string[] = [
 	...(process.env.ALLOWED_ORIGINS ?? "http://localhost:3000")
 		.split(",")
 		.map((o) => o.trim())
 		.filter(Boolean),
-	talliOrigin,
+	// talli's cross-origin sign-out needs CORS (companion SSO app).
+	talliOrigin(baseURL),
 ];
 
 export const corsMiddleware = createMiddleware({ type: "request" }).server(
