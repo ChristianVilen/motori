@@ -29,7 +29,7 @@ const getListing = createServerFn({ method: "GET" })
 	.handler(async ({ data: shortId }) => {
 		const session = await getSession();
 		const result = await getListingForDisplay(shortId);
-		if (!result || result.listing.category !== "rental") {
+		if (result?.listing.category !== "rental") {
 			return null;
 		}
 

@@ -44,7 +44,7 @@ export async function createBookingRequest(
 		.where("listing.id", "=", args.listingId)
 		.executeTakeFirst();
 
-	if (!listing || listing.status !== "active") {
+	if (listing?.status !== "active") {
 		throw new AppError("booking.listing_unavailable");
 	}
 	if (listing.owner_id === args.userId) {
