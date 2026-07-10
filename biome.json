@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.4.11/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.5.3/schema.json",
 	"assist": {
 		"actions": {
 			"source": {
@@ -34,7 +34,8 @@
 				"noExplicitAny": "error",
 				"noArrayIndexKey": "error",
 				"noConsole": "warn",
-				"noDoubleEquals": "error"
+				"noDoubleEquals": "error",
+				"noLeakedRender": "error"
 			},
 			"complexity": {
 				"recommended": true,
@@ -61,7 +62,6 @@
 				"recommended": true
 			},
 			"nursery": {
-				"noLeakedRender": "error",
 				"useExplicitType": "off"
 			}
 		}

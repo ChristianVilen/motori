@@ -3,7 +3,7 @@ import { getSession } from "~/lib/session";
 
 export async function requireAdmin() {
 	const session = await getSession();
-	if (!session || session.user.role !== "admin") {
+	if (session?.user.role !== "admin") {
 		throw redirect({ to: "/" });
 	}
 	return session;
