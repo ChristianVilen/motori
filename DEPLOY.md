@@ -304,6 +304,8 @@ Updates later: `just oo-deploy` (re-pulls the pinned image; bump the tag in the 
 ssh root@motori
 dokku apps:create talli
 dokku postgres:link motori talli                    # talli's DATABASE_URL → motori's DB (talli migrates only its `talli` schema)
+                                                    # NOTE: the linked DATABASE_URL uses the plugin's stored password, which is STALE
+                                                    # (the Postgres password was rotated out-of-band, see `just` rotate). Override it below.
 dokku domains:add talli talli.motori.fi
 dokku ports:set talli http:80:3001 https:443:3001   # talli's container listens on 3001
 dokku nginx:set talli client-max-body-size 12m
@@ -315,6 +317,7 @@ dokku nginx:set talli client-max-body-size 12m
 dokku config:set --no-restart talli \
     NODE_ENV=production \
     DEPLOY_APP=talli \
+    DATABASE_URL='<same value as motori — see note below>' \
     BETTER_AUTH_SECRET='<same value as motori>' \
     BETTER_AUTH_URL=https://motori.fi \
     APP_ORIGIN=https://talli.motori.fi \
@@ -328,6 +331,7 @@ dokku config:set --no-restart talli \
 ```
 
 - `DEPLOY_APP=talli` makes the root `build`/`start`/`db:migrate` scripts target the talli app.
+- `DATABASE_URL` **must** be set explicitly to motori's value (`dokku config:get motori DATABASE_URL`) — do **not** rely on the one `postgres:link` injected. motori keeps an explicit override because the Postgres password was rotated out-of-band (`just` rotate), leaving the plugin's stored/linked DSN stale. Without this, talli's release-phase `pnpm db:migrate` fails with `password authentication failed for user "postgres"` (28P01) and the whole deploy is rejected.
 - `BETTER_AUTH_SECRET` **must** equal motori's — the session cookie is shared across `.motori.fi`.
 - `BETTER_AUTH_URL=https://motori.fi` (motori is the auth host); `APP_ORIGIN=https://talli.motori.fi` scopes csrf to talli's own origin.
 - Same `motori-images` bucket as motori; talli writes under the `talli/` key prefix.
