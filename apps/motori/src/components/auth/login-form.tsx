@@ -6,6 +6,7 @@ import { Input } from "@motori/ui/input";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { signIn } from "~/lib/auth-client";
+import { resolveExternalRedirect } from "~/lib/external-redirect";
 import { useTranslation } from "~/lib/i18n";
 
 interface LoginFormProps {
@@ -41,6 +42,11 @@ export function LoginForm({ onSuccess, redirect }: LoginFormProps) {
 
 		if (onSuccess) {
 			onSuccess();
+			return;
+		}
+		const external = resolveExternalRedirect(redirect, window.location.hostname);
+		if (external) {
+			window.location.assign(external);
 			return;
 		}
 		navigate({ to: redirect ?? "/" });

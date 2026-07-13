@@ -14,9 +14,13 @@
 		"./email": "./src/email.ts",
 		"./email-wrapper": "./src/email-wrapper.ts",
 		"./image-storage": "./src/image-storage.ts",
+		"./image-upload": "./src/image-upload.ts",
+		"./uploads-route": "./src/uploads-route.ts",
+		"./require-verified-email": "./src/require-verified-email.ts",
 		"./password-strength": "./src/password-strength.ts",
 		"./auth": "./src/auth.ts",
-		"./session": "./src/session.ts"
+		"./session": "./src/session.ts",
+		"./origins": "./src/origins.ts"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit",

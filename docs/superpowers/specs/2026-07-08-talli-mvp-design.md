@@ -57,7 +57,9 @@ reminder
   title                   "Öljynvaihto", "Vakuutus", …
   interval_km?, interval_months?        interval type: either or both, first hit wins
   last_done_at?, last_done_km?          anchor, re-set when a service record completes it
-  due_date?                             date type
+  due_date?                             date type: the active / next absolute due date
+  recurrence_dates?                     text[] of annual MM-DD anchors; non-null marks a
+                                        payment reminder (tax/insurance), 1–4 dates per year
   notified_at?                          dedupe so cron emails once per due cycle
   created_at, updated_at
 
@@ -77,7 +79,17 @@ Any place the user enters a km reading (service record, manual update) writes an
 - `computeDueState(reminder, vehicle) → { status: 'ok' | 'due_soon' | 'overdue', dueIn }` is a pure function evaluated at read time. `due_soon` = within 500 km or 30 days. No background state.
 - A reminder can be completed from the UI ("merkitse tehdyksi"), which creates a `service_record` with `reminder_id` set and re-anchors `last_done_at`/`last_done_km` (or rolls `due_date` forward a year for date reminders). This closes the loop between reminders and the log.
 - On creation, an interval reminder anchors to now and the vehicle's current odometer unless the user backfills when it was last done. A reminder with no anchor is never valid.
-- Adding a vehicle offers one-tap preset reminders: öljynvaihto, ketju, jarruneste (interval) and vakuutus, ajoneuvovero (date). Users can add arbitrary custom reminders of either type.
+- Adding a vehicle offers preset reminders that are **editable inline** at creation: öljynvaihto, ketju, jarruneste (interval — prefilled km/months, adjustable) and vakuutus, ajoneuvovero (payment — the user enters the real due date(s), typically one or two; no synthetic +1yr default). Users can add arbitrary custom reminders of either type.
+
+### Payment reminders (tax & insurance)
+
+Vakuutus and ajoneuvovero are auto-billed in Finland, so they are modelled as recurring **payment reminders** rather than serviced items: a `date` reminder with `recurrence_dates` set (annual `MM-DD` anchors the user defines — one for a single yearly bill, two for a split ajoneuvovero erä). `due_date` stays the single source of truth for due state, sorting, and the digest; `recurrence_dates` only drives advancing:
+
+- pure `nextRecurrence(anchors, ref, { inclusive })` returns the next `YYYY-MM-DD` occurrence of any anchor relative to `ref` (this year or next), TZ-stable via `parseLocalDate`.
+- on create, `due_date = nextRecurrence(anchors, today, { inclusive: true })`.
+- completion is a **one-tap "merkitse maksetuksi"** (`markReminderPaid` server fn) with no service record: it sets `due_date = nextRecurrence(anchors, due_date, { inclusive: false })` and clears `notified_at`. With a single anchor this equals the previous `+1yr` roll, so it generalizes the ordinary date reminder.
+
+`reanchorOnComplete` gains the recurrence branch; ordinary date reminders (null `recurrence_dates`) keep the `+1yr` roll and the service-record completion path. The reminders page gains a minimal edit affordance (wiring the already-present but unused `updateReminder`) so payment anchor dates can be corrected after creation. Discriminator throughout is `recurrence_dates != null`. Out of scope: paid-amount logging, payment-history records, auto-detecting real Traficom due dates.
 
 ## Routes
 
@@ -119,7 +131,7 @@ The long-term differentiator: maintenance needs connect to motori.fi parts listi
 
 ## Testing
 
-Unit tests (Vitest) for `computeDueState`, odometer flow, and reminder re-anchoring. One Playwright e2e happy path: log in (SSO from motori's flow with `DISABLE_EMAIL_VERIFICATION=true`), add a vehicle with presets, add a service record completing a reminder, verify the timeline and due states. E2e waits for the `data-hydrated` signal, same as motori.
+Unit tests (Vitest) for `computeDueState`, odometer flow, reminder re-anchoring, and `nextRecurrence` (single vs multi anchor, year-wrap, inclusive/exclusive). One Playwright e2e happy path: log in (SSO from motori's flow with `DISABLE_EMAIL_VERIFICATION=true`), add a vehicle with presets (including an edited interval and a payment due date), add a service record completing a reminder, mark a payment reminder paid, verify the timeline and due states. E2e waits for the `data-hydrated` signal, same as motori.
 
 ## Acceptance
 

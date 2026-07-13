@@ -26,6 +26,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: cp apps/motori/.env.ci apps/motori/.env
       - run: pnpm build
+      - run: cp apps/talli/.env.ci apps/talli/.env
+      - run: DEPLOY_APP=talli pnpm build
 
   lint:
     runs-on: ubuntu-latest
@@ -126,8 +128,58 @@ jobs:
           path: apps/motori/playwright-report/
           retention-days: 7
 
+  e2e-talli:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: motori
+          POSTGRES_PASSWORD: motori
+          POSTGRES_DB: motori
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U motori"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: cp apps/motori/.env.ci apps/motori/.env
+      - run: cp apps/talli/.env.ci apps/talli/.env
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium webkit
+      - name: Install Playwright system deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+      - run: pnpm --filter motori db:migrate
+      - run: pnpm --filter talli db:migrate
+      - run: pnpm --filter motori build
+      - run: pnpm --filter talli build
+      - run: pnpm --filter talli test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-talli-report
+          path: apps/talli/playwright-report/
+          retention-days: 7
+
   deploy:
-    needs: [lint, format, typecheck, test, e2e]
+    needs: [lint, format, typecheck, test, e2e, e2e-talli]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     concurrency:
@@ -143,7 +195,7 @@ jobs:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
-      - name: Push to Dokku
+      - name: Push motori to Dokku
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.DOKKU_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
@@ -154,3 +206,11 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 dokku@motori dokku config:set --no-restart motori SOURCE_VERSION=$GITHUB_SHA
           git remote add dokku dokku@motori:motori
           git push dokku main --force
+      - name: Push talli to Dokku
+        # talli is a second Dokku app on the same host. This step fails until
+        # `dokku apps:create talli` has been run (see DEPLOY.md) — the talli Dokku
+        # app must exist on the server before this branch merges to main.
+        run: |
+          ssh -i ~/.ssh/id_ed25519 dokku@motori dokku config:set --no-restart talli SOURCE_VERSION=$GITHUB_SHA
+          git remote add dokku-talli dokku@motori:talli
+          git push dokku-talli main --force

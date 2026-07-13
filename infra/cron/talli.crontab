@@ -1,0 +1,7 @@
+# Talli scheduled tasks. Installed at /etc/cron.d/talli on the VPS.
+# Runs as root; PATH must include dokku.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Daily — reminder digest (03:45 UTC ≈ 06:45 EEST, after motori's overnight jobs)
+45 3 * * * root /usr/local/bin/talli-cron reminder-digest

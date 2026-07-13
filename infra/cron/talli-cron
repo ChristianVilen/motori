@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Trigger a single /api/cron task on the local Dokku talli app.
+# Usage: talli-cron <task-name>
+# Reads CRON_SECRET from dokku config at runtime so this script is safe to commit.
+set -euo pipefail
+
+task="${1:?task name required}"
+secret="$(dokku config:get talli CRON_SECRET)"
+
+curl -fsSk -X POST \
+  --resolve talli.motori.fi:443:127.0.0.1 \
+  -H "Authorization: Bearer $secret" \
+  "https://talli.motori.fi/api/cron?task=$task" >/dev/null

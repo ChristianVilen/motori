@@ -13,7 +13,7 @@ Production runs on a single Hetzner VPS as a Dokku app using the Heroku Node bui
 - **Migrations:** auto-run via Procfile `release` phase (`pnpm db:migrate`)
 - **Secrets:** age-encrypted in `secrets/*.age`, decrypt key at `~/.config/sops/age/keys.txt`
 
-The repo is a pnpm workspace (`apps/motori` + shared `packages/*`); root `package.json`'s `build`/`start`/`db:migrate` scripts dispatch via `pnpm --filter ${DEPLOY_APP:-motori} ...`, defaulting to the `motori` app so the Procfile and buildpack config don't need to change. One-time, set it explicitly on the Dokku app so it's pinned regardless of the default: `ssh root@motori "dokku config:set --no-restart motori DEPLOY_APP=motori"`. A future `talli.motori.fi` app will be a **second** Dokku app (its own `dokku apps:create talli`) receiving the same repo/Procfile with `DEPLOY_APP=talli` set on that app's config — not a change to this app's deploy.
+The repo is a pnpm workspace (`apps/motori` + shared `packages/*`); root `package.json`'s `build`/`start`/`db:migrate` scripts dispatch via `pnpm --filter ${DEPLOY_APP:-motori} ...`, defaulting to the `motori` app so the Procfile and buildpack config don't need to change. One-time, set it explicitly on the Dokku app so it's pinned regardless of the default: `ssh root@motori "dokku config:set --no-restart motori DEPLOY_APP=motori"`. `talli.motori.fi` is a **second** Dokku app (its own `dokku apps:create talli`) on the same host, receiving the same repo/Procfile with `DEPLOY_APP=talli` set on that app's config — not a change to this app's deploy. See §12.
 
 ## Connection
 
@@ -293,6 +293,63 @@ Updates later: `just oo-deploy` (re-pulls the pinned image; bump the tag in the 
 **Memory note.** OO is capped (`ZO_MEM*` + `dokku resource:limit --memory 1g`) and the 2GB swapfile backstops Postgres + Node + OO. If OO restart-loops, check `dokku logs openobserve` for OOM and lower `ZO_MEM_TABLE_MAX_SIZE`.
 
 **Security note.** `logs.motori.fi` is publicly reachable and OO OSS auth is username/password only (no MFA). Use a strong, unique root password. To add a stronger gate later, put Cloudflare Access in front of the hostname (and keep app ingest on the internal `observability` network so it isn't blocked).
+
+### 12. Second app (talli)
+
+`talli` (talli.motori.fi — garage / maintenance companion) is a **second** Dokku app on the same host. It shares motori's Postgres (owning only the `talli` schema) and motori's login (shared session cookie), and mounts no auth routes. It receives the same repo/Procfile with `DEPLOY_APP=talli` set on its config.
+
+**App create + link** — same Postgres service as motori, **no** new `postgres:create`:
+
+```bash
+ssh root@motori
+dokku apps:create talli
+dokku postgres:link motori talli                    # talli's DATABASE_URL → motori's DB (talli migrates only its `talli` schema)
+dokku domains:add talli talli.motori.fi
+dokku ports:set talli http:80:3001 https:443:3001   # talli's container listens on 3001
+dokku nginx:set talli client-max-body-size 12m
+```
+
+**Config.** Add a `dokku config:set --no-restart talli …` block to `secrets/dokku-config.sh.age` (mirror motori's, §4) and apply with `just config-apply`:
+
+```bash
+dokku config:set --no-restart talli \
+    NODE_ENV=production \
+    DEPLOY_APP=talli \
+    BETTER_AUTH_SECRET='<same value as motori>' \
+    BETTER_AUTH_URL=https://motori.fi \
+    APP_ORIGIN=https://talli.motori.fi \
+    STORAGE_ENDPOINT='https://hel1.your-objectstorage.com' \
+    STORAGE_BUCKET=motori-images \
+    STORAGE_ACCESS_KEY='<key>' STORAGE_SECRET_KEY='<secret>' \
+    STORAGE_PUBLIC_URL='https://motori-images.hel1.your-objectstorage.com' \
+    RESEND_API_KEY='<key>' \
+    CRON_SECRET='<new value, distinct from motori>' \
+    LOG_LEVEL=info
+```
+
+- `DEPLOY_APP=talli` makes the root `build`/`start`/`db:migrate` scripts target the talli app.
+- `BETTER_AUTH_SECRET` **must** equal motori's — the session cookie is shared across `.motori.fi`.
+- `BETTER_AUTH_URL=https://motori.fi` (motori is the auth host); `APP_ORIGIN=https://talli.motori.fi` scopes csrf to talli's own origin.
+- Same `motori-images` bucket as motori; talli writes under the `talli/` key prefix.
+- Optional OpenObserve sink on its own stream: add `OPENOBSERVE_URL=http://openobserve.web:5080 OPENOBSERVE_ORG=default OPENOBSERVE_STREAM=talli OPENOBSERVE_USER=… OPENOBSERVE_PASSWORD=…` and join talli to the `observability` network (`dokku network:set talli attach-post-create observability`, cf. §11).
+
+No motori-side config change is needed for talli's cross-origin sign-out: `createAuth` already adds `talli.motori.fi` to `trustedOrigins` and motori's CORS allow-list appends it automatically (`apps/motori/src/lib/cors.ts`).
+
+**TLS.** talli.motori.fi is covered by the existing `*.motori.fi` wildcard Cloudflare Origin Cert — reuse the same bundle (as §11 does for OpenObserve):
+
+```bash
+tar cvf /tmp/talli-cert.tar -C /path/to/certs server.crt server.key
+dokku certs:add talli < /tmp/talli-cert.tar
+dokku proxy:build-config talli
+```
+
+Then add the Cloudflare DNS record for `talli` → the VPS (proxied, orange cloud): `A talli <vps-ipv4>`, `AAAA talli <vps-ipv6>`.
+
+**First deploy + migrate.** The CI `deploy` job pushes to `dokku@motori:talli` (`.github/workflows/ci.yml`, "Push talli to Dokku"). The release phase runs `pnpm db:migrate`, which with `DEPLOY_APP=talli` migrates only the `talli` schema (`migrationTableSchema: "talli"`). **Ordering constraint:** the talli Dokku app must exist on the server before this branch merges to `main`, or the deploy job's talli push fails.
+
+**Cron.** `just cron-install` installs both apps' cron files. talli's reminder digest runs daily at 03:45 UTC via `infra/cron/talli.crontab` → `/etc/cron.d/talli`; the `talli-cron` wrapper reads `CRON_SECRET` from `dokku config:get talli` and POSTs to `https://talli.motori.fi/api/cron?task=reminder-digest`.
+
+The shared `Procfile` and `app.json` are unchanged — root scripts dispatch on `${DEPLOY_APP:-motori}`.
 
 ## Restore from backup
 
