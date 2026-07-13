@@ -3,6 +3,7 @@ export default {
 	"auth.unauthorized": "Please sign in to continue.",
 	"auth.email_not_verified": "Please verify your email address.",
 	"auth.profile_missing": "Profile is missing.",
+	"profile.display_name_required": "Display name is required.",
 	"booking.not_found": "Booking not found.",
 	"booking.not_pending": "Booking is no longer pending.",
 	"booking.dates_unavailable": "Selected dates are not available.",

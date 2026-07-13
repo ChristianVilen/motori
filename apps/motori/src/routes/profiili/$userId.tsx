@@ -8,50 +8,12 @@ import { ReportButton } from "~/components/report-button";
 import { SITE_NAME } from "~/lib/constants";
 import type { ListingImage } from "~/lib/db/schema";
 import { formatDate, useTranslation } from "~/lib/i18n";
-import { computeReviewSummary, getReviewsForUser } from "~/lib/reviews.server";
+import { getPublicProfile } from "~/lib/profile.server";
 import { getSession } from "~/lib/session";
 
-const getPublicProfile = createServerFn({ method: "GET" })
+const getPublicProfileFn = createServerFn({ method: "GET" })
 	.inputValidator((userId: string) => userId)
-	.handler(async ({ data: userId }) => {
-		const { db } = await import("~/lib/db/index");
-		const profile = await db
-			.selectFrom("profile")
-			.select(["user_id", "display_name", "city", "created_at"])
-			.where("user_id", "=", userId)
-			.executeTakeFirst();
-
-		if (!profile) {
-			return null;
-		}
-
-		const listings = await db
-			.selectFrom("listing")
-			.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
-			.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
-			.selectAll("listing")
-			.select(["motorcycle_make.slug as makeSlug", "motorcycle_model.name as modelName"])
-			.where("owner_id", "=", userId)
-			.where("listing.status", "=", "active")
-			.orderBy("listing.created_at", "desc")
-			.execute();
-
-		const listingIds = listings.map((l) => l.id);
-		const images =
-			listingIds.length > 0
-				? await db
-						.selectFrom("listing_image")
-						.selectAll()
-						.where("listing_id", "in", listingIds)
-						.orderBy("order", "asc")
-						.execute()
-				: [];
-
-		const reviews = await getReviewsForUser(userId);
-		const reviewSummary = computeReviewSummary(reviews);
-
-		return { profile, listings, images, reviewSummary, reviews };
-	});
+	.handler(async ({ data: userId }) => getPublicProfile(userId));
 
 function NotFoundProfile() {
 	const { t } = useTranslation("profile");
@@ -68,7 +30,7 @@ function NotFoundProfile() {
 export const Route = createFileRoute("/profiili/$userId")({
 	loader: async ({ params }) => {
 		const [result, session] = await Promise.all([
-			getPublicProfile({ data: params.userId }),
+			getPublicProfileFn({ data: params.userId }),
 			getSession(),
 		]);
 		if (!result) {

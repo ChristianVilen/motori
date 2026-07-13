@@ -13,37 +13,28 @@ import { useTranslation } from "~/lib/i18n";
 import { setListingStatus } from "~/lib/listings-commands";
 import { getOwnerListings } from "~/lib/listings-owner";
 import { protectedMutation } from "~/lib/middleware";
-import { getSession } from "~/lib/session";
+import { getProfileForEdit } from "~/lib/profile.server";
+import { getSession, requireUserId } from "~/lib/session";
 import { computeListingSlug, slugify } from "~/lib/slug";
 import { TORI_STATUSES } from "~/lib/tori/constants";
 import { setToriItemStatus } from "~/lib/tori/tori-commands";
 import { useEmailVerified } from "~/lib/use-email-verified";
 
 const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
-	const session = await getSession();
-	if (!session) {
-		throw new Error("Kirjaudu sisään");
-	}
-
-	const { db } = await import("~/lib/db/index");
+	const userId = await requireUserId();
 	const [{ listings, images }, profile] = await Promise.all([
-		getOwnerListings(session.user.id),
-		db.selectFrom("profile").selectAll().where("user_id", "=", session.user.id).executeTakeFirst(),
+		getOwnerListings(userId),
+		getProfileForEdit(userId),
 	]);
 
-	return { listings, images, profile, session };
+	return { listings, images, profile };
 });
 
 const setListingStatusFn = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("set-listing-status", 20, 60))
 	.inputValidator((data: { id: string; status: "active" | "paused" | "removed" }) => data)
 	.handler(async ({ data }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new Error("Kirjaudu sisään");
-		}
-
-		await setListingStatus(data.id, session.user.id, data.status);
+		await setListingStatus(data.id, await requireUserId(), data.status);
 	});
 
 const setToriStatusFn = createServerFn({ method: "POST" })

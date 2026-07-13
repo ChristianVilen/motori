@@ -6,9 +6,11 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { CitySelect } from "~/components/listings/city-select";
+import { AppError } from "~/lib/errors";
 import { useTranslation } from "~/lib/i18n";
 import { csrfOnly } from "~/lib/middleware";
-import { getSession } from "~/lib/session";
+import { completeProfile } from "~/lib/profile.server";
+import { getSession, requireUserId } from "~/lib/session";
 import { validateFinnishPhone } from "~/lib/validators";
 
 const saveProfile = createServerFn({ method: "POST" })
@@ -16,36 +18,13 @@ const saveProfile = createServerFn({ method: "POST" })
 	.inputValidator((data: { displayName: string; city: string; phone: string }) => {
 		const displayName = data.displayName.trim();
 		if (!displayName) {
-			throw new Error("Näyttönimi on pakollinen");
+			throw new AppError("profile.display_name_required", { field: "displayName" });
 		}
 		const phone = validateFinnishPhone(data.phone);
 		return { displayName, city: data.city.trim(), phone };
 	})
 	.handler(async ({ data }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new Error("Ei istuntoa");
-		}
-		const { db } = await import("~/lib/db/index");
-		await db
-			.insertInto("profile")
-			.values({
-				user_id: session.user.id,
-				display_name: data.displayName,
-				city: data.city || null,
-				phone: data.phone || null,
-				language: "fi",
-				terms_accepted_at: new Date(),
-			})
-			.onConflict((oc) =>
-				oc.column("user_id").doUpdateSet({
-					display_name: data.displayName,
-					city: data.city || null,
-					phone: data.phone || null,
-					updated_at: new Date(),
-				}),
-			)
-			.execute();
+		await completeProfile(await requireUserId(), data);
 	});
 
 export const Route = createFileRoute("/taydenna-profiili")({

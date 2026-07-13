@@ -12,23 +12,20 @@ import { authClient } from "~/lib/auth-client";
 import { SITE_NAME } from "~/lib/constants";
 import { exportMyData } from "~/lib/data-export";
 import { deleteAccount } from "~/lib/delete-account";
+import { AppError } from "~/lib/errors";
 import { useTranslation } from "~/lib/i18n";
 import { csrfOnly } from "~/lib/middleware";
-import { getSession } from "~/lib/session";
+import { getProfileForEdit, updateSettings } from "~/lib/profile.server";
+import { getSession, requireUserId } from "~/lib/session";
 import { validateFinnishPhone } from "~/lib/validators";
 
 const loadSettings = createServerFn({ method: "GET" }).handler(async () => {
 	const session = await getSession();
 	if (!session) {
-		throw new Error("Ei istuntoa");
+		throw new AppError("auth.unauthorized");
 	}
-	const { db } = await import("~/lib/db/index");
-	const profile = await db
-		.selectFrom("profile")
-		.selectAll()
-		.where("user_id", "=", session.user.id)
-		.executeTakeFirst();
-	return { profile: profile ?? null, session };
+	const profile = await getProfileForEdit(session.user.id);
+	return { profile, session };
 });
 
 const saveSettings = createServerFn({ method: "POST" })
@@ -37,7 +34,7 @@ const saveSettings = createServerFn({ method: "POST" })
 		(data: { displayName: string; city: string; phone: string; showPhone: boolean }) => {
 			const displayName = data.displayName.trim();
 			if (!displayName) {
-				throw new Error("Näyttönimi on pakollinen");
+				throw new AppError("profile.display_name_required", { field: "displayName" });
 			}
 			const phone = validateFinnishPhone(data.phone);
 			return {
@@ -49,31 +46,7 @@ const saveSettings = createServerFn({ method: "POST" })
 		},
 	)
 	.handler(async ({ data }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new Error("Ei istuntoa");
-		}
-		const { db } = await import("~/lib/db/index");
-		await db
-			.insertInto("profile")
-			.values({
-				user_id: session.user.id,
-				display_name: data.displayName,
-				city: data.city || null,
-				phone: data.phone || null,
-				show_phone: data.showPhone,
-				language: "fi",
-			})
-			.onConflict((oc) =>
-				oc.column("user_id").doUpdateSet({
-					display_name: data.displayName,
-					city: data.city || null,
-					phone: data.phone || null,
-					show_phone: data.showPhone,
-					updated_at: new Date(),
-				}),
-			)
-			.execute();
+		await updateSettings(await requireUserId(), data);
 	});
 
 export const Route = createFileRoute("/profiili/asetukset")({

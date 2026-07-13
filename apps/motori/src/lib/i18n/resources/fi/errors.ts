@@ -3,6 +3,7 @@ export default {
 	"auth.unauthorized": "Kirjaudu sisään jatkaaksesi.",
 	"auth.email_not_verified": "Vahvista sähköpostiosoitteesi.",
 	"auth.profile_missing": "Profiili puuttuu.",
+	"profile.display_name_required": "Näyttönimi on pakollinen.",
 	"booking.not_found": "Varausta ei löytynyt.",
 	"booking.not_pending": "Varaus ei ole enää odottamassa.",
 	"booking.dates_unavailable": "Valitut päivät eivät ole saatavilla.",

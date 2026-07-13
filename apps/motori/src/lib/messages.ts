@@ -14,7 +14,7 @@ import {
 	startConversationServer,
 	unblockUserServer,
 } from "~/lib/messages.server";
-import { getSession } from "~/lib/session";
+import { getSession, requireUserId } from "~/lib/session";
 
 export const MESSAGE_MAX_LENGTH = 4000;
 
@@ -52,14 +52,6 @@ export interface ConversationListRow {
 	lastMessageAt: string; // ISO
 	lastMessagePreview: string;
 	unreadCount: number;
-}
-
-async function requireUserId(): Promise<string> {
-	const session = await getSession();
-	if (!session) {
-		throw new AppError("auth.unauthorized");
-	}
-	return session.user.id;
 }
 
 export const startConversation = createServerFn({ method: "POST" })
