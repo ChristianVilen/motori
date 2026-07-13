@@ -17,9 +17,17 @@ const imageUrl = z
 
 const isoDate = z.iso.date("Virheellinen päivämäärä");
 
-// Annual recurrence anchor: "MM-DD". Day range is generous (01-31); an overflow
-// like 02-31 normalizes via Date when the occurrence is built — acceptable for MVP.
-const mmdd = z.string().regex(/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/, "Virheellinen päivämäärä");
+// Annual recurrence anchor: "MM-DD". Day is capped at the month's non-leap
+// maximum so impossible dates can't overflow via Date (02-31 → Mar 3); 02-29 is
+// rejected by design — no leap-day anchors, users pick 02-28 or 03-01 instead.
+const MMDD_MAX_DAY = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+const mmdd = z
+	.string()
+	.regex(/^\d{2}-\d{2}$/, "Virheellinen päivämäärä")
+	.refine((v) => {
+		const [m, d] = v.split("-").map(Number);
+		return m >= 1 && m <= 12 && d >= 1 && d <= MMDD_MAX_DAY[m - 1];
+	}, "Virheellinen päivämäärä");
 const recurrenceDates = z.array(mmdd).min(1, "Anna vähintään yksi päivä").max(4);
 
 const presetKeys = REMINDER_PRESETS.map((p) => p.key) as unknown as readonly [

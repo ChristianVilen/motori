@@ -201,6 +201,42 @@ describe("reanchorOnComplete — payment reminders", () => {
 		expect(result).toEqual({ due_date: "2026-09-15", notified_at: null });
 	});
 
+	it("advances a years-stale due_date to the next anchor strictly after today", () => {
+		const result = reanchorOnComplete(
+			{ type: "date", due_date: "2023-03-01", recurrence_dates: ["03-01"] },
+			"2026-07-13",
+			null,
+		);
+		expect(result).toEqual({ due_date: "2027-03-01", notified_at: null });
+	});
+
+	it("on-time completion (due today) advances one year", () => {
+		const result = reanchorOnComplete(
+			{ type: "date", due_date: "2026-03-01", recurrence_dates: ["03-01"] },
+			"2026-03-01",
+			null,
+		);
+		expect(result).toEqual({ due_date: "2027-03-01", notified_at: null });
+	});
+
+	it("early completion advances past the upcoming due_date, not just past today", () => {
+		const result = reanchorOnComplete(
+			{ type: "date", due_date: "2026-09-15", recurrence_dates: ["03-15", "09-15"] },
+			"2026-07-13",
+			null,
+		);
+		expect(result).toEqual({ due_date: "2027-03-15", notified_at: null });
+	});
+
+	it("multi-anchor stale case picks the nearest future anchor", () => {
+		const result = reanchorOnComplete(
+			{ type: "date", due_date: "2023-03-15", recurrence_dates: ["03-15", "09-15"] },
+			"2026-07-13",
+			null,
+		);
+		expect(result).toEqual({ due_date: "2026-09-15", notified_at: null });
+	});
+
 	it("ordinary date reminder (null recurrence) still rolls +1 year", () => {
 		const result = reanchorOnComplete(
 			{ type: "date", due_date: "2026-03-15", recurrence_dates: null },

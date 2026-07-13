@@ -119,12 +119,18 @@ export function reanchorOnComplete(
 	if (reminder.type === "interval") {
 		return { last_done_at: performedAt, last_done_km: odometerKm, notified_at: null };
 	}
-	const from = reminder.due_date ?? performedAt;
 	if (reminder.recurrence_dates && reminder.recurrence_dates.length > 0) {
+		// A years-stale due_date would advance only one anchor and stay in the past;
+		// anchoring from the later of due_date and the completion (YYYY-MM-DD strings
+		// compare chronologically) guarantees one completion lands strictly ahead,
+		// while early completion still skips past the upcoming due date.
+		const from =
+			reminder.due_date && reminder.due_date > performedAt ? reminder.due_date : performedAt;
 		return {
 			due_date: nextRecurrence(reminder.recurrence_dates, from, { inclusive: false }),
 			notified_at: null,
 		};
 	}
+	const from = reminder.due_date ?? performedAt;
 	return { due_date: format(addYears(parseLocalDate(from), 1), "yyyy-MM-dd"), notified_at: null };
 }
