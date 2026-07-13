@@ -5,14 +5,14 @@ agent: claude
 
 files:
   copy:
-    - .env
-    - .env.prod
+    - apps/motori/.env
+    - apps/talli/.env
   symlink:
     - .claude/settings.local.json
 
 post_create:
   - mise trust
-  - bash -c "docker compose up -d db && pnpm install && pnpm db:migrate && pnpm db:seed"
+  - bash -c "docker compose up -d db && pnpm install && pnpm db:migrate && DEPLOY_APP=talli pnpm db:migrate && pnpm db:seed"
 
 pre_remove:
   - docker compose down -v
