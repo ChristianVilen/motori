@@ -151,6 +151,33 @@ describe("reanchorOnComplete", () => {
 		expect(u).toEqual({ due_date: "2027-08-01", notified_at: null });
 	});
 
+	it("advances a years-stale plain date past the completion, keeping the anniversary", () => {
+		const u = reanchorOnComplete(
+			{ type: "date", due_date: "2023-08-01", recurrence_dates: null },
+			"2026-07-13",
+			null,
+		);
+		expect(u).toEqual({ due_date: "2026-08-01", notified_at: null });
+	});
+
+	it("late completion keeps the anniversary date (no drift to the completion date)", () => {
+		const u = reanchorOnComplete(
+			{ type: "date", due_date: "2026-08-01", recurrence_dates: null },
+			"2026-09-01",
+			null,
+		);
+		expect(u).toEqual({ due_date: "2027-08-01", notified_at: null });
+	});
+
+	it("skips an occurrence that lands exactly on the completion date", () => {
+		const u = reanchorOnComplete(
+			{ type: "date", due_date: "2023-07-13", recurrence_dates: null },
+			"2026-07-13",
+			null,
+		);
+		expect(u).toEqual({ due_date: "2027-07-13", notified_at: null });
+	});
+
 	it("rolls forward from the completion date when due_date is missing", () => {
 		const u = reanchorOnComplete(
 			{ type: "date", due_date: null, recurrence_dates: null },
@@ -196,6 +223,42 @@ describe("reanchorOnComplete — payment reminders", () => {
 		const result = reanchorOnComplete(
 			{ type: "date", due_date: "2026-03-15", recurrence_dates: ["03-15", "09-15"] },
 			"2026-03-15",
+			null,
+		);
+		expect(result).toEqual({ due_date: "2026-09-15", notified_at: null });
+	});
+
+	it("advances a years-stale due_date to the next anchor strictly after today", () => {
+		const result = reanchorOnComplete(
+			{ type: "date", due_date: "2023-03-01", recurrence_dates: ["03-01"] },
+			"2026-07-13",
+			null,
+		);
+		expect(result).toEqual({ due_date: "2027-03-01", notified_at: null });
+	});
+
+	it("on-time completion (due today) advances one year", () => {
+		const result = reanchorOnComplete(
+			{ type: "date", due_date: "2026-03-01", recurrence_dates: ["03-01"] },
+			"2026-03-01",
+			null,
+		);
+		expect(result).toEqual({ due_date: "2027-03-01", notified_at: null });
+	});
+
+	it("early completion advances past the upcoming due_date, not just past today", () => {
+		const result = reanchorOnComplete(
+			{ type: "date", due_date: "2026-09-15", recurrence_dates: ["03-15", "09-15"] },
+			"2026-07-13",
+			null,
+		);
+		expect(result).toEqual({ due_date: "2027-03-15", notified_at: null });
+	});
+
+	it("multi-anchor stale case picks the nearest future anchor", () => {
+		const result = reanchorOnComplete(
+			{ type: "date", due_date: "2023-03-15", recurrence_dates: ["03-15", "09-15"] },
+			"2026-07-13",
 			null,
 		);
 		expect(result).toEqual({ due_date: "2026-09-15", notified_at: null });

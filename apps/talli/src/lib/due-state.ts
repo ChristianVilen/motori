@@ -106,7 +106,8 @@ export function computeDueState(
 /**
  * What completing a reminder writes back: interval reminders re-anchor to the
  * completion; payment reminders (recurrence_dates set) advance to the next
- * anchor; other date reminders roll due_date forward a year. Either way the
+ * anchor; other date reminders roll due_date forward a year at a time until it
+ * clears the completion date. Either way the
  * notified_at dedupe stamp clears so the next due cycle emails again.
  */
 export function reanchorOnComplete(
@@ -119,12 +120,25 @@ export function reanchorOnComplete(
 	if (reminder.type === "interval") {
 		return { last_done_at: performedAt, last_done_km: odometerKm, notified_at: null };
 	}
-	const from = reminder.due_date ?? performedAt;
 	if (reminder.recurrence_dates && reminder.recurrence_dates.length > 0) {
+		// A years-stale due_date would advance only one anchor and stay in the past;
+		// anchoring from the later of due_date and the completion (YYYY-MM-DD strings
+		// compare chronologically) guarantees one completion lands strictly ahead,
+		// while early completion still skips past the upcoming due date.
+		const from =
+			reminder.due_date && reminder.due_date > performedAt ? reminder.due_date : performedAt;
 		return {
 			due_date: nextRecurrence(reminder.recurrence_dates, from, { inclusive: false }),
 			notified_at: null,
 		};
 	}
-	return { due_date: format(addYears(parseLocalDate(from), 1), "yyyy-MM-dd"), notified_at: null };
+	// Anniversary-preserving: always +1 year from due_date (a late completion must
+	// not shift the date), repeating past a years-stale due_date so one completion
+	// always lands strictly ahead of the completion date.
+	const performed = parseLocalDate(performedAt);
+	let next = addYears(parseLocalDate(reminder.due_date ?? performedAt), 1);
+	while (next <= performed) {
+		next = addYears(next, 1);
+	}
+	return { due_date: format(next, "yyyy-MM-dd"), notified_at: null };
 }
