@@ -11,7 +11,7 @@ export const getSession = createServerFn().handler(async () => createGetSession(
 
 export type Session = NonNullable<Awaited<ReturnType<typeof getSession>>>;
 
-/** For server fns: the caller must be signed in. */
+/** Throws AppError("auth.unauthorized") when nobody is signed in. */
 export async function requireSession(): Promise<Session> {
 	const session = await getSession();
 	if (!session) {
@@ -24,7 +24,7 @@ export async function requireUserId(): Promise<string> {
 	return (await requireSession()).user.id;
 }
 
-/** For route loaders: send anonymous visitors to the sign-in page. */
+/** Like requireSession, but for loaders: redirects to the sign-in page instead of throwing. */
 export async function requireSessionOrRedirect(redirectTo?: string): Promise<Session> {
 	const session = await getSession();
 	if (!session) {

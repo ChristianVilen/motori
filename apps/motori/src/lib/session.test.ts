@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 let mockSession: unknown = null;
 
-// createServerFn is reduced to the bare handler so getSession() runs directly.
+// Reduce createServerFn to the bare handler so getSession() runs directly.
 vi.mock("@tanstack/react-start", () => ({
 	createServerFn: () => ({ handler: (fn: () => unknown) => fn }),
 }));

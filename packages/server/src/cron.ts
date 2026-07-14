@@ -7,9 +7,10 @@ type CronLogger = {
 };
 
 /**
- * Shared cron endpoint runner: constant-time CRON_SECRET Bearer auth, then runs
- * either the ?task=<name> from the query string or every task in the map.
- * A failing task is logged and reported in the JSON body; it never aborts the run.
+ * Shared POST /api/cron handler. Checks the CRON_SECRET Bearer token in
+ * constant time, then runs the ?task=<name> from the query string, or every
+ * task in the map when none is given. A failing task is logged and reported
+ * in the JSON body without stopping the remaining tasks.
  */
 export async function runCronTasks(
 	request: Request,
