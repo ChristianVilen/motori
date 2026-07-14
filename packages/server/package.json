@@ -3,6 +3,7 @@
 	"private": true,
 	"type": "module",
 	"exports": {
+		"./cron": "./src/cron.ts",
 		"./csrf": "./src/csrf.ts",
 		"./rate-limit": "./src/rate-limit.ts",
 		"./security-headers": "./src/security-headers.ts",
