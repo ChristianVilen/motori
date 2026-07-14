@@ -8,15 +8,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { db } from "~/lib/db/index";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
-import { getSession } from "~/lib/session";
+import { requireSession } from "~/lib/session";
 
 export const deleteAccount = createServerFn({ method: "POST" })
 	.middleware([csrfMiddleware(), rateLimitMiddleware(3, 60, "delete-account")])
 	.handler(async () => {
-		const session = await getSession();
-		if (!session) {
-			throw new Error("Ei istuntoa");
-		}
+		const session = await requireSession();
 		const userId = session.user.id;
 		const userEmail = session.user.email;
 

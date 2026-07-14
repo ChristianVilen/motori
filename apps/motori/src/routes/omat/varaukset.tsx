@@ -1,18 +1,13 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { sql } from "kysely";
 import { useState } from "react";
 import { SITE_NAME } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
-import { getSession } from "~/lib/session";
+import { requireSessionOrRedirect, requireUserId } from "~/lib/session";
 
 const getMyBookings = createServerFn({ method: "GET" }).handler(async () => {
-	const session = await getSession();
-	if (!session) {
-		throw new Error("Kirjaudu sisään");
-	}
-
-	const userId = session.user.id;
+	const userId = await requireUserId();
 
 	const { db } = await import("~/lib/db/index");
 	const incoming = await db
@@ -52,11 +47,8 @@ const getMyBookings = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const Route = createFileRoute("/omat/varaukset")({
-	loader: async () => {
-		const session = await getSession();
-		if (!session) {
-			throw redirect({ to: "/kirjaudu", search: { redirect: "/omat/varaukset" } });
-		}
+	loader: async ({ location }) => {
+		await requireSessionOrRedirect(location.pathname);
 		return getMyBookings();
 	},
 	head: () => ({ meta: [{ title: `Varaukset — ${SITE_NAME}` }] }),

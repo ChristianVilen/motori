@@ -2,7 +2,7 @@ import { csrfMiddleware } from "@motori/server/csrf";
 import { rateLimitMiddleware } from "@motori/server/rate-limit";
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "~/lib/db/index";
-import { getSession } from "~/lib/session";
+import { requireUserId } from "~/lib/session";
 
 const bookingExportColumns = [
 	"id",
@@ -20,11 +20,7 @@ const bookingExportColumns = [
 export const exportMyData = createServerFn({ method: "POST" })
 	.middleware([csrfMiddleware(), rateLimitMiddleware(3, 60, "data-export")])
 	.handler(async () => {
-		const session = await getSession();
-		if (!session) {
-			throw new Error("Ei istuntoa");
-		}
-		const userId = session.user.id;
+		const userId = await requireUserId();
 
 		const [user, profile, listings, favorites, bookingsAsRenter, reports] = await Promise.all([
 			db

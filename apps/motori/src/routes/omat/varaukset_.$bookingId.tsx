@@ -1,6 +1,6 @@
 import { Button } from "@motori/ui/button";
 import { Textarea } from "@motori/ui/textarea";
-import { createFileRoute, Link, notFound, redirect, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { sql } from "kysely";
 import { useState } from "react";
@@ -21,16 +21,13 @@ import {
 	type ReviewStatus,
 	submitReview as submitReviewAction,
 } from "~/lib/reviews.server";
-import { getSession } from "~/lib/session";
+import { requireSessionOrRedirect, requireUserId } from "~/lib/session";
 import { bookingIdSchema, bookingRejectSchema, submitReviewSchema } from "~/lib/validators";
 
 const getBooking = createServerFn({ method: "GET" })
 	.inputValidator((shortId: string) => shortId)
 	.handler(async ({ data: shortId }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new AppError("auth.unauthorized");
-		}
+		const userId = await requireUserId();
 
 		const { db } = await import("~/lib/db/index");
 		const row = await db
@@ -71,8 +68,8 @@ const getBooking = createServerFn({ method: "GET" })
 			return null;
 		}
 
-		const isOwner = row.owner_id === session.user.id;
-		const isRenter = row.renter_id === session.user.id;
+		const isOwner = row.owner_id === userId;
+		const isRenter = row.renter_id === userId;
 		if (!isOwner && !isRenter) {
 			throw new AppError("listing.forbidden");
 		}
@@ -89,7 +86,7 @@ const getBooking = createServerFn({ method: "GET" })
 
 		const eligible = isReviewEligible(row.status as BookingStatus, row.end_date);
 		const reviewStatus = eligible
-			? await getReviewStatusForBooking(row.id, session.user.id, row.end_date)
+			? await getReviewStatusForBooking(row.id, userId, row.end_date)
 			: null;
 
 		return {
@@ -116,27 +113,17 @@ const getBooking = createServerFn({ method: "GET" })
 const confirmBooking = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("confirm-booking", 10, 60))
 	.inputValidator((data: unknown) => bookingIdSchema.parse(data))
-	.handler(async ({ data }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new AppError("auth.unauthorized");
-		}
-
-		return confirmBookingAction({ bookingId: data.id, userId: session.user.id });
-	});
+	.handler(async ({ data }) =>
+		confirmBookingAction({ bookingId: data.id, userId: await requireUserId() }),
+	);
 
 const rejectBooking = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("reject-booking", 10, 60))
 	.inputValidator((data: unknown) => bookingRejectSchema.parse(data))
 	.handler(async ({ data }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new AppError("auth.unauthorized");
-		}
-
 		await rejectBookingAction({
 			bookingId: data.id,
-			userId: session.user.id,
+			userId: await requireUserId(),
 			reason: data.reason,
 		});
 	});
@@ -145,40 +132,24 @@ const cancelBooking = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("cancel-booking", 10, 60))
 	.inputValidator((data: unknown) => bookingIdSchema.parse(data))
 	.handler(async ({ data }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new AppError("auth.unauthorized");
-		}
-
-		await cancelBookingAction({ bookingId: data.id, userId: session.user.id });
+		await cancelBookingAction({ bookingId: data.id, userId: await requireUserId() });
 	});
 
 const submitReview = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("submit-review", 10, 60))
 	.inputValidator((data: unknown) => submitReviewSchema.parse(data))
 	.handler(async ({ data }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new AppError("auth.unauthorized");
-		}
-
 		await submitReviewAction({
 			bookingId: data.booking_id,
-			userId: session.user.id,
+			userId: await requireUserId(),
 			rating: data.rating,
 			comment: data.comment,
 		});
 	});
 
 export const Route = createFileRoute("/omat/varaukset_/$bookingId")({
-	loader: async ({ params }) => {
-		const session = await getSession();
-		if (!session) {
-			throw redirect({
-				to: "/kirjaudu",
-				search: { redirect: `/omat/varaukset/${params.bookingId}` },
-			});
-		}
+	loader: async ({ params, location }) => {
+		await requireSessionOrRedirect(location.pathname);
 		const result = await getBooking({ data: params.bookingId });
 		if (!result) {
 			throw notFound();

@@ -1,5 +1,5 @@
 // src/routes/ilmoitukset/uusi.tsx
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ListingForm } from "~/components/listings/listing-form";
 import { categoryDetailPath } from "~/lib/category-routes";
@@ -10,7 +10,7 @@ import { createListing } from "~/lib/listings-commands";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { protectedMutation } from "~/lib/middleware";
-import { getSession } from "~/lib/session";
+import { requireSessionOrRedirect, requireUserId } from "~/lib/session";
 import { computeListingSlug } from "~/lib/slug";
 import type { ListingFormData } from "~/lib/validators";
 import { isValidImageUrl, listingFormSchema } from "~/lib/validators";
@@ -19,11 +19,7 @@ const createListingFn = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("create-listing", 5, 60))
 	.inputValidator((data: ListingFormData) => listingFormSchema().parse(data))
 	.handler(async ({ data }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new AppError("auth.unauthorized");
-		}
-
+		const userId = await requireUserId();
 		if (
 			data.images.some(
 				(img) =>
@@ -33,7 +29,7 @@ const createListingFn = createServerFn({ method: "POST" })
 			throw new AppError("listing.invalid_image", { field: "images" });
 		}
 
-		const result = await createListing(session.user.id, data);
+		const result = await createListing(userId, data);
 
 		log.event(EVENTS.listing.created, { listingId: result.id });
 
@@ -41,13 +37,7 @@ const createListingFn = createServerFn({ method: "POST" })
 	});
 
 export const Route = createFileRoute("/ilmoitukset/uusi")({
-	loader: async () => {
-		const session = await getSession();
-		if (!session) {
-			throw redirect({ to: "/kirjaudu", search: { redirect: undefined } });
-		}
-		return { session };
-	},
+	loader: async ({ location }) => ({ session: await requireSessionOrRedirect(location.pathname) }),
 	head: () => ({
 		meta: [{ title: `Uusi ilmoitus — ${SITE_NAME}` }],
 	}),

@@ -1,15 +1,12 @@
-import { createFileRoute, Link, Outlet, redirect, useLocation } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { SITE_NAME } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { listConversations } from "~/lib/messages";
-import { getSession } from "~/lib/session";
+import { requireSessionOrRedirect } from "~/lib/session";
 
 export const Route = createFileRoute("/viestit")({
-	loader: async () => {
-		const session = await getSession();
-		if (!session) {
-			throw redirect({ to: "/kirjaudu", search: { redirect: undefined } });
-		}
+	loader: async ({ location }) => {
+		await requireSessionOrRedirect(location.pathname);
 		return await listConversations();
 	},
 	head: () => ({

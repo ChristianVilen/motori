@@ -2,7 +2,7 @@
 // Trailing underscore on $listingId_ opts out of $listingId_.$slug.tsx as parent layout.
 
 import { Button } from "@motori/ui/button";
-import { createFileRoute, Link, notFound, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
@@ -18,7 +18,7 @@ import { getListingAvailability, getListingForEdit } from "~/lib/listings-detail
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { protectedMutation } from "~/lib/middleware";
-import { getSession } from "~/lib/session";
+import { requireSessionOrRedirect, requireUserId } from "~/lib/session";
 import { computeListingSlug } from "~/lib/slug";
 import type { ListingFormData } from "~/lib/validators";
 import { availabilityUpdateSchema, isValidImageUrl, listingFormSchema } from "~/lib/validators";
@@ -26,12 +26,7 @@ import { availabilityUpdateSchema, isValidImageUrl, listingFormSchema } from "~/
 const getListingForEditFn = createServerFn({ method: "GET" })
 	.inputValidator((shortId: string) => shortId)
 	.handler(async ({ data: shortId }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new Error("Kirjaudu sisään");
-		}
-
-		const result = await getListingForEdit(shortId, session.user.id);
+		const result = await getListingForEdit(shortId, await requireUserId());
 		if (!result) {
 			throw new AppError("listing.forbidden");
 		}
@@ -47,11 +42,7 @@ const updateListingFn = createServerFn({ method: "POST" })
 		form: listingFormSchema().parse(data.form),
 	}))
 	.handler(async ({ data }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new Error("Kirjaudu sisään");
-		}
-
+		const userId = await requireUserId();
 		if (
 			data.form.images.some(
 				(img) =>
@@ -61,7 +52,7 @@ const updateListingFn = createServerFn({ method: "POST" })
 			throw new AppError("listing.invalid_image", { field: "images" });
 		}
 
-		await updateListing(data.id, session.user.id, data.form);
+		await updateListing(data.id, userId, data.form);
 
 		log.event(EVENTS.listing.updated, {
 			listingId: data.id,
@@ -73,11 +64,7 @@ const updateAvailability = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("update-availability", 20, 60))
 	.inputValidator((data: unknown) => availabilityUpdateSchema.parse(data))
 	.handler(async ({ data }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new Error("Kirjaudu sisään");
-		}
-
+		const userId = await requireUserId();
 		const { db } = await import("~/lib/db/index");
 		const listing = await db
 			.selectFrom("listing")
@@ -85,7 +72,7 @@ const updateAvailability = createServerFn({ method: "POST" })
 			.where("id", "=", data.listing_id)
 			.executeTakeFirst();
 
-		if (!listing || listing.owner_id !== session.user.id) {
+		if (!listing || listing.owner_id !== userId) {
 			throw new AppError("listing.forbidden");
 		}
 
@@ -121,11 +108,8 @@ const updateAvailability = createServerFn({ method: "POST" })
 	});
 
 export const Route = createFileRoute("/ilmoitukset/$listingId_/muokkaa")({
-	loader: async ({ params }) => {
-		const session = await getSession();
-		if (!session) {
-			throw redirect({ to: "/kirjaudu", search: { redirect: undefined } });
-		}
+	loader: async ({ params, location }) => {
+		await requireSessionOrRedirect(location.pathname);
 		const result = await getListingForEditFn({ data: params.listingId });
 		if (!result) {
 			throw notFound();

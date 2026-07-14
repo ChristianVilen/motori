@@ -2,7 +2,7 @@
 
 import { Button } from "@motori/ui/button";
 import { Input } from "@motori/ui/input";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { CitySelect } from "~/components/listings/city-select";
@@ -10,7 +10,7 @@ import { AppError } from "~/lib/errors";
 import { useTranslation } from "~/lib/i18n";
 import { csrfOnly } from "~/lib/middleware";
 import { completeProfile } from "~/lib/profile.server";
-import { getSession, requireUserId } from "~/lib/session";
+import { requireSessionOrRedirect, requireUserId } from "~/lib/session";
 import { validateFinnishPhone } from "~/lib/validators";
 
 const saveProfile = createServerFn({ method: "POST" })
@@ -28,13 +28,7 @@ const saveProfile = createServerFn({ method: "POST" })
 	});
 
 export const Route = createFileRoute("/taydenna-profiili")({
-	loader: async () => {
-		const session = await getSession();
-		if (!session) {
-			throw redirect({ to: "/kirjaudu", search: { redirect: undefined } });
-		}
-		return { session };
-	},
+	loader: async ({ location }) => ({ session: await requireSessionOrRedirect(location.pathname) }),
 	component: CompleteProfilePage,
 });
 
