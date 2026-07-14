@@ -5,8 +5,8 @@ import { listConversations } from "~/lib/messages";
 import { requireSessionOrRedirect } from "~/lib/session";
 
 export const Route = createFileRoute("/viestit")({
-	loader: async () => {
-		await requireSessionOrRedirect();
+	loader: async ({ location }) => {
+		await requireSessionOrRedirect(location.pathname);
 		return await listConversations();
 	},
 	head: () => ({

@@ -108,8 +108,8 @@ const updateAvailability = createServerFn({ method: "POST" })
 	});
 
 export const Route = createFileRoute("/ilmoitukset/$listingId_/muokkaa")({
-	loader: async ({ params }) => {
-		await requireSessionOrRedirect();
+	loader: async ({ params, location }) => {
+		await requireSessionOrRedirect(location.pathname);
 		const result = await getListingForEditFn({ data: params.listingId });
 		if (!result) {
 			throw notFound();

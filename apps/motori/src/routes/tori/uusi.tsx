@@ -7,7 +7,7 @@ import { createToriItem } from "~/lib/tori/tori-commands";
 import type { ToriItemFormData } from "~/lib/tori/validators";
 
 export const Route = createFileRoute("/tori/uusi")({
-	loader: async () => ({ session: await requireSessionOrRedirect() }),
+	loader: async ({ location }) => ({ session: await requireSessionOrRedirect(location.pathname) }),
 	head: () => ({
 		meta: [{ title: `Uusi ilmoitus — Tori — ${SITE_NAME}` }],
 	}),

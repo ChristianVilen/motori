@@ -51,8 +51,8 @@ const setToriStatusFn = createServerFn({ method: "POST" })
 	});
 
 export const Route = createFileRoute("/omat/")({
-	loader: async () => {
-		await requireSessionOrRedirect();
+	loader: async ({ location }) => {
+		await requireSessionOrRedirect(location.pathname);
 		return getMyListings();
 	},
 	head: () => ({

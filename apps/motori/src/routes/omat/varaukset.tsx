@@ -47,8 +47,8 @@ const getMyBookings = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const Route = createFileRoute("/omat/varaukset")({
-	loader: async () => {
-		await requireSessionOrRedirect("/omat/varaukset");
+	loader: async ({ location }) => {
+		await requireSessionOrRedirect(location.pathname);
 		return getMyBookings();
 	},
 	head: () => ({ meta: [{ title: `Varaukset — ${SITE_NAME}` }] }),

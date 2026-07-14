@@ -37,7 +37,7 @@ const createListingFn = createServerFn({ method: "POST" })
 	});
 
 export const Route = createFileRoute("/ilmoitukset/uusi")({
-	loader: async () => ({ session: await requireSessionOrRedirect() }),
+	loader: async ({ location }) => ({ session: await requireSessionOrRedirect(location.pathname) }),
 	head: () => ({
 		meta: [{ title: `Uusi ilmoitus — ${SITE_NAME}` }],
 	}),

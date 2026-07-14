@@ -148,8 +148,8 @@ const submitReview = createServerFn({ method: "POST" })
 	});
 
 export const Route = createFileRoute("/omat/varaukset_/$bookingId")({
-	loader: async ({ params }) => {
-		await requireSessionOrRedirect(`/omat/varaukset/${params.bookingId}`);
+	loader: async ({ params, location }) => {
+		await requireSessionOrRedirect(location.pathname);
 		const result = await getBooking({ data: params.bookingId });
 		if (!result) {
 			throw notFound();

@@ -47,8 +47,8 @@ const saveSettings = createServerFn({ method: "POST" })
 	});
 
 export const Route = createFileRoute("/profiili/asetukset")({
-	loader: async () => {
-		await requireSessionOrRedirect();
+	loader: async ({ location }) => {
+		await requireSessionOrRedirect(location.pathname);
 		return loadSettings();
 	},
 	head: () => ({

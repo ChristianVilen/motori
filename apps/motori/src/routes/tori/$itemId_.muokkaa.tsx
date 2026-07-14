@@ -45,8 +45,8 @@ const getToriItemForEdit = createServerFn({ method: "GET" })
 	});
 
 export const Route = createFileRoute("/tori/$itemId_/muokkaa")({
-	loader: async ({ params }) => {
-		await requireSessionOrRedirect();
+	loader: async ({ params, location }) => {
+		await requireSessionOrRedirect(location.pathname);
 		const result = await getToriItemForEdit({ data: params.itemId });
 		if (!result) {
 			throw notFound();

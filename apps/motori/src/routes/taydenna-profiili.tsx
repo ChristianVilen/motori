@@ -28,7 +28,7 @@ const saveProfile = createServerFn({ method: "POST" })
 	});
 
 export const Route = createFileRoute("/taydenna-profiili")({
-	loader: async () => ({ session: await requireSessionOrRedirect() }),
+	loader: async ({ location }) => ({ session: await requireSessionOrRedirect(location.pathname) }),
 	component: CompleteProfilePage,
 });
 
