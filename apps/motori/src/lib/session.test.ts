@@ -51,8 +51,7 @@ describe("requireSessionOrRedirect", () => {
 			expect.unreachable("should have thrown a redirect");
 		} catch (err) {
 			expect(isRedirect(err)).toBe(true);
-			// biome-ignore lint/suspicious/noExplicitAny: redirect internals differ per router version
-			const target = (err as any).options ?? err;
+			const target = (err as { options: { to: string; search: unknown } }).options;
 			expect(target.to).toBe("/kirjaudu");
 			expect(target.search).toEqual({ redirect: "/omat/varaukset" });
 		}

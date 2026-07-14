@@ -84,4 +84,15 @@ describe("runCronTasks", () => {
 			err: expect.any(Error),
 		});
 	});
+
+	it("reports a non-Error throw as a string", async () => {
+		const tasks = {
+			boom: async () => {
+				throw "kaboom-string";
+			},
+		};
+		const res = await runCronTasks(request("s3cret"), tasks, log);
+		expect(res.status).toBe(200);
+		expect(await res.json()).toEqual({ boom: { error: "kaboom-string" } });
+	});
 });
