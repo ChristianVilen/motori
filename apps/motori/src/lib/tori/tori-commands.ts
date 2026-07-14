@@ -5,7 +5,7 @@ import { AppError } from "~/lib/errors";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
 import { protectedMutation } from "~/lib/middleware";
-import { getSession } from "~/lib/session";
+import { requireUserId } from "~/lib/session";
 import { generateShortId } from "~/lib/slug";
 import { TORI_EXPIRY_DAYS } from "~/lib/tori/constants";
 import { toriItemFormSchema } from "~/lib/tori/validators";
@@ -23,13 +23,6 @@ function validateImages(images: Array<{ url: string }>) {
 	}
 }
 
-function getOwnerId(session: Awaited<ReturnType<typeof getSession>>): string {
-	if (!session) {
-		throw new AppError("auth.unauthorized");
-	}
-	return session.user.id;
-}
-
 /** Map tori form category to listing category */
 function toListingCategory(cat: string): ListingCategory {
 	if (cat === "gear" || cat === "apparel") {
@@ -42,7 +35,7 @@ export const createToriItem = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("tori-create", 10, 3600))
 	.inputValidator(toriItemFormSchema)
 	.handler(async ({ data }) => {
-		const ownerId = getOwnerId(await getSession());
+		const ownerId = await requireUserId();
 		const db = await getDb();
 
 		validateImages(data.images);
@@ -120,7 +113,7 @@ export const updateToriItem = createServerFn({ method: "POST" })
 		return { id: input.id, data };
 	})
 	.handler(async ({ data: { id, data } }) => {
-		const ownerId = getOwnerId(await getSession());
+		const ownerId = await requireUserId();
 		const db = await getDb();
 
 		validateImages(data.images);
@@ -204,7 +197,7 @@ export const setToriItemStatus = createServerFn({ method: "POST" })
 		return { id: input.id, status: input.status as ToriListingStatus };
 	})
 	.handler(async ({ data: { id, status } }) => {
-		const ownerId = getOwnerId(await getSession());
+		const ownerId = await requireUserId();
 		const db = await getDb();
 
 		const item = await db

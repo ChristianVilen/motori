@@ -20,7 +20,7 @@ import { getListingAvailability, getListingForDisplay, recordView } from "~/lib/
 import { startConversation } from "~/lib/messages";
 import { protectedMutation } from "~/lib/middleware";
 import { getReviewSummaryForUser } from "~/lib/reviews.server";
-import { getSession } from "~/lib/session";
+import { getSession, requireSession } from "~/lib/session";
 import { computeListingSlug } from "~/lib/slug";
 import { bookingRequestSchema } from "~/lib/validators";
 
@@ -46,10 +46,7 @@ export const submitBookingRequest = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("submit-booking", 5, 300))
 	.inputValidator((data: unknown) => bookingRequestSchema.parse(data))
 	.handler(async ({ data }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new Error("Kirjaudu sisään");
-		}
+		const session = await requireSession();
 
 		return createBookingRequest({
 			listingId: data.listing_id,

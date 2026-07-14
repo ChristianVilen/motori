@@ -1,19 +1,13 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ToriItemForm } from "~/components/tori/tori-item-form";
 import { SITE_NAME } from "~/lib/constants";
-import { getSession } from "~/lib/session";
+import { requireSessionOrRedirect } from "~/lib/session";
 import { slugify } from "~/lib/slug";
 import { createToriItem } from "~/lib/tori/tori-commands";
 import type { ToriItemFormData } from "~/lib/tori/validators";
 
 export const Route = createFileRoute("/tori/uusi")({
-	loader: async () => {
-		const session = await getSession();
-		if (!session) {
-			throw redirect({ to: "/kirjaudu", search: { redirect: undefined } });
-		}
-		return { session };
-	},
+	loader: async () => ({ session: await requireSessionOrRedirect() }),
 	head: () => ({
 		meta: [{ title: `Uusi ilmoitus — Tori — ${SITE_NAME}` }],
 	}),

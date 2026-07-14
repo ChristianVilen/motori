@@ -4,7 +4,7 @@
 import { passwordStrength } from "@motori/server/password-strength";
 import { Button } from "@motori/ui/button";
 import { Input } from "@motori/ui/input";
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { CitySelect } from "~/components/listings/city-select";
@@ -16,14 +16,11 @@ import { AppError } from "~/lib/errors";
 import { useTranslation } from "~/lib/i18n";
 import { csrfOnly } from "~/lib/middleware";
 import { getProfileForEdit, updateSettings } from "~/lib/profile.server";
-import { getSession, requireUserId } from "~/lib/session";
+import { requireSession, requireSessionOrRedirect, requireUserId } from "~/lib/session";
 import { validateFinnishPhone } from "~/lib/validators";
 
 const loadSettings = createServerFn({ method: "GET" }).handler(async () => {
-	const session = await getSession();
-	if (!session) {
-		throw new AppError("auth.unauthorized");
-	}
+	const session = await requireSession();
 	const profile = await getProfileForEdit(session.user.id);
 	return { profile, session };
 });
@@ -51,10 +48,7 @@ const saveSettings = createServerFn({ method: "POST" })
 
 export const Route = createFileRoute("/profiili/asetukset")({
 	loader: async () => {
-		const session = await getSession();
-		if (!session) {
-			throw redirect({ to: "/kirjaudu", search: { redirect: undefined } });
-		}
+		await requireSessionOrRedirect();
 		return loadSettings();
 	},
 	head: () => ({

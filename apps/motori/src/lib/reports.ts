@@ -7,7 +7,7 @@ import { requireAdmin } from "~/lib/admin";
 import { db } from "~/lib/db/index";
 import { AppError } from "~/lib/errors";
 import { requireVerifiedEmail } from "~/lib/require-verified-email";
-import { getSession } from "~/lib/session";
+import { requireSession } from "~/lib/session";
 
 const REASON_MAX = 1000;
 const PAGE_SIZE = 25;
@@ -31,11 +31,7 @@ export const submitReport = createServerFn({ method: "POST" })
 		return input;
 	})
 	.handler(async ({ data }) => {
-		// Session guaranteed by requireVerifiedEmail middleware
-		const session = await getSession();
-		if (!session) {
-			throw new Error("UNAUTHORIZED");
-		}
+		const session = await requireSession();
 
 		// Can't report yourself
 		if (data.targetType === "user" && data.targetId === session.user.id) {

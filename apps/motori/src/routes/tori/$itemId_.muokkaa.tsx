@@ -1,11 +1,10 @@
-import { createFileRoute, Link, notFound, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { sql } from "kysely";
 import { ArrowLeft } from "lucide-react";
 import { ToriItemForm } from "~/components/tori/tori-item-form";
 import { centsToEuros } from "~/lib/currency";
-import { AppError } from "~/lib/errors";
-import { getSession } from "~/lib/session";
+import { requireSessionOrRedirect, requireUserId } from "~/lib/session";
 import { slugify } from "~/lib/slug";
 import { updateToriItem } from "~/lib/tori/tori-commands";
 import type { ToriItemFormData } from "~/lib/tori/validators";
@@ -15,11 +14,7 @@ const getDb = async () => (await import("~/lib/db/index")).db;
 const getToriItemForEdit = createServerFn({ method: "GET" })
 	.inputValidator((shortId: string) => shortId)
 	.handler(async ({ data: shortId }) => {
-		const session = await getSession();
-		if (!session) {
-			throw new AppError("auth.unauthorized");
-		}
-
+		const userId = await requireUserId();
 		const db = await getDb();
 		const item = await db
 			.selectFrom("listing")
@@ -35,7 +30,7 @@ const getToriItemForEdit = createServerFn({ method: "GET" })
 			.where("listing.category", "in", ["gear", "part"])
 			.executeTakeFirst();
 
-		if (!item || item.owner_id !== session.user.id) {
+		if (!item || item.owner_id !== userId) {
 			return null;
 		}
 
@@ -51,10 +46,7 @@ const getToriItemForEdit = createServerFn({ method: "GET" })
 
 export const Route = createFileRoute("/tori/$itemId_/muokkaa")({
 	loader: async ({ params }) => {
-		const session = await getSession();
-		if (!session) {
-			throw redirect({ to: "/kirjaudu", search: { redirect: undefined } });
-		}
+		await requireSessionOrRedirect();
 		const result = await getToriItemForEdit({ data: params.itemId });
 		if (!result) {
 			throw notFound();

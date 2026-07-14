@@ -2,7 +2,7 @@
 // User dashboard — my listings + tori items, with quick actions
 
 import { Button } from "@motori/ui/button";
-import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { LogOut, MapPin, Pencil, Plus, Settings } from "lucide-react";
 import { useState } from "react";
@@ -14,7 +14,7 @@ import { setListingStatus } from "~/lib/listings-commands";
 import { getOwnerListings } from "~/lib/listings-owner";
 import { protectedMutation } from "~/lib/middleware";
 import { getProfileForEdit } from "~/lib/profile.server";
-import { getSession, requireUserId } from "~/lib/session";
+import { requireSessionOrRedirect, requireUserId } from "~/lib/session";
 import { computeListingSlug, slugify } from "~/lib/slug";
 import { TORI_STATUSES } from "~/lib/tori/constants";
 import { setToriItemStatus } from "~/lib/tori/tori-commands";
@@ -52,10 +52,7 @@ const setToriStatusFn = createServerFn({ method: "POST" })
 
 export const Route = createFileRoute("/omat/")({
 	loader: async () => {
-		const session = await getSession();
-		if (!session) {
-			throw redirect({ to: "/kirjaudu", search: { redirect: undefined } });
-		}
+		await requireSessionOrRedirect();
 		return getMyListings();
 	},
 	head: () => ({

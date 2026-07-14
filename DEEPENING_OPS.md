@@ -9,15 +9,11 @@ Vocabulary: a **module** is anything with an interface and an implementation; **
 - [x] **1. Profile module (motori)** — high impact — DONE 2026-07-13
   - Landed as `src/lib/profile.server.ts`: intent-based reads (`getProfileForEdit`, `getPublicProfile`) + two write intents (`completeProfile`, `updateSettings`). Design decisions: two intent methods over upsert+acceptTerms; `completeProfile` stamps a null `terms_accepted_at` retroactively (fixes the settings-first gap); public read composes `getOwnerActiveListings` (new, in `listings-owner.ts`) + `reviews.server`; routes now use `AppError` codes. `Profile` term added to `CONTEXT.md`.
 
-- [ ] **2. Session guards for reads (motori)** — high leverage, low risk — STARTED
-  - Files: 17 files / ~47 `getSession()` + hand-rolled failure sites
-  - Problem: `requireVerifiedEmail()` only covers POST middleware chains. Every GET server fn and loader re-implements the auth check by hand, each spelling the failure differently.
-  - Solution: promote `requireUserId()` into `lib/session.ts` (✔ done as part of #1; messages.ts and the profile routes now use it), add `requireSession()` / `requireSessionOrRedirect()`, sweep the remaining call sites to consistent `AppError` codes.
+- [x] **2. Session guards for reads (motori)** — DONE 2026-07-13
+  - `lib/session.ts` now owns `requireSession()` / `requireUserId()` / `requireSessionOrRedirect(redirectTo?)` (unit-tested). All hand-rolled guards swept: server fns throw `AppError("auth.unauthorized")`, loaders redirect to `/kirjaudu` preserving the return path where it existed. `tori-commands.ts`'s private `getOwnerId` folded into `requireUserId`. Intentionally untouched: `getUnreadTotal`'s anonymous `{unread: 0}` default, `admin.ts`'s `requireAdmin`, and genuinely optional-session reads (search pages, listing detail, `__root`).
 
-- [ ] **3. Shared cron runner (`@motori/server/cron`)** — small, closes a CLAUDE.md-rule violation
-  - Files: `apps/motori/src/routes/api/cron.ts`, `apps/talli/src/routes/api/cron.ts` (~40 lines near-verbatim, incl. the constant-time `CRON_SECRET` check)
-  - Problem: duplicated security code across apps; timing-safe comparison can silently drift. Two adapters already exist — a real seam.
-  - Solution: `runCronTasks(request, tasks)` in `@motori/server`; each app keeps only its `TASKS` map.
+- [x] **3. Shared cron runner (`@motori/server/cron`)** — DONE 2026-07-13
+  - `runCronTasks(request, tasks, log)` landed in `packages/server/src/cron.ts` (unit-tested: auth, dispatch, task-failure isolation). Both apps' `/api/cron` routes are now one-liners over their `TASKS` maps.
 
 - [ ] **4. GDPR flows as orchestrators + ImageManager (motori)** — medium-high
   - Files: `lib/data-export.ts`, `lib/delete-account.ts`
