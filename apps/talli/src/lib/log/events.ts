@@ -25,6 +25,10 @@ export const EVENTS = {
 		uploaded: "image.uploaded",
 		upload_failed: "image.upload_failed",
 	},
+	document: {
+		uploaded: "document.uploaded",
+		deleted: "document.deleted",
+	},
 	// Mirrored as inlined literals in packages/server/src/email.ts — keep in sync.
 	email: {
 		sent: "email.sent",
@@ -39,4 +43,5 @@ export type EventName =
 	| (typeof EVENTS.odometer)[keyof typeof EVENTS.odometer]
 	| (typeof EVENTS.digest)[keyof typeof EVENTS.digest]
 	| (typeof EVENTS.image)[keyof typeof EVENTS.image]
+	| (typeof EVENTS.document)[keyof typeof EVENTS.document]
 	| (typeof EVENTS.email)[keyof typeof EVENTS.email];
