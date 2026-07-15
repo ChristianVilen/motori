@@ -163,7 +163,19 @@ export const deleteVehicle = createServerFn({ method: "POST" })
 		const userId = requireUserId(await getSession());
 		const db = await getDb();
 		await getOwnedVehicle(db, id, userId);
+		const docs = await db
+			.selectFrom("talli.document")
+			.select("storage_key")
+			.where("vehicle_id", "=", id)
+			.execute();
 		await db.deleteFrom("talli.vehicle").where("id", "=", id).execute();
+		// Cascade removed the rows; now best-effort delete the private objects.
+		const { getDocumentStorage } = await import("@motori/server/document-storage");
+		for (const doc of docs) {
+			await getDocumentStorage()
+				.delete(doc.storage_key)
+				.catch(() => {});
+		}
 		log.event(EVENTS.vehicle.deleted, { vehicleId: id });
 	});
 
@@ -307,6 +319,13 @@ export const getVehicleDetail = createServerFn()
 					.execute()
 			: [];
 
+		const documents = await db
+			.selectFrom("talli.document")
+			.select(["id", "name", "doc_type", "mime_type", "size_bytes", "created_at"])
+			.where("vehicle_id", "=", vehicle.id)
+			.orderBy("created_at", "desc")
+			.execute();
+
 		return {
 			vehicle,
 			reminders: reminders.map((r) => ({ ...r, state: computeDueState(r, vehicle.odometer_km) })),
@@ -314,5 +333,6 @@ export const getVehicleDetail = createServerFn()
 				...r,
 				photos: photos.filter((p) => p.service_record_id === r.id),
 			})),
+			documents,
 		};
 	});
