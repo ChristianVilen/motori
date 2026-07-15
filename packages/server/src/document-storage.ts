@@ -84,10 +84,12 @@ export class HetznerDocumentStorage implements DocumentStorage {
 }
 
 // ── Local filesystem (dev) ─────────────────────────────────────────────────
-// NOT served by the public /api/uploads route — dev reads go through the same
-// authenticated proxy route as prod, via get().
+// Deliberately OUTSIDE ./uploads: the public, unauthenticated /api/uploads
+// route serves everything under that dir, so private documents must not live
+// inside it. Dev reads go through the same authenticated proxy route as prod,
+// via get().
 
-const DOCS_DIR = path.resolve(process.cwd(), "uploads", "docs");
+const DOCS_DIR = path.resolve(process.cwd(), "uploads-docs");
 
 export class LocalDocumentStorage implements DocumentStorage {
 	private resolveSafe(key: string): string | null {
