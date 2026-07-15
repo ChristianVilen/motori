@@ -10,6 +10,9 @@ export default defineConfig({
 		port: Number(process.env.PORT) || 3001,
 	},
 	build: {
+		// OpenCV.js is a single ~15 MB lazy chunk (scanner route only) — silence
+		// the default 500 kB warning rather than pretend we can split WASM.
+		chunkSizeWarningLimit: 16_000,
 		rollupOptions: {
 			external: ["pg", "pg-pool", "pg-connection-string", "pgpass", "split2"],
 		},
