@@ -28,6 +28,6 @@
 		"test:e2e:talli": "pnpm --filter talli test:e2e"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.5.3"
+		"@biomejs/biome": "2.5.4"
 	}
 }
