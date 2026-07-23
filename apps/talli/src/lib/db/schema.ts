@@ -104,6 +104,22 @@ export type UserSettings = Selectable<UserSettingsTable>;
 export type NewUserSettings = Insertable<UserSettingsTable>;
 export type UserSettingsUpdate = Updateable<UserSettingsTable>;
 
+export type DocType = "rekisteriote" | "vakuutus" | "kuitti" | "takuu" | "muu";
+
+export interface DocumentTable {
+	id: Generated<string>;
+	vehicle_id: string;
+	name: string;
+	doc_type: DocType;
+	storage_key: string; // S3 object key — never a URL; served via /api/documents/$id
+	mime_type: string;
+	size_bytes: number;
+	created_at: ColumnType<Date, Date | undefined, never>;
+}
+
+export type DocumentRow = Selectable<DocumentTable>;
+export type NewDocument = Insertable<DocumentTable>;
+
 // ─── Database interface ───────────────────────────────────────────────────────
 
 export interface Database {
@@ -117,4 +133,5 @@ export interface Database {
 	"talli.service_record_photo": ServiceRecordPhotoTable;
 	"talli.odometer_entry": OdometerEntryTable;
 	"talli.user_settings": UserSettingsTable;
+	"talli.document": DocumentTable;
 }

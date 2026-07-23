@@ -31,3 +31,6 @@ secrets/**
 !secrets/**/
 !secrets/**/*.age
 .DS_store
+
+# Private document uploads (local dev) — served only via the authenticated proxy
+uploads-docs/

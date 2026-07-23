@@ -5,6 +5,7 @@
 	"exports": {
 		"./cn": "./src/cn.ts",
 		"./button": "./src/button.tsx",
+		"./confirm-dialog": "./src/confirm-dialog.tsx",
 		"./input": "./src/input.tsx",
 		"./select": "./src/select.tsx",
 		"./textarea": "./src/textarea.tsx",

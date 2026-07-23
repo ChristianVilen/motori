@@ -1,4 +1,5 @@
 import { Button } from "@motori/ui/button";
+import { ConfirmDialog } from "@motori/ui/confirm-dialog";
 import { Input } from "@motori/ui/input";
 import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
@@ -36,6 +37,7 @@ function RemindersPage() {
 	const [intervalMonths, setIntervalMonths] = useState("");
 	const [dueDate, setDueDate] = useState("");
 	const [deletingId, setDeletingId] = useState<string | null>(null);
+	const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 	const [editing, setEditing] = useState<{ id: string; title: string; dates: string[] } | null>(
 		null,
 	);
@@ -91,10 +93,12 @@ function RemindersPage() {
 		});
 	}
 
-	async function handleDelete(id: string) {
-		if (!window.confirm("Poistetaanko muistutus?")) {
+	async function handleDelete() {
+		if (!confirmDeleteId) {
 			return;
 		}
+		const id = confirmDeleteId;
+		setConfirmDeleteId(null);
 		setDeletingId(id);
 		try {
 			await deleteReminder({ data: { id } });
@@ -154,7 +158,7 @@ function RemindersPage() {
 									variant="ghost"
 									data-testid="delete-reminder"
 									disabled={deletingId === r.id}
-									onClick={() => handleDelete(r.id)}
+									onClick={() => setConfirmDeleteId(r.id)}
 								>
 									Poista
 								</Button>
@@ -268,6 +272,16 @@ function RemindersPage() {
 					Lisää muistutus
 				</Button>
 			</form>
+
+			<ConfirmDialog
+				open={confirmDeleteId !== null}
+				title="Poistetaanko muistutus?"
+				confirmLabel="Poista"
+				cancelLabel="Peruuta"
+				destructive
+				onConfirm={handleDelete}
+				onCancel={() => setConfirmDeleteId(null)}
+			/>
 		</div>
 	);
 }

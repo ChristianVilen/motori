@@ -9,6 +9,7 @@ Production runs on a single Hetzner VPS as a Dokku app using the Heroku Node bui
 - **Object storage:** Hetzner Object Storage (`hel1`)
   - `motori-images` — listing photos, public-read
   - `motori-backups` — encrypted nightly DB dumps, private
+  - `motori-docs` — talli's per-vehicle documents (rekisteriote, insurance), private, no public read (§12)
 - **Deploy:** automatic via GitHub Actions on push to `main` (after CI passes). Manual fallback: `just deploy` (= `git push dokku main`)
 - **Migrations:** auto-run via Procfile `release` phase (`pnpm db:migrate`)
 - **Secrets:** age-encrypted in `secrets/*.age`, decrypt key at `~/.config/sops/age/keys.txt`
@@ -325,6 +326,7 @@ dokku config:set --no-restart talli \
     STORAGE_BUCKET=motori-images \
     STORAGE_ACCESS_KEY='<key>' STORAGE_SECRET_KEY='<secret>' \
     STORAGE_PUBLIC_URL='https://motori-images.hel1.your-objectstorage.com' \
+    STORAGE_DOCS_BUCKET=motori-docs \
     RESEND_API_KEY='<key>' \
     CRON_SECRET='<new value, distinct from motori>' \
     LOG_LEVEL=info
@@ -335,6 +337,7 @@ dokku config:set --no-restart talli \
 - `BETTER_AUTH_SECRET` **must** equal motori's — the session cookie is shared across `.motori.fi`.
 - `BETTER_AUTH_URL=https://motori.fi` (motori is the auth host); `APP_ORIGIN=https://talli.motori.fi` scopes csrf to talli's own origin.
 - Same `motori-images` bucket as motori; talli writes under the `talli/` key prefix.
+- `STORAGE_DOCS_BUCKET=motori-docs` is a **third, private** bucket — created in the same Hetzner Object Storage project, reachable with the existing project-wide access keys. Never enable public read on it: per-vehicle documents (rekisteriote, insurance docs — PII) are served only through talli's authenticated `/api/documents/$documentId` proxy, never a public URL.
 - Optional OpenObserve sink on its own stream: add `OPENOBSERVE_URL=http://openobserve.web:5080 OPENOBSERVE_ORG=default OPENOBSERVE_STREAM=talli OPENOBSERVE_USER=… OPENOBSERVE_PASSWORD=…` and join talli to the `observability` network (`dokku network:set talli attach-post-create observability`, cf. §11).
 
 No motori-side config change is needed for talli's cross-origin sign-out: `createAuth` already adds `talli.motori.fi` to `trustedOrigins` and motori's CORS allow-list appends it automatically (`apps/motori/src/lib/cors.ts`).

@@ -16,6 +16,7 @@
 		"./email-wrapper": "./src/email-wrapper.ts",
 		"./image-storage": "./src/image-storage.ts",
 		"./image-upload": "./src/image-upload.ts",
+		"./document-storage": "./src/document-storage.ts",
 		"./uploads-route": "./src/uploads-route.ts",
 		"./require-verified-email": "./src/require-verified-email.ts",
 		"./password-strength": "./src/password-strength.ts",
