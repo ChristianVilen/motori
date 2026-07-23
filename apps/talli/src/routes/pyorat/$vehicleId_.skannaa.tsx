@@ -39,6 +39,9 @@ function ScanDocumentPage() {
 	const { vehicle } = Route.useLoaderData();
 	const navigate = useNavigate();
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	// Not crypto.randomUUID(): that needs a secure context, and dev over plain
+	// http://<lan-ip> (phone testing) has none. A counter is plenty for list keys.
+	const pageIdRef = useRef(0);
 	const [ready, setReady] = useState(false);
 	const [pages, setPages] = useState<ScannedPage[]>([]);
 	const [adjust, setAdjust] = useState<AdjustState | null>(null);
@@ -98,7 +101,9 @@ function ScanDocumentPage() {
 		try {
 			const canvas = await extractPage(adjust.img, corners);
 			const thumb = downscale(canvas, 240).toDataURL("image/jpeg", 0.7);
-			setPages((prev) => [...prev, { id: crypto.randomUUID(), canvas, thumb }]);
+			pageIdRef.current += 1;
+			const id = String(pageIdRef.current);
+			setPages((prev) => [...prev, { id, canvas, thumb }]);
 			setAdjust(null);
 		} catch (err) {
 			toast.error(formErrorMessage(err));
