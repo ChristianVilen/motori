@@ -1,4 +1,5 @@
 import { Button } from "@motori/ui/button";
+import { ConfirmDialog } from "@motori/ui/confirm-dialog";
 import { Input } from "@motori/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@motori/ui/select";
 import { Link, useRouter } from "@tanstack/react-router";
@@ -37,6 +38,7 @@ export function DocumentsSection({
 	const [file, setFile] = useState<File | null>(null);
 	const [name, setName] = useState("");
 	const [docType, setDocType] = useState<DocType>("muu");
+	const [deleteId, setDeleteId] = useState<string | null>(null);
 	const { saving, submit } = useSubmit();
 
 	async function handleUpload(e: React.FormEvent) {
@@ -54,12 +56,13 @@ export function DocumentsSection({
 		});
 	}
 
-	async function handleDelete(id: string) {
-		if (!window.confirm("Poistetaanko dokumentti?")) {
+	async function handleDelete() {
+		if (!deleteId) {
 			return;
 		}
 		await submit(async () => {
-			await deleteDocument({ data: { id } });
+			await deleteDocument({ data: { id: deleteId } });
+			setDeleteId(null);
 			router.invalidate();
 		});
 	}
@@ -185,7 +188,7 @@ export function DocumentsSection({
 									size="sm"
 									variant="outline"
 									data-testid={`delete-document-${d.name}`}
-									onClick={() => handleDelete(d.id)}
+									onClick={() => setDeleteId(d.id)}
 								>
 									Poista
 								</Button>
@@ -194,6 +197,17 @@ export function DocumentsSection({
 					})}
 				</ul>
 			)}
+
+			<ConfirmDialog
+				open={deleteId !== null}
+				title="Poistetaanko dokumentti?"
+				confirmLabel="Poista"
+				cancelLabel="Peruuta"
+				destructive
+				busy={saving}
+				onConfirm={handleDelete}
+				onCancel={() => setDeleteId(null)}
+			/>
 		</section>
 	);
 }
