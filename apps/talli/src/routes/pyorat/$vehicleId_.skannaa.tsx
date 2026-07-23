@@ -35,6 +35,20 @@ interface ScannedPage {
 	thumb: string;
 }
 
+function ScannerStatus({ failed, onRetry }: { failed: boolean; onRetry: () => void }) {
+	if (!failed) {
+		return <p className="mt-4 text-sm text-muted">Ladataan skanneria…</p>;
+	}
+	return (
+		<div className="mt-4 grid justify-items-start gap-2" data-testid="scan-load-error">
+			<p className="text-sm text-destructive">Skannerin lataus epäonnistui.</p>
+			<Button variant="outline" onClick={onRetry}>
+				Yritä uudelleen
+			</Button>
+		</div>
+	);
+}
+
 function ScanDocumentPage() {
 	const { vehicle } = Route.useLoaderData();
 	const navigate = useNavigate();
@@ -43,6 +57,7 @@ function ScanDocumentPage() {
 	// http://<lan-ip> (phone testing) has none. A counter is plenty for list keys.
 	const pageIdRef = useRef(0);
 	const [ready, setReady] = useState(false);
+	const [loadFailed, setLoadFailed] = useState(false);
 	const [pages, setPages] = useState<ScannedPage[]>([]);
 	const [adjust, setAdjust] = useState<AdjustState | null>(null);
 	const [showForm, setShowForm] = useState(false);
@@ -51,10 +66,32 @@ function ScanDocumentPage() {
 	const [busy, setBusy] = useState(false);
 
 	useEffect(() => {
+		let cancelled = false;
 		loadScanner()
-			.then(() => setReady(true))
-			.catch(() => toast.error("Skannerin lataus epäonnistui. Yritä uudelleen."));
+			.then(() => {
+				if (!cancelled) {
+					setReady(true);
+				}
+			})
+			.catch(() => {
+				if (!cancelled) {
+					setLoadFailed(true);
+				}
+			});
+		return () => {
+			cancelled = true;
+		};
 	}, []);
+
+	async function retryLoad() {
+		setLoadFailed(false);
+		try {
+			await loadScanner();
+			setReady(true);
+		} catch {
+			setLoadFailed(true);
+		}
+	}
 
 	// Revoke the photo's object URL if the user leaves the adjust screen without
 	// accepting or cancelling (e.g. browser back).
@@ -189,7 +226,7 @@ function ScanDocumentPage() {
 			</Link>
 			<h1 className="mt-2 font-heading text-2xl font-bold">Skannaa dokumentti</h1>
 
-			{!ready ? <p className="mt-4 text-sm text-muted">Ladataan skanneria…</p> : null}
+			{!ready ? <ScannerStatus failed={loadFailed} onRetry={retryLoad} /> : null}
 
 			<input
 				ref={fileInputRef}
