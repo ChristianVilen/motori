@@ -35,6 +35,89 @@ interface ScannedPage {
 	thumb: string;
 }
 
+function SaveForm({
+	pages,
+	vehicleId,
+	onBack,
+}: {
+	pages: ScannedPage[];
+	vehicleId: string;
+	onBack: () => void;
+}) {
+	const navigate = useNavigate();
+	const [name, setName] = useState("");
+	const [docType, setDocType] = useState<DocType>("muu");
+	const [busy, setBusy] = useState(false);
+	const [saveError, setSaveError] = useState<string | null>(null);
+
+	async function handleSave(e: React.FormEvent) {
+		e.preventDefault();
+		setBusy(true);
+		setSaveError(null);
+		try {
+			const { pagesToPdf } = await import("~/lib/scanner/pdf");
+			const pdf = await pagesToPdf(pages.map((p) => p.canvas));
+			await uploadDocument({
+				file: pdf,
+				filename: "skannaus.pdf",
+				vehicleId,
+				name,
+				docType,
+			});
+			toast.success("Dokumentti tallennettu.");
+			navigate({ to: "/pyorat/$vehicleId", params: { vehicleId } });
+		} catch (err) {
+			// Pages stay in state — retry doesn't mean re-scanning. Inline, not a
+			// toast: on a phone a 4 s toast is easy to miss at the end of a long flow.
+			setSaveError(formErrorMessage(err));
+		} finally {
+			setBusy(false);
+		}
+	}
+
+	return (
+		<form onSubmit={handleSave} className="mt-6 grid gap-4" data-testid="scan-save-form">
+			<label htmlFor="doc-name" className="grid gap-1 text-sm font-medium">
+				Nimi *
+				<Input
+					id="doc-name"
+					data-testid="doc-name"
+					value={name}
+					onChange={(e) => setName(e.target.value)}
+					maxLength={100}
+					required
+				/>
+			</label>
+			<label htmlFor="doc-type" className="grid gap-1 text-sm font-medium">
+				Tyyppi
+				<Select value={docType} onValueChange={(v) => setDocType(v as DocType)}>
+					<SelectTrigger id="doc-type" data-testid="doc-type">
+						<SelectValue />
+					</SelectTrigger>
+					<SelectContent>
+						{DOC_TYPES.map((t) => (
+							<SelectItem key={t.key} value={t.key}>
+								{t.label}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
+			</label>
+			{saveError ? (
+				<p className="text-sm text-destructive" data-testid="scan-save-error">
+					{saveError}
+				</p>
+			) : null}
+			<Button type="submit" data-testid="doc-save" disabled={busy || !name.trim()}>
+				{busy ? "Tallennetaan…" : `Tallenna PDF (${pages.length} sivua)`}
+			</Button>
+			<Button type="button" variant="outline" disabled={busy} onClick={onBack}>
+				Takaisin
+			</Button>
+		</form>
+	);
+}
+
 function ScannerStatus({ failed, onRetry }: { failed: boolean; onRetry: () => void }) {
 	if (!failed) {
 		return <p className="mt-4 text-sm text-muted">Ladataan skanneria…</p>;
@@ -51,7 +134,6 @@ function ScannerStatus({ failed, onRetry }: { failed: boolean; onRetry: () => vo
 
 function ScanDocumentPage() {
 	const { vehicle } = Route.useLoaderData();
-	const navigate = useNavigate();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	// Not crypto.randomUUID(): that needs a secure context, and dev over plain
 	// http://<lan-ip> (phone testing) has none. A counter is plenty for list keys.
@@ -61,8 +143,6 @@ function ScanDocumentPage() {
 	const [pages, setPages] = useState<ScannedPage[]>([]);
 	const [adjust, setAdjust] = useState<AdjustState | null>(null);
 	const [showForm, setShowForm] = useState(false);
-	const [name, setName] = useState("");
-	const [docType, setDocType] = useState<DocType>("muu");
 	const [busy, setBusy] = useState(false);
 
 	useEffect(() => {
@@ -151,29 +231,6 @@ function ScanDocumentPage() {
 
 	function cancelAdjust() {
 		setAdjust(null);
-	}
-
-	async function handleSave(e: React.FormEvent) {
-		e.preventDefault();
-		setBusy(true);
-		try {
-			const { pagesToPdf } = await import("~/lib/scanner/pdf");
-			const pdf = await pagesToPdf(pages.map((p) => p.canvas));
-			await uploadDocument({
-				file: pdf,
-				filename: "skannaus.pdf",
-				vehicleId: vehicle.id,
-				name,
-				docType,
-			});
-			toast.success("Dokumentti tallennettu.");
-			navigate({ to: "/pyorat/$vehicleId", params: { vehicleId: vehicle.id } });
-		} catch (err) {
-			// Pages stay in state — retry doesn't mean re-scanning.
-			toast.error(formErrorMessage(err));
-		} finally {
-			setBusy(false);
-		}
 	}
 
 	if (adjust) {
@@ -276,45 +333,7 @@ function ScanDocumentPage() {
 					) : null}
 				</div>
 			) : (
-				<form onSubmit={handleSave} className="mt-6 grid gap-4" data-testid="scan-save-form">
-					<label htmlFor="doc-name" className="grid gap-1 text-sm font-medium">
-						Nimi *
-						<Input
-							id="doc-name"
-							data-testid="doc-name"
-							value={name}
-							onChange={(e) => setName(e.target.value)}
-							maxLength={100}
-							required
-						/>
-					</label>
-					<label htmlFor="doc-type" className="grid gap-1 text-sm font-medium">
-						Tyyppi
-						<Select value={docType} onValueChange={(v) => setDocType(v as DocType)}>
-							<SelectTrigger id="doc-type" data-testid="doc-type">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								{DOC_TYPES.map((t) => (
-									<SelectItem key={t.key} value={t.key}>
-										{t.label}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</label>
-					<Button type="submit" data-testid="doc-save" disabled={busy || !name.trim()}>
-						{busy ? "Tallennetaan…" : `Tallenna PDF (${pages.length} sivua)`}
-					</Button>
-					<Button
-						type="button"
-						variant="outline"
-						disabled={busy}
-						onClick={() => setShowForm(false)}
-					>
-						Takaisin
-					</Button>
-				</form>
+				<SaveForm pages={pages} vehicleId={vehicle.id} onBack={() => setShowForm(false)} />
 			)}
 		</div>
 	);
