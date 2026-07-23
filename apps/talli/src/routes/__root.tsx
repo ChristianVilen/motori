@@ -72,19 +72,19 @@ export const Route = createRootRoute({
 			</RootDocument>
 		);
 	},
+	// No RootDocument wrapper: notFoundComponent renders inside RootComponent's shell,
+	// and nesting a second document duplicates <html>/<nav> on every 404.
 	notFoundComponent: () => (
-		<RootDocument>
-			<div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
-				<p className="font-heading text-7xl font-bold text-accent">404</p>
-				<h1 className="mt-4 font-heading text-2xl font-bold text-foreground">Sivua ei löytynyt</h1>
-				<Link
-					to="/"
-					className="mt-8 rounded-lg bg-accent px-6 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
-				>
-					Etusivulle
-				</Link>
-			</div>
-		</RootDocument>
+		<div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
+			<p className="font-heading text-7xl font-bold text-accent">404</p>
+			<h1 className="mt-4 font-heading text-2xl font-bold text-foreground">Sivua ei löytynyt</h1>
+			<Link
+				to="/"
+				className="mt-8 rounded-lg bg-accent px-6 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
+			>
+				Etusivulle
+			</Link>
+		</div>
 	),
 });
 
