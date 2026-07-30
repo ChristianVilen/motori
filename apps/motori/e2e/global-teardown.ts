@@ -18,6 +18,8 @@ export default async function globalTeardown() {
 			"e2e-user@test.example.com",
 			"e2e-viewer@test.example.com",
 			"e2e-lifecycle@test.example.com",
+			"e2e-admin@test.example.com",
+			"e2e-banned@test.example.com",
 		])
 		.execute();
 

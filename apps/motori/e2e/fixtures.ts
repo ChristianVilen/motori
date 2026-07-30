@@ -1,5 +1,5 @@
 import { test as base, type Page } from "@playwright/test";
-import { AUTH_STATE_PATH, VIEWER_AUTH_STATE_PATH } from "./global-setup";
+import { ADMIN_AUTH_STATE_PATH, AUTH_STATE_PATH, VIEWER_AUTH_STATE_PATH } from "./global-setup";
 
 export { expect } from "@playwright/test";
 
@@ -8,6 +8,7 @@ export { expect } from "@playwright/test";
 export const test = base.extend<{
 	authenticatedPage: Page;
 	authenticatedViewerPage: Page;
+	adminPage: Page;
 }>({
 	authenticatedPage: async ({ browser }, use) => {
 		const ctx = await browser.newContext({ storageState: AUTH_STATE_PATH });
@@ -17,6 +18,12 @@ export const test = base.extend<{
 	},
 	authenticatedViewerPage: async ({ browser }, use) => {
 		const ctx = await browser.newContext({ storageState: VIEWER_AUTH_STATE_PATH });
+		const page = await ctx.newPage();
+		await use(page);
+		await ctx.close();
+	},
+	adminPage: async ({ browser }, use) => {
+		const ctx = await browser.newContext({ storageState: ADMIN_AUTH_STATE_PATH });
 		const page = await ctx.newPage();
 		await use(page);
 		await ctx.close();
