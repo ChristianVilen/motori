@@ -61,9 +61,15 @@ export const Route = createFileRoute("/admin/")({
 
 function StatCard({ label, value }: { label: string; value: number | string }) {
 	return (
-		<div className="rounded-lg border border-border bg-white p-6">
+		<div
+			data-testid="admin-stat-card"
+			data-label={label}
+			className="rounded-lg border border-border bg-white p-6"
+		>
 			<p className="text-sm text-muted">{label}</p>
-			<p className="mt-1 text-3xl font-bold text-foreground">{value}</p>
+			<p data-testid="admin-stat-value" className="mt-1 text-3xl font-bold text-foreground">
+				{value}
+			</p>
 		</div>
 	);
 }
@@ -79,7 +85,11 @@ function StatsPage() {
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<StatCard label="Total users" value={stats.totalUsers} />
 				<StatCard label="Total listings" value={stats.totalListings} />
-				<div className="rounded-lg border border-border bg-white p-6">
+				<div
+					data-testid="admin-stat-card"
+					data-label="New signups"
+					className="rounded-lg border border-border bg-white p-6"
+				>
 					<div className="flex items-center justify-between">
 						<p className="text-sm text-muted">New signups</p>
 						<select
@@ -95,7 +105,9 @@ function StatsPage() {
 							))}
 						</select>
 					</div>
-					<p className="mt-1 text-3xl font-bold text-foreground">{stats.signups}</p>
+					<p data-testid="admin-stat-value" className="mt-1 text-3xl font-bold text-foreground">
+						{stats.signups}
+					</p>
 				</div>
 				<StatCard label="Active listings" value={stats.listingsByStatus.active ?? 0} />
 			</div>

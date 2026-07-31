@@ -22,6 +22,23 @@ export const VIEWER_AUTH_STATE_PATH = "e2e/.auth/viewer.json";
 export const LIFECYCLE_EMAIL = "e2e-lifecycle@test.example.com";
 export const LIFECYCLE_AUTH_STATE_PATH = "e2e/.auth/lifecycle.json";
 
+// Admin user — role set to 'admin' directly in the DB (role is read fresh per request,
+// so the saved session state stays valid).
+export const ADMIN_EMAIL = "e2e-admin@test.example.com";
+export const ADMIN_AUTH_STATE_PATH = "e2e/.auth/admin.json";
+
+// Ban/unban target — recreated fresh each run (deleted first) so a leftover ban from a
+// crashed run can't poison the next one. Never signed in during setup; no auth state.
+export const BANNED_EMAIL = "e2e-banned@test.example.com";
+
+// Two dedicated listings for the admin bulk-status tests, found via this unique search term
+// so mutations never touch rows other specs depend on.
+export const ADMIN_LISTING_SEARCH = "E2E Admin Target";
+export const ADMIN_LISTING_ALPHA_UUID = "22222222-2222-4222-8222-222222222222";
+export const ADMIN_LISTING_ALPHA_TITLE = "E2E Admin Target Alpha CB300R";
+export const ADMIN_LISTING_BETA_UUID = "33333333-3333-4333-8333-333333333333";
+export const ADMIN_LISTING_BETA_TITLE = "E2E Admin Target Beta CB650R";
+
 // Deterministic IDs for the e2e seed listing
 // UUID must be valid RFC 4122 (version nibble=4, variant nibble=8/9/a/b) so Zod v4 accepts it.
 export const SEEDED_LISTING_UUID = "11111111-1111-4111-8111-111111111111"; // stable DB id
@@ -38,31 +55,43 @@ export default async function globalSetup() {
 
 	fs.mkdirSync(path.dirname(AUTH_STATE_PATH), { recursive: true });
 
+	await deleteUserByEmail(BANNED_EMAIL);
+
 	const browser = await chromium.launch();
 
 	await registerAndSaveState(browser, "E2E Test User", TEST_EMAIL, AUTH_STATE_PATH);
 	await registerAndSaveState(browser, "E2E Viewer", VIEWER_EMAIL, VIEWER_AUTH_STATE_PATH);
 	await registerAndSaveState(browser, "E2E Lifecycle", LIFECYCLE_EMAIL, LIFECYCLE_AUTH_STATE_PATH);
+	await registerAndSaveState(browser, "E2E Admin", ADMIN_EMAIL, ADMIN_AUTH_STATE_PATH);
+	await registerAndSaveState(browser, "E2E Banned", BANNED_EMAIL);
 
 	await browser.close();
 
 	const userId = await resolveTestUserId(TEST_EMAIL);
 	const viewerId = await resolveTestUserId(VIEWER_EMAIL);
 	const lifecycleId = await resolveTestUserId(LIFECYCLE_EMAIL);
+	const adminId = await resolveTestUserId(ADMIN_EMAIL);
+	const bannedId = await resolveTestUserId(BANNED_EMAIL);
 	await verifyEmail(userId);
 	await verifyEmail(viewerId);
 	await verifyEmail(lifecycleId);
+	await verifyEmail(adminId);
+	await verifyEmail(bannedId);
 	await seedProfile(userId, "E2E Test User");
 	await seedProfile(viewerId, "E2E Viewer");
 	await seedProfile(lifecycleId, "E2E Lifecycle");
-	await seedListings(userId);
+	await seedProfile(adminId, "E2E Admin");
+	await seedProfile(bannedId, "E2E Banned");
+	await setAdminRole(adminId);
+	const makeId = await seedListings(userId);
+	await seedAdminListings(userId, makeId);
 }
 
 async function registerAndSaveState(
 	browser: import("@playwright/test").Browser,
 	name: string,
 	email: string,
-	statePath: string,
+	statePath?: string,
 ) {
 	const headers = { Origin: BASE_URL };
 	const ctx = await browser.newContext();
@@ -83,19 +112,35 @@ async function registerAndSaveState(
 			);
 		}
 	}
-	const signInRes = await ctx.request.post(`${BASE_URL}/api/auth/sign-in/email`, {
-		data: { email, password: TEST_PASSWORD },
-		headers,
-		failOnStatusCode: false,
-	});
-	if (!signInRes.ok()) {
-		const body = await signInRes.text();
-		throw new Error(
-			`Global setup: sign-in ${email} failed (${signInRes.status()}). Body: ${body.slice(0, 200)}`,
-		);
+	if (statePath) {
+		const signInRes = await ctx.request.post(`${BASE_URL}/api/auth/sign-in/email`, {
+			data: { email, password: TEST_PASSWORD },
+			headers,
+			failOnStatusCode: false,
+		});
+		if (!signInRes.ok()) {
+			const body = await signInRes.text();
+			throw new Error(
+				`Global setup: sign-in ${email} failed (${signInRes.status()}). Body: ${body.slice(0, 200)}`,
+			);
+		}
+		await ctx.storageState({ path: statePath });
 	}
-	await ctx.storageState({ path: statePath });
 	await ctx.close();
+}
+
+async function deleteUserByEmail(email: string) {
+	const { db } = await import("../src/lib/db/index");
+	await db.deleteFrom("user").where("email", "=", email).execute();
+}
+
+async function setAdminRole(userId: string) {
+	const { db } = await import("../src/lib/db/index");
+	await db
+		.updateTable("user")
+		.set({ role: "admin", updatedAt: new Date() })
+		.where("id", "=", userId)
+		.execute();
 }
 
 async function resolveTestUserId(email: string): Promise<string> {
@@ -133,6 +178,7 @@ async function seedProfile(userId: string, displayName: string) {
 		.execute();
 }
 
+// Returns the e2e make id so seedAdminListings can attach its rows to the same make.
 async function seedListings(ownerId: string) {
 	const { db } = await import("../src/lib/db/index");
 
@@ -191,4 +237,53 @@ async function seedListings(ownerId: string) {
 			mileage_limit: 200,
 		})
 		.execute();
+
+	return e2eMake.id;
+}
+
+async function seedAdminListings(ownerId: string, makeId: string) {
+	const { db } = await import("../src/lib/db/index");
+
+	const targets = [
+		{ id: ADMIN_LISTING_ALPHA_UUID, short_id: "e2eadm1", title: ADMIN_LISTING_ALPHA_TITLE },
+		{ id: ADMIN_LISTING_BETA_UUID, short_id: "e2eadm2", title: ADMIN_LISTING_BETA_TITLE },
+	];
+
+	for (const target of targets) {
+		await db.deleteFrom("listing").where("id", "=", target.id).execute();
+		await db
+			.insertInto("listing")
+			.values({
+				id: target.id,
+				short_id: target.short_id,
+				owner_id: ownerId,
+				title: target.title,
+				category: "rental",
+				make_id: makeId,
+				model_id: null,
+				year: 2023,
+				engine_cc: 286,
+				required_license: "A2",
+				motorcycle_type: "naked",
+				city: "Espoo",
+				region: "uusimaa",
+				postal_code: null,
+				description:
+					"E2E admin seed listing. Do not edit manually — global-setup recreates this row on every run.",
+				expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+				created_at: new Date(),
+				updated_at: new Date(),
+			})
+			.execute();
+		await db
+			.insertInto("listing_rental")
+			.values({
+				listing_id: target.id,
+				price_per_day: 4500,
+				price_per_week: 25000,
+				price_description: null,
+				mileage_limit: 200,
+			})
+			.execute();
+	}
 }
