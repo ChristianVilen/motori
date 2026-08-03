@@ -3,7 +3,7 @@ import { betterAuth } from "better-auth";
 import { hashPassword, verifyPassword } from "better-auth/crypto";
 import { admin } from "better-auth/plugins";
 import type { Kysely } from "kysely";
-import { talliOrigin } from "./origins";
+import { isDevHost, talliOrigin } from "./origins";
 import { passwordStrength } from "./password-strength";
 
 type SendEmail = (args: { user: { id: string; email: string }; url: string }) => Promise<void>;
@@ -15,9 +15,11 @@ export function createAuth<DB>(opts: {
 }) {
 	const baseURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 	// Session cookie is scoped to the apex so talli.motori.fi shares the login (SSO);
-	// disabled on localhost where subdomains don't apply.
+	// disabled on dev hosts: subdomains don't apply on localhost, and browsers reject
+	// a Domain attribute that is an IP literal (phone-on-LAN dev). Host-only cookies
+	// still give SSO there because cookies ignore ports.
 	const hostname = new URL(baseURL).hostname;
-	const cookieDomain = hostname === "localhost" ? undefined : `.${hostname.replace(/^www\./, "")}`;
+	const cookieDomain = isDevHost(hostname) ? undefined : `.${hostname.replace(/^www\./, "")}`;
 	return betterAuth({
 		database: kyselyAdapter(opts.db, {
 			type: "postgres",

@@ -2,6 +2,7 @@ import { Button } from "@motori/ui/button";
 import { Input } from "@motori/ui/input";
 import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
+import { DocumentsSection } from "~/components/documents-section";
 import { DueBadge, dueDetail } from "~/components/due-badge";
 import { MOTORI_URL } from "~/lib/constants";
 import { parseLocalDate } from "~/lib/due-state";
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/pyorat/$vehicleId")({
 });
 
 function VehicleDetailPage() {
-	const { vehicle, reminders, records } = Route.useLoaderData();
+	const { vehicle, reminders, records, documents } = Route.useLoaderData();
 	const router = useRouter();
 	const [reading, setReading] = useState("");
 	const { saving, submit } = useSubmit();
@@ -205,6 +206,8 @@ function VehicleDetailPage() {
 					</ol>
 				)}
 			</section>
+
+			<DocumentsSection vehicleId={vehicle.id} documents={documents} />
 
 			<section className="mt-8 rounded-lg border border-border p-4">
 				<h2 className="font-heading text-lg font-semibold">Varaosat</h2>
