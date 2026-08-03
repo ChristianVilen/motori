@@ -16,11 +16,21 @@ interface CornerAdjustProps {
 	onChange: (corners: Corners) => void;
 }
 
+function toSafeImageHref(src: string): string {
+	if (/^(blob:|data:image\/|\/)/i.test(src)) {
+		return src;
+	}
+
+	return "";
+}
+
 export function CornerAdjust({ src, width, height, corners, onChange }: CornerAdjustProps) {
 	const svgRef = useRef<SVGSVGElement>(null);
 	const [dragging, setDragging] = useState<CornerKey | null>(null);
 	// Handle radius in viewBox units ≈ constant on-screen size across photo resolutions.
 	const r = Math.max(width, height) / 28;
+	const safeSrc = toSafeImageHref(src);
+	const safeBackgroundImage = safeSrc ? `url("${safeSrc.replaceAll('"', "%22")}")` : "none";
 
 	function toImagePoint(e: React.PointerEvent): Point {
 		const svg = svgRef.current;
@@ -37,43 +47,49 @@ export function CornerAdjust({ src, width, height, corners, onChange }: CornerAd
 	const points = CORNER_KEYS.map((k) => `${corners[k].x},${corners[k].y}`).join(" ");
 
 	return (
-		<svg
-			ref={svgRef}
-			viewBox={`0 0 ${width} ${height}`}
-			className="w-full touch-none select-none rounded border border-border"
-			data-testid="corner-adjust"
-			onPointerMove={(e) => {
-				if (dragging) {
-					onChange({ ...corners, [dragging]: toImagePoint(e) });
-				}
-			}}
-			onPointerUp={() => setDragging(null)}
-			onPointerCancel={() => setDragging(null)}
-			role="img"
-		>
-			<title>Rajaa dokumentti vetämällä kulmista</title>
-			<image href={src} width={width} height={height} />
-			<polygon
-				points={points}
-				fill="rgb(37 99 235 / 0.15)"
-				stroke="rgb(37 99 235)"
-				strokeWidth={r / 4}
+		<div className="relative">
+			<div
+				aria-hidden="true"
+				className="w-full rounded border border-border bg-contain bg-center bg-no-repeat"
+				style={{ backgroundImage: safeBackgroundImage, aspectRatio: `${width} / ${height}` }}
 			/>
-			{CORNER_KEYS.map((k) => (
-				<circle
-					key={k}
-					cx={corners[k].x}
-					cy={corners[k].y}
-					r={r}
-					fill="rgb(37 99 235 / 0.5)"
-					stroke="white"
-					strokeWidth={r / 5}
-					onPointerDown={(e) => {
-						svgRef.current?.setPointerCapture(e.pointerId);
-						setDragging(k);
-					}}
+			<svg
+				ref={svgRef}
+				viewBox={`0 0 ${width} ${height}`}
+				className="absolute inset-0 h-full w-full touch-none select-none"
+				data-testid="corner-adjust"
+				onPointerMove={(e) => {
+					if (dragging) {
+						onChange({ ...corners, [dragging]: toImagePoint(e) });
+					}
+				}}
+				onPointerUp={() => setDragging(null)}
+				onPointerCancel={() => setDragging(null)}
+				role="img"
+			>
+				<title>Rajaa dokumentti vetämällä kulmista</title>
+				<polygon
+					points={points}
+					fill="rgb(37 99 235 / 0.15)"
+					stroke="rgb(37 99 235)"
+					strokeWidth={r / 4}
 				/>
-			))}
-		</svg>
+				{CORNER_KEYS.map((k) => (
+					<circle
+						key={k}
+						cx={corners[k].x}
+						cy={corners[k].y}
+						r={r}
+						fill="rgb(37 99 235 / 0.5)"
+						stroke="white"
+						strokeWidth={r / 5}
+						onPointerDown={(e) => {
+							svgRef.current?.setPointerCapture(e.pointerId);
+							setDragging(k);
+						}}
+					/>
+				))}
+			</svg>
+		</div>
 	);
 }
