@@ -9,7 +9,7 @@ age_pub := "age1gh73uxuev6n4x40tajwyqdqm0rfug7j4uvpnant5l2w9z56hu9jq9f59uy"
 
 # Age private key fetched from 1Password on demand. Requires `op` CLI signed in
 # (either via the desktop-app integration or OP_SERVICE_ACCOUNT_TOKEN).
-age_key_ref := "op://Vuokramoto/motori age key/password"
+age_key_ref := "op://Motori/motori age key/password"
 
 # List available commands
 default:

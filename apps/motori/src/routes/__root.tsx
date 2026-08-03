@@ -137,8 +137,9 @@ function NotFoundContent() {
 }
 
 function NotFound() {
-	// NotFound can render without a loader having run, so nav `t()` calls have no
-	// provider otherwise. Mount a fresh Finnish i18n instance for the shell.
+	// Renders INSIDE RootComponent's shell (the root component wraps notFoundComponent),
+	// so no RootDocument here — nesting it duplicates <html>/<nav> on every 404. Keep a
+	// local i18n instance so t() works even when the root loader never ran.
 	const [i18nInstance] = useState(() => {
 		if (typeof window === "undefined") {
 			return createI18nSync("fi");
@@ -148,9 +149,7 @@ function NotFound() {
 	});
 	return (
 		<I18nextProvider i18n={i18nInstance}>
-			<RootDocument locale="fi">
-				<NotFoundContent />
-			</RootDocument>
+			<NotFoundContent />
 		</I18nextProvider>
 	);
 }
