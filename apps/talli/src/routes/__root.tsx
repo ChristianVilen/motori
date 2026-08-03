@@ -114,7 +114,12 @@ function RootDocument({ children, session = null }: RootDocumentProps) {
 	)}`;
 
 	async function handleSignOut() {
-		await signOut();
+		// Cross-origin call to motori — swallow network failures so a failed
+		// sign-out doesn't leave an uncaught rejection; the reload reflects the
+		// real session state either way.
+		try {
+			await signOut();
+		} catch {}
 		window.location.assign("/");
 	}
 
