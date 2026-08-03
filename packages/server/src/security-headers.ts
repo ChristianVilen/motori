@@ -11,9 +11,11 @@ const imgSrc = storagePublicUrl
 export interface SecurityHeadersOptions {
 	/** Adds 'wasm-unsafe-eval' to script-src — needed by talli's scanner (OpenCV.js WASM). */
 	allowWasm?: boolean;
+	/** Extra origins for connect-src — talli's sign-out fetch goes cross-origin to motori. */
+	connectSrc?: string[];
 }
 
-function buildCsp(nonce: string | undefined, allowWasm: boolean): string {
+function buildCsp(nonce: string | undefined, allowWasm: boolean, connectSrc: string[]): string {
 	// In dev, Vite injects HMR/refresh inline scripts without nonces, so we fall
 	// back to 'unsafe-inline' + 'unsafe-eval' (Zod v4 uses new Function at runtime;
 	// 'unsafe-eval' also permits WASM). In prod, every inline <script> must carry
@@ -27,13 +29,14 @@ function buildCsp(nonce: string | undefined, allowWasm: boolean): string {
 		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 		"font-src 'self' data: https://fonts.gstatic.com",
 		`img-src ${imgSrc}`,
-		"connect-src 'self'",
+		`connect-src ${["'self'", ...connectSrc].join(" ")}`,
 		"frame-ancestors 'none'",
 	].join("; ");
 }
 
 export function createSecurityHeadersMiddleware({
 	allowWasm = false,
+	connectSrc = [],
 }: SecurityHeadersOptions = {}) {
 	return createMiddleware({ type: "request" }).server(async ({ next }) => {
 		const result = await next();
@@ -48,7 +51,7 @@ export function createSecurityHeadersMiddleware({
 		h.set("X-Frame-Options", "DENY");
 		h.set("Referrer-Policy", "strict-origin-when-cross-origin");
 		h.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-		h.set("Content-Security-Policy", buildCsp(nonce, allowWasm));
+		h.set("Content-Security-Policy", buildCsp(nonce, allowWasm, connectSrc));
 		if (isProd) {
 			h.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
 		}
