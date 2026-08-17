@@ -20,6 +20,10 @@ const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute
 					...(s.km_driven != null
 						? [{ label: "Kilometrit", value: `${s.km_driven.toLocaleString("fi")} km` as const }]
 						: []),
+					...(s.power_kw != null ? [{ label: "Teho", value: `${s.power_kw} kW` as const }] : []),
+					...(s.color ? [{ label: "Väri", value: s.color }] : []),
+					...(s.owner_count != null ? [{ label: "Omistajia", value: String(s.owner_count) }] : []),
+					...(s.trade_possible ? [{ label: "Vaihto", value: "Mahdollinen" }] : []),
 				]}
 				listing={data.listing}
 				isOwner={isOwner}

@@ -111,7 +111,11 @@ export interface ListingSaleTable {
 	listing_id: string;
 	price: number; // EUR cents
 	condition: "new" | "excellent" | "good" | "fair" | "poor";
-	km_driven: number | null;
+	km_driven: number | null; // required by the validator since #166; null only on pre-#166 rows
+	color: string | null;
+	owner_count: number | null;
+	power_kw: number | null;
+	trade_possible: Generated<boolean>;
 	negotiable: Generated<boolean>;
 }
 
@@ -120,11 +124,13 @@ export type NewListingSale = Insertable<ListingSaleTable>;
 export type ListingSaleUpdate = Updateable<ListingSaleTable>;
 
 export type GearType = "helmet" | "jacket" | "pants" | "boots" | "gloves" | "other";
+export type GearSize = "XS" | "S" | "M" | "L" | "XL" | "XXL" | "muu";
 
 export interface ListingGearTable {
 	listing_id: string;
 	gear_type: GearType;
-	size: string | null;
+	size: GearSize | null;
+	brand: string | null;
 	condition: "new" | "excellent" | "good" | "fair" | "poor";
 	price: number; // EUR cents
 }
@@ -138,6 +144,7 @@ export interface ListingPartTable {
 	part_category: string;
 	compatible_make_id: string | null;
 	compatible_model_id: string | null;
+	oem_number: string | null;
 	condition: "new" | "excellent" | "good" | "fair" | "poor";
 	price: number; // EUR cents
 }

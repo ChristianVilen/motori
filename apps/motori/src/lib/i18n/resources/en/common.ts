@@ -65,6 +65,8 @@ export default {
 		titleTooShort: "Title is too short (min 5 characters)",
 		titleTooLong: "Title is too long",
 		brandRequired: "Select a brand",
+		modelRequired: "Select a model",
+		kmRequired: "Mileage is required",
 		yearTooOld: "Year is too old",
 		yearInFuture: "Year can't be in the future",
 		typeRequired: "Select a type",

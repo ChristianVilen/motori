@@ -13,9 +13,15 @@ interface MotorcycleFieldsProps {
 	form: any;
 	initialMakeId: string | null;
 	initialModelId: string | null;
+	modelRequired?: boolean;
 }
 
-export function MotorcycleFields({ form, initialMakeId, initialModelId }: MotorcycleFieldsProps) {
+export function MotorcycleFields({
+	form,
+	initialMakeId,
+	initialModelId,
+	modelRequired,
+}: MotorcycleFieldsProps) {
 	const { t } = useTranslation("listings");
 
 	return (
@@ -51,13 +57,22 @@ export function MotorcycleFields({ form, initialMakeId, initialModelId }: Motorc
 						handleChange: (v: string) => void;
 						state: { meta: { errors: unknown[] } };
 					}) => (
-						<MakeModelSelect
-							initialMakeId={initialMakeId}
-							initialModelId={initialModelId}
-							onMakeChange={(id) => makeField.handleChange(id)}
-							onModelChange={(id) => form.setFieldValue("model_id", id)}
-							makeError={makeField.state.meta.errors[0]}
-						/>
+						<form.Field name="model_id">
+							{(modelField: {
+								handleChange: (v: string | null) => void;
+								state: { meta: { errors: unknown[] } };
+							}) => (
+								<MakeModelSelect
+									initialMakeId={initialMakeId}
+									initialModelId={initialModelId}
+									onMakeChange={(id) => makeField.handleChange(id)}
+									onModelChange={(id) => modelField.handleChange(id)}
+									makeError={makeField.state.meta.errors[0]}
+									modelError={modelField.state.meta.errors[0]}
+									modelRequired={modelRequired}
+								/>
+							)}
+						</form.Field>
 					)}
 				</form.Field>
 

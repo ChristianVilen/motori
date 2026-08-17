@@ -85,7 +85,9 @@ export function listingFormSchema(t: T = defaultT) {
 			...shared,
 			category: z.literal("sale"),
 			make_id: z.string().min(1, t("validation.brandRequired")),
-			model_id: z.string().nullable().optional(),
+			model_id: z
+				.string({ error: t("validation.modelRequired") })
+				.min(1, t("validation.modelRequired")),
 			year: z
 				.number()
 				.int()
@@ -95,7 +97,15 @@ export function listingFormSchema(t: T = defaultT) {
 			motorcycle_type: z.string().trim().min(1, t("validation.typeRequired")),
 			required_license: z.enum(["A1", "A2", "A"]).nullable().optional(),
 			condition: z.enum(CONDITIONS),
-			km_driven: z.number().int().min(0).max(999999).nullable().optional(),
+			km_driven: z
+				.number({ error: t("validation.kmRequired") })
+				.int()
+				.min(0, t("validation.kmRequired"))
+				.max(999999),
+			color: z.string().trim().max(30).nullable().optional(),
+			owner_count: z.number().int().min(1).max(99).nullable().optional(),
+			power_kw: z.number().int().min(1).max(500).nullable().optional(),
+			trade_possible: z.boolean().default(false),
 			price: z.number().int().min(1).max(1_000_000),
 			negotiable: z.boolean().default(false),
 		}),
@@ -103,7 +113,8 @@ export function listingFormSchema(t: T = defaultT) {
 			...shared,
 			category: z.literal("gear"),
 			gear_type: z.enum(GEAR_TYPES),
-			size: z.string().trim().max(20).nullable().optional(),
+			size: z.enum(GEAR_SIZES).nullable().optional(),
+			brand: z.string().trim().max(50).nullable().optional(),
 			condition: z.enum(CONDITIONS),
 			price: z.number().int().min(1).max(100_000),
 		}),
@@ -112,6 +123,8 @@ export function listingFormSchema(t: T = defaultT) {
 			category: z.literal("part"),
 			part_category: z.string().trim().min(1).max(100),
 			compatible_make_id: z.string().nullable().optional(),
+			compatible_model_id: z.string().nullable().optional(),
+			oem_number: z.string().trim().max(50).nullable().optional(),
 			condition: z.enum(CONDITIONS),
 			price: z.number().int().min(1).max(100_000),
 		}),

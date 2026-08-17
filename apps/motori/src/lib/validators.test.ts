@@ -42,6 +42,137 @@ describe("listingFormSchema", () => {
 		});
 		expect(result.success).toBe(true);
 	});
+
+	const validSale = {
+		category: "sale",
+		title: "Honda CBR650R hyväkuntoinen",
+		make_id: "some-uuid",
+		model_id: "model-uuid",
+		year: 2020,
+		motorcycle_type: "sport",
+		condition: "good",
+		km_driven: 12000,
+		price: 7500,
+		city: "Helsinki",
+		region: "uusimaa",
+		description: "Tämä on kuvaus joka on tarpeeksi pitkä validointia varten",
+	};
+
+	it("accepts a valid sale listing", () => {
+		expect(listingFormSchema().safeParse(validSale).success).toBe(true);
+	});
+
+	it("requires km_driven for sale", () => {
+		for (const km_driven of [undefined, null]) {
+			const result = listingFormSchema().safeParse({ ...validSale, km_driven });
+			expect(result.success).toBe(false);
+			if (!result.success) {
+				expect(result.error.issues.some((i) => i.path.includes("km_driven"))).toBe(true);
+			}
+		}
+	});
+
+	it("requires model_id for sale", () => {
+		for (const model_id of [undefined, null, ""]) {
+			const result = listingFormSchema().safeParse({ ...validSale, model_id });
+			expect(result.success).toBe(false);
+			if (!result.success) {
+				expect(result.error.issues.some((i) => i.path.includes("model_id"))).toBe(true);
+			}
+		}
+	});
+
+	it("accepts sale detail fields", () => {
+		const result = listingFormSchema().safeParse({
+			...validSale,
+			color: "punainen/musta",
+			owner_count: 2,
+			power_kw: 70,
+			trade_possible: true,
+		});
+		expect(result.success).toBe(true);
+	});
+
+	it("defaults trade_possible to false", () => {
+		const result = listingFormSchema().safeParse(validSale);
+		expect(result.success).toBe(true);
+		if (result.success && result.data.category === "sale") {
+			expect(result.data.trade_possible).toBe(false);
+		}
+	});
+
+	it("rejects out-of-bounds sale detail fields", () => {
+		expect(listingFormSchema().safeParse({ ...validSale, owner_count: 0 }).success).toBe(false);
+		expect(listingFormSchema().safeParse({ ...validSale, owner_count: 100 }).success).toBe(false);
+		expect(listingFormSchema().safeParse({ ...validSale, power_kw: 0 }).success).toBe(false);
+		expect(listingFormSchema().safeParse({ ...validSale, power_kw: 501 }).success).toBe(false);
+		expect(listingFormSchema().safeParse({ ...validSale, color: "x".repeat(31) }).success).toBe(
+			false,
+		);
+	});
+
+	const validGear = {
+		category: "gear",
+		title: "Shoei NXR2 kypärä myynnissä",
+		gear_type: "helmet",
+		condition: "good",
+		price: 300,
+		city: "Helsinki",
+		region: "uusimaa",
+		description: "Tämä on kuvaus joka on tarpeeksi pitkä validointia varten",
+	};
+
+	it("accepts gear size from the enum and null", () => {
+		expect(listingFormSchema().safeParse({ ...validGear, size: "M" }).success).toBe(true);
+		expect(listingFormSchema().safeParse({ ...validGear, size: "muu" }).success).toBe(true);
+		expect(listingFormSchema().safeParse({ ...validGear, size: null }).success).toBe(true);
+		expect(listingFormSchema().safeParse(validGear).success).toBe(true);
+	});
+
+	it("rejects gear size outside the enum", () => {
+		expect(listingFormSchema().safeParse({ ...validGear, size: "medium" }).success).toBe(false);
+		expect(listingFormSchema().safeParse({ ...validGear, size: "57-58cm" }).success).toBe(false);
+	});
+
+	it("accepts optional gear brand within bounds", () => {
+		expect(listingFormSchema().safeParse({ ...validGear, brand: "Shoei" }).success).toBe(true);
+		expect(listingFormSchema().safeParse({ ...validGear, brand: "x".repeat(51) }).success).toBe(
+			false,
+		);
+	});
+
+	const validPart = {
+		category: "part",
+		title: "CBR650R jarrulevyt eteen",
+		part_category: "brakes",
+		condition: "good",
+		price: 120,
+		city: "Helsinki",
+		region: "uusimaa",
+		description: "Tämä on kuvaus joka on tarpeeksi pitkä validointia varten",
+	};
+
+	it("accepts optional part oem_number within bounds", () => {
+		expect(
+			listingFormSchema().safeParse({ ...validPart, oem_number: "45251-MKN-D51" }).success,
+		).toBe(true);
+		expect(
+			listingFormSchema().safeParse({ ...validPart, oem_number: "x".repeat(51) }).success,
+		).toBe(false);
+	});
+
+	it("accepts compatible_model_id for parts", () => {
+		expect(
+			listingFormSchema().safeParse({
+				...validPart,
+				compatible_make_id: "make-uuid",
+				compatible_model_id: "model-uuid",
+			}).success,
+		).toBe(true);
+		expect(listingFormSchema().safeParse({ ...validPart, compatible_model_id: null }).success).toBe(
+			true,
+		);
+	});
 });
 
 describe("isValidImageUrl", () => {
