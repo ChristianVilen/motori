@@ -116,6 +116,15 @@ export function ListingDetailShell({
 					{backLabel}
 				</Link>
 
+				{listing.status === "sold" && (
+					<div
+						data-testid="listing-sold-banner"
+						className="mb-4 rounded-lg bg-primary/10 px-4 py-3 text-sm font-medium text-primary"
+					>
+						{t("detail.soldBanner")}
+					</div>
+				)}
+
 				<div className="grid gap-6 lg:grid-cols-[1fr_320px] lg:gap-8">
 					<div className="space-y-4">
 						<ListingGallery images={images} title={listing.title} />

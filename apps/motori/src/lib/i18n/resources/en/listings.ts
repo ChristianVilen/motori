@@ -70,6 +70,7 @@ export default {
 		notFoundBack: "Home",
 		back: "Back",
 		negotiable: "Negotiable",
+		soldBanner: "This listing has been marked as sold.",
 		contactSeller: "Contact seller",
 		messageSeller: "Message seller",
 		description: "Description",
