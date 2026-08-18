@@ -82,6 +82,7 @@ export default {
 		back: "Takaisin",
 		negotiable: "Hinta joustaa",
 		soldBanner: "Tämä ilmoitus on merkitty myydyksi.",
+		expiredBanner: "Tämä ilmoitus on vanhentunut.",
 		contactSeller: "Ota yhteyttä",
 		messageSeller: "Lähetä viesti",
 		description: "Kuvaus",

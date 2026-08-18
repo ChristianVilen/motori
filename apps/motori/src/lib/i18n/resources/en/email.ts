@@ -9,13 +9,7 @@ export default {
 		subject: "Your listing expires soon — Motori",
 		greeting: "Hi {{name}},",
 		body: 'Your listing "{{title}}" expires in {{days}} days.',
-		cta: "Sign in to renew it.",
-	},
-	toriExpiry: {
-		subject: "Your Tori listing expires soon — Motori",
-		greeting: "Hi {{name}},",
-		body: 'Your Tori listing "{{title}}" expires in {{days}} days.',
-		cta: "Sign in to renew it.",
+		cta: "You can renew it on your My listings page:",
 	},
 	passwordReset: {
 		subject: "Reset your password — Motori",
