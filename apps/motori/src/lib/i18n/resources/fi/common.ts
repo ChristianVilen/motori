@@ -77,6 +77,11 @@ export default {
 		descriptionTooShort: "Kuvaus on liian lyhyt (min 20 merkkiä)",
 		invalidImageUrl: "Virheellinen kuva-URL",
 	},
+	citySelect: {
+		noResults: "Ei tuloksia",
+		oneResult: "1 kunta",
+		manyResults: "{{count}} kuntaa",
+	},
 	tori: {
 		category: {
 			gear: "Ajovarusteet",
