@@ -79,6 +79,12 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    # Playwright's own image ships the browsers and their system deps, so nothing
+    # is downloaded at job time — apt-get against a slow Ubuntu mirror used to eat
+    # the whole timeout. Keep the tag in sync with the pinned @playwright/test.
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      options: --ipc=host
     # Normal job time is 1.5-3 min; a wedged runner otherwise hangs forever,
     # never uploads the report artifact, and silently blocks deploy.
     timeout-minutes: 10
@@ -93,8 +99,6 @@ jobs:
           POSTGRES_USER: motori
           POSTGRES_PASSWORD: motori
           POSTGRES_DB: motori
-        ports:
-          - 5433:5432
         options: >-
           --health-cmd "pg_isready -U motori"
           --health-interval 5s
@@ -109,18 +113,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: cp apps/motori/.env.ci apps/motori/.env
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-      - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium webkit
-      - name: Install Playwright system deps
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium webkit
       - run: pnpm --filter motori db:migrate
       - run: pnpm --filter motori build
       - run: pnpm --filter motori test:e2e --shard=${{ matrix.shard }}
@@ -133,6 +125,9 @@ jobs:
 
   e2e-talli:
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      options: --ipc=host
     timeout-minutes: 10
     services:
       postgres:
@@ -141,8 +136,6 @@ jobs:
           POSTGRES_USER: motori
           POSTGRES_PASSWORD: motori
           POSTGRES_DB: motori
-        ports:
-          - 5433:5432
         options: >-
           --health-cmd "pg_isready -U motori"
           --health-interval 5s
@@ -158,18 +151,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: cp apps/motori/.env.ci apps/motori/.env
       - run: cp apps/talli/.env.ci apps/talli/.env
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-      - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium webkit
-      - name: Install Playwright system deps
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium
       - run: pnpm --filter motori db:migrate
       - run: pnpm --filter talli db:migrate
       - run: pnpm --filter motori build

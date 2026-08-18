@@ -132,7 +132,7 @@ Use the `gh` CLI for all GitHub interactions — never open the web UI for thing
 - `gh issue create --title "..." --label enhancement,p2` — open a new issue
 - `gh issue view <number>` — read an issue with full body
 
-**CI** runs on every PR and push to `main` (`.github/workflows/ci.yml`). Four parallel jobs: `lint`, `format`, `typecheck`, `test` (unit). Plus an `e2e` job sharded 2-way that spins up a Postgres 17 service container, runs migrations, builds, then runs Playwright against Chromium and WebKit. E2e failures upload a `playwright-report` artifact (7-day retention). CI uses `.env.ci` (not `.env.example`) — keep that file in sync when adding required env vars.
+**CI** runs on every PR and push to `main` (`.github/workflows/ci.yml`). Four parallel jobs: `lint`, `format`, `typecheck`, `test` (unit). Plus an `e2e` job sharded 2-way that spins up a Postgres 17 service container, runs migrations, builds, then runs Playwright against Chromium and WebKit. The e2e jobs run inside the official Playwright container image (browsers and system deps preinstalled, so nothing downloads at job time) — when bumping `@playwright/test`, bump the `mcr.microsoft.com/playwright` image tag in `ci.yml` to the same version. E2e failures upload a `playwright-report` artifact (7-day retention). CI uses `.env.ci` (not `.env.example`) — keep that file in sync when adding required env vars.
 
 ## Conventions
 
