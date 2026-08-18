@@ -77,19 +77,4 @@ export default {
 		descriptionTooShort: "Kuvaus on liian lyhyt (min 20 merkkiä)",
 		invalidImageUrl: "Virheellinen kuva-URL",
 	},
-	tori: {
-		category: {
-			gear: "Ajovarusteet",
-			parts: "Osat & tarvikkeet",
-			apparel: "Vaatteet & merch",
-			tools: "Työkalut",
-		},
-		condition: {
-			new: "Uusi",
-			excellent: "Erinomainen",
-			good: "Hyvä",
-			fair: "Tyydyttävä",
-			poor: "Huono",
-		},
-	},
 } as const;
