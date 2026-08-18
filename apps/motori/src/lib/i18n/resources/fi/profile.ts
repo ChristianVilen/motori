@@ -28,6 +28,7 @@ export default {
 			edit: "Muokkaa",
 			pause: "Aseta tauolle",
 			activate: "Aktivoi",
+			markSold: "Myyty",
 			delete: "Poista",
 			confirmDelete: "Poistetaanko ilmoitus? Tätä ei voi peruuttaa.",
 		},

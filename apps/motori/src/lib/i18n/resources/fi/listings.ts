@@ -81,6 +81,7 @@ export default {
 		notFoundBack: "Etusivulle",
 		back: "Takaisin",
 		negotiable: "Hinta joustaa",
+		soldBanner: "Tämä ilmoitus on merkitty myydyksi.",
 		contactSeller: "Ota yhteyttä",
 		messageSeller: "Lähetä viesti",
 		description: "Kuvaus",

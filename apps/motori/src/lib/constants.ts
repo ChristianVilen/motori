@@ -105,6 +105,8 @@ export type PartCategory = (typeof PART_CATEGORIES)[number]["value"];
 export const GEAR_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "muu"] as const;
 export type GearSize = (typeof GEAR_SIZES)[number];
 
+export const LISTING_EXPIRY_DAYS = 90;
+
 export const CONDITIONS = ["new", "excellent", "good", "fair", "poor"] as const;
 export type Condition = (typeof CONDITIONS)[number];
 

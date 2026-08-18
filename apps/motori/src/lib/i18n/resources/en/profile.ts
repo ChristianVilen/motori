@@ -28,6 +28,7 @@ export default {
 			edit: "Edit",
 			pause: "Pause",
 			activate: "Activate",
+			markSold: "Sold",
 			delete: "Delete",
 			confirmDelete: "Delete this listing? This can't be undone.",
 		},

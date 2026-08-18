@@ -1,5 +1,6 @@
+import { LISTING_EXPIRY_DAYS } from "~/lib/constants";
 import { eurosToCents } from "~/lib/currency";
-import type { GearType } from "~/lib/db/schema";
+import type { GearType, ListingCategory } from "~/lib/db/schema";
 import { AppError } from "~/lib/errors";
 import { generateShortId } from "~/lib/slug";
 import type {
@@ -83,7 +84,7 @@ export async function createListing(
 	const db = await getDb();
 	const id = crypto.randomUUID();
 	const shortId = generateShortId();
-	const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+	const expiresAt = new Date(Date.now() + LISTING_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
 	const bike = data.category === "sale" || data.category === "rental";
 
 	await db.transaction().execute(async (trx) => {
@@ -245,15 +246,54 @@ export async function updateListing(
 	});
 }
 
+export type ListingStatusChange = "active" | "paused" | "removed" | "sold";
+
+const ALLOWED_STATUS_CHANGES: readonly ListingStatusChange[] = [
+	"active",
+	"paused",
+	"removed",
+	"sold",
+];
+
+// Pure seam for status transitions: runtime whitelist (TS enums are erased, so
+// crafted requests must be caught here), sold is a sale/gear/part concept only,
+// and re-activation resets the expiry clock so nothing comes back live stale.
+export function buildStatusUpdate(
+	category: ListingCategory,
+	status: ListingStatusChange,
+	now: Date,
+): {
+	status: ListingStatusChange;
+	updated_at: Date;
+	expires_at?: Date;
+	expiry_notified_at?: null;
+} {
+	if (!ALLOWED_STATUS_CHANGES.includes(status)) {
+		throw new AppError("listing.invalidStatus");
+	}
+	if (status === "sold" && category === "rental") {
+		throw new AppError("listing.invalidStatus");
+	}
+	if (status === "active") {
+		return {
+			status,
+			updated_at: now,
+			expires_at: new Date(now.getTime() + LISTING_EXPIRY_DAYS * 24 * 60 * 60 * 1000),
+			expiry_notified_at: null,
+		};
+	}
+	return { status, updated_at: now };
+}
+
 export async function setListingStatus(
 	id: string,
 	ownerId: string,
-	status: "active" | "paused" | "removed",
+	status: ListingStatusChange,
 ): Promise<void> {
 	const db = await getDb();
 	const listing = await db
 		.selectFrom("listing")
-		.select(["owner_id"])
+		.select(["owner_id", "category"])
 		.where("id", "=", id)
 		.executeTakeFirst();
 
@@ -263,7 +303,7 @@ export async function setListingStatus(
 
 	const result = await db
 		.updateTable("listing")
-		.set({ status, updated_at: new Date() })
+		.set(buildStatusUpdate(listing.category, status, new Date()))
 		.where("id", "=", id)
 		.where("owner_id", "=", ownerId)
 		.executeTakeFirst();

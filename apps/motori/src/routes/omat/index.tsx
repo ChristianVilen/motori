@@ -10,14 +10,12 @@ import { signOut } from "~/lib/auth-client";
 import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, SITE_NAME } from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
-import { setListingStatus } from "~/lib/listings-commands";
+import { type ListingStatusChange, setListingStatus } from "~/lib/listings-commands";
 import { getOwnerListings } from "~/lib/listings-owner";
 import { protectedMutation } from "~/lib/middleware";
 import { getProfileForEdit } from "~/lib/profile.server";
 import { requireSessionOrRedirect, requireUserId } from "~/lib/session";
 import { computeListingSlug, slugify } from "~/lib/slug";
-import { TORI_STATUSES } from "~/lib/tori/constants";
-import { setToriItemStatus } from "~/lib/tori/tori-commands";
 import { useEmailVerified } from "~/lib/use-email-verified";
 
 const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
@@ -32,22 +30,15 @@ const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
 
 const setListingStatusFn = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("set-listing-status", 20, 60))
-	.inputValidator((data: { id: string; status: "active" | "paused" | "removed" }) => data)
-	.handler(async ({ data }) => {
-		await setListingStatus(data.id, await requireUserId(), data.status);
-	});
-
-const setToriStatusFn = createServerFn({ method: "POST" })
-	.middleware(protectedMutation("set-tori-status", 20, 60))
-	.inputValidator((data: { id: string; status: string }) => {
-		const allowed = ["active", "paused", "sold"] as const;
-		if (!allowed.includes(data.status as (typeof allowed)[number])) {
+	.inputValidator((data: { id: string; status: ListingStatusChange }) => {
+		const allowed: ListingStatusChange[] = ["active", "paused", "removed", "sold"];
+		if (!allowed.includes(data.status)) {
 			throw new Error("Invalid status");
 		}
 		return data;
 	})
 	.handler(async ({ data }) => {
-		await setToriItemStatus({ data });
+		await setListingStatus(data.id, await requireUserId(), data.status);
 	});
 
 export const Route = createFileRoute("/omat/")({
@@ -65,6 +56,8 @@ const STATUS_STYLES: Record<string, string> = {
 	active: "bg-success/10 text-success",
 	paused: "bg-warning/10 text-warning",
 	rented: "bg-primary/10 text-primary",
+	sold: "bg-primary/10 text-primary",
+	expired: "bg-muted-light text-muted",
 };
 
 interface ListingRowProps {
@@ -87,6 +80,11 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 	async function handleTogglePause() {
 		const newStatus = listing.status === "active" ? "paused" : "active";
 		await setListingStatusFn({ data: { id: listing.id, status: newStatus } });
+		onStatusChange();
+	}
+
+	async function handleMarkSold() {
+		await setListingStatusFn({ data: { id: listing.id, status: "sold" } });
 		onStatusChange();
 	}
 
@@ -199,6 +197,19 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 					>
 						{listing.status === "active" ? t("dashboard.row.pause") : t("dashboard.row.activate")}
 					</Button>
+					{listing.category === "sale" && listing.status === "active" && (
+						<Button
+							variant="outline"
+							size="sm"
+							className="h-7 px-2 text-xs"
+							onClick={handleMarkSold}
+							disabled={!verified}
+							title={!verified ? tAuth("unverifiedTooltip") : undefined}
+							data-testid="dashboard-listing-mark-sold"
+						>
+							{t("dashboard.row.markSold")}
+						</Button>
+					)}
 					<Button
 						variant="outline"
 						size="sm"
@@ -216,13 +227,6 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 	);
 }
 
-const TORI_STATUS_STYLES: Record<string, string> = {
-	active: "bg-success/10 text-success",
-	paused: "bg-warning/10 text-warning",
-	sold: "bg-primary/10 text-primary",
-	expired: "bg-muted-light text-muted",
-};
-
 interface ToriItemRowProps {
 	item: Listing;
 	firstImage: ListingImage | undefined;
@@ -233,17 +237,17 @@ interface ToriItemRowProps {
 function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRowProps) {
 	const { t } = useTranslation("profile");
 	const slug = slugify(item.title);
-	const statusLabel = TORI_STATUSES[item.status as keyof typeof TORI_STATUSES] ?? item.status;
-	const statusStyle = TORI_STATUS_STYLES[item.status] ?? "bg-muted-light text-muted";
+	const statusLabel = LISTING_STATUSES[item.status] ?? item.status;
+	const statusStyle = STATUS_STYLES[item.status] ?? "bg-muted-light text-muted";
 
 	async function handleTogglePause() {
 		const newStatus = item.status === "active" ? "paused" : "active";
-		await setToriStatusFn({ data: { id: item.id, status: newStatus } });
+		await setListingStatusFn({ data: { id: item.id, status: newStatus } });
 		onStatusChange();
 	}
 
 	async function handleMarkSold() {
-		await setToriStatusFn({ data: { id: item.id, status: "sold" } });
+		await setListingStatusFn({ data: { id: item.id, status: "sold" } });
 		onStatusChange();
 	}
 
