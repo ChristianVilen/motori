@@ -72,6 +72,7 @@ export default {
 		back: "Back",
 		negotiable: "Negotiable",
 		soldBanner: "This listing has been marked as sold.",
+		expiredBanner: "This listing has expired.",
 		contactSeller: "Contact seller",
 		messageSeller: "Message seller",
 		description: "Description",

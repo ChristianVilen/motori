@@ -23,6 +23,7 @@ export default {
 			pause: "Tauko",
 			activate: "Aktivoi",
 			markSold: "Myyty",
+			renew: "Jatka voimassaoloa",
 		},
 		row: {
 			viewCount: "{{n}} näyttökertaa",
@@ -30,6 +31,7 @@ export default {
 			pause: "Aseta tauolle",
 			activate: "Aktivoi",
 			markSold: "Myyty",
+			renew: "Jatka voimassaoloa",
 			delete: "Poista",
 			confirmDelete: "Poistetaanko ilmoitus? Tätä ei voi peruuttaa.",
 		},

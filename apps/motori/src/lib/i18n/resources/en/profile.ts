@@ -23,6 +23,7 @@ export default {
 			pause: "Pause",
 			activate: "Activate",
 			markSold: "Sold",
+			renew: "Renew",
 		},
 		row: {
 			viewCount: "{{n}} views",
@@ -30,6 +31,7 @@ export default {
 			pause: "Pause",
 			activate: "Activate",
 			markSold: "Sold",
+			renew: "Renew",
 			delete: "Delete",
 			confirmDelete: "Delete this listing? This can't be undone.",
 		},

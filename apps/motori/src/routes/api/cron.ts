@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { sql } from "kysely";
 import { expireStaleBookings } from "~/lib/bookings.server";
 import { log } from "~/lib/log";
-import { sendListingExpiryWarnings, sendToriExpiryWarnings } from "~/lib/notifications";
+import { sendListingExpiryWarnings } from "~/lib/notifications";
 
 const TASKS: Record<string, CronTask> = {
 	"purge-sessions": async () => {
@@ -26,23 +26,19 @@ const TASKS: Record<string, CronTask> = {
 		log.info("cron: bookings expired", { expired });
 		return { expired };
 	},
-	"expire-tori-items": async () => {
+	// Rental is deliberately absent: its expires_at is inert (never expires).
+	"expire-listings": async () => {
 		const { db } = await import("~/lib/db/index");
 		const result = await db
 			.updateTable("listing")
 			.set({ status: "expired", updated_at: new Date() })
 			.where("status", "=", "active")
-			.where("category", "in", ["gear", "part"])
+			.where("category", "in", ["sale", "gear", "part"])
 			.where("expires_at", "<", sql<Date>`now()`)
 			.executeTakeFirst();
 		const expired = Number(result.numUpdatedRows);
-		log.info("cron: tori items expired", { expired });
+		log.info("cron: listings expired", { expired });
 		return { expired };
-	},
-	"notify-tori-expiry": async () => {
-		const sent = await sendToriExpiryWarnings();
-		log.info("cron: tori expiry warnings complete", { sent });
-		return { sent };
 	},
 };
 

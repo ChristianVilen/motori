@@ -208,8 +208,10 @@ just cron-install
 ```
 
 Schedules in `infra/cron/motori.crontab`:
-- hourly: `expire-bookings`, `expire-tori-items`
-- 03:30–03:40 UTC daily: `purge-sessions`, `notify-expiry`, `notify-tori-expiry`
+- hourly: `expire-bookings`, `expire-listings`
+- 03:30–03:35 UTC daily: `purge-sessions`, `notify-expiry`
+
+After changing task names in `apps/motori/src/routes/api/cron.ts`, re-run `just cron-install` on the VPS so the crontab matches the deployed code.
 
 Wrapper script (`/usr/local/bin/motori-cron`) reads `CRON_SECRET` from `dokku config` at runtime and POSTs to `https://motori.fi/api/cron?task=…` via `--resolve 127.0.0.1` (bypassing CF, faster + avoids CF bot rules).
 

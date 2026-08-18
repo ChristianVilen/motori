@@ -88,6 +88,13 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 		onStatusChange();
 	}
 
+	// Setting "active" resets the expiry clock (buildStatusUpdate), so this
+	// doubles as renew for a still-active listing.
+	async function handleRenew() {
+		await setListingStatusFn({ data: { id: listing.id, status: "active" } });
+		onStatusChange();
+	}
+
 	async function handleDelete() {
 		if (!window.confirm(t("dashboard.row.confirmDelete"))) {
 			return;
@@ -198,17 +205,30 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 						{listing.status === "active" ? t("dashboard.row.pause") : t("dashboard.row.activate")}
 					</Button>
 					{listing.category === "sale" && listing.status === "active" && (
-						<Button
-							variant="outline"
-							size="sm"
-							className="h-7 px-2 text-xs"
-							onClick={handleMarkSold}
-							disabled={!verified}
-							title={!verified ? tAuth("unverifiedTooltip") : undefined}
-							data-testid="dashboard-listing-mark-sold"
-						>
-							{t("dashboard.row.markSold")}
-						</Button>
+						<>
+							<Button
+								variant="outline"
+								size="sm"
+								className="h-7 px-2 text-xs"
+								onClick={handleMarkSold}
+								disabled={!verified}
+								title={!verified ? tAuth("unverifiedTooltip") : undefined}
+								data-testid="dashboard-listing-mark-sold"
+							>
+								{t("dashboard.row.markSold")}
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								className="h-7 px-2 text-xs"
+								onClick={handleRenew}
+								disabled={!verified}
+								title={!verified ? tAuth("unverifiedTooltip") : undefined}
+								data-testid="dashboard-listing-renew"
+							>
+								{t("dashboard.row.renew")}
+							</Button>
+						</>
 					)}
 					<Button
 						variant="outline"
@@ -248,6 +268,11 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 
 	async function handleMarkSold() {
 		await setListingStatusFn({ data: { id: item.id, status: "sold" } });
+		onStatusChange();
+	}
+
+	async function handleRenew() {
+		await setListingStatusFn({ data: { id: item.id, status: "active" } });
 		onStatusChange();
 	}
 
@@ -330,16 +355,28 @@ function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRow
 						</Button>
 					)}
 					{item.status === "active" && (
-						<Button
-							variant="outline"
-							size="sm"
-							className="h-7 px-2 text-xs"
-							onClick={handleMarkSold}
-							disabled={!verified}
-							data-testid="tori-item-mark-sold"
-						>
-							{t("dashboard.tori.markSold")}
-						</Button>
+						<>
+							<Button
+								variant="outline"
+								size="sm"
+								className="h-7 px-2 text-xs"
+								onClick={handleMarkSold}
+								disabled={!verified}
+								data-testid="tori-item-mark-sold"
+							>
+								{t("dashboard.tori.markSold")}
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								className="h-7 px-2 text-xs"
+								onClick={handleRenew}
+								disabled={!verified}
+								data-testid="tori-item-renew"
+							>
+								{t("dashboard.tori.renew")}
+							</Button>
+						</>
 					)}
 				</div>
 			</div>
