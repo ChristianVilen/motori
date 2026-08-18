@@ -19,7 +19,7 @@ export default defineConfig({
 		{
 			name: "chromium",
 			use: { ...devices["Desktop Chrome"] },
-			testIgnore: ["**/mobile-bottom-nav.spec.ts", "**/mobile-chat-back.spec.ts"],
+			testIgnore: ["**/mobile-*.spec.ts"],
 		},
 		{
 			name: "mobile",

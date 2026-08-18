@@ -78,4 +78,9 @@ export default {
 		descriptionTooShort: "Description is too short (min 20 characters)",
 		invalidImageUrl: "Invalid image URL",
 	},
+	citySelect: {
+		noResults: "No results",
+		oneResult: "1 municipality",
+		manyResults: "{{count}} municipalities",
+	},
 } as const;
