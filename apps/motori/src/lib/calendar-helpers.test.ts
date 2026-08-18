@@ -11,12 +11,14 @@ import {
 } from "~/lib/calendar-helpers";
 
 describe("toIso", () => {
+	// Construct with local-time components: `new Date("2026-05-04")` would be UTC
+	// midnight, which is the previous local day west of UTC.
 	it("formats a date as YYYY-MM-DD", () => {
-		expect(toIso(new Date("2026-05-04"))).toBe("2026-05-04");
+		expect(toIso(new Date(2026, 4, 4))).toBe("2026-05-04");
 	});
 
 	it("zero-pads single-digit month and day", () => {
-		expect(toIso(new Date("2026-01-01"))).toBe("2026-01-01");
+		expect(toIso(new Date(2026, 0, 1))).toBe("2026-01-01");
 	});
 });
 
@@ -89,48 +91,45 @@ describe("computeNewRange", () => {
 });
 
 describe("getKeyboardOffset", () => {
+	// fromIso matches the production call site (booking-calendar passes
+	// fromIso(focusedDate)) and parses as a local date in any timezone.
 	it("returns 1 for ArrowRight", () => {
-		const d = new Date("2026-05-04");
-		expect(getKeyboardOffset("ArrowRight", d)).toBe(1);
+		expect(getKeyboardOffset("ArrowRight", fromIso("2026-05-04"))).toBe(1);
 	});
 
 	it("returns -1 for ArrowLeft", () => {
-		const d = new Date("2026-05-04");
-		expect(getKeyboardOffset("ArrowLeft", d)).toBe(-1);
+		expect(getKeyboardOffset("ArrowLeft", fromIso("2026-05-04"))).toBe(-1);
 	});
 
 	it("returns 7 for ArrowDown", () => {
-		const d = new Date("2026-05-04");
-		expect(getKeyboardOffset("ArrowDown", d)).toBe(7);
+		expect(getKeyboardOffset("ArrowDown", fromIso("2026-05-04"))).toBe(7);
 	});
 
 	it("returns -7 for ArrowUp", () => {
-		const d = new Date("2026-05-04");
-		expect(getKeyboardOffset("ArrowUp", d)).toBe(-7);
+		expect(getKeyboardOffset("ArrowUp", fromIso("2026-05-04"))).toBe(-7);
 	});
 
 	it("returns null for unrecognized key", () => {
-		const d = new Date("2026-05-04");
-		expect(getKeyboardOffset("Enter", d)).toBeNull();
+		expect(getKeyboardOffset("Enter", fromIso("2026-05-04"))).toBeNull();
 	});
 
 	it("Home on Monday returns 0", () => {
 		// 2026-05-04 is Monday (day 1)
-		expect(getKeyboardOffset("Home", new Date("2026-05-04"))).toBe(0);
+		expect(getKeyboardOffset("Home", fromIso("2026-05-04"))).toBe(0);
 	});
 
 	it("Home on Wednesday returns -2", () => {
 		// 2026-05-06 is Wednesday (day 3)
-		expect(getKeyboardOffset("Home", new Date("2026-05-06"))).toBe(-2);
+		expect(getKeyboardOffset("Home", fromIso("2026-05-06"))).toBe(-2);
 	});
 
 	it("End on Monday returns 6", () => {
-		expect(getKeyboardOffset("End", new Date("2026-05-04"))).toBe(6);
+		expect(getKeyboardOffset("End", fromIso("2026-05-04"))).toBe(6);
 	});
 
 	it("End on Sunday returns 0", () => {
 		// 2026-05-10 is Sunday (day 0)
-		expect(getKeyboardOffset("End", new Date("2026-05-10"))).toBe(0);
+		expect(getKeyboardOffset("End", fromIso("2026-05-10"))).toBe(0);
 	});
 });
 

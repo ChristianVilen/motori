@@ -17,13 +17,15 @@ describe("formatEur", () => {
 });
 
 describe("formatDate", () => {
+	// Local-time construction: formatDate renders local components, so a UTC
+	// instant would land on a different day in far-east/west timezones.
 	it("formats a date in Finnish short style", () => {
-		const d = new Date("2026-04-18T12:00:00Z");
+		const d = new Date(2026, 3, 18, 12);
 		expect(formatDate(d)).toMatch(/18\.4\.2026|18\.04\.2026/);
 	});
 
 	it("accepts Intl options", () => {
-		const d = new Date("2026-04-18T12:00:00Z");
+		const d = new Date(2026, 3, 18, 12);
 		const out = formatDate(d, { month: "long", year: "numeric" });
 		expect(out.toLowerCase()).toContain("huhtikuu");
 	});
