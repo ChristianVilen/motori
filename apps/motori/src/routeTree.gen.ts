@@ -9,100 +9,56 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ViestitRouteImport } from './routes/viestit'
-import { Route as VaihdaSalasanaRouteImport } from './routes/vaihda-salasana'
-import { Route as VahvistaSahkopostiRouteImport } from './routes/vahvista-sahkoposti'
-import { Route as UnohdinSalasananRouteImport } from './routes/unohdin-salasanan'
-import { Route as TietosuojaRouteImport } from './routes/tietosuoja'
-import { Route as TaydennaProfiiliRouteImport } from './routes/taydenna-profiili'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as RekisteroidyRouteImport } from './routes/rekisteroidy'
-import { Route as KirjauduRouteImport } from './routes/kirjaudu'
-import { Route as KayttoehdotRouteImport } from './routes/kayttoehdot'
-import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as VarusteetIndexRouteImport } from './routes/varusteet/index'
-import { Route as VaraosatIndexRouteImport } from './routes/varaosat/index'
-import { Route as ToriIndexRouteImport } from './routes/tori/index'
-import { Route as OmatIndexRouteImport } from './routes/omat/index'
-import { Route as IlmoituksetIndexRouteImport } from './routes/ilmoitukset/index'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
+import { Route as KayttoehdotRouteImport } from './routes/kayttoehdot'
+import { Route as KirjauduRouteImport } from './routes/kirjaudu'
+import { Route as RekisteroidyRouteImport } from './routes/rekisteroidy'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TaydennaProfiiliRouteImport } from './routes/taydenna-profiili'
+import { Route as TietosuojaRouteImport } from './routes/tietosuoja'
+import { Route as UnohdinSalasananRouteImport } from './routes/unohdin-salasanan'
+import { Route as VahvistaSahkopostiRouteImport } from './routes/vahvista-sahkoposti'
+import { Route as VaihdaSalasanaRouteImport } from './routes/vaihda-salasana'
+import { Route as ViestitRouteImport } from './routes/viestit'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as ViestitConversationIdRouteImport } from './routes/viestit/$conversationId'
-import { Route as ToriUusiRouteImport } from './routes/tori/uusi'
-import { Route as ProfiiliAsetuksetRouteImport } from './routes/profiili/asetukset'
-import { Route as ProfiiliUserIdRouteImport } from './routes/profiili/$userId'
-import { Route as OmatVarauksetRouteImport } from './routes/omat/varaukset'
-import { Route as IlmoituksetUusiRouteImport } from './routes/ilmoitukset/uusi'
-import { Route as ApiHealthRouteImport } from './routes/api/health'
-import { Route as ApiCronRouteImport } from './routes/api/cron'
-import { Route as AdminUsersRouteImport } from './routes/admin/users'
-import { Route as AdminModerationRouteImport } from './routes/admin/moderation'
-import { Route as AdminMakesRouteImport } from './routes/admin/makes'
 import { Route as AdminListingsRouteImport } from './routes/admin/listings'
-import { Route as PyoratVuokrausIndexRouteImport } from './routes/pyorat/vuokraus/index'
-import { Route as PyoratMyyntiIndexRouteImport } from './routes/pyorat/myynti/index'
-import { Route as VarusteetListingIdSlugRouteImport } from './routes/varusteet/$listingId_.$slug'
-import { Route as VaraosatListingIdSlugRouteImport } from './routes/varaosat/$listingId_.$slug'
-import { Route as ToriItemIdMuokkaaRouteImport } from './routes/tori/$itemId_.muokkaa'
-import { Route as ToriItemIdSlugRouteImport } from './routes/tori/$itemId_.$slug'
-import { Route as OmatVarauksetBookingIdRouteImport } from './routes/omat/varaukset_.$bookingId'
-import { Route as IlmoituksetListingIdMuokkaaRouteImport } from './routes/ilmoitukset/$listingId_.muokkaa'
-import { Route as IlmoituksetListingIdSlugRouteImport } from './routes/ilmoitukset/$listingId_.$slug'
-import { Route as ApiUploadsSplatRouteImport } from './routes/api/uploads/$'
-import { Route as ApiImagesUploadRouteImport } from './routes/api/images/upload'
+import { Route as AdminMakesRouteImport } from './routes/admin/makes'
+import { Route as AdminModerationRouteImport } from './routes/admin/moderation'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as ApiCronRouteImport } from './routes/api/cron'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as IlmoituksetIndexRouteImport } from './routes/ilmoitukset/index'
+import { Route as IlmoituksetUusiRouteImport } from './routes/ilmoitukset/uusi'
+import { Route as OmatIndexRouteImport } from './routes/omat/index'
+import { Route as OmatSuosikitRouteImport } from './routes/omat/suosikit'
+import { Route as OmatVarauksetRouteImport } from './routes/omat/varaukset'
+import { Route as ProfiiliUserIdRouteImport } from './routes/profiili/$userId'
+import { Route as ProfiiliAsetuksetRouteImport } from './routes/profiili/asetukset'
+import { Route as ToriIndexRouteImport } from './routes/tori/index'
+import { Route as ToriUusiRouteImport } from './routes/tori/uusi'
+import { Route as VaraosatIndexRouteImport } from './routes/varaosat/index'
+import { Route as VarusteetIndexRouteImport } from './routes/varusteet/index'
+import { Route as ViestitConversationIdRouteImport } from './routes/viestit/$conversationId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as PyoratVuokrausListingIdSlugRouteImport } from './routes/pyorat/vuokraus/$listingId_.$slug'
-import { Route as PyoratMyyntiListingIdSlugRouteImport } from './routes/pyorat/myynti/$listingId_.$slug'
+import { Route as ApiImagesUploadRouteImport } from './routes/api/images/upload'
+import { Route as ApiUploadsSplatRouteImport } from './routes/api/uploads/$'
+import { Route as IlmoituksetListingIdSlugRouteImport } from './routes/ilmoitukset/$listingId_.$slug'
+import { Route as IlmoituksetListingIdMuokkaaRouteImport } from './routes/ilmoitukset/$listingId_.muokkaa'
+import { Route as OmatVarauksetBookingIdRouteImport } from './routes/omat/varaukset_.$bookingId'
+import { Route as PyoratMyyntiIndexRouteImport } from './routes/pyorat/myynti/index'
+import { Route as PyoratVuokrausIndexRouteImport } from './routes/pyorat/vuokraus/index'
+import { Route as ToriItemIdSlugRouteImport } from './routes/tori/$itemId_.$slug'
+import { Route as ToriItemIdMuokkaaRouteImport } from './routes/tori/$itemId_.muokkaa'
+import { Route as VaraosatListingIdSlugRouteImport } from './routes/varaosat/$listingId_.$slug'
+import { Route as VarusteetListingIdSlugRouteImport } from './routes/varusteet/$listingId_.$slug'
 import { Route as ApiMessagesStreamConversationIdRouteImport } from './routes/api/messages/stream.$conversationId'
+import { Route as PyoratMyyntiListingIdSlugRouteImport } from './routes/pyorat/myynti/$listingId_.$slug'
+import { Route as PyoratVuokrausListingIdSlugRouteImport } from './routes/pyorat/vuokraus/$listingId_.$slug'
 
-const ViestitRoute = ViestitRouteImport.update({
-  id: '/viestit',
-  path: '/viestit',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VaihdaSalasanaRoute = VaihdaSalasanaRouteImport.update({
-  id: '/vaihda-salasana',
-  path: '/vaihda-salasana',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VahvistaSahkopostiRoute = VahvistaSahkopostiRouteImport.update({
-  id: '/vahvista-sahkoposti',
-  path: '/vahvista-sahkoposti',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const UnohdinSalasananRoute = UnohdinSalasananRouteImport.update({
-  id: '/unohdin-salasanan',
-  path: '/unohdin-salasanan',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TietosuojaRoute = TietosuojaRouteImport.update({
-  id: '/tietosuoja',
-  path: '/tietosuoja',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TaydennaProfiiliRoute = TaydennaProfiiliRouteImport.update({
-  id: '/taydenna-profiili',
-  path: '/taydenna-profiili',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RekisteroidyRoute = RekisteroidyRouteImport.update({
-  id: '/rekisteroidy',
-  path: '/rekisteroidy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KirjauduRoute = KirjauduRouteImport.update({
-  id: '/kirjaudu',
-  path: '/kirjaudu',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KayttoehdotRoute = KayttoehdotRouteImport.update({
-  id: '/kayttoehdot',
-  path: '/kayttoehdot',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRouteRoute = AdminRouteRouteImport.update({
@@ -110,34 +66,54 @@ const AdminRouteRoute = AdminRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const KayttoehdotRoute = KayttoehdotRouteImport.update({
+  id: '/kayttoehdot',
+  path: '/kayttoehdot',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VarusteetIndexRoute = VarusteetIndexRouteImport.update({
-  id: '/varusteet/',
-  path: '/varusteet/',
+const KirjauduRoute = KirjauduRouteImport.update({
+  id: '/kirjaudu',
+  path: '/kirjaudu',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VaraosatIndexRoute = VaraosatIndexRouteImport.update({
-  id: '/varaosat/',
-  path: '/varaosat/',
+const RekisteroidyRoute = RekisteroidyRouteImport.update({
+  id: '/rekisteroidy',
+  path: '/rekisteroidy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToriIndexRoute = ToriIndexRouteImport.update({
-  id: '/tori/',
-  path: '/tori/',
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OmatIndexRoute = OmatIndexRouteImport.update({
-  id: '/omat/',
-  path: '/omat/',
+const TaydennaProfiiliRoute = TaydennaProfiiliRouteImport.update({
+  id: '/taydenna-profiili',
+  path: '/taydenna-profiili',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IlmoituksetIndexRoute = IlmoituksetIndexRouteImport.update({
-  id: '/ilmoitukset/',
-  path: '/ilmoitukset/',
+const TietosuojaRoute = TietosuojaRouteImport.update({
+  id: '/tietosuoja',
+  path: '/tietosuoja',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnohdinSalasananRoute = UnohdinSalasananRouteImport.update({
+  id: '/unohdin-salasanan',
+  path: '/unohdin-salasanan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VahvistaSahkopostiRoute = VahvistaSahkopostiRouteImport.update({
+  id: '/vahvista-sahkoposti',
+  path: '/vahvista-sahkoposti',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VaihdaSalasanaRoute = VaihdaSalasanaRouteImport.update({
+  id: '/vaihda-salasana',
+  path: '/vaihda-salasana',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ViestitRoute = ViestitRouteImport.update({
+  id: '/viestit',
+  path: '/viestit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -145,54 +121,9 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
-const ViestitConversationIdRoute = ViestitConversationIdRouteImport.update({
-  id: '/$conversationId',
-  path: '/$conversationId',
-  getParentRoute: () => ViestitRoute,
-} as any)
-const ToriUusiRoute = ToriUusiRouteImport.update({
-  id: '/tori/uusi',
-  path: '/tori/uusi',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfiiliAsetuksetRoute = ProfiiliAsetuksetRouteImport.update({
-  id: '/profiili/asetukset',
-  path: '/profiili/asetukset',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfiiliUserIdRoute = ProfiiliUserIdRouteImport.update({
-  id: '/profiili/$userId',
-  path: '/profiili/$userId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OmatVarauksetRoute = OmatVarauksetRouteImport.update({
-  id: '/omat/varaukset',
-  path: '/omat/varaukset',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IlmoituksetUusiRoute = IlmoituksetUusiRouteImport.update({
-  id: '/ilmoitukset/uusi',
-  path: '/ilmoitukset/uusi',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiHealthRoute = ApiHealthRouteImport.update({
-  id: '/api/health',
-  path: '/api/health',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCronRoute = ApiCronRouteImport.update({
-  id: '/api/cron',
-  path: '/api/cron',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminUsersRoute = AdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminModerationRoute = AdminModerationRouteImport.update({
-  id: '/moderation',
-  path: '/moderation',
+const AdminListingsRoute = AdminListingsRouteImport.update({
+  id: '/listings',
+  path: '/listings',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminMakesRoute = AdminMakesRouteImport.update({
@@ -200,61 +131,89 @@ const AdminMakesRoute = AdminMakesRouteImport.update({
   path: '/makes',
   getParentRoute: () => AdminRouteRoute,
 } as any)
-const AdminListingsRoute = AdminListingsRouteImport.update({
-  id: '/listings',
-  path: '/listings',
+const AdminModerationRoute = AdminModerationRouteImport.update({
+  id: '/moderation',
+  path: '/moderation',
   getParentRoute: () => AdminRouteRoute,
 } as any)
-const PyoratVuokrausIndexRoute = PyoratVuokrausIndexRouteImport.update({
-  id: '/pyorat/vuokraus/',
-  path: '/pyorat/vuokraus/',
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const ApiCronRoute = ApiCronRouteImport.update({
+  id: '/api/cron',
+  path: '/api/cron',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PyoratMyyntiIndexRoute = PyoratMyyntiIndexRouteImport.update({
-  id: '/pyorat/myynti/',
-  path: '/pyorat/myynti/',
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VarusteetListingIdSlugRoute = VarusteetListingIdSlugRouteImport.update({
-  id: '/varusteet/$listingId_/$slug',
-  path: '/varusteet/$listingId/$slug',
+const IlmoituksetIndexRoute = IlmoituksetIndexRouteImport.update({
+  id: '/ilmoitukset/',
+  path: '/ilmoitukset/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VaraosatListingIdSlugRoute = VaraosatListingIdSlugRouteImport.update({
-  id: '/varaosat/$listingId_/$slug',
-  path: '/varaosat/$listingId/$slug',
+const IlmoituksetUusiRoute = IlmoituksetUusiRouteImport.update({
+  id: '/ilmoitukset/uusi',
+  path: '/ilmoitukset/uusi',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToriItemIdMuokkaaRoute = ToriItemIdMuokkaaRouteImport.update({
-  id: '/tori/$itemId_/muokkaa',
-  path: '/tori/$itemId/muokkaa',
+const OmatIndexRoute = OmatIndexRouteImport.update({
+  id: '/omat/',
+  path: '/omat/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToriItemIdSlugRoute = ToriItemIdSlugRouteImport.update({
-  id: '/tori/$itemId_/$slug',
-  path: '/tori/$itemId/$slug',
+const OmatSuosikitRoute = OmatSuosikitRouteImport.update({
+  id: '/omat/suosikit',
+  path: '/omat/suosikit',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OmatVarauksetBookingIdRoute = OmatVarauksetBookingIdRouteImport.update({
-  id: '/omat/varaukset_/$bookingId',
-  path: '/omat/varaukset/$bookingId',
+const OmatVarauksetRoute = OmatVarauksetRouteImport.update({
+  id: '/omat/varaukset',
+  path: '/omat/varaukset',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IlmoituksetListingIdMuokkaaRoute =
-  IlmoituksetListingIdMuokkaaRouteImport.update({
-    id: '/ilmoitukset/$listingId_/muokkaa',
-    path: '/ilmoitukset/$listingId/muokkaa',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const IlmoituksetListingIdSlugRoute =
-  IlmoituksetListingIdSlugRouteImport.update({
-    id: '/ilmoitukset/$listingId_/$slug',
-    path: '/ilmoitukset/$listingId/$slug',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiUploadsSplatRoute = ApiUploadsSplatRouteImport.update({
-  id: '/api/uploads/$',
-  path: '/api/uploads/$',
+const ProfiiliUserIdRoute = ProfiiliUserIdRouteImport.update({
+  id: '/profiili/$userId',
+  path: '/profiili/$userId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfiiliAsetuksetRoute = ProfiiliAsetuksetRouteImport.update({
+  id: '/profiili/asetukset',
+  path: '/profiili/asetukset',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToriIndexRoute = ToriIndexRouteImport.update({
+  id: '/tori/',
+  path: '/tori/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToriUusiRoute = ToriUusiRouteImport.update({
+  id: '/tori/uusi',
+  path: '/tori/uusi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VaraosatIndexRoute = VaraosatIndexRouteImport.update({
+  id: '/varaosat/',
+  path: '/varaosat/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VarusteetIndexRoute = VarusteetIndexRouteImport.update({
+  id: '/varusteet/',
+  path: '/varusteet/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ViestitConversationIdRoute = ViestitConversationIdRouteImport.update({
+  id: '/$conversationId',
+  path: '/$conversationId',
+  getParentRoute: () => ViestitRoute,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiImagesUploadRoute = ApiImagesUploadRouteImport.update({
@@ -262,15 +221,62 @@ const ApiImagesUploadRoute = ApiImagesUploadRouteImport.update({
   path: '/api/images/upload',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
+const ApiUploadsSplatRoute = ApiUploadsSplatRouteImport.update({
+  id: '/api/uploads/$',
+  path: '/api/uploads/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PyoratVuokrausListingIdSlugRoute =
-  PyoratVuokrausListingIdSlugRouteImport.update({
-    id: '/pyorat/vuokraus/$listingId_/$slug',
-    path: '/pyorat/vuokraus/$listingId/$slug',
+const IlmoituksetListingIdSlugRoute =
+  IlmoituksetListingIdSlugRouteImport.update({
+    id: '/ilmoitukset/$listingId_/$slug',
+    path: '/ilmoitukset/$listingId/$slug',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const IlmoituksetListingIdMuokkaaRoute =
+  IlmoituksetListingIdMuokkaaRouteImport.update({
+    id: '/ilmoitukset/$listingId_/muokkaa',
+    path: '/ilmoitukset/$listingId/muokkaa',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const OmatVarauksetBookingIdRoute = OmatVarauksetBookingIdRouteImport.update({
+  id: '/omat/varaukset_/$bookingId',
+  path: '/omat/varaukset/$bookingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PyoratMyyntiIndexRoute = PyoratMyyntiIndexRouteImport.update({
+  id: '/pyorat/myynti/',
+  path: '/pyorat/myynti/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PyoratVuokrausIndexRoute = PyoratVuokrausIndexRouteImport.update({
+  id: '/pyorat/vuokraus/',
+  path: '/pyorat/vuokraus/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToriItemIdSlugRoute = ToriItemIdSlugRouteImport.update({
+  id: '/tori/$itemId_/$slug',
+  path: '/tori/$itemId/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToriItemIdMuokkaaRoute = ToriItemIdMuokkaaRouteImport.update({
+  id: '/tori/$itemId_/muokkaa',
+  path: '/tori/$itemId/muokkaa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VaraosatListingIdSlugRoute = VaraosatListingIdSlugRouteImport.update({
+  id: '/varaosat/$listingId_/$slug',
+  path: '/varaosat/$listingId/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VarusteetListingIdSlugRoute = VarusteetListingIdSlugRouteImport.update({
+  id: '/varusteet/$listingId_/$slug',
+  path: '/varusteet/$listingId/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMessagesStreamConversationIdRoute =
+  ApiMessagesStreamConversationIdRouteImport.update({
+    id: '/api/messages/stream/$conversationId',
+    path: '/api/messages/stream/$conversationId',
     getParentRoute: () => rootRouteImport,
   } as any)
 const PyoratMyyntiListingIdSlugRoute =
@@ -279,10 +285,10 @@ const PyoratMyyntiListingIdSlugRoute =
     path: '/pyorat/myynti/$listingId/$slug',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiMessagesStreamConversationIdRoute =
-  ApiMessagesStreamConversationIdRouteImport.update({
-    id: '/api/messages/stream/$conversationId',
-    path: '/api/messages/stream/$conversationId',
+const PyoratVuokrausListingIdSlugRoute =
+  PyoratVuokrausListingIdSlugRouteImport.update({
+    id: '/pyorat/vuokraus/$listingId_/$slug',
+    path: '/pyorat/vuokraus/$listingId/$slug',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -306,6 +312,7 @@ export interface FileRoutesByFullPath {
   '/api/cron': typeof ApiCronRoute
   '/api/health': typeof ApiHealthRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
+  '/omat/suosikit': typeof OmatSuosikitRoute
   '/omat/varaukset': typeof OmatVarauksetRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
@@ -352,6 +359,7 @@ export interface FileRoutesByTo {
   '/api/cron': typeof ApiCronRoute
   '/api/health': typeof ApiHealthRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
+  '/omat/suosikit': typeof OmatSuosikitRoute
   '/omat/varaukset': typeof OmatVarauksetRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
@@ -400,6 +408,7 @@ export interface FileRoutesById {
   '/api/cron': typeof ApiCronRoute
   '/api/health': typeof ApiHealthRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
+  '/omat/suosikit': typeof OmatSuosikitRoute
   '/omat/varaukset': typeof OmatVarauksetRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
@@ -449,6 +458,7 @@ export interface FileRouteTypes {
     | '/api/cron'
     | '/api/health'
     | '/ilmoitukset/uusi'
+    | '/omat/suosikit'
     | '/omat/varaukset'
     | '/profiili/$userId'
     | '/profiili/asetukset'
@@ -495,6 +505,7 @@ export interface FileRouteTypes {
     | '/api/cron'
     | '/api/health'
     | '/ilmoitukset/uusi'
+    | '/omat/suosikit'
     | '/omat/varaukset'
     | '/profiili/$userId'
     | '/profiili/asetukset'
@@ -542,6 +553,7 @@ export interface FileRouteTypes {
     | '/api/cron'
     | '/api/health'
     | '/ilmoitukset/uusi'
+    | '/omat/suosikit'
     | '/omat/varaukset'
     | '/profiili/$userId'
     | '/profiili/asetukset'
@@ -586,6 +598,7 @@ export interface RootRouteChildren {
   ApiCronRoute: typeof ApiCronRoute
   ApiHealthRoute: typeof ApiHealthRoute
   IlmoituksetUusiRoute: typeof IlmoituksetUusiRoute
+  OmatSuosikitRoute: typeof OmatSuosikitRoute
   OmatVarauksetRoute: typeof OmatVarauksetRoute
   ProfiiliUserIdRoute: typeof ProfiiliUserIdRoute
   ProfiiliAsetuksetRoute: typeof ProfiiliAsetuksetRoute
@@ -614,74 +627,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/viestit': {
-      id: '/viestit'
-      path: '/viestit'
-      fullPath: '/viestit'
-      preLoaderRoute: typeof ViestitRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/vaihda-salasana': {
-      id: '/vaihda-salasana'
-      path: '/vaihda-salasana'
-      fullPath: '/vaihda-salasana'
-      preLoaderRoute: typeof VaihdaSalasanaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/vahvista-sahkoposti': {
-      id: '/vahvista-sahkoposti'
-      path: '/vahvista-sahkoposti'
-      fullPath: '/vahvista-sahkoposti'
-      preLoaderRoute: typeof VahvistaSahkopostiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/unohdin-salasanan': {
-      id: '/unohdin-salasanan'
-      path: '/unohdin-salasanan'
-      fullPath: '/unohdin-salasanan'
-      preLoaderRoute: typeof UnohdinSalasananRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tietosuoja': {
-      id: '/tietosuoja'
-      path: '/tietosuoja'
-      fullPath: '/tietosuoja'
-      preLoaderRoute: typeof TietosuojaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/taydenna-profiili': {
-      id: '/taydenna-profiili'
-      path: '/taydenna-profiili'
-      fullPath: '/taydenna-profiili'
-      preLoaderRoute: typeof TaydennaProfiiliRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/rekisteroidy': {
-      id: '/rekisteroidy'
-      path: '/rekisteroidy'
-      fullPath: '/rekisteroidy'
-      preLoaderRoute: typeof RekisteroidyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kirjaudu': {
-      id: '/kirjaudu'
-      path: '/kirjaudu'
-      fullPath: '/kirjaudu'
-      preLoaderRoute: typeof KirjauduRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kayttoehdot': {
-      id: '/kayttoehdot'
-      path: '/kayttoehdot'
-      fullPath: '/kayttoehdot'
-      preLoaderRoute: typeof KayttoehdotRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -691,46 +641,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/kayttoehdot': {
+      id: '/kayttoehdot'
+      path: '/kayttoehdot'
+      fullPath: '/kayttoehdot'
+      preLoaderRoute: typeof KayttoehdotRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/varusteet/': {
-      id: '/varusteet/'
-      path: '/varusteet'
-      fullPath: '/varusteet/'
-      preLoaderRoute: typeof VarusteetIndexRouteImport
+    '/kirjaudu': {
+      id: '/kirjaudu'
+      path: '/kirjaudu'
+      fullPath: '/kirjaudu'
+      preLoaderRoute: typeof KirjauduRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/varaosat/': {
-      id: '/varaosat/'
-      path: '/varaosat'
-      fullPath: '/varaosat/'
-      preLoaderRoute: typeof VaraosatIndexRouteImport
+    '/rekisteroidy': {
+      id: '/rekisteroidy'
+      path: '/rekisteroidy'
+      fullPath: '/rekisteroidy'
+      preLoaderRoute: typeof RekisteroidyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tori/': {
-      id: '/tori/'
-      path: '/tori'
-      fullPath: '/tori/'
-      preLoaderRoute: typeof ToriIndexRouteImport
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/omat/': {
-      id: '/omat/'
-      path: '/omat'
-      fullPath: '/omat/'
-      preLoaderRoute: typeof OmatIndexRouteImport
+    '/taydenna-profiili': {
+      id: '/taydenna-profiili'
+      path: '/taydenna-profiili'
+      fullPath: '/taydenna-profiili'
+      preLoaderRoute: typeof TaydennaProfiiliRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ilmoitukset/': {
-      id: '/ilmoitukset/'
-      path: '/ilmoitukset'
-      fullPath: '/ilmoitukset/'
-      preLoaderRoute: typeof IlmoituksetIndexRouteImport
+    '/tietosuoja': {
+      id: '/tietosuoja'
+      path: '/tietosuoja'
+      fullPath: '/tietosuoja'
+      preLoaderRoute: typeof TietosuojaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/unohdin-salasanan': {
+      id: '/unohdin-salasanan'
+      path: '/unohdin-salasanan'
+      fullPath: '/unohdin-salasanan'
+      preLoaderRoute: typeof UnohdinSalasananRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vahvista-sahkoposti': {
+      id: '/vahvista-sahkoposti'
+      path: '/vahvista-sahkoposti'
+      fullPath: '/vahvista-sahkoposti'
+      preLoaderRoute: typeof VahvistaSahkopostiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vaihda-salasana': {
+      id: '/vaihda-salasana'
+      path: '/vaihda-salasana'
+      fullPath: '/vaihda-salasana'
+      preLoaderRoute: typeof VaihdaSalasanaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/viestit': {
+      id: '/viestit'
+      path: '/viestit'
+      fullPath: '/viestit'
+      preLoaderRoute: typeof ViestitRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -740,74 +718,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
-    '/viestit/$conversationId': {
-      id: '/viestit/$conversationId'
-      path: '/$conversationId'
-      fullPath: '/viestit/$conversationId'
-      preLoaderRoute: typeof ViestitConversationIdRouteImport
-      parentRoute: typeof ViestitRoute
-    }
-    '/tori/uusi': {
-      id: '/tori/uusi'
-      path: '/tori/uusi'
-      fullPath: '/tori/uusi'
-      preLoaderRoute: typeof ToriUusiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profiili/asetukset': {
-      id: '/profiili/asetukset'
-      path: '/profiili/asetukset'
-      fullPath: '/profiili/asetukset'
-      preLoaderRoute: typeof ProfiiliAsetuksetRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profiili/$userId': {
-      id: '/profiili/$userId'
-      path: '/profiili/$userId'
-      fullPath: '/profiili/$userId'
-      preLoaderRoute: typeof ProfiiliUserIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/omat/varaukset': {
-      id: '/omat/varaukset'
-      path: '/omat/varaukset'
-      fullPath: '/omat/varaukset'
-      preLoaderRoute: typeof OmatVarauksetRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ilmoitukset/uusi': {
-      id: '/ilmoitukset/uusi'
-      path: '/ilmoitukset/uusi'
-      fullPath: '/ilmoitukset/uusi'
-      preLoaderRoute: typeof IlmoituksetUusiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/health': {
-      id: '/api/health'
-      path: '/api/health'
-      fullPath: '/api/health'
-      preLoaderRoute: typeof ApiHealthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/cron': {
-      id: '/api/cron'
-      path: '/api/cron'
-      fullPath: '/api/cron'
-      preLoaderRoute: typeof ApiCronRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/users': {
-      id: '/admin/users'
-      path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/moderation': {
-      id: '/admin/moderation'
-      path: '/moderation'
-      fullPath: '/admin/moderation'
-      preLoaderRoute: typeof AdminModerationRouteImport
+    '/admin/listings': {
+      id: '/admin/listings'
+      path: '/listings'
+      fullPath: '/admin/listings'
+      preLoaderRoute: typeof AdminListingsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/makes': {
@@ -817,81 +732,123 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMakesRouteImport
       parentRoute: typeof AdminRouteRoute
     }
-    '/admin/listings': {
-      id: '/admin/listings'
-      path: '/listings'
-      fullPath: '/admin/listings'
-      preLoaderRoute: typeof AdminListingsRouteImport
+    '/admin/moderation': {
+      id: '/admin/moderation'
+      path: '/moderation'
+      fullPath: '/admin/moderation'
+      preLoaderRoute: typeof AdminModerationRouteImport
       parentRoute: typeof AdminRouteRoute
     }
-    '/pyorat/vuokraus/': {
-      id: '/pyorat/vuokraus/'
-      path: '/pyorat/vuokraus'
-      fullPath: '/pyorat/vuokraus/'
-      preLoaderRoute: typeof PyoratVuokrausIndexRouteImport
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/api/cron': {
+      id: '/api/cron'
+      path: '/api/cron'
+      fullPath: '/api/cron'
+      preLoaderRoute: typeof ApiCronRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pyorat/myynti/': {
-      id: '/pyorat/myynti/'
-      path: '/pyorat/myynti'
-      fullPath: '/pyorat/myynti/'
-      preLoaderRoute: typeof PyoratMyyntiIndexRouteImport
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/varusteet/$listingId_/$slug': {
-      id: '/varusteet/$listingId_/$slug'
-      path: '/varusteet/$listingId/$slug'
-      fullPath: '/varusteet/$listingId/$slug'
-      preLoaderRoute: typeof VarusteetListingIdSlugRouteImport
+    '/ilmoitukset/': {
+      id: '/ilmoitukset/'
+      path: '/ilmoitukset'
+      fullPath: '/ilmoitukset/'
+      preLoaderRoute: typeof IlmoituksetIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/varaosat/$listingId_/$slug': {
-      id: '/varaosat/$listingId_/$slug'
-      path: '/varaosat/$listingId/$slug'
-      fullPath: '/varaosat/$listingId/$slug'
-      preLoaderRoute: typeof VaraosatListingIdSlugRouteImport
+    '/ilmoitukset/uusi': {
+      id: '/ilmoitukset/uusi'
+      path: '/ilmoitukset/uusi'
+      fullPath: '/ilmoitukset/uusi'
+      preLoaderRoute: typeof IlmoituksetUusiRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tori/$itemId_/muokkaa': {
-      id: '/tori/$itemId_/muokkaa'
-      path: '/tori/$itemId/muokkaa'
-      fullPath: '/tori/$itemId/muokkaa'
-      preLoaderRoute: typeof ToriItemIdMuokkaaRouteImport
+    '/omat/': {
+      id: '/omat/'
+      path: '/omat'
+      fullPath: '/omat/'
+      preLoaderRoute: typeof OmatIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tori/$itemId_/$slug': {
-      id: '/tori/$itemId_/$slug'
-      path: '/tori/$itemId/$slug'
-      fullPath: '/tori/$itemId/$slug'
-      preLoaderRoute: typeof ToriItemIdSlugRouteImport
+    '/omat/suosikit': {
+      id: '/omat/suosikit'
+      path: '/omat/suosikit'
+      fullPath: '/omat/suosikit'
+      preLoaderRoute: typeof OmatSuosikitRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/omat/varaukset_/$bookingId': {
-      id: '/omat/varaukset_/$bookingId'
-      path: '/omat/varaukset/$bookingId'
-      fullPath: '/omat/varaukset/$bookingId'
-      preLoaderRoute: typeof OmatVarauksetBookingIdRouteImport
+    '/omat/varaukset': {
+      id: '/omat/varaukset'
+      path: '/omat/varaukset'
+      fullPath: '/omat/varaukset'
+      preLoaderRoute: typeof OmatVarauksetRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ilmoitukset/$listingId_/muokkaa': {
-      id: '/ilmoitukset/$listingId_/muokkaa'
-      path: '/ilmoitukset/$listingId/muokkaa'
-      fullPath: '/ilmoitukset/$listingId/muokkaa'
-      preLoaderRoute: typeof IlmoituksetListingIdMuokkaaRouteImport
+    '/profiili/$userId': {
+      id: '/profiili/$userId'
+      path: '/profiili/$userId'
+      fullPath: '/profiili/$userId'
+      preLoaderRoute: typeof ProfiiliUserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ilmoitukset/$listingId_/$slug': {
-      id: '/ilmoitukset/$listingId_/$slug'
-      path: '/ilmoitukset/$listingId/$slug'
-      fullPath: '/ilmoitukset/$listingId/$slug'
-      preLoaderRoute: typeof IlmoituksetListingIdSlugRouteImport
+    '/profiili/asetukset': {
+      id: '/profiili/asetukset'
+      path: '/profiili/asetukset'
+      fullPath: '/profiili/asetukset'
+      preLoaderRoute: typeof ProfiiliAsetuksetRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/uploads/$': {
-      id: '/api/uploads/$'
-      path: '/api/uploads/$'
-      fullPath: '/api/uploads/$'
-      preLoaderRoute: typeof ApiUploadsSplatRouteImport
+    '/tori/': {
+      id: '/tori/'
+      path: '/tori'
+      fullPath: '/tori/'
+      preLoaderRoute: typeof ToriIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tori/uusi': {
+      id: '/tori/uusi'
+      path: '/tori/uusi'
+      fullPath: '/tori/uusi'
+      preLoaderRoute: typeof ToriUusiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/varaosat/': {
+      id: '/varaosat/'
+      path: '/varaosat'
+      fullPath: '/varaosat/'
+      preLoaderRoute: typeof VaraosatIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/varusteet/': {
+      id: '/varusteet/'
+      path: '/varusteet'
+      fullPath: '/varusteet/'
+      preLoaderRoute: typeof VarusteetIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/viestit/$conversationId': {
+      id: '/viestit/$conversationId'
+      path: '/$conversationId'
+      fullPath: '/viestit/$conversationId'
+      preLoaderRoute: typeof ViestitConversationIdRouteImport
+      parentRoute: typeof ViestitRoute
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/images/upload': {
@@ -901,18 +858,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiImagesUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
+    '/api/uploads/$': {
+      id: '/api/uploads/$'
+      path: '/api/uploads/$'
+      fullPath: '/api/uploads/$'
+      preLoaderRoute: typeof ApiUploadsSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pyorat/vuokraus/$listingId_/$slug': {
-      id: '/pyorat/vuokraus/$listingId_/$slug'
-      path: '/pyorat/vuokraus/$listingId/$slug'
-      fullPath: '/pyorat/vuokraus/$listingId/$slug'
-      preLoaderRoute: typeof PyoratVuokrausListingIdSlugRouteImport
+    '/ilmoitukset/$listingId_/$slug': {
+      id: '/ilmoitukset/$listingId_/$slug'
+      path: '/ilmoitukset/$listingId/$slug'
+      fullPath: '/ilmoitukset/$listingId/$slug'
+      preLoaderRoute: typeof IlmoituksetListingIdSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ilmoitukset/$listingId_/muokkaa': {
+      id: '/ilmoitukset/$listingId_/muokkaa'
+      path: '/ilmoitukset/$listingId/muokkaa'
+      fullPath: '/ilmoitukset/$listingId/muokkaa'
+      preLoaderRoute: typeof IlmoituksetListingIdMuokkaaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/omat/varaukset_/$bookingId': {
+      id: '/omat/varaukset_/$bookingId'
+      path: '/omat/varaukset/$bookingId'
+      fullPath: '/omat/varaukset/$bookingId'
+      preLoaderRoute: typeof OmatVarauksetBookingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pyorat/myynti/': {
+      id: '/pyorat/myynti/'
+      path: '/pyorat/myynti'
+      fullPath: '/pyorat/myynti/'
+      preLoaderRoute: typeof PyoratMyyntiIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pyorat/vuokraus/': {
+      id: '/pyorat/vuokraus/'
+      path: '/pyorat/vuokraus'
+      fullPath: '/pyorat/vuokraus/'
+      preLoaderRoute: typeof PyoratVuokrausIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tori/$itemId_/$slug': {
+      id: '/tori/$itemId_/$slug'
+      path: '/tori/$itemId/$slug'
+      fullPath: '/tori/$itemId/$slug'
+      preLoaderRoute: typeof ToriItemIdSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tori/$itemId_/muokkaa': {
+      id: '/tori/$itemId_/muokkaa'
+      path: '/tori/$itemId/muokkaa'
+      fullPath: '/tori/$itemId/muokkaa'
+      preLoaderRoute: typeof ToriItemIdMuokkaaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/varaosat/$listingId_/$slug': {
+      id: '/varaosat/$listingId_/$slug'
+      path: '/varaosat/$listingId/$slug'
+      fullPath: '/varaosat/$listingId/$slug'
+      preLoaderRoute: typeof VaraosatListingIdSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/varusteet/$listingId_/$slug': {
+      id: '/varusteet/$listingId_/$slug'
+      path: '/varusteet/$listingId/$slug'
+      fullPath: '/varusteet/$listingId/$slug'
+      preLoaderRoute: typeof VarusteetListingIdSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/messages/stream/$conversationId': {
+      id: '/api/messages/stream/$conversationId'
+      path: '/api/messages/stream/$conversationId'
+      fullPath: '/api/messages/stream/$conversationId'
+      preLoaderRoute: typeof ApiMessagesStreamConversationIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pyorat/myynti/$listingId_/$slug': {
@@ -922,11 +942,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PyoratMyyntiListingIdSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/messages/stream/$conversationId': {
-      id: '/api/messages/stream/$conversationId'
-      path: '/api/messages/stream/$conversationId'
-      fullPath: '/api/messages/stream/$conversationId'
-      preLoaderRoute: typeof ApiMessagesStreamConversationIdRouteImport
+    '/pyorat/vuokraus/$listingId_/$slug': {
+      id: '/pyorat/vuokraus/$listingId_/$slug'
+      path: '/pyorat/vuokraus/$listingId/$slug'
+      fullPath: '/pyorat/vuokraus/$listingId/$slug'
+      preLoaderRoute: typeof PyoratVuokrausListingIdSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -979,6 +999,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCronRoute: ApiCronRoute,
   ApiHealthRoute: ApiHealthRoute,
   IlmoituksetUusiRoute: IlmoituksetUusiRoute,
+  OmatSuosikitRoute: OmatSuosikitRoute,
   OmatVarauksetRoute: OmatVarauksetRoute,
   ProfiiliUserIdRoute: ProfiiliUserIdRoute,
   ProfiiliAsetuksetRoute: ProfiiliAsetuksetRoute,

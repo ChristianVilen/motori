@@ -4,7 +4,7 @@
 import { Button } from "@motori/ui/button";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { LogOut, MapPin, Pencil, Plus, Settings } from "lucide-react";
+import { Heart, LogOut, MapPin, Pencil, Plus, Settings } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "~/lib/auth-client";
 import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, SITE_NAME } from "~/lib/constants";
@@ -425,6 +425,16 @@ function ProfilePage() {
 
 					{/* Action strip */}
 					<div className="flex border-t border-border">
+						<Link
+							to="/omat/suosikit"
+							data-testid="dashboard-favorites-link"
+							className="flex flex-1 flex-col items-center gap-1 py-3 text-xs text-muted transition-colors hover:bg-muted-light hover:text-foreground"
+							aria-label={t("dashboard.favoritesLabel")}
+						>
+							<Heart className="h-4 w-4" />
+							{t("dashboard.favoritesLabel")}
+						</Link>
+						<div className="w-px bg-border" />
 						<Link
 							to="/profiili/asetukset"
 							className="flex flex-1 flex-col items-center gap-1 py-3 text-xs text-muted transition-colors hover:bg-muted-light hover:text-foreground"

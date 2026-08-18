@@ -54,6 +54,7 @@ export default {
 		newBadge: "Uusi",
 		ownBadge: "Oma ilmoitus",
 		addToFavoritesAriaLabel: "Lisää suosikkeihin",
+		removeFromFavoritesAriaLabel: "Poista suosikeista",
 		perDay: "/pv",
 	},
 	empty: {

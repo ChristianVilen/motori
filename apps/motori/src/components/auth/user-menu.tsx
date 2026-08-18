@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { LogOut, Settings, User } from "lucide-react";
+import { Heart, LogOut, Settings, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "~/lib/i18n";
 
@@ -52,6 +52,16 @@ export function UserMenu({ onSignOut }: UserMenuProps) {
 					role="menu"
 					className="absolute right-0 top-full z-50 mt-2 w-44 rounded-lg border border-border bg-card py-1 shadow-lg"
 				>
+					<Link
+						to="/omat/suosikit"
+						role="menuitem"
+						data-testid="nav-favorites"
+						onClick={() => setOpen(false)}
+						className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted-light"
+					>
+						<Heart className="h-4 w-4 text-muted" />
+						{t("nav.favorites")}
+					</Link>
 					<Link
 						to="/profiili/asetukset"
 						role="menuitem"
