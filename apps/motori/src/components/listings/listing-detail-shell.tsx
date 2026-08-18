@@ -125,6 +125,15 @@ export function ListingDetailShell({
 					</div>
 				)}
 
+				{listing.status === "expired" && (
+					<div
+						data-testid="listing-expired-banner"
+						className="mb-4 rounded-lg bg-muted-light px-4 py-3 text-sm font-medium text-muted"
+					>
+						{t("detail.expiredBanner")}
+					</div>
+				)}
+
 				<div className="grid gap-6 lg:grid-cols-[1fr_320px] lg:gap-8">
 					<div className="space-y-4">
 						<ListingGallery images={images} title={listing.title} />
