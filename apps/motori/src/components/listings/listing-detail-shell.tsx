@@ -1,6 +1,7 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
 import { ArrowLeft, MapPin, Star, Tag, User } from "lucide-react";
 import type { ReactNode } from "react";
+import { FavoriteButton } from "~/components/listings/favorite-button";
 import { ListingGallery } from "~/components/listings/listing-gallery";
 import { ReportButton } from "~/components/report-button";
 import { LICENSE_CLASSES, LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
@@ -146,7 +147,13 @@ export function ListingDetailShell({
 								>
 									{listing.title}
 								</h1>
-								<div className="flex shrink-0 gap-2">
+								<div className="flex shrink-0 items-center gap-2">
+									{!isOwner && (
+										<FavoriteButton
+											listingId={listing.id}
+											className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted transition-transform hover:scale-110"
+										/>
+									)}
 									{!!isOwner && (
 										<span className="rounded bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">
 											{t("card.ownBadge")}

@@ -11,6 +11,7 @@ export default {
 		signIn: "Kirjaudu",
 		signOut: "Kirjaudu ulos",
 		settings: "Asetukset",
+		favorites: "Suosikit",
 		userMenuAriaLabel: "Käyttäjävalikko",
 		skipToContent: "Siirry sisältöön",
 		switchLanguage: "Vaihda kieli: {{lang}}",

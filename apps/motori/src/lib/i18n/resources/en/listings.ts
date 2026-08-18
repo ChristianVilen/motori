@@ -43,6 +43,7 @@ export default {
 		newBadge: "New",
 		ownBadge: "Your listing",
 		addToFavoritesAriaLabel: "Add to favorites",
+		removeFromFavoritesAriaLabel: "Remove from favorites",
 		perDay: "/day",
 	},
 	empty: {

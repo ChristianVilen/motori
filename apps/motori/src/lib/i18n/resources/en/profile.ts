@@ -1,6 +1,7 @@
 export default {
 	dashboard: {
 		fallbackName: "Profile",
+		favoritesLabel: "Favorites",
 		stats: "{{active}} active · {{paused}} paused · {{rented}} rented",
 		newListing: "New listing",
 		settingsAriaLabel: "Settings",
@@ -34,6 +35,11 @@ export default {
 			delete: "Delete",
 			confirmDelete: "Delete this listing? This can't be undone.",
 		},
+	},
+	favorites: {
+		title: "Favorites",
+		back: "Back",
+		empty: "No favorites yet. Tap the heart on a listing to add it here.",
 	},
 	publicProfile: {
 		back: "Back",

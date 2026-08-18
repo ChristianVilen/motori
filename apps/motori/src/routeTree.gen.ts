@@ -31,6 +31,7 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as IlmoituksetIndexRouteImport } from './routes/ilmoitukset/index'
 import { Route as IlmoituksetUusiRouteImport } from './routes/ilmoitukset/uusi'
 import { Route as OmatIndexRouteImport } from './routes/omat/index'
+import { Route as OmatSuosikitRouteImport } from './routes/omat/suosikit'
 import { Route as OmatVarauksetRouteImport } from './routes/omat/varaukset'
 import { Route as ProfiiliUserIdRouteImport } from './routes/profiili/$userId'
 import { Route as ProfiiliAsetuksetRouteImport } from './routes/profiili/asetukset'
@@ -161,6 +162,11 @@ const IlmoituksetUusiRoute = IlmoituksetUusiRouteImport.update({
 const OmatIndexRoute = OmatIndexRouteImport.update({
   id: '/omat/',
   path: '/omat/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OmatSuosikitRoute = OmatSuosikitRouteImport.update({
+  id: '/omat/suosikit',
+  path: '/omat/suosikit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OmatVarauksetRoute = OmatVarauksetRouteImport.update({
@@ -294,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/api/cron': typeof ApiCronRoute
   '/api/health': typeof ApiHealthRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
+  '/omat/suosikit': typeof OmatSuosikitRoute
   '/omat/varaukset': typeof OmatVarauksetRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
@@ -338,6 +345,7 @@ export interface FileRoutesByTo {
   '/api/cron': typeof ApiCronRoute
   '/api/health': typeof ApiHealthRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
+  '/omat/suosikit': typeof OmatSuosikitRoute
   '/omat/varaukset': typeof OmatVarauksetRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
@@ -384,6 +392,7 @@ export interface FileRoutesById {
   '/api/cron': typeof ApiCronRoute
   '/api/health': typeof ApiHealthRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
+  '/omat/suosikit': typeof OmatSuosikitRoute
   '/omat/varaukset': typeof OmatVarauksetRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
   '/profiili/asetukset': typeof ProfiiliAsetuksetRoute
@@ -431,6 +440,7 @@ export interface FileRouteTypes {
     | '/api/cron'
     | '/api/health'
     | '/ilmoitukset/uusi'
+    | '/omat/suosikit'
     | '/omat/varaukset'
     | '/profiili/$userId'
     | '/profiili/asetukset'
@@ -475,6 +485,7 @@ export interface FileRouteTypes {
     | '/api/cron'
     | '/api/health'
     | '/ilmoitukset/uusi'
+    | '/omat/suosikit'
     | '/omat/varaukset'
     | '/profiili/$userId'
     | '/profiili/asetukset'
@@ -520,6 +531,7 @@ export interface FileRouteTypes {
     | '/api/cron'
     | '/api/health'
     | '/ilmoitukset/uusi'
+    | '/omat/suosikit'
     | '/omat/varaukset'
     | '/profiili/$userId'
     | '/profiili/asetukset'
@@ -562,6 +574,7 @@ export interface RootRouteChildren {
   ApiCronRoute: typeof ApiCronRoute
   ApiHealthRoute: typeof ApiHealthRoute
   IlmoituksetUusiRoute: typeof IlmoituksetUusiRoute
+  OmatSuosikitRoute: typeof OmatSuosikitRoute
   OmatVarauksetRoute: typeof OmatVarauksetRoute
   ProfiiliUserIdRoute: typeof ProfiiliUserIdRoute
   ProfiiliAsetuksetRoute: typeof ProfiiliAsetuksetRoute
@@ -740,6 +753,13 @@ declare module '@tanstack/react-router' {
       path: '/omat'
       fullPath: '/omat/'
       preLoaderRoute: typeof OmatIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/omat/suosikit': {
+      id: '/omat/suosikit'
+      path: '/omat/suosikit'
+      fullPath: '/omat/suosikit'
+      preLoaderRoute: typeof OmatSuosikitRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/omat/varaukset': {
@@ -939,6 +959,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCronRoute: ApiCronRoute,
   ApiHealthRoute: ApiHealthRoute,
   IlmoituksetUusiRoute: IlmoituksetUusiRoute,
+  OmatSuosikitRoute: OmatSuosikitRoute,
   OmatVarauksetRoute: OmatVarauksetRoute,
   ProfiiliUserIdRoute: ProfiiliUserIdRoute,
   ProfiiliAsetuksetRoute: ProfiiliAsetuksetRoute,

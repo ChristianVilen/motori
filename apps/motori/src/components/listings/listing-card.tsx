@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { Heart } from "lucide-react";
+import { FavoriteButton } from "~/components/listings/favorite-button";
 import { categoryDetailPath } from "~/lib/category-routes";
-import { MOTORCYCLE_TYPES, REGIONS, TYPE_EMOJI } from "~/lib/constants";
+import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, TYPE_EMOJI } from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { computeListingSlug } from "~/lib/slug";
@@ -12,9 +12,18 @@ interface ListingCardProps {
 	makeSlug: string | null;
 	modelName: string | null;
 	isOwn?: boolean;
+	/** Watchlist views: badge non-active statuses (Myyty/Vanhentunut) on the card. */
+	showStatus?: boolean;
 }
 
-export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: ListingCardProps) {
+export function ListingCard({
+	listing,
+	images,
+	makeSlug,
+	modelName,
+	isOwn,
+	showStatus,
+}: ListingCardProps) {
 	const { t } = useTranslation("listings");
 	const firstImage = images[0];
 	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
@@ -76,20 +85,17 @@ export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: Lis
 							{t("card.ownBadge")}
 						</span>
 					) : null}
+					{!!showStatus && listing.status !== "active" && (
+						<span
+							data-testid="listing-card-status"
+							className="rounded-md bg-muted-light px-2 py-0.5 text-xs font-semibold text-muted"
+						>
+							{LISTING_STATUSES[listing.status]}
+						</span>
+					)}
 				</div>
 
-				{/* Favorite button placeholder */}
-				<button
-					type="button"
-					className="absolute top-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-muted transition-transform hover:scale-110"
-					onClick={(e) => {
-						e.preventDefault();
-						e.stopPropagation();
-					}}
-					aria-label={t("card.addToFavoritesAriaLabel")}
-				>
-					<Heart className="h-4 w-4" />
-				</button>
+				<FavoriteButton listingId={listing.id} />
 
 				{/* Frosted trust bar at bottom of image */}
 				<div className="absolute right-0 bottom-0 left-0 flex items-center gap-1.5 bg-gradient-to-t from-black/50 to-transparent px-3 pt-6 pb-2.5">
