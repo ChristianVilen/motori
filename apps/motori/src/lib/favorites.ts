@@ -1,5 +1,5 @@
-import { sql } from "kysely";
 import { AppError } from "~/lib/errors";
+import { fetchListingImages, listingSummaryQuery } from "~/lib/listings-owner";
 
 const getDb = async () => (await import("~/lib/db/index")).db;
 
@@ -51,40 +51,18 @@ export async function getFavoriteIds(userId: string): Promise<string[]> {
 /** Watchlist view: sold/expired stay (their status tells the truth), removed drop out. */
 export async function getFavoriteListings(userId: string) {
 	const db = await getDb();
-	const listings = await db
-		.selectFrom("favorite")
-		.innerJoin("listing", "listing.id", "favorite.listing_id")
-		.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
-		.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
-		.leftJoin("listing_sale", "listing_sale.listing_id", "listing.id")
-		.leftJoin("listing_gear", "listing_gear.listing_id", "listing.id")
-		.leftJoin("listing_part", "listing_part.listing_id", "listing.id")
-		.leftJoin("listing_rental", "listing_rental.listing_id", "listing.id")
-		.selectAll("listing")
-		.select([
-			"motorcycle_make.slug as makeSlug",
-			"motorcycle_model.name as modelName",
-			sql<
-				number | null
-			>`coalesce(listing_sale.price, listing_gear.price, listing_part.price, listing_rental.price_per_day)`.as(
-				"price",
-			),
-		])
+	const listings = await listingSummaryQuery(db)
+		.innerJoin("favorite", "favorite.listing_id", "listing.id")
 		.where("favorite.user_id", "=", userId)
 		.where("listing.status", "!=", "removed")
 		.orderBy("favorite.created_at", "desc")
 		.execute();
 
-	const listingIds = listings.map((l) => l.id);
-	const images =
-		listingIds.length > 0
-			? await db
-					.selectFrom("listing_image")
-					.selectAll()
-					.where("listing_id", "in", listingIds)
-					.orderBy("order", "asc")
-					.execute()
-			: [];
-
-	return { listings, images };
+	return {
+		listings,
+		images: await fetchListingImages(
+			db,
+			listings.map((l) => l.id),
+		),
+	};
 }

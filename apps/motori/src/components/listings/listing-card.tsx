@@ -7,23 +7,14 @@ import { formatEur, useTranslation } from "~/lib/i18n";
 import { computeListingSlug } from "~/lib/slug";
 
 interface ListingCardProps {
-	listing: Listing & { price?: number };
+	listing: Listing & { price?: number | null };
 	images: ListingImage[];
 	makeSlug: string | null;
 	modelName: string | null;
 	isOwn?: boolean;
-	/** Watchlist views: badge non-active statuses (Myyty/Vanhentunut) on the card. */
-	showStatus?: boolean;
 }
 
-export function ListingCard({
-	listing,
-	images,
-	makeSlug,
-	modelName,
-	isOwn,
-	showStatus,
-}: ListingCardProps) {
+export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: ListingCardProps) {
 	const { t } = useTranslation("listings");
 	const firstImage = images[0];
 	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
@@ -85,7 +76,7 @@ export function ListingCard({
 							{t("card.ownBadge")}
 						</span>
 					) : null}
-					{!!showStatus && listing.status !== "active" && (
+					{listing.status !== "active" && (
 						<span
 							data-testid="listing-card-status"
 							className="rounded-md bg-muted-light px-2 py-0.5 text-xs font-semibold text-muted"
