@@ -36,3 +36,4 @@ secrets/**
 
 # Private document uploads (local dev) — served only via the authenticated proxy
 uploads-docs/
+.playwright-cli/
