@@ -16,7 +16,8 @@ const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute
 				priceTestId="price-gear"
 				statRows={[
 					{ label: "Tyyppi", value: GEAR_TYPE_LABELS[g.gear_type] ?? g.gear_type },
-					...(g.size ? [{ label: "Koko", value: g.size }] : []),
+					...(g.brand ? [{ label: "Merkki", value: g.brand }] : []),
+					...(g.size ? [{ label: "Koko", value: g.size === "muu" ? "Muu" : g.size }] : []),
 					{ label: "Kunto", value: CONDITION_LABELS[g.condition] ?? g.condition },
 				]}
 				listing={data.listing}

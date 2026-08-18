@@ -16,6 +16,17 @@ const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute
 				priceTestId="price-part"
 				statRows={[
 					{ label: "Osatyyppi", value: p.part_category },
+					...(p.compatible_make_name
+						? [
+								{
+									label: "Sopii",
+									value: [p.compatible_make_name, p.compatible_model_name]
+										.filter(Boolean)
+										.join(" "),
+								},
+							]
+						: []),
+					...(p.oem_number ? [{ label: "OEM-numero", value: p.oem_number }] : []),
 					{ label: "Kunto", value: CONDITION_LABELS[p.condition] ?? p.condition },
 				]}
 				listing={data.listing}

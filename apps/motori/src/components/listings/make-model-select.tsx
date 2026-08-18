@@ -18,6 +18,14 @@ interface MakeModelSelectProps {
 	onMakeChange: (makeId: string) => void;
 	onModelChange: (modelId: string | null) => void;
 	makeError?: unknown;
+	modelError?: unknown;
+	/** Adds the asterisk + drops "(vapaaehtoinen)" from the model placeholder. */
+	modelRequired?: boolean;
+	/** Overrides for non-bike contexts (e.g. part compatibility). */
+	makeLabel?: string;
+	modelLabel?: string;
+	/** When set, the make list gets a clear option (for optional-make contexts). */
+	onMakeClear?: () => void;
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: combobox with add-new flow
@@ -27,6 +35,11 @@ export function MakeModelSelect({
 	onMakeChange,
 	onModelChange,
 	makeError,
+	modelError,
+	modelRequired,
+	makeLabel,
+	modelLabel,
+	onMakeClear,
 }: MakeModelSelectProps) {
 	const [makes, setMakes] = useState<Make[]>([]);
 	const [models, setModels] = useState<Model[]>([]);
@@ -190,7 +203,8 @@ export function MakeModelSelect({
 			{/* ── Make ────────────────────────────────────────────────────────── */}
 			<div ref={makeRef} className="relative">
 				<label htmlFor="make-trigger" className="mb-1 block text-sm font-medium text-foreground">
-					Merkki <span className="text-destructive">*</span>
+					{makeLabel ?? "Merkki"}
+					{!onMakeClear && <span className="text-destructive"> *</span>}
 				</label>
 				<button
 					id="make-trigger"
@@ -224,6 +238,24 @@ export function MakeModelSelect({
 							/>
 						</div>
 						<ul className="max-h-52 overflow-y-auto">
+							{onMakeClear && selectedMake !== null ? (
+								<li>
+									<button
+										type="button"
+										onClick={() => {
+											setSelectedMake(null);
+											setSelectedModel(null);
+											setModels([]);
+											setMakeOpen(false);
+											onMakeClear();
+											onModelChange(null);
+										}}
+										className="w-full px-3 py-2 text-left text-sm text-muted hover:bg-muted-light"
+									>
+										(tyhjennä valinta)
+									</button>
+								</li>
+							) : null}
 							{filteredMakes.map((make) => (
 								<li key={make.id}>
 									<button
@@ -312,7 +344,8 @@ export function MakeModelSelect({
 					htmlFor="model-trigger"
 					className={`mb-1 block text-sm font-medium ${selectedMake ? "text-foreground" : "text-muted"}`}
 				>
-					Malli
+					{modelLabel ?? "Malli"}
+					{modelRequired ? <span className="text-destructive"> *</span> : null}
 				</label>
 				<button
 					id="model-trigger"
@@ -326,7 +359,11 @@ export function MakeModelSelect({
 				>
 					<span className={selectedModel ? "text-foreground" : "text-muted"}>
 						{selectedModel?.name ??
-							(selectedMake ? "Valitse malli (vapaaehtoinen)" : "Valitse ensin merkki")}
+							(selectedMake
+								? modelRequired
+									? "Valitse malli"
+									: "Valitse malli (vapaaehtoinen)"
+								: "Valitse ensin merkki")}
 					</span>
 					<ChevronDown className="h-4 w-4 shrink-0 text-muted" />
 				</button>
@@ -437,6 +474,12 @@ export function MakeModelSelect({
 						</div>
 					</div>
 				) : null}
+
+				{modelError != null && (
+					<p className="mt-1 text-sm text-destructive">
+						{typeof modelError === "string" ? modelError : String(modelError)}
+					</p>
+				)}
 			</div>
 		</div>
 	);

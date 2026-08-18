@@ -255,6 +255,10 @@ function EditListingPage() {
 			price: sale?.price ? centsToEuros(sale.price) : 0,
 			condition: (sale?.condition ?? "good") as "new" | "excellent" | "good" | "fair" | "poor",
 			km_driven: sale?.km_driven ?? null,
+			color: sale?.color ?? null,
+			owner_count: sale?.owner_count ?? null,
+			power_kw: sale?.power_kw ?? null,
+			trade_possible: sale?.trade_possible ?? false,
 			negotiable: sale?.negotiable ?? false,
 		} as Partial<ListingFormData>;
 	} else if (listing.category === "gear") {
@@ -269,6 +273,7 @@ function EditListingPage() {
 				| "gloves"
 				| "other",
 			size: gear?.size ?? null,
+			brand: gear?.brand ?? null,
 			condition: (gear?.condition ?? "good") as "new" | "excellent" | "good" | "fair" | "poor",
 			price: gear?.price ? centsToEuros(gear.price) : 0,
 		} as Partial<ListingFormData>;
@@ -278,6 +283,8 @@ function EditListingPage() {
 			category: "part",
 			part_category: part?.part_category ?? "",
 			compatible_make_id: part?.compatible_make_id ?? null,
+			compatible_model_id: part?.compatible_model_id ?? null,
+			oem_number: part?.oem_number ?? null,
 			condition: (part?.condition ?? "good") as "new" | "excellent" | "good" | "fair" | "poor",
 			price: part?.price ? centsToEuros(part.price) : 0,
 		} as Partial<ListingFormData>;

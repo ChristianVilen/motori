@@ -44,19 +44,25 @@ const rentalValues = (data: RentalFormData) => ({
 const saleValues = (data: SaleFormData) => ({
 	price: eurosToCents(data.price),
 	condition: data.condition,
-	km_driven: data.km_driven ?? null,
+	km_driven: data.km_driven,
+	color: data.color ?? null,
+	owner_count: data.owner_count ?? null,
+	power_kw: data.power_kw ?? null,
+	trade_possible: data.trade_possible,
 	negotiable: data.negotiable,
 });
 const gearValues = (data: GearFormData) => ({
 	gear_type: data.gear_type as GearType,
 	size: data.size ?? null,
+	brand: data.brand ?? null,
 	condition: data.condition,
 	price: eurosToCents(data.price),
 });
 const partValues = (data: PartFormData) => ({
 	part_category: data.part_category,
 	compatible_make_id: data.compatible_make_id ?? null,
-	compatible_model_id: null,
+	compatible_model_id: data.compatible_make_id ? (data.compatible_model_id ?? null) : null,
+	oem_number: data.oem_number ?? null,
 	condition: data.condition,
 	price: eurosToCents(data.price),
 });

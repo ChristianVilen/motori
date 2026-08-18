@@ -14,6 +14,10 @@ export interface SaleFieldValues {
 	sale_price: number;
 	sale_condition: Condition | "";
 	sale_km_driven: number | null;
+	sale_color: string | null;
+	sale_owner_count: number | null;
+	sale_power_kw: number | null;
+	sale_trade_possible: boolean;
 	sale_negotiable: boolean;
 }
 
@@ -25,10 +29,23 @@ export const saleSection: CategoryFormSection<"sale", SaleFieldValues> = {
 			sale_price: v?.price ?? ("" as unknown as number),
 			sale_condition: v?.condition ?? "",
 			sale_km_driven: v?.km_driven ?? null,
+			sale_color: v?.color ?? null,
+			sale_owner_count: v?.owner_count ?? null,
+			sale_power_kw: v?.power_kw ?? null,
+			sale_trade_possible: v?.trade_possible ?? false,
 			sale_negotiable: v?.negotiable ?? false,
 		};
 	},
-	fieldKeys: ["sale_price", "sale_condition", "sale_km_driven", "sale_negotiable"],
+	fieldKeys: [
+		"sale_price",
+		"sale_condition",
+		"sale_km_driven",
+		"sale_color",
+		"sale_owner_count",
+		"sale_power_kw",
+		"sale_trade_possible",
+		"sale_negotiable",
+	],
 	toPayload: (
 		shared: SharedPayload,
 		value: SaleFieldValues,
@@ -46,13 +63,18 @@ export const saleSection: CategoryFormSection<"sale", SaleFieldValues> = {
 			postal_code: shared.postal_code,
 			description: shared.description,
 			make_id: m.make_id,
-			model_id: m.model_id,
+			// Null slips through here and is caught by the schema parse with the Finnish message.
+			model_id: m.model_id as string,
 			year: m.year,
 			engine_cc: m.engine_cc,
 			motorcycle_type: m.motorcycle_type,
 			required_license: m.required_license,
 			condition: value.sale_condition as SaleFormData["condition"],
-			km_driven: value.sale_km_driven,
+			km_driven: value.sale_km_driven as number,
+			color: value.sale_color,
+			owner_count: value.sale_owner_count,
+			power_kw: value.sale_power_kw,
+			trade_possible: value.sale_trade_possible,
 			price: value.sale_price,
 			negotiable: value.sale_negotiable,
 			images: shared.images,
@@ -115,32 +137,115 @@ export function SaleFields({ form }: SaleFieldsProps) {
 						/>
 					)}
 				</form.Field>
-				<form.Field name="sale_km_driven">
-					{(field: {
-						state: { value: number | null };
-						handleBlur: () => void;
-						handleChange: (v: number | null) => void;
-					}) => (
-						<div className="w-1/2">
-							<label
-								htmlFor="sale_km_driven"
-								className="mb-1 block text-sm font-medium text-foreground"
-							>
-								{t("form.fields.kmDriven")}
-							</label>
-							<Input
-								id="sale_km_driven"
-								type="number"
-								min={0}
-								value={field.state.value ?? ""}
-								onBlur={field.handleBlur}
-								onChange={(e) =>
-									field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
-								}
-							/>
-						</div>
-					)}
-				</form.Field>
+				<div className="grid grid-cols-2 gap-4">
+					<form.Field name="sale_km_driven">
+						{(field: {
+							state: { value: number | null; meta: { errors: unknown[] } };
+							handleBlur: () => void;
+							handleChange: (v: number | null) => void;
+						}) => (
+							<div>
+								<label
+									htmlFor="sale_km_driven"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
+									{t("form.fields.kmDriven")} <span className="text-destructive">*</span>
+								</label>
+								<Input
+									id="sale_km_driven"
+									type="number"
+									min={0}
+									value={field.state.value ?? ""}
+									onBlur={field.handleBlur}
+									onChange={(e) =>
+										field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
+									}
+								/>
+								<FieldError errors={field.state.meta.errors} />
+							</div>
+						)}
+					</form.Field>
+					<form.Field name="sale_power_kw">
+						{(field: {
+							state: { value: number | null; meta: { errors: unknown[] } };
+							handleBlur: () => void;
+							handleChange: (v: number | null) => void;
+						}) => (
+							<div>
+								<label
+									htmlFor="sale_power_kw"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
+									{t("form.fields.powerKw")}
+								</label>
+								<Input
+									id="sale_power_kw"
+									type="number"
+									min={1}
+									max={500}
+									value={field.state.value ?? ""}
+									onBlur={field.handleBlur}
+									onChange={(e) =>
+										field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
+									}
+								/>
+								<FieldError errors={field.state.meta.errors} />
+							</div>
+						)}
+					</form.Field>
+				</div>
+				<div className="grid grid-cols-2 gap-4">
+					<form.Field name="sale_color">
+						{(field: {
+							state: { value: string | null; meta: { errors: unknown[] } };
+							handleChange: (v: string | null) => void;
+						}) => (
+							<div>
+								<label
+									htmlFor="sale_color"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
+									{t("form.fields.color")}
+								</label>
+								<Input
+									id="sale_color"
+									value={field.state.value ?? ""}
+									onChange={(e) => field.handleChange(e.target.value || null)}
+									maxLength={30}
+								/>
+								<FieldError errors={field.state.meta.errors} />
+							</div>
+						)}
+					</form.Field>
+					<form.Field name="sale_owner_count">
+						{(field: {
+							state: { value: number | null; meta: { errors: unknown[] } };
+							handleBlur: () => void;
+							handleChange: (v: number | null) => void;
+						}) => (
+							<div>
+								<label
+									htmlFor="sale_owner_count"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
+									{t("form.fields.ownerCount")}
+								</label>
+								<Input
+									id="sale_owner_count"
+									type="number"
+									min={1}
+									max={99}
+									value={field.state.value ?? ""}
+									onBlur={field.handleBlur}
+									onChange={(e) =>
+										field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
+									}
+								/>
+								<FieldError errors={field.state.meta.errors} />
+							</div>
+						)}
+					</form.Field>
+				</div>
 				<form.Field name="sale_negotiable">
 					{(field: { state: { value: boolean }; handleChange: (v: boolean) => void }) => (
 						<label className="flex cursor-pointer items-center gap-3">
@@ -151,6 +256,19 @@ export function SaleFields({ form }: SaleFieldsProps) {
 								className="h-4 w-4 rounded border-border"
 							/>
 							<span className="text-sm text-foreground">{t("form.fields.negotiable")}</span>
+						</label>
+					)}
+				</form.Field>
+				<form.Field name="sale_trade_possible">
+					{(field: { state: { value: boolean }; handleChange: (v: boolean) => void }) => (
+						<label className="flex cursor-pointer items-center gap-3">
+							<input
+								type="checkbox"
+								checked={field.state.value ?? false}
+								onChange={(e) => field.handleChange(e.target.checked)}
+								className="h-4 w-4 rounded border-border"
+							/>
+							<span className="text-sm text-foreground">{t("form.fields.tradePossible")}</span>
 						</label>
 					)}
 				</form.Field>

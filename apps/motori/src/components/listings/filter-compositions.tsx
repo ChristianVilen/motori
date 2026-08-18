@@ -34,6 +34,7 @@ export function SaleFilters() {
 		<>
 			<RegionFilter />
 			<TypeFilter />
+			<LicenseFilter />
 			<PriceFilter labelKey="filters.price" />
 			<MakeFilter />
 			<YearFilter />

@@ -123,8 +123,11 @@ export function ListingForm(props: ListingFormProps) {
 				if (!parsed.success) {
 					const first = parsed.error.issues[0];
 					const fieldName = first?.path[0] as string | undefined;
-					if (fieldName && fieldName in value) {
-						form.setFieldMeta(fieldName as never, (prev) => ({
+					// Section-owned fields are prefixed in form state (km_driven → sale_km_driven).
+					const target =
+						fieldName && [fieldName, `${category}_${fieldName}`].find((c) => c in value);
+					if (target) {
+						form.setFieldMeta(target as never, (prev) => ({
 							...prev,
 							errors: [first.message],
 						}));
@@ -216,13 +219,26 @@ export function ListingForm(props: ListingFormProps) {
 					form={form}
 					initialMakeId={initialMakeId}
 					initialModelId={initialModelId}
+					modelRequired={category === "sale"}
 				/>
 			)}
 
 			{category === "rental" && <RentalFields form={form} />}
 			{category === "sale" && <SaleFields form={form} />}
 			{category === "gear" && <GearFields form={form} />}
-			{category === "part" && <PartFields form={form} />}
+			{category === "part" && (
+				<PartFields
+					form={form}
+					initialCompatibleMakeId={
+						(initialValues as { compatible_make_id?: string | null } | undefined)
+							?.compatible_make_id ?? null
+					}
+					initialCompatibleModelId={
+						(initialValues as { compatible_model_id?: string | null } | undefined)
+							?.compatible_model_id ?? null
+					}
+				/>
+			)}
 
 			{/* ── Sijainti ──────────────────────────────────────────────────── */}
 			<section className="rounded-lg border border-border bg-card p-6">
