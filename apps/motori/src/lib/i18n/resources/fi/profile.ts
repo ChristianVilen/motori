@@ -1,6 +1,7 @@
 export default {
 	dashboard: {
 		fallbackName: "Profiili",
+		favoritesLabel: "Suosikit",
 		stats: "{{active}} aktiivista · {{paused}} tauolla · {{rented}} vuokrattu",
 		newListing: "Uusi ilmoitus",
 		settingsAriaLabel: "Asetukset",
@@ -34,6 +35,11 @@ export default {
 			delete: "Poista",
 			confirmDelete: "Poistetaanko ilmoitus? Tätä ei voi peruuttaa.",
 		},
+	},
+	favorites: {
+		title: "Suosikit",
+		back: "Takaisin",
+		empty: "Ei suosikkeja vielä. Napauta ilmoituksen sydäntä lisätäksesi sen tähän.",
 	},
 	publicProfile: {
 		back: "Takaisin",

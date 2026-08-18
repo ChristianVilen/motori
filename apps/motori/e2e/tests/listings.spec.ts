@@ -32,6 +32,15 @@ test.describe("Listings browse", () => {
 		await expect(listings.emptyState).toBeVisible();
 	});
 
+	test("logged-out heart tap prompts sign-in", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		await listings.goto({ q: "CB500F" });
+		const seeded = listings.cardById(SEEDED_LISTING_ID);
+		await expect(seeded).toBeVisible();
+		await seeded.getByTestId("favorite-button").click();
+		await expect(page.getByTestId("login-modal")).toBeVisible();
+	});
+
 	test("seeded listing is visible and links to detail page", async ({ page }) => {
 		const listings = new ListingsPage(page);
 		await listings.goto({ q: "CB500F" });

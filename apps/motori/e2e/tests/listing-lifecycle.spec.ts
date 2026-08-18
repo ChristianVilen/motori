@@ -59,6 +59,23 @@ test.describe("Listing lifecycle", () => {
 		await expect(listings.cardById(listingId)).toBeVisible({ timeout: 10000 });
 	});
 
+	test("heart toggles the listing into favorites", async () => {
+		const listings = new ListingsPage(page);
+		await listings.goto({ q: "E2E Lifecycle Yamaha" });
+		const card = listings.cardById(listingId);
+		await expect(card).toBeVisible({ timeout: 10000 });
+
+		const heart = card.getByTestId("favorite-button");
+		await heart.click();
+		await expect(heart).toHaveAttribute("aria-pressed", "true");
+
+		await page.goto("/omat/suosikit");
+		await waitForHydration(page);
+		await expect(
+			page.locator(`[data-testid="listing-card"][data-listing-id="${listingId}"]`),
+		).toBeVisible({ timeout: 10000 });
+	});
+
 	test("edit listing updates title", async () => {
 		const dashboard = new DashboardPage(page);
 		await dashboard.goto();
