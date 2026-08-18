@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Heart, LogOut, Settings, User } from "lucide-react";
+import { Bookmark, Heart, LogOut, Settings, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "~/lib/i18n";
 
@@ -61,6 +61,16 @@ export function UserMenu({ onSignOut }: UserMenuProps) {
 					>
 						<Heart className="h-4 w-4 text-muted" />
 						{t("nav.favorites")}
+					</Link>
+					<Link
+						to="/omat/haut"
+						role="menuitem"
+						data-testid="nav-saved-searches"
+						onClick={() => setOpen(false)}
+						className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted-light"
+					>
+						<Bookmark className="h-4 w-4 text-muted" />
+						{t("nav.savedSearches")}
 					</Link>
 					<Link
 						to="/profiili/asetukset"

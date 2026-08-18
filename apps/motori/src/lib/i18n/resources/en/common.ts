@@ -12,6 +12,7 @@ export default {
 		signOut: "Sign out",
 		settings: "Settings",
 		favorites: "Favorites",
+		savedSearches: "Saved searches",
 		userMenuAriaLabel: "User menu",
 		skipToContent: "Skip to content",
 		switchLanguage: "Switch language: {{lang}}",

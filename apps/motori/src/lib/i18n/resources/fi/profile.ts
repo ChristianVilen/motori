@@ -2,6 +2,7 @@ export default {
 	dashboard: {
 		fallbackName: "Profiili",
 		favoritesLabel: "Suosikit",
+		savedSearchesLabel: "Tallennetut haut",
 		stats: "{{active}} aktiivista · {{paused}} tauolla · {{rented}} vuokrattu",
 		newListing: "Uusi ilmoitus",
 		settingsAriaLabel: "Asetukset",
@@ -29,6 +30,12 @@ export default {
 		title: "Suosikit",
 		back: "Takaisin",
 		empty: "Ei suosikkeja vielä. Napauta ilmoituksen sydäntä lisätäksesi sen tähän.",
+	},
+	savedSearches: {
+		title: "Tallennetut haut",
+		back: "Takaisin",
+		empty: "Ei tallennettuja hakuja.",
+		delete: "Poista haku {{label}}",
 	},
 	publicProfile: {
 		back: "Takaisin",
