@@ -65,6 +65,8 @@ export default {
 		titleTooShort: "Otsikko on liian lyhyt (min 5 merkkiä)",
 		titleTooLong: "Otsikko on liian pitkä",
 		brandRequired: "Valitse merkki",
+		modelRequired: "Valitse malli",
+		kmRequired: "Mittarilukema on pakollinen",
 		yearTooOld: "Vuosimalli liian vanha",
 		yearInFuture: "Vuosimalli ei voi olla tulevaisuudessa",
 		typeRequired: "Valitse tyyppi",

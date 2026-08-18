@@ -73,6 +73,24 @@ describe("saleSection", () => {
 		expect(payload.negotiable).toBe(true);
 		expect(payload.make_id).toBe("m1");
 	});
+
+	it("carries the detail fields through toPayload", () => {
+		const v = saleSection.defaultValues({
+			category: "sale",
+			price: 800000,
+			condition: "good",
+			km_driven: 12000,
+			color: "punainen",
+			owner_count: 2,
+			power_kw: 70,
+			trade_possible: true,
+		} as never);
+		const payload = saleSection.toPayload(shared, v, moto);
+		expect(payload.color).toBe("punainen");
+		expect(payload.owner_count).toBe(2);
+		expect(payload.power_kw).toBe(70);
+		expect(payload.trade_possible).toBe(true);
+	});
 });
 
 describe("gearSection", () => {
@@ -87,6 +105,7 @@ describe("gearSection", () => {
 			category: "gear",
 			gear_type: "helmet",
 			size: "M",
+			brand: "Shoei",
 			condition: "excellent",
 			price: 25000,
 		} as never);
@@ -94,6 +113,7 @@ describe("gearSection", () => {
 		expect(payload.category).toBe("gear");
 		expect(payload.gear_type).toBe("helmet");
 		expect(payload.size).toBe("M");
+		expect(payload.brand).toBe("Shoei");
 		expect(payload.price).toBe(25000);
 	});
 });
@@ -111,6 +131,22 @@ describe("partSection", () => {
 		expect(payload.category).toBe("part");
 		expect(payload.part_category).toBe("Jarrulevyt");
 		expect(payload.condition).toBe("good");
+	});
+
+	it("carries compatibility and OEM number through toPayload", () => {
+		const v = partSection.defaultValues({
+			category: "part",
+			part_category: "brakes",
+			condition: "good",
+			price: 8000,
+			compatible_make_id: "make-1",
+			compatible_model_id: "model-1",
+			oem_number: "45251-MKN-D51",
+		} as never);
+		const payload = partSection.toPayload(shared, v);
+		expect(payload.compatible_make_id).toBe("make-1");
+		expect(payload.compatible_model_id).toBe("model-1");
+		expect(payload.oem_number).toBe("45251-MKN-D51");
 	});
 });
 

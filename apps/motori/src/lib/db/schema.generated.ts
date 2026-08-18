@@ -94,6 +94,7 @@ export interface ListingAvailabilityException {
 }
 
 export interface ListingGear {
+	brand: string | null;
 	condition: string;
 	gear_type: string;
 	listing_id: string;
@@ -114,6 +115,7 @@ export interface ListingPart {
 	compatible_model_id: string | null;
 	condition: string;
 	listing_id: string;
+	oem_number: string | null;
 	part_category: string;
 	price: number;
 }
@@ -129,11 +131,15 @@ export interface ListingRental {
 }
 
 export interface ListingSale {
+	color: string | null;
 	condition: string;
 	km_driven: number | null;
 	listing_id: string;
 	negotiable: Generated<boolean>;
+	owner_count: number | null;
+	power_kw: number | null;
 	price: number;
+	trade_possible: Generated<boolean>;
 }
 
 export interface Message {
@@ -211,6 +217,86 @@ export interface Session {
 	userId: string;
 }
 
+export interface TalliDocument {
+	created_at: Generated<Timestamp>;
+	doc_type: string;
+	id: Generated<string>;
+	mime_type: string;
+	name: string;
+	size_bytes: number;
+	storage_key: string;
+	vehicle_id: string;
+}
+
+export interface TalliOdometerEntry {
+	id: Generated<string>;
+	reading_km: number;
+	recorded_at: Generated<Timestamp>;
+	vehicle_id: string;
+}
+
+export interface TalliReminder {
+	created_at: Generated<Timestamp>;
+	due_date: Timestamp | null;
+	id: Generated<string>;
+	interval_km: number | null;
+	interval_months: number | null;
+	last_done_at: Timestamp | null;
+	last_done_km: number | null;
+	notified_at: Timestamp | null;
+	recurrence_dates: string[] | null;
+	title: string;
+	type: string;
+	updated_at: Generated<Timestamp>;
+	vehicle_id: string;
+}
+
+export interface TalliServiceRecord {
+	cost_cents: number | null;
+	created_at: Generated<Timestamp>;
+	id: Generated<string>;
+	notes: string | null;
+	odometer_km: number | null;
+	parts: string | null;
+	performed_at: Timestamp;
+	reminder_id: string | null;
+	title: string;
+	updated_at: Generated<Timestamp>;
+	vehicle_id: string;
+}
+
+export interface TalliServiceRecordPhoto {
+	id: Generated<string>;
+	position: number;
+	service_record_id: string;
+	thumbnail_url: string;
+	url: string;
+}
+
+export interface TalliUserSettings {
+	created_at: Generated<Timestamp>;
+	email_reminders: Generated<boolean>;
+	updated_at: Generated<Timestamp>;
+	user_id: string;
+}
+
+export interface TalliVehicle {
+	created_at: Generated<Timestamp>;
+	id: Generated<string>;
+	make: string;
+	model: string;
+	nickname: string | null;
+	odometer_km: Generated<number>;
+	photo_url: string | null;
+	plate: string | null;
+	thumbnail_url: string | null;
+	updated_at: Generated<Timestamp>;
+	user_id: string;
+	vehicle_type: Generated<string>;
+	vin: string | null;
+	year: number | null;
+}
+
 export interface User {
 	banExpires: Timestamp | null;
 	banned: Generated<boolean>;
@@ -259,6 +345,13 @@ export interface DB {
 	report: Report;
 	review: Review;
 	session: Session;
+	"talli.document": TalliDocument;
+	"talli.odometer_entry": TalliOdometerEntry;
+	"talli.reminder": TalliReminder;
+	"talli.service_record": TalliServiceRecord;
+	"talli.service_record_photo": TalliServiceRecordPhoto;
+	"talli.user_settings": TalliUserSettings;
+	"talli.vehicle": TalliVehicle;
 	user: User;
 	user_block: UserBlock;
 	verification: Verification;

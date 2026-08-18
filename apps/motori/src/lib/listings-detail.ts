@@ -14,12 +14,17 @@ import type {
 
 const getDb = async () => (await import("~/lib/db/index")).db;
 
+export type ListingPartWithCompat = ListingPart & {
+	compatible_make_name: string | null;
+	compatible_model_name: string | null;
+};
+
 export type ListingForDisplay = {
 	listing: Listing;
 	rental: ListingRental | null;
 	sale: ListingSale | null;
 	gear: ListingGear | null;
-	part: ListingPart | null;
+	part: ListingPartWithCompat | null;
 	images: ListingImage[];
 	makeName: string | null;
 	makeSlug: string | null;
@@ -34,7 +39,7 @@ type ListingChildren = {
 	rental: ListingRental | null;
 	sale: ListingSale | null;
 	gear: ListingGear | null;
-	part: ListingPart | null;
+	part: ListingPartWithCompat | null;
 };
 
 const orNull = <T>(p: Promise<T | undefined>): Promise<T | null> => p.then((row) => row ?? null);
@@ -84,7 +89,21 @@ async function fetchListingChildren(
 			? orNull(
 					db
 						.selectFrom("listing_part")
-						.selectAll()
+						.leftJoin(
+							"motorcycle_make as compat_make",
+							"compat_make.id",
+							"listing_part.compatible_make_id",
+						)
+						.leftJoin(
+							"motorcycle_model as compat_model",
+							"compat_model.id",
+							"listing_part.compatible_model_id",
+						)
+						.selectAll("listing_part")
+						.select([
+							"compat_make.name as compatible_make_name",
+							"compat_model.name as compatible_model_name",
+						])
 						.where("listing_id", "=", listing.id)
 						.executeTakeFirst(),
 				)

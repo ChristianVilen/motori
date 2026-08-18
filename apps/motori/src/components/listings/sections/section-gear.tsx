@@ -11,11 +11,12 @@ import type { CategoryFormSection, SharedPayload } from "./types";
 type Condition = (typeof CONDITIONS)[number];
 type GearTypeValue = (typeof GEAR_TYPES)[number];
 
-import { GEAR_TYPE_LABELS } from "~/lib/constants";
+import { GEAR_SIZES, GEAR_TYPE_LABELS } from "~/lib/constants";
 
 export interface GearFieldValues {
 	gear_gear_type: GearTypeValue | "";
 	gear_size: string | null;
+	gear_brand: string | null;
 	gear_condition: Condition | "";
 	gear_price: number;
 }
@@ -27,11 +28,12 @@ export const gearSection: CategoryFormSection<"gear", GearFieldValues> = {
 		return {
 			gear_gear_type: v?.gear_type ?? "",
 			gear_size: v?.size ?? null,
+			gear_brand: v?.brand ?? null,
 			gear_condition: v?.condition ?? "",
 			gear_price: v?.price ?? ("" as unknown as number),
 		};
 	},
-	fieldKeys: ["gear_gear_type", "gear_size", "gear_condition", "gear_price"],
+	fieldKeys: ["gear_gear_type", "gear_size", "gear_brand", "gear_condition", "gear_price"],
 	toPayload: (
 		shared: SharedPayload,
 		value: GearFieldValues,
@@ -43,7 +45,8 @@ export const gearSection: CategoryFormSection<"gear", GearFieldValues> = {
 		postal_code: shared.postal_code,
 		description: shared.description,
 		gear_type: value.gear_gear_type as GearFormData["gear_type"],
-		size: value.gear_size,
+		size: value.gear_size as GearFormData["size"],
+		brand: value.gear_brand,
 		condition: value.gear_condition as GearFormData["condition"],
 		price: value.gear_price,
 		images: shared.images,
@@ -93,6 +96,28 @@ export function GearFields({ form }: GearFieldsProps) {
 					)}
 				</form.Field>
 				<div className="grid grid-cols-2 gap-4">
+					<form.Field name="gear_brand">
+						{(field: {
+							state: { value: string | null; meta: { errors: unknown[] } };
+							handleChange: (v: string | null) => void;
+						}) => (
+							<div>
+								<label
+									htmlFor="gear_brand"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
+									{t("form.fields.gearBrand")}
+								</label>
+								<Input
+									id="gear_brand"
+									value={field.state.value ?? ""}
+									onChange={(e) => field.handleChange(e.target.value || null)}
+									maxLength={50}
+								/>
+								<FieldError errors={field.state.meta.errors} />
+							</div>
+						)}
+					</form.Field>
 					<form.Field name="gear_size">
 						{(field: {
 							state: { value: string | null };
@@ -100,20 +125,34 @@ export function GearFields({ form }: GearFieldsProps) {
 						}) => (
 							<div>
 								<label
-									htmlFor="gear_size"
+									htmlFor="gear-size-select"
 									className="mb-1 block text-sm font-medium text-foreground"
 								>
 									{t("form.fields.size")}
 								</label>
-								<Input
-									id="gear_size"
+								<Select
 									value={field.state.value ?? ""}
-									onChange={(e) => field.handleChange(e.target.value || null)}
-									maxLength={20}
-								/>
+									onValueChange={(v) => field.handleChange(v || null)}
+								>
+									<SelectTrigger id="gear-size-select">
+										<SelectValue placeholder={t("form.fields.sizePlaceholder")} />
+									</SelectTrigger>
+									<SelectContent>
+										{GEAR_SIZES.map((s) => {
+											const label = s === "muu" ? "Muu" : s;
+											return (
+												<SelectItem key={s} value={s}>
+													{label}
+												</SelectItem>
+											);
+										})}
+									</SelectContent>
+								</Select>
 							</div>
 						)}
 					</form.Field>
+				</div>
+				<div className="grid grid-cols-2 gap-4">
 					<form.Field name="gear_condition">
 						{(field: {
 							state: { value: string; meta: { errors: unknown[] } };

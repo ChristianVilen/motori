@@ -32,7 +32,9 @@ test.describe("Gear listing lifecycle", () => {
 		await page.getByText("Valitse tyyppi").click();
 		await page.getByRole("option", { name: "Takki", exact: true }).click();
 
-		await page.locator("#gear_size").fill("52");
+		// Size is a fixed letter-bucket enum since #166 — EU 52 maps to L, exact size in description
+		await page.getByText("Valitse koko").click();
+		await page.getByRole("option", { name: "L", exact: true }).click();
 
 		await page.getByText("Valitse kunto").click();
 		await page.getByRole("option", { name: "Erinomainen", exact: true }).click();
