@@ -31,4 +31,5 @@ export default {
 	"messages.conversation_not_found": "Keskustelua ei löytynyt.",
 	"messages.forbidden": "Ei pääsyä tähän keskusteluun.",
 	"messages.rate_limited": "Liian monta viestiä lyhyessä ajassa. Yritä myöhemmin uudelleen.",
+	"saved_search.limit_reached": "Voit tallentaa enintään 20 hakua.",
 } as const;

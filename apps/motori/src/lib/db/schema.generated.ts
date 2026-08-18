@@ -10,6 +10,18 @@ export type Generated<T> =
 		? ColumnType<S, I | undefined, U>
 		: ColumnType<T, T | undefined, T>;
 
+export type Json = JsonValue;
+
+export type JsonArray = JsonValue[];
+
+export type JsonObject = {
+	[x: string]: JsonValue | undefined;
+};
+
+export type JsonPrimitive = boolean | number | string | null;
+
+export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
+
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Account {
@@ -205,6 +217,14 @@ export interface Review {
 	target_user_id: string;
 }
 
+export interface SavedSearch {
+	category: string;
+	created_at: Generated<Timestamp>;
+	id: string;
+	params: Json;
+	user_id: string;
+}
+
 export interface Session {
 	createdAt: Timestamp;
 	expiresAt: Timestamp;
@@ -344,6 +364,7 @@ export interface DB {
 	profile: Profile;
 	report: Report;
 	review: Review;
+	saved_search: SavedSearch;
 	session: Session;
 	"talli.document": TalliDocument;
 	"talli.odometer_entry": TalliOdometerEntry;

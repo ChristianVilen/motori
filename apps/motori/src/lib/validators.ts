@@ -167,6 +167,16 @@ export const browseSearchSchema = z.object({
 
 export type BrowseSearchParams = z.infer<typeof browseSearchSchema>;
 
+// Persisted shape for saved searches: cursor is pagination state, view/city are
+// client-only map UI state — none of these should survive a save.
+export const savedSearchParamsSchema = browseSearchSchema.omit({
+	cursor: true,
+	view: true,
+	city: true,
+});
+
+export type SavedSearchParams = z.infer<typeof savedSearchParamsSchema>;
+
 export function countActiveFilters(search: BrowseSearchParams): number {
 	return (
 		(search.region ? 1 : 0) +

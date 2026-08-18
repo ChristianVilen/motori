@@ -5,6 +5,7 @@ import {
 	countActiveFilters,
 	isValidImageUrl,
 	listingFormSchema,
+	savedSearchParamsSchema,
 	validateFinnishPhone,
 } from "./validators";
 
@@ -259,6 +260,37 @@ describe("browseSearchSchema", () => {
 
 	it("rejects negative km_max", () => {
 		expect(browseSearchSchema.safeParse({ km_max: -1 }).success).toBe(false);
+	});
+});
+
+describe("savedSearchParamsSchema", () => {
+	it("strips cursor, view, and city", () => {
+		const result = savedSearchParamsSchema.safeParse({
+			q: "cb500",
+			cursor: "abc123",
+			view: "map",
+			city: "Helsinki",
+		});
+		expect(result.success).toBe(true);
+		if (result.success) {
+			expect(result.data).not.toHaveProperty("cursor");
+			expect(result.data).not.toHaveProperty("view");
+			expect(result.data).not.toHaveProperty("city");
+			expect(result.data.q).toBe("cb500");
+		}
+	});
+
+	it("accepts a full representative filter set", () => {
+		const result = savedSearchParamsSchema.safeParse({
+			q: "cb500",
+			region: "uusimaa",
+			make: "Honda",
+			price_min: 20,
+			price_max: 200,
+			type: ["naked", "sport"],
+			sort: "price_asc",
+		});
+		expect(result.success).toBe(true);
 	});
 });
 

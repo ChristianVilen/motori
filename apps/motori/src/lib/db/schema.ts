@@ -1,5 +1,13 @@
 import type { AccountTable, SessionTable, UserTable, VerificationTable } from "@motori/db";
-import type { ColumnType, Generated, Insertable, Selectable, Updateable } from "kysely";
+import type {
+	ColumnType,
+	Generated,
+	Insertable,
+	JSONColumnType,
+	Selectable,
+	Updateable,
+} from "kysely";
+import type { SavedSearchParams } from "~/lib/validators";
 
 export type { AccountTable, SessionTable, UserTable, VerificationTable };
 
@@ -161,6 +169,16 @@ export interface FavoriteTable {
 
 export type Favorite = Selectable<FavoriteTable>;
 
+export interface SavedSearchTable {
+	id: string;
+	user_id: string;
+	category: ListingCategory;
+	params: JSONColumnType<SavedSearchParams, SavedSearchParams, SavedSearchParams>;
+	created_at: ColumnType<Date, Date | undefined, never>;
+}
+
+export type SavedSearch = Selectable<SavedSearchTable>;
+
 export interface ReportTable {
 	id: string;
 	reporter_id: string;
@@ -279,6 +297,7 @@ export interface Database {
 	listing_gear: ListingGearTable;
 	listing_part: ListingPartTable;
 	favorite: FavoriteTable;
+	saved_search: SavedSearchTable;
 	report: ReportTable;
 	booking: BookingTable;
 	listing_availability_exception: ListingAvailabilityExceptionTable;
