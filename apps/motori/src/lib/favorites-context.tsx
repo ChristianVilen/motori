@@ -6,13 +6,14 @@ interface FavoritesContextValue {
 	toggle: (listingId: string) => void;
 }
 
-const FavoritesContext = createContext<FavoritesContextValue>({
-	isFavorite: () => false,
-	toggle: () => {},
-});
+const FavoritesContext = createContext<FavoritesContextValue | null>(null);
 
-export function useFavorites() {
-	return useContext(FavoritesContext);
+export function useFavorites(): FavoritesContextValue {
+	const ctx = useContext(FavoritesContext);
+	if (!ctx) {
+		throw new Error("useFavorites must be used inside FavoritesProvider");
+	}
+	return ctx;
 }
 
 interface FavoritesProviderProps {

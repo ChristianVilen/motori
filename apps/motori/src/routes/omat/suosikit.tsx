@@ -54,11 +54,10 @@ function FavoritesPage() {
 						{listings.map((listing) => (
 							<ListingCard
 								key={listing.id}
-								listing={{ ...listing, price: listing.price ?? undefined }}
+								listing={listing}
 								images={imagesByListing.get(listing.id) ?? []}
 								makeSlug={listing.makeSlug}
 								modelName={listing.modelName}
-								showStatus
 							/>
 						))}
 					</div>

@@ -1,11 +1,55 @@
 const getDb = async () => (await import("~/lib/db/index")).db;
 
-import type { Listing, ListingImage } from "~/lib/db/schema";
+import { type Kysely, sql } from "kysely";
+import type { Database, Listing, ListingImage } from "~/lib/db/schema";
+
+export type ListingSummary = Listing & {
+	makeSlug: string | null;
+	modelName: string | null;
+	price: number | null;
+};
 
 export type OwnerListingsResult = {
-	listings: Array<Listing & { makeSlug: string | null; modelName: string | null }>;
+	listings: ListingSummary[];
 	images: ListingImage[];
 };
+
+/** Shared base for card/row collections: listing + make/model labels + cross-category price. */
+export function listingSummaryQuery(db: Kysely<Database>) {
+	return db
+		.selectFrom("listing")
+		.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
+		.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
+		.leftJoin("listing_sale", "listing_sale.listing_id", "listing.id")
+		.leftJoin("listing_gear", "listing_gear.listing_id", "listing.id")
+		.leftJoin("listing_part", "listing_part.listing_id", "listing.id")
+		.leftJoin("listing_rental", "listing_rental.listing_id", "listing.id")
+		.selectAll("listing")
+		.select([
+			"motorcycle_make.slug as makeSlug",
+			"motorcycle_model.name as modelName",
+			sql<
+				number | null
+			>`coalesce(listing_sale.price, listing_gear.price, listing_part.price, listing_rental.price_per_day)`.as(
+				"price",
+			),
+		]);
+}
+
+export async function fetchListingImages(
+	db: Kysely<Database>,
+	listingIds: string[],
+): Promise<ListingImage[]> {
+	if (listingIds.length === 0) {
+		return [];
+	}
+	return db
+		.selectFrom("listing_image")
+		.selectAll()
+		.where("listing_id", "in", listingIds)
+		.orderBy("order", "asc")
+		.execute();
+}
 
 export async function getOwnerListings(ownerId: string): Promise<OwnerListingsResult> {
 	return queryOwnerListings(ownerId, false);
@@ -21,27 +65,17 @@ async function queryOwnerListings(
 	activeOnly: boolean,
 ): Promise<OwnerListingsResult> {
 	const db = await getDb();
-	const listings = await db
-		.selectFrom("listing")
-		.leftJoin("motorcycle_make", "motorcycle_make.id", "listing.make_id")
-		.leftJoin("motorcycle_model", "motorcycle_model.id", "listing.model_id")
-		.selectAll("listing")
-		.select(["motorcycle_make.slug as makeSlug", "motorcycle_model.name as modelName"])
+	const listings = await listingSummaryQuery(db)
 		.where("owner_id", "=", ownerId)
 		.where("listing.status", activeOnly ? "=" : "!=", activeOnly ? "active" : "removed")
 		.orderBy("listing.created_at", "desc")
 		.execute();
 
-	const listingIds = listings.map((l) => l.id);
-	const images =
-		listingIds.length > 0
-			? await db
-					.selectFrom("listing_image")
-					.selectAll()
-					.where("listing_id", "in", listingIds)
-					.orderBy("order", "asc")
-					.execute()
-			: [];
-
-	return { listings, images };
+	return {
+		listings,
+		images: await fetchListingImages(
+			db,
+			listings.map((l) => l.id),
+		),
+	};
 }

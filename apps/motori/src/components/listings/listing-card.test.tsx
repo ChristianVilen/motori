@@ -10,6 +10,10 @@ vi.mock("~/lib/i18n", () => ({
 	useTranslation: () => ({ t: (key: string) => key }),
 }));
 
+vi.mock("~/lib/favorites-context", () => ({
+	useFavorites: () => ({ isFavorite: () => false, toggle: () => {} }),
+}));
+
 // Mock TanStack Router's Link as a plain <a> tag
 vi.mock("@tanstack/react-router", () => ({
 	Link: ({ children, to, params, ...props }: Record<string, unknown>) => (

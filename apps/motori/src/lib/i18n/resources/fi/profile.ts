@@ -14,17 +14,6 @@ export default {
 		},
 		emptyState: "Sinulla ei ole vielä ilmoituksia.",
 		createFirst: "Luo ensimmäinen ilmoitus",
-		tori: {
-			heading: "Tori",
-			newItem: "Luo uusi",
-			emptyState: "Ei Tori-ilmoituksia.",
-			createFirst: "Luo ensimmäinen",
-			edit: "Muokkaa",
-			pause: "Tauko",
-			activate: "Aktivoi",
-			markSold: "Myyty",
-			renew: "Jatka voimassaoloa",
-		},
 		row: {
 			viewCount: "{{n}} näyttökertaa",
 			edit: "Muokkaa",

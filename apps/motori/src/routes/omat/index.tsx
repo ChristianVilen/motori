@@ -1,10 +1,10 @@
 // src/routes/omat/index.tsx
-// User dashboard — my listings + tori items, with quick actions
+// User dashboard — my listings with quick actions
 
 import { Button } from "@motori/ui/button";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { Heart, LogOut, MapPin, Pencil, Plus, Settings } from "lucide-react";
+import { Heart, LogOut, MapPin, Pencil, Settings } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "~/lib/auth-client";
 import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, SITE_NAME } from "~/lib/constants";
@@ -15,7 +15,7 @@ import { getOwnerListings } from "~/lib/listings-owner";
 import { protectedMutation } from "~/lib/middleware";
 import { getProfileForEdit } from "~/lib/profile.server";
 import { requireSessionOrRedirect, requireUserId } from "~/lib/session";
-import { computeListingSlug, slugify } from "~/lib/slug";
+import { computeListingSlug } from "~/lib/slug";
 import { useEmailVerified } from "~/lib/use-email-verified";
 
 const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
@@ -155,10 +155,18 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 				</div>
 
 				<div className="mt-1 flex flex-wrap gap-2 text-xs text-muted">
-					<span>{typeLabel}</span>
-					<span>·</span>
-					<span>{listing.year}</span>
-					<span>·</span>
+					{typeLabel != null && (
+						<>
+							<span>{typeLabel}</span>
+							<span>·</span>
+						</>
+					)}
+					{listing.year != null && (
+						<>
+							<span>{listing.year}</span>
+							<span>·</span>
+						</>
+					)}
 					<span className="flex items-center gap-0.5">
 						<MapPin className="h-3 w-3" />
 						{listing.city}, {regionLabel}
@@ -204,7 +212,8 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 					>
 						{listing.status === "active" ? t("dashboard.row.pause") : t("dashboard.row.activate")}
 					</Button>
-					{listing.category === "sale" && listing.status === "active" && (
+					{/* Rentals are never sold and never expire, so no mark-sold/renew for them */}
+					{listing.category !== "rental" && listing.status === "active" && (
 						<>
 							<Button
 								variant="outline"
@@ -241,143 +250,6 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 					>
 						{t("dashboard.row.delete")}
 					</Button>
-				</div>
-			</div>
-		</div>
-	);
-}
-
-interface ToriItemRowProps {
-	item: Listing;
-	firstImage: ListingImage | undefined;
-	onStatusChange: () => void;
-	verified: boolean | null;
-}
-
-function ToriItemRow({ item, firstImage, onStatusChange, verified }: ToriItemRowProps) {
-	const { t } = useTranslation("profile");
-	const slug = slugify(item.title);
-	const statusLabel = LISTING_STATUSES[item.status] ?? item.status;
-	const statusStyle = STATUS_STYLES[item.status] ?? "bg-muted-light text-muted";
-
-	async function handleTogglePause() {
-		const newStatus = item.status === "active" ? "paused" : "active";
-		await setListingStatusFn({ data: { id: item.id, status: newStatus } });
-		onStatusChange();
-	}
-
-	async function handleMarkSold() {
-		await setListingStatusFn({ data: { id: item.id, status: "sold" } });
-		onStatusChange();
-	}
-
-	async function handleRenew() {
-		await setListingStatusFn({ data: { id: item.id, status: "active" } });
-		onStatusChange();
-	}
-
-	return (
-		<div
-			className="flex gap-4 rounded-l border border-border bg-card p-4"
-			data-testid="dashboard-listing-row"
-			data-listing-id={item.short_id}
-		>
-			{/* Thumbnail */}
-			<Link
-				to="/ilmoitukset/$listingId/$slug"
-				params={{ listingId: item.short_id, slug }}
-				className="h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-muted-light"
-			>
-				{firstImage ? (
-					<img
-						src={firstImage.thumbnail_url ?? firstImage.url}
-						alt=""
-						className="h-full w-full object-cover"
-					/>
-				) : (
-					<div className="flex h-full items-center justify-center text-border">
-						<Plus className="h-6 w-6" />
-					</div>
-				)}
-			</Link>
-
-			{/* Info */}
-			<div className="min-w-0 flex-1">
-				<div className="flex flex-wrap items-start justify-between gap-2">
-					<Link
-						to="/ilmoitukset/$listingId/$slug"
-						params={{ listingId: item.short_id, slug }}
-						className="text-sm font-semibold text-foreground hover:text-accent"
-					>
-						{item.title}
-					</Link>
-					<span
-						className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${statusStyle}`}
-						data-testid="tori-item-status"
-					>
-						{statusLabel}
-					</span>
-				</div>
-
-				<div className="mt-1 flex flex-wrap gap-2 text-xs text-muted">
-					<span className="flex items-center gap-0.5">
-						<MapPin className="h-3 w-3" />
-						{item.city}
-					</span>
-					<span>·</span>
-					<span className="font-medium text-accent">{item.city}</span>
-				</div>
-
-				{/* Actions */}
-				<div className="mt-3 flex flex-wrap gap-2">
-					{verified ? (
-						<Link
-							to="/ilmoitukset/$listingId/muokkaa"
-							params={{ listingId: item.short_id }}
-							data-testid="dashboard-listing-edit"
-						>
-							<Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs">
-								<Pencil className="h-3 w-3" />
-								{t("dashboard.tori.edit")}
-							</Button>
-						</Link>
-					) : null}
-					{item.status !== "removed" && (
-						<Button
-							variant="outline"
-							size="sm"
-							className="h-7 px-2 text-xs"
-							onClick={handleTogglePause}
-							disabled={!verified}
-							data-testid="tori-item-toggle-pause"
-						>
-							{item.status === "active" ? t("dashboard.tori.pause") : t("dashboard.tori.activate")}
-						</Button>
-					)}
-					{item.status === "active" && (
-						<>
-							<Button
-								variant="outline"
-								size="sm"
-								className="h-7 px-2 text-xs"
-								onClick={handleMarkSold}
-								disabled={!verified}
-								data-testid="tori-item-mark-sold"
-							>
-								{t("dashboard.tori.markSold")}
-							</Button>
-							<Button
-								variant="outline"
-								size="sm"
-								className="h-7 px-2 text-xs"
-								onClick={handleRenew}
-								disabled={!verified}
-								data-testid="tori-item-renew"
-							>
-								{t("dashboard.tori.renew")}
-							</Button>
-						</>
-					)}
 				</div>
 			</div>
 		</div>
@@ -546,25 +418,15 @@ function ProfilePage() {
 								</Button>
 							</Link>
 						</div>
-						{filtered.map((item) =>
-							isToriCategory(item.category) ? (
-								<ToriItemRow
-									key={item.id}
-									item={item}
-									firstImage={firstImageById.get(item.id)}
-									onStatusChange={refresh}
-									verified={verified}
-								/>
-							) : (
-								<ListingRow
-									key={item.id}
-									listing={item as Listing & { makeSlug: string | null; modelName: string | null }}
-									firstImage={firstImageById.get(item.id)}
-									onStatusChange={refresh}
-									verified={verified}
-								/>
-							),
-						)}
+						{filtered.map((item) => (
+							<ListingRow
+								key={item.id}
+								listing={item}
+								firstImage={firstImageById.get(item.id)}
+								onStatusChange={refresh}
+								verified={verified}
+							/>
+						))}
 					</div>
 				)}
 			</div>

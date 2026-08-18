@@ -14,17 +14,6 @@ export default {
 		},
 		emptyState: "You don't have any listings yet.",
 		createFirst: "Create your first listing",
-		tori: {
-			heading: "Marketplace",
-			newItem: "Create new",
-			emptyState: "No marketplace listings.",
-			createFirst: "Create your first",
-			edit: "Edit",
-			pause: "Pause",
-			activate: "Activate",
-			markSold: "Sold",
-			renew: "Renew",
-		},
 		row: {
 			viewCount: "{{n}} views",
 			edit: "Edit",
