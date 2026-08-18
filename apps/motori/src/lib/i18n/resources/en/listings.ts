@@ -13,6 +13,8 @@ export default {
 		closeCityPanel: "Close",
 		showFilters: "Show filters",
 		collapseSidebar: "Collapse sidebar",
+		saveSearch: "Save search",
+		saveSearchSaved: "Search saved",
 	},
 	filters: {
 		heading: "Filters",

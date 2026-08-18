@@ -8,8 +8,9 @@ import { FilterDrawer } from "~/components/listings/filter-drawer";
 import { FilterSidebar } from "~/components/listings/filter-sidebar";
 import { ListingCard } from "~/components/listings/listing-card";
 import { ListingCardSkeleton } from "~/components/listings/listing-card-skeleton";
+import { SaveSearchButton } from "~/components/listings/save-search-button";
 import { REGIONS } from "~/lib/constants";
-import type { MotorcycleMake } from "~/lib/db/schema";
+import type { ListingCategory, MotorcycleMake } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
 import type { SearchResult } from "~/lib/listings-search";
 import { type BrowseSearchParams, countActiveFilters } from "~/lib/validators";
@@ -22,6 +23,7 @@ export interface BrowsePageProps {
 	initialData: SearchResult & { currentUserId: string | null; makes: MotorcycleMake[] };
 	search: BrowseSearchParams;
 	browseTo: string;
+	category: ListingCategory;
 	showMap?: boolean;
 	filterBlocks: React.ReactNode;
 }
@@ -62,6 +64,7 @@ export function BrowsePage({
 	initialData,
 	search,
 	browseTo,
+	category,
 	showMap = true,
 	filterBlocks,
 }: BrowsePageProps) {
@@ -197,6 +200,7 @@ export function BrowsePage({
 								</span>
 							</button>
 						) : null}
+						<SaveSearchButton category={category} search={search} />
 					</form>
 					<p
 						data-testid="listings-result-count"

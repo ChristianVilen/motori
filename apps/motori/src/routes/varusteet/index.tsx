@@ -38,6 +38,7 @@ function GearBrowsePage() {
 			initialData={Route.useLoaderData()}
 			search={Route.useSearch()}
 			browseTo="/varusteet"
+			category="gear"
 			showMap={false}
 			filterBlocks={<GearFilters />}
 		/>

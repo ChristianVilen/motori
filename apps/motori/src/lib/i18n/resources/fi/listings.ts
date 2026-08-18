@@ -13,6 +13,8 @@ export default {
 		closeCityPanel: "Sulje",
 		showFilters: "Näytä suodattimet",
 		collapseSidebar: "Piilota sivupalkki",
+		saveSearch: "Tallenna haku",
+		saveSearchSaved: "Haku tallennettu",
 	},
 	filters: {
 		heading: "Suodattimet",

@@ -38,6 +38,7 @@ function RentalBrowsePage() {
 			initialData={Route.useLoaderData()}
 			search={Route.useSearch()}
 			browseTo="/pyorat/vuokraus"
+			category="rental"
 			showMap={true}
 			filterBlocks={<RentalFilters />}
 		/>
