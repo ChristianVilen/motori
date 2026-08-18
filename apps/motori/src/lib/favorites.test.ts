@@ -1,69 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	executeQueue,
+	executeTakeFirstQueue,
+	resetDbMock,
+	valuesCalls,
+	whereCalls,
+} from "~/test/kysely-mock";
 
-// Queue-based DB mock (bookings.server.test.ts pattern): chained Kysely calls
-// return a self-proxy, terminal methods consume from queues. `where` and
-// `values` calls are recorded so filters and inserts can be asserted.
-
-const executeQueue: unknown[] = [];
-const executeTakeFirstQueue: unknown[] = [];
-const whereCalls: unknown[][] = [];
-const valuesCalls: unknown[] = [];
-
-function chainable(): unknown {
-	return new Proxy(
-		{},
-		{
-			get(_, prop) {
-				if (prop === "execute") {
-					return () => executeQueue.shift();
-				}
-				if (prop === "executeTakeFirst") {
-					return () => executeTakeFirstQueue.shift();
-				}
-				if (prop === "where") {
-					return (...args: unknown[]) => {
-						whereCalls.push(args);
-						return chainable();
-					};
-				}
-				if (prop === "values") {
-					return (v: unknown) => {
-						valuesCalls.push(v);
-						return chainable();
-					};
-				}
-				return () => chainable();
-			},
-		},
-	);
-}
-
-vi.mock("~/lib/db/index", () => ({
-	db: {
-		selectFrom: () => chainable(),
-		insertInto: () => chainable(),
-		deleteFrom: () => chainable(),
-	},
-}));
-
-vi.mock("kysely", () => {
-	const sqlResult = { as: () => sqlResult, $call: () => sqlResult };
-	const sqlProxy = new Proxy(() => sqlResult, {
-		apply: () => sqlResult,
-		get: () => sqlProxy,
-	});
-	return { sql: sqlProxy };
-});
+vi.mock("~/lib/db/index", async () => (await import("~/test/kysely-mock")).dbModuleMock());
+vi.mock("kysely", async () => (await import("~/test/kysely-mock")).kyselyModuleMock());
 
 import { AppError } from "~/lib/errors";
 import { getFavoriteListings, toggleFavorite } from "./favorites";
 
-beforeEach(() => {
-	executeQueue.length = 0;
-	executeTakeFirstQueue.length = 0;
-	whereCalls.length = 0;
-	valuesCalls.length = 0;
-});
+beforeEach(resetDbMock);
 
 describe("toggleFavorite", () => {
 	it("removes an existing favorite and reports favorited: false", async () => {

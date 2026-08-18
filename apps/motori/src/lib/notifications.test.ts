@@ -1,38 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { executeQueue, resetDbMock, whereCalls } from "~/test/kysely-mock";
 
-// Queue-based DB mock, same pattern as bookings.server.test.ts: chained Kysely
-// calls return a self-proxy, terminal methods consume from queues. `where` calls
-// are recorded so the category filter (the rental false-warning fix) is asserted.
-
-const executeQueue: unknown[] = [];
-const whereCalls: unknown[][] = [];
-
-function chainable(): unknown {
-	return new Proxy(
-		{},
-		{
-			get(_, prop) {
-				if (prop === "execute") {
-					return () => executeQueue.shift();
-				}
-				if (prop === "where") {
-					return (...args: unknown[]) => {
-						whereCalls.push(args);
-						return chainable();
-					};
-				}
-				return () => chainable();
-			},
-		},
-	);
-}
-
-vi.mock("~/lib/db/index", () => ({
-	db: {
-		selectFrom: () => chainable(),
-		updateTable: () => chainable(),
-	},
-}));
+vi.mock("~/lib/db/index", async () => (await import("~/test/kysely-mock")).dbModuleMock());
 
 vi.mock("~/lib/log", () => ({
 	log: { event: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
@@ -48,14 +17,7 @@ vi.mock("~/lib/log/events", () => ({
 	},
 }));
 
-vi.mock("kysely", () => {
-	const sqlResult = { as: () => sqlResult, $call: () => sqlResult };
-	const sqlProxy = new Proxy(() => sqlResult, {
-		apply: () => sqlResult,
-		get: () => sqlProxy,
-	});
-	return { sql: sqlProxy };
-});
+vi.mock("kysely", async () => (await import("~/test/kysely-mock")).kyselyModuleMock());
 
 const sendEmail = vi.fn();
 vi.mock("@motori/server/email", () => ({
@@ -70,8 +32,7 @@ import { SITE_URL } from "~/lib/constants";
 import { sendListingExpiryWarnings } from "./notifications";
 
 beforeEach(() => {
-	executeQueue.length = 0;
-	whereCalls.length = 0;
+	resetDbMock();
 	sendEmail.mockReset();
 	sendEmail.mockResolvedValue(undefined);
 });

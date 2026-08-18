@@ -1,57 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	executeQueue,
+	executeTakeFirstOrThrowQueue,
+	executeTakeFirstQueue,
+	resetDbMock,
+} from "~/test/kysely-mock";
 
-// --- Queue-based DB mock ---
-// Kysely's fluent API (db.selectFrom("x").select(...).where(...).executeTakeFirst())
-// is mocked via a Proxy that returns itself for all chained methods, then consumes
-// from the appropriate queue when a terminal method is called. Tests push expected
-// results onto queues IN THE ORDER the production code executes its queries.
-
-const executeQueue: unknown[] = [];
-const executeTakeFirstQueue: unknown[] = [];
-const executeTakeFirstOrThrowQueue: unknown[] = [];
-
-function chainable(): unknown {
-	return new Proxy(
-		{},
-		{
-			get(_, prop) {
-				if (prop === "execute") {
-					return () => executeQueue.shift();
-				}
-				if (prop === "executeTakeFirst") {
-					return () => executeTakeFirstQueue.shift();
-				}
-				if (prop === "executeTakeFirstOrThrow") {
-					return () => executeTakeFirstOrThrowQueue.shift();
-				}
-				return () => chainable();
-			},
-		},
-	);
-}
-
-// biome-ignore lint/suspicious/noExplicitAny: test mock
-const mockTransaction = vi.fn((fn: (trx: any) => unknown) =>
-	fn({
-		selectFrom: () => chainable(),
-		insertInto: () => chainable(),
-		updateTable: () => chainable(),
-		deleteFrom: () => chainable(),
-	}),
-);
-
-vi.mock("~/lib/db/index", () => ({
-	db: {
-		selectFrom: () => chainable(),
-		insertInto: () => chainable(),
-		updateTable: () => chainable(),
-		deleteFrom: () => chainable(),
-		transaction: () => ({
-			// biome-ignore lint/suspicious/noExplicitAny: test mock
-			execute: (fn: (trx: any) => unknown) => mockTransaction(fn),
-		}),
-	},
-}));
+vi.mock("~/lib/db/index", async () => (await import("~/test/kysely-mock")).dbModuleMock());
 
 vi.mock("~/lib/log", () => ({
 	log: { event: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
@@ -70,14 +25,7 @@ vi.mock("~/lib/log/events", () => ({
 	},
 }));
 
-vi.mock("kysely", () => {
-	const sqlResult = { as: () => sqlResult, $call: () => sqlResult };
-	const sqlProxy = new Proxy(() => sqlResult, {
-		apply: () => sqlResult,
-		get: () => sqlProxy,
-	});
-	return { sql: sqlProxy };
-});
+vi.mock("kysely", async () => (await import("~/test/kysely-mock")).kyselyModuleMock());
 
 import { createInMemoryNotifier } from "./booking-notifier";
 import {
@@ -88,11 +36,7 @@ import {
 	rejectBooking,
 } from "./bookings.server";
 
-beforeEach(() => {
-	executeQueue.length = 0;
-	executeTakeFirstQueue.length = 0;
-	executeTakeFirstOrThrowQueue.length = 0;
-});
+beforeEach(resetDbMock);
 
 // --- Tests ---
 
