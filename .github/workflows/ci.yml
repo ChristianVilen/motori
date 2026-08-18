@@ -79,6 +79,9 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    # Normal job time is 1.5-3 min; a wedged runner otherwise hangs forever,
+    # never uploads the report artifact, and silently blocks deploy.
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -130,6 +133,7 @@ jobs:
 
   e2e-talli:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     services:
       postgres:
         image: postgres:17-alpine
