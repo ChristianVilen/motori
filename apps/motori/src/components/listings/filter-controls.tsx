@@ -315,7 +315,7 @@ export function SortFilter() {
 			</label>
 			<select
 				id={`${idPrefix}-sort`}
-				value={current}
+				value={current.value}
 				onChange={(e) => updateFilter({ sort: e.target.value as BrowseSearchParams["sort"] })}
 				className={cls}
 			>

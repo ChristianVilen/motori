@@ -1,10 +1,10 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowDownUp, Check, ChevronDown } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { getSortState, type SortOption } from "~/lib/constants";
+import { BROWSE_CATEGORIES, getSortState, type SortOption } from "~/lib/constants";
 import type { ListingCategory } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
 import type { BrowseSearchParams } from "~/lib/validators";
+import { useDropdownMenu } from "../use-dropdown-menu";
 
 interface MobileBrowseControlsProps {
 	category: ListingCategory;
@@ -12,13 +12,6 @@ interface MobileBrowseControlsProps {
 	totalCount: number;
 	search: BrowseSearchParams;
 }
-
-const CATEGORY_CHIPS = [
-	{ value: "sale", to: "/pyorat/myynti", labelKey: "browse.categoryChips.sale" },
-	{ value: "gear", to: "/varusteet", labelKey: "browse.categoryChips.gear" },
-	{ value: "part", to: "/varaosat", labelKey: "browse.categoryChips.part" },
-	{ value: "rental", to: "/pyorat/vuokraus", labelKey: "browse.categoryChips.rental" },
-] as const;
 
 export function MobileBrowseControls({
 	category,
@@ -28,88 +21,8 @@ export function MobileBrowseControls({
 }: MobileBrowseControlsProps) {
 	const { t } = useTranslation("listings");
 	const navigate = useNavigate();
-	const [open, setOpen] = useState(false);
-	const [focusIndex, setFocusIndex] = useState(-1);
-	const wrapperRef = useRef<HTMLDivElement>(null);
-	const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
-
-	const { current: currentSort, options: sortOptions } = getSortState(search);
-	const sortLabel = sortOptions.find((s) => s.value === currentSort)?.label ?? sortOptions[0].label;
-
-	function handleBlur(e: React.FocusEvent) {
-		if (!wrapperRef.current?.contains(e.relatedTarget as Node)) {
-			setOpen(false);
-		}
-	}
-
-	// iOS Safari doesn't move focus on a background tap, so onBlur alone never
-	// fires there — this closes the menu on any outside pointer interaction
-	// too, without stealing focus back (that's the keyboard path's job).
-	useEffect(() => {
-		if (!open) {
-			return;
-		}
-		function onPointerDown(e: PointerEvent) {
-			if (!wrapperRef.current?.contains(e.target as Node)) {
-				setOpen(false);
-			}
-		}
-		document.addEventListener("pointerdown", onPointerDown);
-		return () => document.removeEventListener("pointerdown", onPointerDown);
-	}, [open]);
-
-	function openMenu() {
-		setOpen(true);
-		setFocusIndex(0);
-		requestAnimationFrame(() => itemRefs.current[0]?.focus());
-	}
-
-	function closeMenu() {
-		setOpen(false);
-		wrapperRef.current?.querySelector("button")?.focus();
-	}
-
-	function handleButtonKeyDown(e: React.KeyboardEvent) {
-		if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
-			e.preventDefault();
-			openMenu();
-		}
-	}
-
-	function handleMenuKeyDown(e: React.KeyboardEvent) {
-		switch (e.key) {
-			case "Escape":
-				e.preventDefault();
-				closeMenu();
-				break;
-			case "ArrowDown":
-				e.preventDefault();
-				setFocusIndex((i) => {
-					const next = Math.min(i + 1, sortOptions.length - 1);
-					itemRefs.current[next]?.focus();
-					return next;
-				});
-				break;
-			case "ArrowUp":
-				e.preventDefault();
-				setFocusIndex((i) => {
-					const next = Math.max(i - 1, 0);
-					itemRefs.current[next]?.focus();
-					return next;
-				});
-				break;
-			case "Home":
-				e.preventDefault();
-				setFocusIndex(0);
-				itemRefs.current[0]?.focus();
-				break;
-			case "End":
-				e.preventDefault();
-				setFocusIndex(sortOptions.length - 1);
-				itemRefs.current[sortOptions.length - 1]?.focus();
-				break;
-		}
-	}
+	const { current, options } = getSortState(search);
+	const menu = useDropdownMenu(options.length);
 
 	function applySort(value: SortOption) {
 		navigate({
@@ -117,19 +30,19 @@ export function MobileBrowseControls({
 			search: (prev) => ({ ...prev, sort: value, cursor: undefined }),
 			replace: true,
 		});
-		closeMenu();
+		menu.closeMenu();
 	}
 
 	return (
 		<div className="md:hidden">
 			<div className="flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none]">
-				{CATEGORY_CHIPS.map((chip) => {
-					const isActive = chip.value === category;
+				{BROWSE_CATEGORIES.map((c) => {
+					const isActive = c.value === category;
 					return (
 						<Link
-							key={chip.value}
-							to={chip.to}
-							data-testid={`browse-category-chip-${chip.value}`}
+							key={c.value}
+							to={c.to}
+							data-testid={`browse-category-chip-${c.value}`}
 							aria-current={isActive ? "page" : undefined}
 							className={`shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium ${
 								isActive
@@ -137,7 +50,7 @@ export function MobileBrowseControls({
 									: "border border-border bg-background text-foreground"
 							}`}
 						>
-							{t(chip.labelKey)}
+							{t(`browse.categoryChips.${c.value}`)}
 						</Link>
 					);
 				})}
@@ -154,43 +67,43 @@ export function MobileBrowseControls({
 					{t("browse.resultCountWord")}
 				</p>
 				{/* biome-ignore lint/a11y/noStaticElementInteractions: dropdown wrapper needs blur handler */}
-				<div ref={wrapperRef} className="relative" onBlur={handleBlur}>
+				<div ref={menu.wrapperRef} className="relative" onBlur={menu.handleBlur}>
 					<button
 						type="button"
 						data-testid="listings-sort-chip"
 						aria-haspopup="menu"
-						aria-expanded={open}
-						onClick={() => (open ? setOpen(false) : openMenu())}
-						onKeyDown={handleButtonKeyDown}
+						aria-expanded={menu.open}
+						onClick={menu.toggle}
+						onKeyDown={menu.handleButtonKeyDown}
 						className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm text-foreground"
 					>
 						<ArrowDownUp className="h-3.5 w-3.5 text-muted" />
-						{sortLabel}
+						{current.label}
 						<ChevronDown className="h-3.5 w-3.5 text-muted" />
 					</button>
-					{open ? (
+					{menu.open ? (
 						<div
 							role="menu"
 							data-testid="listings-sort-menu"
-							onKeyDown={handleMenuKeyDown}
+							onKeyDown={menu.handleMenuKeyDown}
 							className="absolute right-0 top-full z-50 mt-1 w-48 rounded-lg border border-border bg-background py-1 shadow-lg"
 						>
-							{sortOptions.map((s, i) => (
+							{options.map((s, i) => (
 								<button
 									key={s.value}
 									type="button"
 									role="menuitemradio"
-									aria-checked={s.value === currentSort}
-									tabIndex={focusIndex === i ? 0 : -1}
+									aria-checked={s.value === current.value}
+									tabIndex={menu.focusIndex === i ? 0 : -1}
 									ref={(el) => {
-										itemRefs.current[i] = el;
+										menu.itemRefs.current[i] = el;
 									}}
 									data-testid={`listings-sort-option-${s.value}`}
 									onClick={() => applySort(s.value)}
 									className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-foreground hover:bg-muted-light focus:bg-muted-light focus:outline-none"
 								>
 									{s.label}
-									{s.value === currentSort ? <Check className="h-4 w-4 text-accent" /> : null}
+									{s.value === current.value ? <Check className="h-4 w-4 text-accent" /> : null}
 								</button>
 							))}
 						</div>
