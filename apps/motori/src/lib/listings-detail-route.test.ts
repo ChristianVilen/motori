@@ -19,6 +19,7 @@ vi.mock("~/lib/listings-detail", () => ({
 }));
 vi.mock("~/lib/reviews.server", () => ({ getReviewSummaryForUser: vi.fn() }));
 vi.mock("~/lib/session", () => ({ getSession: vi.fn() }));
+vi.mock("~/lib/messages", () => ({ startConversation: vi.fn() }));
 vi.mock("~/lib/i18n", () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
 
 import { defineCategoryDetailRoute } from "./listings-detail-route";
@@ -29,6 +30,7 @@ describe("defineCategoryDetailRoute", () => {
 			category: "sale",
 			backTo: "/pyorat/myynti",
 			Sidebar: () => null,
+			priceCents: () => 0,
 			head: (loaderData) =>
 				loaderData ? { meta: [{ title: loaderData.listing.title }] } : { meta: [] },
 		});

@@ -2,18 +2,26 @@
 // Rental is bespoke (booking form + mobile bar) and lives in its own file.
 //
 // The factory holds the duplicated server fn + loader + notFoundComponent +
-// useLoaderData destructure. Each route file owns its createFileRoute path
-// (the codegen reads the literal string) and supplies the category-specific
-// sidebar plus head meta.
+// useLoaderData destructure + the sticky mobile price/contact bar. Each route
+// file owns its createFileRoute path (the codegen reads the literal string)
+// and supplies the category-specific sidebar, head meta, and price extractor.
 
-import { type LinkProps, notFound, useLoaderData } from "@tanstack/react-router";
+import {
+	Link,
+	type LinkProps,
+	notFound,
+	useLoaderData,
+	useNavigate,
+	useRouterState,
+} from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import type { FC, ReactNode } from "react";
 import { z } from "zod";
 import { ListingDetailShell } from "~/components/listings/listing-detail-shell";
-import { useTranslation } from "~/lib/i18n";
+import { formatEur, useTranslation } from "~/lib/i18n";
 import { getListingForDisplay, type ListingForDisplay, recordView } from "~/lib/listings-detail";
+import { startConversation } from "~/lib/messages";
 import { getReviewSummaryForUser } from "~/lib/reviews.server";
 import { getSession } from "~/lib/session";
 
@@ -26,6 +34,8 @@ type LoaderResult = ListingForDisplay & {
 
 type HeadInput = LoaderResult;
 
+type TFunc = ReturnType<typeof useTranslation>["t"];
+
 interface DefineCategoryDetailRouteArgs<C extends "sale" | "gear" | "part"> {
 	category: C;
 	backTo: LinkProps["to"];
@@ -33,7 +43,56 @@ interface DefineCategoryDetailRouteArgs<C extends "sale" | "gear" | "part"> {
 		data: LoaderResult;
 		isOwner: boolean;
 	}>;
+	priceCents: (data: LoaderResult) => number;
 	head: (loaderData: HeadInput | undefined) => Record<string, unknown>;
+}
+
+function MobileBottomBar({
+	priceCents,
+	isOwner,
+	isActive,
+	isLoggedIn,
+	redirectPath,
+	onMessageClick,
+	t,
+}: {
+	priceCents: number;
+	isOwner: boolean;
+	isActive: boolean;
+	isLoggedIn: boolean;
+	redirectPath: string;
+	onMessageClick: () => void;
+	t: TFunc;
+}) {
+	return (
+		<div className="fixed inset-x-0 bottom-16 z-40 border-t border-border bg-card/95 px-4 py-3 backdrop-blur-md md:bottom-0 lg:hidden">
+			<div className="flex items-center justify-between gap-4">
+				<span data-testid="mobile-price" className="text-lg font-bold text-accent">
+					{formatEur(priceCents)}
+				</span>
+				{!isOwner && isActive && !isLoggedIn ? (
+					<Link
+						to="/kirjaudu"
+						search={{ redirect: redirectPath }}
+						data-testid="mobile-login-to-contact"
+						className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
+					>
+						{t("detail.loginToContact")}
+					</Link>
+				) : null}
+				{!isOwner && isActive && isLoggedIn ? (
+					<button
+						type="button"
+						data-testid="mobile-message-seller"
+						onClick={onMessageClick}
+						className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
+					>
+						{t("detail.messageSeller", "Lähetä viesti")}
+					</button>
+				) : null}
+			</div>
+		</div>
+	);
 }
 
 const categoryDetailInput = z.object({
@@ -61,7 +120,7 @@ const getCategoryListing = createServerFn({ method: "GET" })
 export function defineCategoryDetailRoute<C extends "sale" | "gear" | "part">(
 	args: DefineCategoryDetailRouteArgs<C>,
 ) {
-	const { category, backTo, Sidebar, head } = args;
+	const { category, backTo, Sidebar, priceCents, head } = args;
 
 	async function loader({ params }: { params: { listingId: string } }): Promise<LoaderResult> {
 		const [result, session] = await Promise.all([
@@ -77,7 +136,16 @@ export function defineCategoryDetailRoute<C extends "sale" | "gear" | "part">(
 	function Component(): ReactNode {
 		const data = useLoaderData({ strict: false }) as LoaderResult;
 		const { t } = useTranslation("listings");
+		const navigate = useNavigate();
+		const pathname = useRouterState({ select: (s) => s.location.pathname });
 		const isOwner = data.session?.user.id === data.listing.owner_id;
+
+		async function onMobileMessageSeller() {
+			const { conversationId } = await startConversation({
+				data: { listingId: data.listing.id },
+			});
+			navigate({ to: "/viestit/$conversationId", params: { conversationId } });
+		}
 
 		return (
 			<ListingDetailShell
@@ -86,6 +154,17 @@ export function defineCategoryDetailRoute<C extends "sale" | "gear" | "part">(
 				backTo={backTo}
 				backLabel={t("detail.back")}
 				sidebar={<Sidebar data={data} isOwner={isOwner} />}
+				mobileBar={
+					<MobileBottomBar
+						priceCents={priceCents(data)}
+						isOwner={isOwner}
+						isActive={data.listing.status === "active"}
+						isLoggedIn={!!data.session}
+						redirectPath={pathname}
+						onMessageClick={onMobileMessageSeller}
+						t={t}
+					/>
+				}
 			/>
 		);
 	}
