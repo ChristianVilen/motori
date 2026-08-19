@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowDownUp, Check, ChevronDown } from "lucide-react";
-import { categoryChipClass } from "~/components/category-chip";
+import { categoryChipClass } from "~/components/category-chip-class";
 import { BROWSE_CATEGORIES, getSortState, type SortOption } from "~/lib/constants";
 import type { ListingCategory } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
