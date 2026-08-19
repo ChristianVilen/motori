@@ -2,6 +2,7 @@ export default {
 	dashboard: {
 		fallbackName: "Profile",
 		favoritesLabel: "Favorites",
+		savedSearchesLabel: "Saved searches",
 		stats: "{{active}} active · {{paused}} paused · {{rented}} rented",
 		newListing: "New listing",
 		settingsAriaLabel: "Settings",
@@ -29,6 +30,12 @@ export default {
 		title: "Favorites",
 		back: "Back",
 		empty: "No favorites yet. Tap the heart on a listing to add it here.",
+	},
+	savedSearches: {
+		title: "Saved searches",
+		back: "Back",
+		empty: "No saved searches yet.",
+		delete: "Delete search {{label}}",
 	},
 	publicProfile: {
 		back: "Back",

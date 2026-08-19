@@ -38,6 +38,7 @@ function SaleBrowsePage() {
 			initialData={Route.useLoaderData()}
 			search={Route.useSearch()}
 			browseTo="/pyorat/myynti"
+			category="sale"
 			showMap={true}
 			filterBlocks={<SaleFilters />}
 		/>

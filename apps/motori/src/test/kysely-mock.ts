@@ -14,6 +14,7 @@ export const executeTakeFirstQueue: unknown[] = [];
 export const executeTakeFirstOrThrowQueue: unknown[] = [];
 export const whereCalls: unknown[][] = [];
 export const valuesCalls: unknown[] = [];
+export const orderByCalls: unknown[][] = [];
 
 export function chainable(): unknown {
 	return new Proxy(
@@ -41,6 +42,12 @@ export function chainable(): unknown {
 						return chainable();
 					};
 				}
+				if (prop === "orderBy") {
+					return (...args: unknown[]) => {
+						orderByCalls.push(args);
+						return chainable();
+					};
+				}
 				return () => chainable();
 			},
 		},
@@ -53,6 +60,7 @@ export function resetDbMock(): void {
 	executeTakeFirstOrThrowQueue.length = 0;
 	whereCalls.length = 0;
 	valuesCalls.length = 0;
+	orderByCalls.length = 0;
 }
 
 /** Factory for vi.mock("~/lib/db/index"). Transactions run the callback with the same mock. */

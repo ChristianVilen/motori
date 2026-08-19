@@ -38,6 +38,7 @@ function PartsBrowsePage() {
 			initialData={Route.useLoaderData()}
 			search={Route.useSearch()}
 			browseTo="/varaosat"
+			category="part"
 			showMap={false}
 			filterBlocks={<PartsFilters />}
 		/>

@@ -26,6 +26,7 @@ import { detectServerLocale } from "~/lib/i18n/detect-locale";
 import type { SupportedLocale } from "~/lib/i18n/resources";
 import { supportedLngs } from "~/lib/i18n/resources";
 import { createI18nSync } from "~/lib/i18n/server";
+import { LoginPromptProvider } from "~/lib/login-prompt-context";
 import { getUnreadTotal } from "~/lib/messages";
 import { getSession } from "~/lib/session";
 import { useEmailVerified } from "~/lib/use-email-verified";
@@ -237,134 +238,136 @@ function RootDocument({
 			</head>
 			<body className="min-h-screen bg-background font-sans text-foreground antialiased">
 				<FavoritesProvider loggedIn={!!session} onRequireLogin={() => setLoginOpen(true)}>
-					<a
-						href="#main-content"
-						className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-white"
-					>
-						{t("nav.skipToContent")}
-					</a>
-					{!isAdmin && (
-						<nav className="bg-primary px-4 py-3">
-							<div className="mx-auto flex max-w-6xl items-center justify-between">
-								<Link to="/" className="flex items-center">
-									<Logo variant="dark" className="h-8 w-auto" />
-								</Link>
-								<div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 sm:gap-x-6">
-									<div className="hidden flex-wrap items-center gap-x-4 gap-y-2 md:flex md:gap-x-6">
-										<CategoryDropdown />
-										<Link
-											to="/varusteet"
-											data-testid="nav-varusteet"
-											className="text-sm text-white/70 hover:text-white"
-										>
-											{t("nav.gear")}
-										</Link>
-										<Link
-											to="/varaosat"
-											data-testid="nav-varaosat"
-											className="text-sm text-white/70 hover:text-white"
-										>
-											{t("nav.parts")}
-										</Link>
-										{verified ? (
+					<LoginPromptProvider loggedIn={!!session} onRequireLogin={() => setLoginOpen(true)}>
+						<a
+							href="#main-content"
+							className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-white"
+						>
+							{t("nav.skipToContent")}
+						</a>
+						{!isAdmin && (
+							<nav className="bg-primary px-4 py-3">
+								<div className="mx-auto flex max-w-6xl items-center justify-between">
+									<Link to="/" className="flex items-center">
+										<Logo variant="dark" className="h-8 w-auto" />
+									</Link>
+									<div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 sm:gap-x-6">
+										<div className="hidden flex-wrap items-center gap-x-4 gap-y-2 md:flex md:gap-x-6">
+											<CategoryDropdown />
 											<Link
-												data-testid="nav-add-listing"
-												to="/ilmoitukset/uusi"
-												className="rounded-md bg-accent px-3.5 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
+												to="/varusteet"
+												data-testid="nav-varusteet"
+												className="text-sm text-white/70 hover:text-white"
 											>
-												{t("nav.listMotorcycle")}
+												{t("nav.gear")}
 											</Link>
-										) : (
-											<span
-												data-testid="nav-add-listing"
-												title={tAuth("unverifiedTooltip")}
-												className="cursor-not-allowed rounded-md bg-white/20 px-3.5 py-1.5 text-sm font-medium text-white/70"
+											<Link
+												to="/varaosat"
+												data-testid="nav-varaosat"
+												className="text-sm text-white/70 hover:text-white"
 											>
-												{t("nav.listMotorcycle")}
-											</span>
-										)}
-										{session ? (
-											<NavAuthLinks unreadMessages={unreadMessages} onSignOut={handleSignOut} />
-										) : (
+												{t("nav.parts")}
+											</Link>
+											{verified ? (
+												<Link
+													data-testid="nav-add-listing"
+													to="/ilmoitukset/uusi"
+													className="rounded-md bg-accent px-3.5 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
+												>
+													{t("nav.listMotorcycle")}
+												</Link>
+											) : (
+												<span
+													data-testid="nav-add-listing"
+													title={tAuth("unverifiedTooltip")}
+													className="cursor-not-allowed rounded-md bg-white/20 px-3.5 py-1.5 text-sm font-medium text-white/70"
+												>
+													{t("nav.listMotorcycle")}
+												</span>
+											)}
+											{session ? (
+												<NavAuthLinks unreadMessages={unreadMessages} onSignOut={handleSignOut} />
+											) : (
+												<button
+													type="button"
+													data-testid="nav-login"
+													onClick={() => setLoginOpen(true)}
+													className="text-sm text-white/70 hover:text-white"
+												>
+													{t("nav.signIn")}
+												</button>
+											)}
+										</div>
+										{!session && (
 											<button
 												type="button"
-												data-testid="nav-login"
+												data-testid="nav-login-mobile"
 												onClick={() => setLoginOpen(true)}
-												className="text-sm text-white/70 hover:text-white"
+												className="text-sm text-white/70 hover:text-white md:hidden"
 											>
 												{t("nav.signIn")}
 											</button>
 										)}
+										<LanguageSelector />
 									</div>
-									{!session && (
-										<button
-											type="button"
-											data-testid="nav-login-mobile"
-											onClick={() => setLoginOpen(true)}
-											className="text-sm text-white/70 hover:text-white md:hidden"
-										>
-											{t("nav.signIn")}
-										</button>
-									)}
-									<LanguageSelector />
 								</div>
-							</div>
-						</nav>
-					)}
-					{!isAdmin && showVerifyBanner && (
-						<VerifyBanner
-							resent={resent}
-							checkedSpam={checkedSpam}
-							onCheckSpam={() => setCheckedSpam(true)}
-							onResend={handleResendVerification}
-						/>
-					)}
-					<main id="main-content" className="pb-16 md:pb-0">
-						{children}
-					</main>
-					{!isAdmin && (
-						<footer className="relative border-t border-border px-4 pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom)+4rem)] md:py-6 text-center text-xs text-muted">
-							<div className="mb-3 flex flex-wrap justify-center gap-x-4 gap-y-1">
-								<Link to="/pyorat/myynti" className="hover:text-foreground">
-									{t("footer.sale")}
-								</Link>
-								<Link to="/pyorat/vuokraus" className="hover:text-foreground">
-									{t("footer.rental")}
-								</Link>
-								<Link to="/varusteet" className="hover:text-foreground">
-									{t("footer.gear")}
-								</Link>
-								<Link to="/varaosat" className="hover:text-foreground">
-									{t("footer.parts")}
-								</Link>
-							</div>
-							<span>{t("footer.copyright")}</span>
-							<span className="mx-2">·</span>
-							<Link to="/kayttoehdot" className="hover:text-foreground">
-								{t("footer.terms")}
-							</Link>
-							<span className="mx-2">·</span>
-							<Link to="/tietosuoja" className="hover:text-foreground">
-								{t("footer.privacy")}
-							</Link>
-							<span className="absolute inset-y-0 right-4 hidden items-center font-mono sm:flex">
-								{__APP_VERSION__}
-							</span>
-						</footer>
-					)}
-					{!isAdmin && <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />}
-					{!isAdmin && (
-						<>
-							<BottomNav
-								session={session ?? null}
-								verified={verified ?? false}
-								onSearchClick={() => setSearchOpen(true)}
-								onSignInClick={() => setLoginOpen(true)}
+							</nav>
+						)}
+						{!isAdmin && showVerifyBanner && (
+							<VerifyBanner
+								resent={resent}
+								checkedSpam={checkedSpam}
+								onCheckSpam={() => setCheckedSpam(true)}
+								onResend={handleResendVerification}
 							/>
-							<MobileSearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
-						</>
-					)}
-					<Toaster position="top-right" richColors />
+						)}
+						<main id="main-content" className="pb-16 md:pb-0">
+							{children}
+						</main>
+						{!isAdmin && (
+							<footer className="relative border-t border-border px-4 pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom)+4rem)] md:py-6 text-center text-xs text-muted">
+								<div className="mb-3 flex flex-wrap justify-center gap-x-4 gap-y-1">
+									<Link to="/pyorat/myynti" className="hover:text-foreground">
+										{t("footer.sale")}
+									</Link>
+									<Link to="/pyorat/vuokraus" className="hover:text-foreground">
+										{t("footer.rental")}
+									</Link>
+									<Link to="/varusteet" className="hover:text-foreground">
+										{t("footer.gear")}
+									</Link>
+									<Link to="/varaosat" className="hover:text-foreground">
+										{t("footer.parts")}
+									</Link>
+								</div>
+								<span>{t("footer.copyright")}</span>
+								<span className="mx-2">·</span>
+								<Link to="/kayttoehdot" className="hover:text-foreground">
+									{t("footer.terms")}
+								</Link>
+								<span className="mx-2">·</span>
+								<Link to="/tietosuoja" className="hover:text-foreground">
+									{t("footer.privacy")}
+								</Link>
+								<span className="absolute inset-y-0 right-4 hidden items-center font-mono sm:flex">
+									{__APP_VERSION__}
+								</span>
+							</footer>
+						)}
+						{!isAdmin && <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />}
+						{!isAdmin && (
+							<>
+								<BottomNav
+									session={session ?? null}
+									verified={verified ?? false}
+									onSearchClick={() => setSearchOpen(true)}
+									onSignInClick={() => setLoginOpen(true)}
+								/>
+								<MobileSearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+							</>
+						)}
+						<Toaster position="top-right" richColors />
+					</LoginPromptProvider>
 				</FavoritesProvider>
 				<Scripts />
 

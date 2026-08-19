@@ -31,4 +31,5 @@ export default {
 	"messages.conversation_not_found": "Conversation not found.",
 	"messages.forbidden": "You do not have access to this conversation.",
 	"messages.rate_limited": "Too many messages in a short time. Please try again later.",
+	"saved_search.limit_reached": "You can save up to 20 searches.",
 } as const;

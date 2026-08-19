@@ -12,6 +12,7 @@ export default {
 		signOut: "Kirjaudu ulos",
 		settings: "Asetukset",
 		favorites: "Suosikit",
+		savedSearches: "Tallennetut haut",
 		userMenuAriaLabel: "Käyttäjävalikko",
 		skipToContent: "Siirry sisältöön",
 		switchLanguage: "Vaihda kieli: {{lang}}",

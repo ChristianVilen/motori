@@ -31,6 +31,7 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as IlmoituksetIndexRouteImport } from './routes/ilmoitukset/index'
 import { Route as IlmoituksetUusiRouteImport } from './routes/ilmoitukset/uusi'
 import { Route as OmatIndexRouteImport } from './routes/omat/index'
+import { Route as OmatHautRouteImport } from './routes/omat/haut'
 import { Route as OmatSuosikitRouteImport } from './routes/omat/suosikit'
 import { Route as OmatVarauksetRouteImport } from './routes/omat/varaukset'
 import { Route as ProfiiliUserIdRouteImport } from './routes/profiili/$userId'
@@ -162,6 +163,11 @@ const IlmoituksetUusiRoute = IlmoituksetUusiRouteImport.update({
 const OmatIndexRoute = OmatIndexRouteImport.update({
   id: '/omat/',
   path: '/omat/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OmatHautRoute = OmatHautRouteImport.update({
+  id: '/omat/haut',
+  path: '/omat/haut',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OmatSuosikitRoute = OmatSuosikitRouteImport.update({
@@ -300,6 +306,7 @@ export interface FileRoutesByFullPath {
   '/api/cron': typeof ApiCronRoute
   '/api/health': typeof ApiHealthRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
+  '/omat/haut': typeof OmatHautRoute
   '/omat/suosikit': typeof OmatSuosikitRoute
   '/omat/varaukset': typeof OmatVarauksetRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
@@ -345,6 +352,7 @@ export interface FileRoutesByTo {
   '/api/cron': typeof ApiCronRoute
   '/api/health': typeof ApiHealthRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
+  '/omat/haut': typeof OmatHautRoute
   '/omat/suosikit': typeof OmatSuosikitRoute
   '/omat/varaukset': typeof OmatVarauksetRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
@@ -392,6 +400,7 @@ export interface FileRoutesById {
   '/api/cron': typeof ApiCronRoute
   '/api/health': typeof ApiHealthRoute
   '/ilmoitukset/uusi': typeof IlmoituksetUusiRoute
+  '/omat/haut': typeof OmatHautRoute
   '/omat/suosikit': typeof OmatSuosikitRoute
   '/omat/varaukset': typeof OmatVarauksetRoute
   '/profiili/$userId': typeof ProfiiliUserIdRoute
@@ -440,6 +449,7 @@ export interface FileRouteTypes {
     | '/api/cron'
     | '/api/health'
     | '/ilmoitukset/uusi'
+    | '/omat/haut'
     | '/omat/suosikit'
     | '/omat/varaukset'
     | '/profiili/$userId'
@@ -485,6 +495,7 @@ export interface FileRouteTypes {
     | '/api/cron'
     | '/api/health'
     | '/ilmoitukset/uusi'
+    | '/omat/haut'
     | '/omat/suosikit'
     | '/omat/varaukset'
     | '/profiili/$userId'
@@ -531,6 +542,7 @@ export interface FileRouteTypes {
     | '/api/cron'
     | '/api/health'
     | '/ilmoitukset/uusi'
+    | '/omat/haut'
     | '/omat/suosikit'
     | '/omat/varaukset'
     | '/profiili/$userId'
@@ -574,6 +586,7 @@ export interface RootRouteChildren {
   ApiCronRoute: typeof ApiCronRoute
   ApiHealthRoute: typeof ApiHealthRoute
   IlmoituksetUusiRoute: typeof IlmoituksetUusiRoute
+  OmatHautRoute: typeof OmatHautRoute
   OmatSuosikitRoute: typeof OmatSuosikitRoute
   OmatVarauksetRoute: typeof OmatVarauksetRoute
   ProfiiliUserIdRoute: typeof ProfiiliUserIdRoute
@@ -753,6 +766,13 @@ declare module '@tanstack/react-router' {
       path: '/omat'
       fullPath: '/omat/'
       preLoaderRoute: typeof OmatIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/omat/haut': {
+      id: '/omat/haut'
+      path: '/omat/haut'
+      fullPath: '/omat/haut'
+      preLoaderRoute: typeof OmatHautRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/omat/suosikit': {
@@ -959,6 +979,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCronRoute: ApiCronRoute,
   ApiHealthRoute: ApiHealthRoute,
   IlmoituksetUusiRoute: IlmoituksetUusiRoute,
+  OmatHautRoute: OmatHautRoute,
   OmatSuosikitRoute: OmatSuosikitRoute,
   OmatVarauksetRoute: OmatVarauksetRoute,
   ProfiiliUserIdRoute: ProfiiliUserIdRoute,
