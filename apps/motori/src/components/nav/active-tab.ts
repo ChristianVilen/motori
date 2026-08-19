@@ -1,7 +1,17 @@
 export type ActiveTab = "browse" | "messages" | "account";
 
 export function getActiveTab(pathname: string): ActiveTab | null {
-	if (pathname === "/") {
+	if (
+		pathname === "/" ||
+		pathname === "/pyorat/myynti" ||
+		pathname.startsWith("/pyorat/myynti/") ||
+		pathname === "/pyorat/vuokraus" ||
+		pathname.startsWith("/pyorat/vuokraus/") ||
+		pathname === "/varusteet" ||
+		pathname.startsWith("/varusteet/") ||
+		pathname === "/varaosat" ||
+		pathname.startsWith("/varaosat/")
+	) {
 		return "browse";
 	}
 	if (pathname === "/viestit" || pathname.startsWith("/viestit/")) {
