@@ -95,6 +95,7 @@ export default {
 		contactSeller: "Ota yhteyttä",
 		messageSeller: "Lähetä viesti",
 		loginToContact: "Kirjaudu ottaaksesi yhteyttä",
+		share: "Jaa",
 		description: "Kuvaus",
 		licenseBadge: "Kortti {{license}}",
 		sellerLabel: "Ilmoittaja",

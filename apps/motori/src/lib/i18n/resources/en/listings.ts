@@ -84,6 +84,7 @@ export default {
 		contactSeller: "Contact seller",
 		messageSeller: "Message seller",
 		loginToContact: "Sign in to contact the seller",
+		share: "Share",
 		description: "Description",
 		licenseBadge: "License {{license}}",
 		sellerLabel: "Seller",
