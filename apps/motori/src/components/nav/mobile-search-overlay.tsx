@@ -1,34 +1,35 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Search as SearchIcon, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { categoryChipClass } from "~/components/category-chip-class";
 import { CitySelect } from "~/components/listings/city-select";
+import { BROWSE_CATEGORIES } from "~/lib/constants";
 import { addRecentSearch, getRecentSearches } from "~/lib/recent-searches";
+import { getBrowseCategory } from "./active-tab";
 
-type Props = { open: boolean; onClose: () => void };
+type Props = { onClose: () => void };
 
-const CATEGORIES = [
-	{ key: "sale", to: "/pyorat/myynti" },
-	{ key: "rental", to: "/pyorat/vuokraus" },
-	{ key: "gear", to: "/varusteet" },
-	{ key: "parts", to: "/varaosat" },
-] as const;
-
-export function MobileSearchOverlay({ open, onClose }: Props) {
+export function MobileSearchOverlay({ onClose }: Props) {
 	const { t } = useTranslation();
+	const { t: tListings } = useTranslation("listings");
 	const navigate = useNavigate();
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [q, setQ] = useState("");
-	const [recent, setRecent] = useState<string[]>([]);
+	const [category, setCategory] = useState(() => getBrowseCategory(pathname));
+	const [recent] = useState(getRecentSearches);
 
 	useEffect(() => {
-		if (!open) {
-			return;
-		}
-		setRecent(getRecentSearches());
-		setQ("");
 		document.body.style.overflow = "hidden";
 		const t0 = window.setTimeout(() => inputRef.current?.focus(), 0);
+		return () => {
+			document.body.style.overflow = "";
+			window.clearTimeout(t0);
+		};
+	}, []);
+
+	useEffect(() => {
 		function onKey(e: KeyboardEvent) {
 			if (e.key === "Escape") {
 				onClose();
@@ -36,15 +37,9 @@ export function MobileSearchOverlay({ open, onClose }: Props) {
 		}
 		window.addEventListener("keydown", onKey);
 		return () => {
-			document.body.style.overflow = "";
 			window.removeEventListener("keydown", onKey);
-			window.clearTimeout(t0);
 		};
-	}, [open, onClose]);
-
-	if (!open) {
-		return null;
-	}
+	}, [onClose]);
 
 	function runQuery(query: string) {
 		const trimmed = query.trim();
@@ -52,7 +47,7 @@ export function MobileSearchOverlay({ open, onClose }: Props) {
 			return;
 		}
 		addRecentSearch(trimmed);
-		navigate({ to: "/pyorat/myynti", search: { q: trimmed } });
+		navigate({ to: category.to, search: { q: trimmed } });
 		onClose();
 	}
 
@@ -60,7 +55,7 @@ export function MobileSearchOverlay({ open, onClose }: Props) {
 		if (!city) {
 			return;
 		}
-		navigate({ to: "/pyorat/myynti", search: { city } });
+		navigate({ to: category.to, search: { city } });
 		onClose();
 	}
 
@@ -111,20 +106,22 @@ export function MobileSearchOverlay({ open, onClose }: Props) {
 					<h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
 						{t("nav.search.categories")}
 					</h3>
-					<div className="grid grid-cols-2 gap-2">
-						{CATEGORIES.map((c) => (
-							<button
-								key={c.key}
-								type="button"
-								onClick={() => {
-									navigate({ to: c.to });
-									onClose();
-								}}
-								className="rounded-md border border-border bg-background px-3 py-3 text-left text-sm font-medium hover:bg-accent/5"
-							>
-								{t(`nav.${c.key}`)}
-							</button>
-						))}
+					<div className="flex gap-2 overflow-x-auto [scrollbar-width:none]">
+						{BROWSE_CATEGORIES.map((c) => {
+							const isActive = c.value === category.value;
+							return (
+								<button
+									key={c.value}
+									type="button"
+									aria-pressed={isActive}
+									data-testid={`search-overlay-category-chip-${c.value}`}
+									onClick={() => setCategory(c)}
+									className={categoryChipClass(isActive)}
+								>
+									{tListings(`browse.categoryChips.${c.value}`)}
+								</button>
+							);
+						})}
 					</div>
 				</section>
 

@@ -77,6 +77,30 @@ describe("ListingCard", () => {
 			<ListingCard listing={baseListing} images={baseImages} makeSlug="honda" modelName="CB500F" />,
 		);
 
+		expect(screen.getByAltText("Honda CB500F vuokraus")).toBeInTheDocument();
+	});
+
+	it("uses thumbnail_url as the image src when available", () => {
+		render(
+			<ListingCard listing={baseListing} images={baseImages} makeSlug="honda" modelName="CB500F" />,
+		);
+
+		const img = screen.getByAltText("Honda CB500F vuokraus");
+		expect(img).toHaveAttribute("src", "https://storage.example.com/thumb.webp");
+	});
+
+	it("falls back to url when thumbnail_url is null", () => {
+		const imagesWithoutThumbnail: ListingImage[] = [{ ...baseImages[0], thumbnail_url: null }];
+
+		render(
+			<ListingCard
+				listing={baseListing}
+				images={imagesWithoutThumbnail}
+				makeSlug="honda"
+				modelName="CB500F"
+			/>,
+		);
+
 		const img = screen.getByAltText("Honda CB500F vuokraus");
 		expect(img).toHaveAttribute("src", "https://storage.example.com/main.webp");
 	});
