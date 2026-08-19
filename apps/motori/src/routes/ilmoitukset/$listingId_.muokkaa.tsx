@@ -31,7 +31,10 @@ const getListingForEditFn = createServerFn({ method: "GET" })
 			throw new AppError("listing.forbidden");
 		}
 
-		const availability = await getListingAvailability({ data: result.listing.id });
+		const availability =
+			result.listing.category === "rental"
+				? await getListingAvailability({ data: result.listing.id })
+				: { availability_default: "open" as const, exception_dates: [], booked_dates: [] };
 		return { ...result, availability };
 	});
 
