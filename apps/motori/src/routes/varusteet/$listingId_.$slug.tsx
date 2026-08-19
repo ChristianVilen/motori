@@ -28,6 +28,7 @@ const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute
 			/>
 		);
 	},
+	priceCents: (data) => data.gear?.price ?? 0,
 	head: (loaderData) => {
 		const l = loaderData?.listing;
 		if (!l) {

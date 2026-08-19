@@ -94,6 +94,7 @@ export default {
 		expiredBanner: "Tämä ilmoitus on vanhentunut.",
 		contactSeller: "Ota yhteyttä",
 		messageSeller: "Lähetä viesti",
+		loginToContact: "Kirjaudu ottaaksesi yhteyttä",
 		description: "Kuvaus",
 		licenseBadge: "Kortti {{license}}",
 		sellerLabel: "Ilmoittaja",

@@ -100,6 +100,8 @@ export const BROWSE_CATEGORIES = [
 	{ value: "rental", to: "/pyorat/vuokraus" },
 ] as const;
 
+export type BrowseCategory = (typeof BROWSE_CATEGORIES)[number];
+
 export const TYPE_EMOJI: Record<string, string> = {
 	naked: "\u26A1",
 	sport: "\uD83C\uDFCE",
