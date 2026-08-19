@@ -75,6 +75,16 @@ export const SORT_OPTIONS = [
 
 export type SortOption = (typeof SORT_OPTIONS)[number]["value"];
 
+// Single source of truth for "which sort options are available and which is
+// current" — used by both the desktop select (SortFilter) and the mobile
+// sort dropdown (MobileBrowseControls) so the two never drift apart.
+export function getSortState(search: { q?: string; sort?: SortOption }) {
+	const hasQuery = !!search.q && search.q.trim().length > 0;
+	const current = search.sort ?? (hasQuery ? "relevance" : "newest");
+	const options = SORT_OPTIONS.filter((s) => s.value !== "relevance" || hasQuery);
+	return { current, options };
+}
+
 export const TYPE_EMOJI: Record<string, string> = {
 	naked: "\u26A1",
 	sport: "\uD83C\uDFCE",

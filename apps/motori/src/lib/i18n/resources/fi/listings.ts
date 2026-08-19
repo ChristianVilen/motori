@@ -21,7 +21,6 @@ export default {
 			part: "Varaosat",
 			rental: "Vuokraus",
 		},
-		sortMenuClose: "Sulje",
 	},
 	filters: {
 		heading: "Suodattimet",

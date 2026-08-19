@@ -21,7 +21,6 @@ export default {
 			part: "Parts",
 			rental: "Rentals",
 		},
-		sortMenuClose: "Close",
 	},
 	filters: {
 		heading: "Filters",
