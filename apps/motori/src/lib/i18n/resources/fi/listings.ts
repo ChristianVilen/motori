@@ -113,7 +113,7 @@ export default {
 	},
 	create: {
 		pageTitle: "Uusi ilmoitus",
-		pageSubtitle: "Täytä tiedot ja julkaise ilmoituksesi vuokralle",
+		pageSubtitle: "Täytä tiedot ja julkaise ilmoituksesi",
 		submitLabel: "Julkaise ilmoitus",
 	},
 	edit: {

@@ -179,7 +179,7 @@ export function ListingForm(props: ListingFormProps) {
 						{t("form.sections.category")}
 					</h2>
 					<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-						{(["sale", "rental", "gear", "part"] as const).map((cat) => {
+						{(["sale", "gear", "part", "rental"] as const).map((cat) => {
 							const icons: Record<string, React.ReactNode> = {
 								sale: <ShoppingCart className="h-6 w-6" />,
 								rental: <Key className="h-6 w-6" />,

@@ -8,9 +8,10 @@ import type { BrowseSearchParams } from "~/lib/validators";
 
 interface EmptyStateProps {
 	search: BrowseSearchParams;
+	browseTo: string;
 }
 
-export function EmptyState({ search }: EmptyStateProps) {
+export function EmptyState({ search, browseTo }: EmptyStateProps) {
 	const { t } = useTranslation("listings");
 	const navigate = useNavigate();
 	const [neighborCount, setNeighborCount] = useState<number | null>(null);
@@ -25,7 +26,7 @@ export function EmptyState({ search }: EmptyStateProps) {
 
 	function clearRegion() {
 		navigate({
-			to: "/ilmoitukset",
+			to: browseTo,
 			search: (prev) => ({ ...prev, region: undefined, cursor: undefined }),
 			replace: true,
 		});
@@ -33,7 +34,7 @@ export function EmptyState({ search }: EmptyStateProps) {
 
 	function clearAll() {
 		navigate({
-			to: "/ilmoitukset",
+			to: browseTo,
 			search: (prev) => ({ view: prev.view, city: prev.city }),
 			replace: true,
 		});
