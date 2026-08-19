@@ -6,6 +6,7 @@ import { categoryDetailPath } from "~/lib/category-routes";
 import { SITE_NAME } from "~/lib/constants";
 import { AppError } from "~/lib/errors";
 import { useTranslation } from "~/lib/i18n";
+import { getValidationT } from "~/lib/i18n/validation";
 import { createListing } from "~/lib/listings-commands";
 import { log } from "~/lib/log";
 import { EVENTS } from "~/lib/log/events";
@@ -17,7 +18,7 @@ import { isValidImageUrl, listingFormSchema } from "~/lib/validators";
 
 const createListingFn = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("create-listing", 5, 60))
-	.inputValidator((data: ListingFormData) => listingFormSchema().parse(data))
+	.inputValidator((data: ListingFormData) => listingFormSchema(getValidationT()).parse(data))
 	.handler(async ({ data }) => {
 		const userId = await requireUserId();
 		if (

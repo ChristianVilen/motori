@@ -236,6 +236,7 @@ export default {
 		submit: {
 			saving: "Saving...",
 			genericError: "Something went wrong. Please try again.",
+			checkFields: "Check the highlighted fields.",
 		},
 	},
 } as const;
