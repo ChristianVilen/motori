@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getActiveTab } from "./active-tab";
+import { getActiveTab, getBrowseCategory } from "./active-tab";
 
 describe("getActiveTab", () => {
 	it("returns 'browse' for '/'", () => {
@@ -38,5 +38,34 @@ describe("getActiveTab", () => {
 
 	it("returns null for unrelated routes", () => {
 		expect(getActiveTab("/ilmoitukset/uusi")).toBe(null);
+	});
+});
+
+describe("getBrowseCategory", () => {
+	it("returns 'sale' for /pyorat/myynti and sub-paths", () => {
+		expect(getBrowseCategory("/pyorat/myynti").value).toBe("sale");
+		expect(getBrowseCategory("/pyorat/myynti/abc123/bmw-r-ninet").value).toBe("sale");
+	});
+
+	it("returns 'rental' for /pyorat/vuokraus and sub-paths", () => {
+		expect(getBrowseCategory("/pyorat/vuokraus").value).toBe("rental");
+		expect(getBrowseCategory("/pyorat/vuokraus/abc123/some-bike").value).toBe("rental");
+	});
+
+	it("returns 'gear' for /varusteet and sub-paths", () => {
+		expect(getBrowseCategory("/varusteet").value).toBe("gear");
+		expect(getBrowseCategory("/varusteet/abc123/kypara").value).toBe("gear");
+	});
+
+	it("returns 'part' for /varaosat and sub-paths", () => {
+		expect(getBrowseCategory("/varaosat").value).toBe("part");
+		expect(getBrowseCategory("/varaosat/xyz/some-part").value).toBe("part");
+	});
+
+	it("defaults to 'sale' for neutral pages", () => {
+		expect(getBrowseCategory("/").value).toBe("sale");
+		expect(getBrowseCategory("/viestit").value).toBe("sale");
+		expect(getBrowseCategory("/omat/suosikit").value).toBe("sale");
+		expect(getBrowseCategory("/kirjaudu").value).toBe("sale");
 	});
 });
