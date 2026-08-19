@@ -125,6 +125,8 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 										alt={i === 0 ? title : `${title}, kuva ${i + 1}`}
 										className="h-full w-full object-cover"
 										draggable={false}
+										loading={i === 0 ? "eager" : "lazy"}
+										fetchPriority={i === 0 ? "high" : undefined}
 									/>
 								</button>
 							</div>
@@ -184,6 +186,7 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 									alt=""
 									className="h-full w-full object-cover"
 									draggable={false}
+									loading="lazy"
 								/>
 							</button>
 						))}
@@ -294,6 +297,7 @@ function Lightbox({
 								alt={`${title}, kuva ${i + 1}`}
 								className="max-h-full max-w-full select-none object-contain"
 								draggable={false}
+								loading={i === startIndex ? "eager" : "lazy"}
 							/>
 						</div>
 					))}
