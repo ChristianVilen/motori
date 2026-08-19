@@ -36,7 +36,7 @@ import type { SaleFieldValues } from "~/components/listings/sections/section-sal
 import { SaleFields, saleSection } from "~/components/listings/sections/section-sale";
 import { FieldError, TitleField } from "~/components/listings/sections/shared-fields";
 import type { SharedPayload } from "~/components/listings/sections/types";
-import { useImageUpload } from "~/components/listings/use-image-upload";
+import { provisionalImages, useImageUpload } from "~/components/listings/use-image-upload";
 import { REGIONS } from "~/lib/constants";
 import type { ListingCategory } from "~/lib/db/schema";
 import { handleAppError } from "~/lib/errors-client";
@@ -122,7 +122,9 @@ export function ListingForm(props: ListingFormProps) {
 		validationLogic: revalidateLogic({ mode: "blur", modeAfterSubmission: "change" }),
 		validators: {
 			onDynamic: ({ value, formApi }) => {
-				const parsed = schema.safeParse(buildFormPayload(value, category, []));
+				const parsed = schema.safeParse(
+					buildFormPayload(value, category, provisionalImages(images.items)),
+				);
 				if (parsed.success) {
 					return undefined;
 				}
@@ -167,27 +169,34 @@ export function ListingForm(props: ListingFormProps) {
 		},
 		onSubmit: async ({ value }) => {
 			setSubmitError(null);
+			// Validate with pending files as placeholders BEFORE uploading anything,
+			// so a rejected form never orphans uploaded blobs.
+			const provisional = schema.safeParse(
+				buildFormPayload(value, category, provisionalImages(images.items)),
+			);
+			if (!provisional.success) {
+				const { fieldErrors, unmapped } = mapListingIssues(
+					provisional.error.issues,
+					category,
+					Object.keys(value),
+				);
+				// Fallback: the submit-time onDynamic pass already catches mappable
+				// issues on these same values; unmapped ones (images) hit the banner.
+				for (const [field, message] of Object.entries(fieldErrors)) {
+					form.setFieldMeta(field as never, (prev) => ({
+						...prev,
+						errorMap: { ...prev.errorMap, onSubmit: message },
+					}));
+				}
+				setSubmitError(unmapped[0] ?? t("form.submit.checkFields"));
+				return;
+			}
 			try {
 				const allImages = await images.uploadFiles();
-				const parsed = schema.safeParse(buildFormPayload(value, category, allImages));
-				if (!parsed.success) {
-					const { fieldErrors, unmapped } = mapListingIssues(
-						parsed.error.issues,
-						category,
-						Object.keys(value),
-					);
-					// Fallback: the submit-time onDynamic pass already catches mappable
-					// issues on these same values; unmapped ones (images) hit the banner.
-					for (const [field, message] of Object.entries(fieldErrors)) {
-						form.setFieldMeta(field as never, (prev) => ({
-							...prev,
-							errorMap: { ...prev.errorMap, onSubmit: message },
-						}));
-					}
-					setSubmitError(unmapped[0] ?? t("form.submit.checkFields"));
-					return;
-				}
-				await onSubmit(parsed.data);
+				// parse, not safeParse: the provisional pass already validated everything
+				// but the URLs — a failure here is an upload-endpoint bug and the catch
+				// below surfaces it as a generic error.
+				await onSubmit(schema.parse(buildFormPayload(value, category, allImages)));
 			} catch (err) {
 				setSubmitError(null);
 				const fieldError = handleAppError(err, t);
@@ -475,7 +484,11 @@ export function ListingForm(props: ListingFormProps) {
 				)}
 
 				{images.canAddMore ? (
-					<label className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 text-center transition-colors hover:border-accent hover:bg-muted-light/50">
+					<label
+						onDragOver={(e) => e.preventDefault()}
+						onDrop={images.handleFileDrop}
+						className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 text-center transition-colors hover:border-accent hover:bg-muted-light/50"
+					>
 						<svg
 							className="h-8 w-8 text-muted"
 							fill="none"
@@ -502,6 +515,7 @@ export function ListingForm(props: ListingFormProps) {
 							onChange={images.handleFileSelect}
 							className="sr-only"
 							aria-label={t("form.images.addImages")}
+							data-testid="listing-image-input"
 						/>
 					</label>
 				) : null}

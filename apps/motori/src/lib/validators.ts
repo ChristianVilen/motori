@@ -59,7 +59,9 @@ function sharedFields(t: T) {
 			.trim()
 			.min(20, t("validation.descriptionTooShort"))
 			.max(5000, t("validation.valueInvalid")),
-		images: z.array(listingImageSchema(t)).max(8).default([]),
+		// No .default([]) — it would short-circuit .min(1) for requests that omit
+		// the field entirely, letting a crafted POST create a zero-image listing.
+		images: z.array(listingImageSchema(t)).min(1, t("validation.imagesRequired")).max(8),
 	};
 }
 

@@ -14,6 +14,18 @@ function newKey() {
 	return Math.random().toString(36).slice(2);
 }
 
+// Pending files have no URL yet; the placeholder passes listingImageSchema so
+// pre-upload validation counts them toward the image requirement.
+const PENDING_IMAGE_URL = "https://pending.invalid/upload";
+
+export function provisionalImages(items: ImageItem[]): ListingImageInput[] {
+	return items.map((it) =>
+		it.kind === "existing"
+			? { url: it.url, thumbnail_url: it.thumbnailUrl }
+			: { url: PENDING_IMAGE_URL, thumbnail_url: null },
+	);
+}
+
 export function useImageUpload(initialImages: ListingImageInput[]) {
 	const { t } = useTranslation("listings");
 
@@ -31,9 +43,8 @@ export function useImageUpload(initialImages: ListingImageInput[]) {
 	const totalImages = items.length;
 	const canAddMore = totalImages < MAX_IMAGES;
 
-	function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+	function addFiles(files: File[]) {
 		setImageError(null);
-		const files = Array.from(e.target.files ?? []);
 		const remaining = MAX_IMAGES - items.length;
 		const valid: File[] = [];
 		for (const file of files) {
@@ -59,7 +70,16 @@ export function useImageUpload(initialImages: ListingImageInput[]) {
 			};
 			reader.readAsDataURL(file);
 		}
+	}
+
+	function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+		addFiles(Array.from(e.target.files ?? []));
 		e.target.value = "";
+	}
+
+	function handleFileDrop(e: React.DragEvent) {
+		e.preventDefault();
+		addFiles(Array.from(e.dataTransfer.files));
 	}
 
 	function removeItem(key: string) {
@@ -98,19 +118,27 @@ export function useImageUpload(initialImages: ListingImageInput[]) {
 			{ kind: "pending" }
 		>[];
 		const uploaded = new Map<string, ListingImageInput>();
-		for (let i = 0; i < pendings.length; i++) {
-			setUploadProgress(t("form.images.uploading", { current: i + 1, total: pendings.length }));
-			const body = new FormData();
-			body.append("file", pendings[i].file);
-			const res = await fetch("/api/images/upload", { method: "POST", body });
-			if (!res.ok) {
-				const err = await res.json().catch(() => ({ error: "Kuvan lataus epäonnistui" }));
-				throw new Error((err as { error: string }).error);
+		try {
+			for (let i = 0; i < pendings.length; i++) {
+				setUploadProgress(t("form.images.uploading", { current: i + 1, total: pendings.length }));
+				const body = new FormData();
+				body.append("file", pendings[i].file);
+				const res = await fetch("/api/images/upload", { method: "POST", body });
+				if (!res.ok) {
+					const err = await res.json().catch(() => ({ error: "Kuvan lataus epäonnistui" }));
+					throw new Error((err as { error: string }).error);
+				}
+				const { url, thumbnailUrl } = (await res.json()) as { url: string; thumbnailUrl: string };
+				uploaded.set(pendings[i].key, { url, thumbnail_url: thumbnailUrl });
+				// Mark done immediately so a later failure never re-uploads this file.
+				const key = pendings[i].key;
+				setItems((prev) =>
+					prev.map((it) => (it.key === key ? { key, kind: "existing", url, thumbnailUrl } : it)),
+				);
 			}
-			const { url, thumbnailUrl } = (await res.json()) as { url: string; thumbnailUrl: string };
-			uploaded.set(pendings[i].key, { url, thumbnail_url: thumbnailUrl });
+		} finally {
+			setUploadProgress(null);
 		}
-		setUploadProgress(null);
 		return items.map((it) => {
 			if (it.kind === "existing") {
 				return { url: it.url, thumbnail_url: it.thumbnailUrl };
@@ -131,6 +159,7 @@ export function useImageUpload(initialImages: ListingImageInput[]) {
 		canAddMore,
 		maxImages: MAX_IMAGES,
 		handleFileSelect,
+		handleFileDrop,
 		removeItem,
 		moveItem,
 		setAsCover,

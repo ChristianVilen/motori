@@ -84,6 +84,7 @@ export default {
 		regionRequired: "Select a region",
 		descriptionTooShort: "Description is too short (min 20 characters)",
 		invalidImageUrl: "Invalid image URL",
+		imagesRequired: "Add at least one photo",
 	},
 	citySelect: {
 		noResults: "No results",
