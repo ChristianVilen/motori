@@ -8,6 +8,7 @@ import { FilterDrawer } from "~/components/listings/filter-drawer";
 import { FilterSidebar } from "~/components/listings/filter-sidebar";
 import { ListingCard } from "~/components/listings/listing-card";
 import { ListingCardSkeleton } from "~/components/listings/listing-card-skeleton";
+import { Prototype171MobileCategorySort } from "~/components/listings/PROTOTYPE-171-mobile-category-sort";
 import { SaveSearchButton } from "~/components/listings/save-search-button";
 import { REGIONS } from "~/lib/constants";
 import type { ListingCategory, MotorcycleMake } from "~/lib/db/schema";
@@ -217,6 +218,9 @@ export function BrowsePage({
 					</p>
 				</div>
 			</div>
+
+			{/* PROTOTYPE #171 — mobile category/sort affordance variants (dev-only, add ?variant=A) */}
+			<Prototype171MobileCategorySort category={category} search={search} totalCount={totalCount} />
 
 			{/* Main content */}
 			{!showMap || view === "list" ? (
