@@ -33,7 +33,11 @@ export default {
 	verifyEmail: {
 		heading: "Tarkista sähköpostisi",
 		body: "Lähetimme vahvistuslinkin sähköpostiisi. Klikkaa linkkiä jatkaaksesi.",
-		noEmail: "Eikö viesti tullut? Ota yhteyttä tukeen jos viesti ei saavu.",
+		resendLabel: "Sähköpostiosoite",
+		resendSubmit: "Lähetä vahvistuslinkki uudelleen",
+		resendLoading: "Lähetetään...",
+		resendSuccess: "Jos osoite löytyy järjestelmästä, lähetimme uuden vahvistuslinkin.",
+		backToLogin: "Takaisin kirjautumiseen",
 	},
 	verifyBanner: {
 		text: "Vahvista sähköpostiosoitteesi jatkaaksesi palvelun käyttöä.",
