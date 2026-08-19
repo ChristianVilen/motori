@@ -21,8 +21,14 @@ export class ListingsPage {
 		this.page = page;
 		this.searchInput = page.getByTestId("listings-search-input");
 		this.searchSubmit = page.getByTestId("listings-search-submit");
-		this.resultCount = page.getByTestId("listings-result-count");
-		this.totalCount = page.getByTestId("listings-total-count");
+		this.resultCount = page
+			.getByTestId("listings-result-count")
+			.or(page.getByTestId("listings-result-count-mobile"))
+			.filter({ visible: true });
+		this.totalCount = page
+			.getByTestId("listings-total-count")
+			.or(page.getByTestId("listings-total-count-mobile"))
+			.filter({ visible: true });
 		this.regionLabel = page.getByTestId("listings-region-label");
 		this.grid = page.getByTestId("listings-grid");
 		this.cards = page.getByTestId("listing-card");

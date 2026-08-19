@@ -6,11 +6,11 @@ import {
 	GEAR_SIZES,
 	GEAR_TYPE_LABELS,
 	GEAR_TYPES,
+	getSortState,
 	LICENSE_CLASSES,
 	MOTORCYCLE_TYPES,
 	PART_CATEGORIES,
 	REGIONS,
-	SORT_OPTIONS,
 	TYPE_EMOJI,
 } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
@@ -54,7 +54,6 @@ export function useFilterActions(search: BrowseSearchParams, browseTo: string) {
 interface FilterContextValue {
 	search: BrowseSearchParams;
 	makes: FilterMake[];
-	hasQuery: boolean;
 	idPrefix: string;
 	inputHeight: string;
 	updateFilter: (updates: Partial<BrowseSearchParams>) => void;
@@ -75,7 +74,6 @@ interface FilterProviderProps {
 	children: React.ReactNode;
 	search: BrowseSearchParams;
 	makes: FilterMake[];
-	hasQuery: boolean;
 	idPrefix: string;
 	inputHeight: string;
 	updateFilter: (updates: Partial<BrowseSearchParams>) => void;
@@ -86,7 +84,6 @@ export function FilterProvider({
 	children,
 	search,
 	makes,
-	hasQuery,
 	idPrefix,
 	inputHeight,
 	updateFilter,
@@ -94,7 +91,7 @@ export function FilterProvider({
 }: FilterProviderProps) {
 	return (
 		<FilterContext.Provider
-			value={{ search, makes, hasQuery, idPrefix, inputHeight, updateFilter, toggleArrayFilter }}
+			value={{ search, makes, idPrefix, inputHeight, updateFilter, toggleArrayFilter }}
 		>
 			{children}
 		</FilterContext.Provider>
@@ -307,9 +304,10 @@ export function YearFilter() {
 }
 
 export function SortFilter() {
-	const { search, hasQuery, idPrefix, inputHeight, updateFilter } = useFilterCtx();
+	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
 	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm text-foreground`;
+	const { current, options } = getSortState(search);
 	return (
 		<div>
 			<label htmlFor={`${idPrefix}-sort`} className="mb-1.5 block text-xs font-medium text-muted">
@@ -317,11 +315,11 @@ export function SortFilter() {
 			</label>
 			<select
 				id={`${idPrefix}-sort`}
-				value={search.sort ?? (hasQuery ? "relevance" : "newest")}
+				value={current.value}
 				onChange={(e) => updateFilter({ sort: e.target.value as BrowseSearchParams["sort"] })}
 				className={cls}
 			>
-				{SORT_OPTIONS.filter((s) => s.value !== "relevance" || hasQuery).map((s) => (
+				{options.map((s) => (
 					<option key={s.value} value={s.value}>
 						{s.label}
 					</option>

@@ -15,6 +15,12 @@ export default {
 		collapseSidebar: "Collapse sidebar",
 		saveSearch: "Save search",
 		saveSearchSaved: "Search saved",
+		categoryChips: {
+			sale: "Bikes",
+			gear: "Gear",
+			part: "Parts",
+			rental: "Rentals",
+		},
 	},
 	filters: {
 		heading: "Filters",

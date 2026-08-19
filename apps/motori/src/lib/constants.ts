@@ -75,6 +75,31 @@ export const SORT_OPTIONS = [
 
 export type SortOption = (typeof SORT_OPTIONS)[number]["value"];
 
+// Single source of truth for "which sort options are available and which is
+// current" — used by both the desktop select (SortFilter) and the mobile
+// sort dropdown (MobileBrowseControls) so the two never drift apart. A sort
+// param outside the available options (stale ?sort=relevance without a query)
+// coerces to the default, so `current` is always a member of `options`.
+export function getSortState(search: { q?: string; sort?: SortOption }) {
+	const hasQuery = !!search.q && search.q.trim().length > 0;
+	const options = SORT_OPTIONS.filter((s) => s.value !== "relevance" || hasQuery);
+	const fallback = hasQuery ? "relevance" : "newest";
+	const current =
+		options.find((o) => o.value === search.sort) ??
+		options.find((o) => o.value === fallback) ??
+		options[0];
+	return { current, options };
+}
+
+// The browse surfaces in nav order: category chips, bottom-nav highlight, and
+// (upcoming) the search-overlay category selector all derive from this list.
+export const BROWSE_CATEGORIES = [
+	{ value: "sale", to: "/pyorat/myynti" },
+	{ value: "gear", to: "/varusteet" },
+	{ value: "part", to: "/varaosat" },
+	{ value: "rental", to: "/pyorat/vuokraus" },
+] as const;
+
 export const TYPE_EMOJI: Record<string, string> = {
 	naked: "\u26A1",
 	sport: "\uD83C\uDFCE",

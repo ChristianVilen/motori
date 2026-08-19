@@ -1,7 +1,12 @@
+import { BROWSE_CATEGORIES } from "~/lib/constants";
+
 export type ActiveTab = "browse" | "messages" | "account";
 
 export function getActiveTab(pathname: string): ActiveTab | null {
-	if (pathname === "/") {
+	if (
+		pathname === "/" ||
+		BROWSE_CATEGORIES.some((c) => pathname === c.to || pathname.startsWith(`${c.to}/`))
+	) {
 		return "browse";
 	}
 	if (pathname === "/viestit" || pathname.startsWith("/viestit/")) {

@@ -7,7 +7,6 @@ import { type FilterMake, FilterProvider, useFilterActions } from "./filter-cont
 
 interface FilterDrawerProps {
 	search: BrowseSearchParams;
-	hasQuery: boolean;
 	totalCount: number;
 	open: boolean;
 	onClose: () => void;
@@ -18,7 +17,6 @@ interface FilterDrawerProps {
 
 export function FilterDrawer({
 	search,
-	hasQuery,
 	totalCount,
 	open,
 	onClose,
@@ -78,7 +76,6 @@ export function FilterDrawer({
 
 				<FilterProvider
 					search={search}
-					hasQuery={hasQuery}
 					makes={makes}
 					idPrefix="drawer"
 					inputHeight="h-10"
