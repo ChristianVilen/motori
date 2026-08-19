@@ -236,12 +236,7 @@ export function BrowsePage({
 								className={`overflow-hidden transition-all duration-300 ${sidebarOpen ? "w-[280px]" : "w-10"}`}
 							>
 								<CollapsibleSidebar open={sidebarOpen} onToggle={setSidebarOpen}>
-									<FilterSidebar
-										search={search}
-										hasQuery={hasQuery}
-										makes={makes}
-										browseTo={browseTo}
-									>
+									<FilterSidebar search={search} makes={makes} browseTo={browseTo}>
 										{filterBlocks}
 									</FilterSidebar>
 								</CollapsibleSidebar>
@@ -306,12 +301,7 @@ export function BrowsePage({
 								onToggle={setSidebarOpen}
 								collapsedHeight="full"
 							>
-								<FilterSidebar
-									search={search}
-									hasQuery={hasQuery}
-									makes={makes}
-									browseTo={browseTo}
-								>
+								<FilterSidebar search={search} makes={makes} browseTo={browseTo}>
 									{filterBlocks}
 								</FilterSidebar>
 							</CollapsibleSidebar>
@@ -384,7 +374,6 @@ export function BrowsePage({
 			{/* Mobile filter drawer */}
 			<FilterDrawer
 				search={search}
-				hasQuery={hasQuery}
 				totalCount={totalCount}
 				open={drawerOpen}
 				onClose={() => setDrawerOpen(false)}

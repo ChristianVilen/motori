@@ -12,13 +12,12 @@ import { type FilterMake, FilterProvider, useFilterActions } from "./filter-cont
 
 interface FilterSidebarProps {
 	search: BrowseSearchParams;
-	hasQuery: boolean;
 	makes: FilterMake[];
 	browseTo: string;
 	children: React.ReactNode;
 }
 
-export function FilterSidebar({ search, hasQuery, makes, browseTo, children }: FilterSidebarProps) {
+export function FilterSidebar({ search, makes, browseTo, children }: FilterSidebarProps) {
 	const { t } = useTranslation("listings");
 	const activeFilterCount = countActiveFilters(search);
 	const { updateFilter, toggleArrayFilter, clearAll } = useFilterActions(search, browseTo);
@@ -38,7 +37,6 @@ export function FilterSidebar({ search, hasQuery, makes, browseTo, children }: F
 
 			<FilterProvider
 				search={search}
-				hasQuery={hasQuery}
 				makes={makes}
 				idPrefix="filter"
 				inputHeight="h-9"

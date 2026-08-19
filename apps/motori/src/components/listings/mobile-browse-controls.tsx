@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowDownUp, Check, ChevronDown } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSortState, type SortOption } from "~/lib/constants";
 import type { ListingCategory } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
@@ -42,11 +42,27 @@ export function MobileBrowseControls({
 		}
 	}
 
-	const openMenu = useCallback(() => {
+	// iOS Safari doesn't move focus on a background tap, so onBlur alone never
+	// fires there — this closes the menu on any outside pointer interaction
+	// too, without stealing focus back (that's the keyboard path's job).
+	useEffect(() => {
+		if (!open) {
+			return;
+		}
+		function onPointerDown(e: PointerEvent) {
+			if (!wrapperRef.current?.contains(e.target as Node)) {
+				setOpen(false);
+			}
+		}
+		document.addEventListener("pointerdown", onPointerDown);
+		return () => document.removeEventListener("pointerdown", onPointerDown);
+	}, [open]);
+
+	function openMenu() {
 		setOpen(true);
 		setFocusIndex(0);
 		requestAnimationFrame(() => itemRefs.current[0]?.focus());
-	}, []);
+	}
 
 	function closeMenu() {
 		setOpen(false);

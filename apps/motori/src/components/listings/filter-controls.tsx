@@ -54,7 +54,6 @@ export function useFilterActions(search: BrowseSearchParams, browseTo: string) {
 interface FilterContextValue {
 	search: BrowseSearchParams;
 	makes: FilterMake[];
-	hasQuery: boolean;
 	idPrefix: string;
 	inputHeight: string;
 	updateFilter: (updates: Partial<BrowseSearchParams>) => void;
@@ -75,7 +74,6 @@ interface FilterProviderProps {
 	children: React.ReactNode;
 	search: BrowseSearchParams;
 	makes: FilterMake[];
-	hasQuery: boolean;
 	idPrefix: string;
 	inputHeight: string;
 	updateFilter: (updates: Partial<BrowseSearchParams>) => void;
@@ -86,7 +84,6 @@ export function FilterProvider({
 	children,
 	search,
 	makes,
-	hasQuery,
 	idPrefix,
 	inputHeight,
 	updateFilter,
@@ -94,7 +91,7 @@ export function FilterProvider({
 }: FilterProviderProps) {
 	return (
 		<FilterContext.Provider
-			value={{ search, makes, hasQuery, idPrefix, inputHeight, updateFilter, toggleArrayFilter }}
+			value={{ search, makes, idPrefix, inputHeight, updateFilter, toggleArrayFilter }}
 		>
 			{children}
 		</FilterContext.Provider>
