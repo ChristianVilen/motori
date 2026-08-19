@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowDownUp, Check, ChevronDown } from "lucide-react";
+import { categoryChipClass } from "~/components/category-chip";
 import { BROWSE_CATEGORIES, getSortState, type SortOption } from "~/lib/constants";
 import type { ListingCategory } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
@@ -44,11 +45,7 @@ export function MobileBrowseControls({
 							to={c.to}
 							data-testid={`browse-category-chip-${c.value}`}
 							aria-current={isActive ? "page" : undefined}
-							className={`shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium ${
-								isActive
-									? "bg-primary text-white"
-									: "border border-border bg-background text-foreground"
-							}`}
+							className={categoryChipClass(isActive)}
 						>
 							{t(`browse.categoryChips.${c.value}`)}
 						</Link>

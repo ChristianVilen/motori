@@ -1,4 +1,5 @@
 import { BROWSE_CATEGORIES } from "~/lib/constants";
+import type { ListingCategory } from "~/lib/db/schema";
 
 export type ActiveTab = "browse" | "messages" | "account";
 
@@ -21,4 +22,9 @@ export function getActiveTab(pathname: string): ActiveTab | null {
 		return "account";
 	}
 	return null;
+}
+
+export function getBrowseCategory(pathname: string): ListingCategory {
+	const match = BROWSE_CATEGORIES.find((c) => pathname === c.to || pathname.startsWith(`${c.to}/`));
+	return match?.value ?? "sale";
 }
