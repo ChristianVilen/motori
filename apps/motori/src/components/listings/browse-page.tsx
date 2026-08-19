@@ -8,6 +8,7 @@ import { FilterDrawer } from "~/components/listings/filter-drawer";
 import { FilterSidebar } from "~/components/listings/filter-sidebar";
 import { ListingCard } from "~/components/listings/listing-card";
 import { ListingCardSkeleton } from "~/components/listings/listing-card-skeleton";
+import { MobileBrowseControls } from "~/components/listings/mobile-browse-controls";
 import { SaveSearchButton } from "~/components/listings/save-search-button";
 import { REGIONS } from "~/lib/constants";
 import type { ListingCategory, MotorcycleMake } from "~/lib/db/schema";
@@ -205,7 +206,7 @@ export function BrowsePage({
 					<p
 						data-testid="listings-result-count"
 						aria-live="polite"
-						className="mt-2 text-sm text-white/70"
+						className="mt-2 hidden text-sm text-white/70 md:block"
 					>
 						<span data-testid="listings-total-count" className="font-semibold text-white">
 							{totalCount}
@@ -217,6 +218,13 @@ export function BrowsePage({
 					</p>
 				</div>
 			</div>
+
+			<MobileBrowseControls
+				category={category}
+				browseTo={browseTo}
+				totalCount={totalCount}
+				search={search}
+			/>
 
 			{/* Main content */}
 			{!showMap || view === "list" ? (

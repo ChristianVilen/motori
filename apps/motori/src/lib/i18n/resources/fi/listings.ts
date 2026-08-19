@@ -15,6 +15,13 @@ export default {
 		collapseSidebar: "Piilota sivupalkki",
 		saveSearch: "Tallenna haku",
 		saveSearchSaved: "Haku tallennettu",
+		categoryChips: {
+			sale: "Pyörät",
+			gear: "Varusteet",
+			part: "Varaosat",
+			rental: "Vuokraus",
+		},
+		sortMenuClose: "Sulje",
 	},
 	filters: {
 		heading: "Suodattimet",
