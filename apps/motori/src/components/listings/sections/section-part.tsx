@@ -6,7 +6,7 @@ import { MakeModelSelect } from "~/components/listings/make-model-select";
 import { PART_CATEGORIES } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import type { CONDITIONS, ListingFormData, PartFormData } from "~/lib/validators";
-import { ConditionSelect, FieldError } from "./shared-fields";
+import { ConditionSelect, errorProps, FieldError } from "./shared-fields";
 import type { CategoryFormSection, SharedPayload } from "./types";
 
 type Condition = (typeof CONDITIONS)[number];
@@ -95,6 +95,7 @@ export function PartFields({
 							</label>
 							<select
 								id="part_part_category"
+								{...errorProps("part_part_category", field.state.meta.errors)}
 								value={field.state.value ?? ""}
 								onChange={(e) => field.handleChange(e.target.value)}
 								className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
@@ -106,7 +107,7 @@ export function PartFields({
 									</option>
 								))}
 							</select>
-							<FieldError errors={field.state.meta.errors} />
+							<FieldError id="part_part_category" errors={field.state.meta.errors} />
 						</div>
 					)}
 				</form.Field>
@@ -141,11 +142,12 @@ export function PartFields({
 							</label>
 							<Input
 								id="part_oem_number"
+								{...errorProps("part_oem_number", field.state.meta.errors)}
 								value={field.state.value ?? ""}
 								onChange={(e) => field.handleChange(e.target.value || null)}
 								maxLength={50}
 							/>
-							<FieldError errors={field.state.meta.errors} />
+							<FieldError id="part_oem_number" errors={field.state.meta.errors} />
 						</div>
 					)}
 				</form.Field>
@@ -176,6 +178,7 @@ export function PartFields({
 							</label>
 							<Input
 								id="part_price"
+								{...errorProps("part_price", field.state.meta.errors)}
 								type="number"
 								min={1}
 								value={field.state.value ?? ""}
@@ -186,7 +189,7 @@ export function PartFields({
 									)
 								}
 							/>
-							<FieldError errors={field.state.meta.errors} />
+							<FieldError id="part_price" errors={field.state.meta.errors} />
 						</div>
 					)}
 				</form.Field>

@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MakeModelSelect } from "~/components/listings/make-model-select";
 import { CURRENT_YEAR, LICENSE_CLASSES, MOTORCYCLE_TYPES } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
-import { FieldError } from "./shared-fields";
+import { errorProps, FieldError, TitleField } from "./shared-fields";
 
 interface MotorcycleFieldsProps {
 	// biome-ignore lint/suspicious/noExplicitAny: TanStack Form's TFormState is the merged shell shape — sections see a flat any here
@@ -30,27 +30,7 @@ export function MotorcycleFields({
 				{t("form.sections.motorcycle")}
 			</h2>
 			<div className="space-y-4">
-				<form.Field name="title">
-					{(field: {
-						state: { value: string; meta: { errors: unknown[] } };
-						handleBlur: () => void;
-						handleChange: (v: string) => void;
-					}) => (
-						<div>
-							<label htmlFor="title" className="mb-1 block text-sm font-medium text-foreground">
-								{t("form.fields.title")} <span className="text-destructive">*</span>
-							</label>
-							<Input
-								id="title"
-								value={field.state.value}
-								onBlur={field.handleBlur}
-								onChange={(e) => field.handleChange(e.target.value)}
-							/>
-							<p className="mt-1 text-xs text-muted">{t("form.fields.titleHint")}</p>
-							<FieldError errors={field.state.meta.errors} />
-						</div>
-					)}
-				</form.Field>
+				<TitleField form={form} />
 
 				<form.Field name="make_id">
 					{(makeField: {
@@ -89,6 +69,7 @@ export function MotorcycleFields({
 								</label>
 								<Input
 									id="year"
+									{...errorProps("year", field.state.meta.errors)}
 									type="number"
 									min={1970}
 									max={CURRENT_YEAR + 1}
@@ -100,7 +81,7 @@ export function MotorcycleFields({
 										)
 									}
 								/>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError id="year" errors={field.state.meta.errors} />
 							</div>
 						)}
 					</form.Field>
@@ -119,6 +100,7 @@ export function MotorcycleFields({
 								</label>
 								<Input
 									id="engine_cc"
+									{...errorProps("engine_cc", field.state.meta.errors)}
 									type="number"
 									min={50}
 									max={3000}
@@ -128,7 +110,7 @@ export function MotorcycleFields({
 										field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
 									}
 								/>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError id="engine_cc" errors={field.state.meta.errors} />
 							</div>
 						)}
 					</form.Field>
@@ -148,7 +130,10 @@ export function MotorcycleFields({
 									{t("form.fields.type")} <span className="text-destructive">*</span>
 								</label>
 								<Select value={field.state.value} onValueChange={(v) => field.handleChange(v)}>
-									<SelectTrigger id="motorcycle_type">
+									<SelectTrigger
+										id="motorcycle_type"
+										{...errorProps("motorcycle_type", field.state.meta.errors)}
+									>
 										<SelectValue placeholder={t("form.fields.typePlaceholder")} />
 									</SelectTrigger>
 									<SelectContent>
@@ -159,7 +144,7 @@ export function MotorcycleFields({
 										))}
 									</SelectContent>
 								</Select>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError id="motorcycle_type" errors={field.state.meta.errors} />
 							</div>
 						)}
 					</form.Field>
@@ -168,10 +153,18 @@ export function MotorcycleFields({
 							state: { value: string | null; meta: { errors: unknown[] } };
 							handleChange: (v: string | null) => void;
 						}) => (
-							<div>
-								<span className="mb-1 block text-sm font-medium text-foreground">
+							<fieldset
+								className="min-w-0"
+								// No errorProps(): aria-invalid is not allowed on a group; only aria-describedby links the error.
+								aria-describedby={
+									field.state.meta.errors.some((e) => e != null)
+										? "required_license-error"
+										: undefined
+								}
+							>
+								<legend className="mb-1 block text-sm font-medium text-foreground">
 									{t("form.fields.requiredLicense")}
-								</span>
+								</legend>
 								<div className="flex gap-2">
 									{LICENSE_CLASSES.map((cls) => (
 										<button
@@ -191,8 +184,8 @@ export function MotorcycleFields({
 										</button>
 									))}
 								</div>
-								<FieldError errors={field.state.meta.errors} />
-							</div>
+								<FieldError id="required_license" errors={field.state.meta.errors} />
+							</fieldset>
 						)}
 					</form.Field>
 				</div>

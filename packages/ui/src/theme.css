@@ -21,11 +21,12 @@
 	--color-card-foreground: #1a1a2e;
 	--color-border: #e5e4e1;
 	--color-input: #e5e4e1;
-	--color-ring: #e07a3a;
-	--color-destructive: #dc2626;
+	/* Tokens below: AA on bg tints (all /10; destructive /15; warning /15–20). Don't lighten. */
+	--color-ring: #c4631e;
+	--color-destructive: #b91c1c;
 	--color-destructive-foreground: #ffffff;
-	--color-success: #16a34a;
-	--color-warning: #d97706;
+	--color-success: #157539;
+	--color-warning: #9a470c;
 
 	/* shadcn secondary (maps to muted-light surface) */
 	--color-secondary: #f0efed;

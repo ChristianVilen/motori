@@ -5,7 +5,7 @@
 import { Input } from "@motori/ui/input";
 import { useTranslation } from "~/lib/i18n";
 import type { CONDITIONS, ListingFormData, SaleFormData } from "~/lib/validators";
-import { ConditionSelect, FieldError } from "./shared-fields";
+import { ConditionSelect, errorProps, FieldError } from "./shared-fields";
 import type { CategoryFormSection, MotorcyclePayload, SharedPayload } from "./types";
 
 type Condition = (typeof CONDITIONS)[number];
@@ -111,6 +111,7 @@ export function SaleFields({ form }: SaleFieldsProps) {
 							</label>
 							<Input
 								id="sale_price"
+								{...errorProps("sale_price", field.state.meta.errors)}
 								type="number"
 								min={1}
 								value={field.state.value ?? ""}
@@ -121,7 +122,7 @@ export function SaleFields({ form }: SaleFieldsProps) {
 									)
 								}
 							/>
-							<FieldError errors={field.state.meta.errors} />
+							<FieldError id="sale_price" errors={field.state.meta.errors} />
 						</div>
 					)}
 				</form.Field>
@@ -153,6 +154,7 @@ export function SaleFields({ form }: SaleFieldsProps) {
 								</label>
 								<Input
 									id="sale_km_driven"
+									{...errorProps("sale_km_driven", field.state.meta.errors)}
 									type="number"
 									min={0}
 									value={field.state.value ?? ""}
@@ -161,7 +163,7 @@ export function SaleFields({ form }: SaleFieldsProps) {
 										field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
 									}
 								/>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError id="sale_km_driven" errors={field.state.meta.errors} />
 							</div>
 						)}
 					</form.Field>
@@ -180,6 +182,7 @@ export function SaleFields({ form }: SaleFieldsProps) {
 								</label>
 								<Input
 									id="sale_power_kw"
+									{...errorProps("sale_power_kw", field.state.meta.errors)}
 									type="number"
 									min={1}
 									max={500}
@@ -189,7 +192,7 @@ export function SaleFields({ form }: SaleFieldsProps) {
 										field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
 									}
 								/>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError id="sale_power_kw" errors={field.state.meta.errors} />
 							</div>
 						)}
 					</form.Field>
@@ -209,11 +212,12 @@ export function SaleFields({ form }: SaleFieldsProps) {
 								</label>
 								<Input
 									id="sale_color"
+									{...errorProps("sale_color", field.state.meta.errors)}
 									value={field.state.value ?? ""}
 									onChange={(e) => field.handleChange(e.target.value || null)}
 									maxLength={30}
 								/>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError id="sale_color" errors={field.state.meta.errors} />
 							</div>
 						)}
 					</form.Field>
@@ -232,6 +236,7 @@ export function SaleFields({ form }: SaleFieldsProps) {
 								</label>
 								<Input
 									id="sale_owner_count"
+									{...errorProps("sale_owner_count", field.state.meta.errors)}
 									type="number"
 									min={1}
 									max={99}
@@ -241,7 +246,7 @@ export function SaleFields({ form }: SaleFieldsProps) {
 										field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
 									}
 								/>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError id="sale_owner_count" errors={field.state.meta.errors} />
 							</div>
 						)}
 					</form.Field>

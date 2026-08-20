@@ -1,6 +1,7 @@
 import { ChevronDown, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createMake, createModel, getMakes, getModels } from "~/lib/makes";
+import { errorProps, FieldError } from "./sections/shared-fields";
 
 interface Make {
 	id: string;
@@ -209,6 +210,7 @@ export function MakeModelSelect({
 				<button
 					id="make-trigger"
 					type="button"
+					{...errorProps("make-trigger", [makeError])}
 					onClick={() => {
 						setMakeOpen((prev) => !prev);
 						setMakeFilter("");
@@ -278,6 +280,7 @@ export function MakeModelSelect({
 										<input
 											type="text"
 											id="new-make-name"
+											{...errorProps("new-make-name", [makeAddError])}
 											name="new_make_name"
 											autoComplete="off"
 											// biome-ignore lint/a11y/noAutofocus: intentional — focus add input
@@ -313,9 +316,7 @@ export function MakeModelSelect({
 											Peruuta
 										</button>
 									</div>
-									{makeAddError !== null ? (
-										<p className="mt-1 text-sm text-destructive">{makeAddError}</p>
-									) : null}
+									<FieldError id="new-make-name" errors={[makeAddError]} />
 								</>
 							) : (
 								<button
@@ -331,11 +332,7 @@ export function MakeModelSelect({
 					</div>
 				) : null}
 
-				{makeError != null && (
-					<p className="mt-1 text-sm text-destructive">
-						{typeof makeError === "string" ? makeError : String(makeError)}
-					</p>
-				)}
+				<FieldError id="make-trigger" errors={[makeError]} />
 			</div>
 
 			{/* ── Model ───────────────────────────────────────────────────────── */}
@@ -350,6 +347,7 @@ export function MakeModelSelect({
 				<button
 					id="model-trigger"
 					type="button"
+					{...errorProps("model-trigger", [modelError])}
 					disabled={!selectedMake}
 					onClick={() => {
 						setModelOpen((prev) => !prev);
@@ -422,6 +420,7 @@ export function MakeModelSelect({
 										<input
 											type="text"
 											id="new-model-name"
+											{...errorProps("new-model-name", [modelAddError])}
 											name="new_model_name"
 											autoComplete="off"
 											// biome-ignore lint/a11y/noAutofocus: intentional
@@ -457,9 +456,7 @@ export function MakeModelSelect({
 											Peruuta
 										</button>
 									</div>
-									{modelAddError !== null ? (
-										<p className="mt-1 text-sm text-destructive">{modelAddError}</p>
-									) : null}
+									<FieldError id="new-model-name" errors={[modelAddError]} />
 								</>
 							) : (
 								<button
@@ -475,11 +472,7 @@ export function MakeModelSelect({
 					</div>
 				) : null}
 
-				{modelError != null && (
-					<p className="mt-1 text-sm text-destructive">
-						{typeof modelError === "string" ? modelError : String(modelError)}
-					</p>
-				)}
+				<FieldError id="model-trigger" errors={[modelError]} />
 			</div>
 		</div>
 	);

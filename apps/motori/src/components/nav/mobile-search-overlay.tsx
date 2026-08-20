@@ -85,7 +85,7 @@ export function MobileSearchOverlay({ onClose }: Props) {
 				}}
 				className="border-b border-border px-4 py-3"
 			>
-				<div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
+				<div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 focus-within:ring-2 focus-within:ring-ring">
 					<SearchIcon size={18} className="text-muted" />
 					<input
 						ref={inputRef}
