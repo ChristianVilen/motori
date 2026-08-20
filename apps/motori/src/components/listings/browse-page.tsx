@@ -247,7 +247,7 @@ export function BrowsePage({
 					{/* Results grid */}
 					<div className="min-w-0 flex-1">
 						{allListings.length === 0 ? (
-							<EmptyState search={search} />
+							<EmptyState search={search} browseTo={browseTo} />
 						) : (
 							<>
 								<div

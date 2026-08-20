@@ -366,7 +366,7 @@ function RootDocument({
 									onSearchClick={() => setSearchOpen(true)}
 									onSignInClick={() => setLoginOpen(true)}
 								/>
-								<MobileSearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+								{searchOpen ? <MobileSearchOverlay onClose={() => setSearchOpen(false)} /> : null}
 							</>
 						)}
 						<Toaster position="top-right" richColors />

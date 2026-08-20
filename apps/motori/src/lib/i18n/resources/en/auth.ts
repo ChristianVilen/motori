@@ -33,7 +33,11 @@ export default {
 	verifyEmail: {
 		heading: "Check your email",
 		body: "We sent a verification link to your email. Click the link to continue.",
-		noEmail: "Didn't get the email? Contact support if it doesn't arrive.",
+		resendLabel: "Email address",
+		resendSubmit: "Resend verification link",
+		resendLoading: "Sending...",
+		resendSuccess: "If the address is in our system, we've sent a new verification link.",
+		backToLogin: "Back to sign in",
 	},
 	verifyBanner: {
 		text: "Verify your email address to continue using the service.",

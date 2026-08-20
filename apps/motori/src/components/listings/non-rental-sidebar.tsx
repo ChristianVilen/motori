@@ -1,5 +1,5 @@
 import { Button } from "@motori/ui/button";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
@@ -30,7 +30,7 @@ export function NonRentalSidebar({
 }: NonRentalSidebarProps) {
 	const { t } = useTranslation("listings");
 	const navigate = useNavigate();
-	const showMessageButton = !!currentUserId && !isOwner && listing.status === "active";
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
 
 	async function onMessageSeller() {
 		const { conversationId } = await startConversation({ data: { listingId: listing.id } });
@@ -61,7 +61,8 @@ export function NonRentalSidebar({
 					<OwnerActions listingShortId={listing.short_id} />
 				) : listing.status === "active" ? (
 					<SellerCta
-						showMessageButton={showMessageButton}
+						isLoggedIn={!!currentUserId}
+						redirectPath={pathname}
 						ownerPhoneVisible={ownerPhoneVisible}
 						ownerPhone={ownerPhone}
 						onMessage={onMessageSeller}
@@ -95,35 +96,44 @@ function OwnerActions({ listingShortId }: { listingShortId: string }) {
 }
 
 function SellerCta({
-	showMessageButton,
+	isLoggedIn,
+	redirectPath,
 	ownerPhoneVisible,
 	ownerPhone,
 	onMessage,
 }: {
-	showMessageButton: boolean;
+	isLoggedIn: boolean;
+	redirectPath: string;
 	ownerPhoneVisible: boolean;
 	ownerPhone: string | null;
 	onMessage: () => void;
 }) {
 	const { t } = useTranslation("listings");
-	const phoneClass = showMessageButton
-		? "mt-2 border-border text-muted hover:border-accent hover:text-accent"
-		: "border-accent text-accent hover:bg-accent/5";
 	return (
 		<>
-			{showMessageButton ? (
+			{isLoggedIn ? (
 				<button
 					type="button"
 					onClick={onMessage}
-					className="block w-full rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-accent-hover"
+					className="hidden w-full rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-accent-hover lg:block"
 				>
 					{t("detail.messageSeller", "Lähetä viesti")}
 				</button>
 			) : null}
+			{!isLoggedIn ? (
+				<Link
+					to="/kirjaudu"
+					search={{ redirect: redirectPath }}
+					data-testid="login-to-contact"
+					className="hidden w-full rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-accent-hover lg:block"
+				>
+					{t("detail.loginToContact")}
+				</Link>
+			) : null}
 			{ownerPhoneVisible && ownerPhone ? (
 				<a
 					href={`tel:${ownerPhone}`}
-					className={`block w-full rounded-lg border px-4 py-2.5 text-center text-sm font-medium transition-colors ${phoneClass}`}
+					className="block w-full rounded-lg border border-border px-4 py-2.5 text-center text-sm font-medium text-muted transition-colors hover:border-accent hover:text-accent lg:mt-2"
 				>
 					{ownerPhone}
 				</a>
