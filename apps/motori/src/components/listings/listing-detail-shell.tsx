@@ -3,11 +3,14 @@ import { ArrowLeft, MapPin, Star, Tag, User } from "lucide-react";
 import type { ReactNode } from "react";
 import { FavoriteButton } from "~/components/listings/favorite-button";
 import { ListingGallery } from "~/components/listings/listing-gallery";
+import { ShareButton } from "~/components/listings/share-button";
 import { ReportButton } from "~/components/report-button";
+import { categoryDetailPath } from "~/lib/category-routes";
 import { LICENSE_CLASSES, LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
 import type { Listing } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
 import type { ListingForDisplay } from "~/lib/listings-detail";
+import { computeListingSlug } from "~/lib/slug";
 
 interface ReviewSummary {
 	averageRating: number | null;
@@ -97,6 +100,11 @@ export function ListingDetailShell({
 	const { listing, images, ownerReviewSummary } = data;
 
 	const isOwner = session?.user.id === listing.owner_id;
+	const canonicalPath = categoryDetailPath(
+		listing.category,
+		listing.short_id,
+		computeListingSlug(data.makeSlug, data.modelName, listing.city),
+	);
 	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
 	const typeLabel =
 		MOTORCYCLE_TYPES.find((mt) => mt.value === listing.motorcycle_type)?.label ??
@@ -148,6 +156,7 @@ export function ListingDetailShell({
 									{listing.title}
 								</h1>
 								<div className="flex shrink-0 items-center gap-2">
+									<ShareButton title={listing.title} path={canonicalPath} />
 									{!isOwner && (
 										<FavoriteButton
 											listingId={listing.id}

@@ -40,7 +40,7 @@ export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: Lis
 			<div className="relative aspect-video sm:aspect-[16/10] overflow-hidden bg-muted-light">
 				{firstImage ? (
 					<img
-						src={firstImage.url}
+						src={firstImage.thumbnail_url ?? firstImage.url}
 						alt={listing.title}
 						loading="lazy"
 						className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"

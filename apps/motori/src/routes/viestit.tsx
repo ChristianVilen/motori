@@ -22,7 +22,9 @@ function ViestitLayout() {
 	const inThread = location.pathname !== "/viestit";
 
 	return (
-		<div className="flex h-[calc(100dvh-120px)] md:h-[calc(100dvh-56px)] max-w-5xl mx-auto md:border-x border-border">
+		/* Measured heights: 129 = top nav 56 + bottom nav 73; 56 = top nav only.
+		   Re-measure if nav sizing changes. */
+		<div className="flex h-[calc(100dvh-129px)] md:h-[calc(100dvh-56px)] max-w-5xl mx-auto md:border-x border-border">
 			<aside
 				className={`w-full md:w-72 md:shrink-0 h-full border-r border-border bg-card flex-col ${
 					inThread ? "hidden md:flex" : "flex"
