@@ -84,6 +84,7 @@ export default {
 		regionRequired: "Valitse alue",
 		descriptionTooShort: "Kuvaus on liian lyhyt (min 20 merkkiä)",
 		invalidImageUrl: "Virheellinen kuva-URL",
+		imagesRequired: "Lisää vähintään yksi kuva",
 	},
 	citySelect: {
 		noResults: "Ei tuloksia",

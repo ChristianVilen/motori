@@ -25,6 +25,7 @@ dist
 
 # Uploaded images (local dev)
 /uploads/
+/apps/motori/uploads/
 *:Zone.Identifier
 
 # Encrypted secrets backup (age-encrypted dokku config:export)

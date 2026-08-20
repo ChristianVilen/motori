@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "../fixtures";
 import { LIFECYCLE_AUTH_STATE_PATH } from "../global-setup";
-import { waitForHydration } from "../helpers";
+import { attachTestImage, waitForHydration } from "../helpers";
 import { ListingDetailPage } from "../pages/listing-detail.page";
 
 const ITEM_TITLE = "E2E Gear Alpinestars GP Plus koko 52";
@@ -47,6 +47,8 @@ test.describe("Gear listing lifecycle", () => {
 		await page
 			.locator("#description")
 			.fill("E2E lifecycle test — luotu automaattisesti automaation kautta.");
+
+		await attachTestImage(page);
 
 		await page.getByTestId("listing-form-submit").click();
 		await page.waitForURL((url) => /\/varusteet\/[^/]+\/[^/]+$/.test(url.pathname), {

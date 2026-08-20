@@ -1,5 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
-import { waitForHydration } from "../helpers";
+import { attachTestImage, waitForHydration } from "../helpers";
 
 export class ListingFormPage {
 	readonly page: Page;
@@ -67,5 +67,6 @@ export class ListingFormPage {
 		await this.cityInput.fill(data.city);
 		await this.page.getByRole("option", { name: data.city, exact: true }).first().click();
 		await this.descriptionInput.fill(data.description);
+		await attachTestImage(this.page);
 	}
 }

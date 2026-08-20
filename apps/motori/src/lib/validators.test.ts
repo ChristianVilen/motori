@@ -40,12 +40,16 @@ describe("listingFormSchema", () => {
 			city: "Helsinki",
 			region: "uusimaa",
 			description: "Tämä on kuvaus joka on tarpeeksi pitkä validointia varten",
+			images: validImages,
 		});
 		expect(result.success).toBe(true);
 	});
 
+	const validImages = [{ url: "https://storage.example.com/a.webp", thumbnail_url: null }];
+
 	const validSale = {
 		category: "sale",
+		images: validImages,
 		title: "Honda CBR650R hyväkuntoinen",
 		make_id: "some-uuid",
 		model_id: "model-uuid",
@@ -114,6 +118,7 @@ describe("listingFormSchema", () => {
 
 	const validGear = {
 		category: "gear",
+		images: validImages,
 		title: "Shoei NXR2 kypärä myynnissä",
 		gear_type: "helmet",
 		condition: "good",
@@ -144,6 +149,7 @@ describe("listingFormSchema", () => {
 
 	const validPart = {
 		category: "part",
+		images: validImages,
 		title: "CBR650R jarrulevyt eteen",
 		part_category: "brakes",
 		condition: "good",
@@ -183,6 +189,27 @@ describe("listingFormSchema", () => {
 		return result.error.issues.find((i) => i.path[0] === field)?.message;
 	}
 
+	it("requires images even when the field is omitted (no default bypass)", () => {
+		const { images: _images, ...withoutImages } = validSale;
+		const result = listingFormSchema().safeParse(withoutImages);
+		expect(result.success).toBe(false);
+	});
+
+	it("requires at least one image in Finnish", () => {
+		expect(firstMessageFor({ ...validSale, images: [] }, "images")).toBe(
+			"Lisää vähintään yksi kuva",
+		);
+	});
+
+	it("accepts a listing with one image", () => {
+		expect(
+			listingFormSchema().safeParse({
+				...validSale,
+				images: [{ url: "https://storage.example.com/a.webp", thumbnail_url: null }],
+			}).success,
+		).toBe(true);
+	});
+
 	it("reports missing sale price in Finnish", () => {
 		expect(firstMessageFor({ ...validSale, price: 0 }, "price")).toBe("Hinta on pakollinen");
 		expect(firstMessageFor({ ...validSale, price: "" }, "price")).toBe("Hinta on pakollinen");
@@ -221,6 +248,7 @@ describe("listingFormSchema", () => {
 
 	const validRental = {
 		category: "rental",
+		images: validImages,
 		title: "Testi pyörä jolla on pitkä nimi",
 		make_id: "some-uuid",
 		year: 2020,
