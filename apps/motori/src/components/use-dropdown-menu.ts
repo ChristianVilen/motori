@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 /**
  * Shared mechanics for a button-triggered dropdown menu: open state, roving
  * focus with arrow-key navigation, blur dismissal, and outside-tap dismissal.
- * Used by CategoryDropdown (desktop nav) and MobileBrowseControls (sort menu).
  */
 export function useDropdownMenu(itemCount: number) {
 	const [open, setOpen] = useState(false);
