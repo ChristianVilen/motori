@@ -5,15 +5,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTranslation } from "~/lib/i18n";
 
 interface FieldErrorProps {
+	id: string;
 	errors: unknown[];
 }
-export function FieldError({ errors }: FieldErrorProps) {
+export function FieldError({ id, errors }: FieldErrorProps) {
 	const first = errors.find((e) => e != null);
 	if (first == null) {
 		return null;
 	}
 	const msg = typeof first === "string" ? first : String(first);
-	return <p className="mt-1 text-sm text-destructive">{msg}</p>;
+	return (
+		<p id={`${id}-error`} role="alert" className="mt-1 text-sm text-destructive">
+			{msg}
+		</p>
+	);
+}
+
+// Spread onto the control that `<FieldError id=… />` describes.
+export function errorProps(id: string, errors: unknown[]) {
+	const invalid = errors.some((e) => e != null);
+	return {
+		"aria-invalid": invalid || undefined,
+		"aria-describedby": invalid ? `${id}-error` : undefined,
+	} as const;
 }
 
 const CONDITION_KEYS = ["new", "excellent", "good", "fair", "poor"] as const;
@@ -31,7 +45,7 @@ export function ConditionSelect({ value, onChange, errors }: ConditionSelectProp
 				{t("form.fields.condition")} <span className="text-destructive">*</span>
 			</label>
 			<Select value={value} onValueChange={onChange}>
-				<SelectTrigger id="condition-select">
+				<SelectTrigger id="condition-select" {...errorProps("condition-select", errors)}>
 					<SelectValue placeholder={t("form.fields.conditionPlaceholder")} />
 				</SelectTrigger>
 				<SelectContent>
@@ -42,7 +56,7 @@ export function ConditionSelect({ value, onChange, errors }: ConditionSelectProp
 					))}
 				</SelectContent>
 			</Select>
-			<FieldError errors={errors} />
+			<FieldError id="condition-select" errors={errors} />
 		</div>
 	);
 }
@@ -66,12 +80,13 @@ export function TitleField({ form }: TitleFieldProps) {
 					</label>
 					<Input
 						id="title"
+						{...errorProps("title", field.state.meta.errors)}
 						value={field.state.value}
 						onBlur={field.handleBlur}
 						onChange={(e) => field.handleChange(e.target.value)}
 					/>
 					<p className="mt-1 text-xs text-muted">{t("form.fields.titleHint")}</p>
-					<FieldError errors={field.state.meta.errors} />
+					<FieldError id="title" errors={field.state.meta.errors} />
 				</div>
 			)}
 		</form.Field>

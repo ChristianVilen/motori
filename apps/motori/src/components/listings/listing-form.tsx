@@ -34,7 +34,7 @@ import type { RentalFieldValues } from "~/components/listings/sections/section-r
 import { RentalFields, rentalSection } from "~/components/listings/sections/section-rental";
 import type { SaleFieldValues } from "~/components/listings/sections/section-sale";
 import { SaleFields, saleSection } from "~/components/listings/sections/section-sale";
-import { FieldError, TitleField } from "~/components/listings/sections/shared-fields";
+import { errorProps, FieldError, TitleField } from "~/components/listings/sections/shared-fields";
 import type { SharedPayload } from "~/components/listings/sections/types";
 import { provisionalImages, useImageUpload } from "~/components/listings/use-image-upload";
 import { REGIONS } from "~/lib/constants";
@@ -316,6 +316,7 @@ export function ListingForm(props: ListingFormProps) {
 									</label>
 									<CitySelect
 										id="city"
+										{...errorProps("city", field.state.meta.errors)}
 										value={field.state.value}
 										placeholder={t("form.fields.cityPlaceholder")}
 										onBlur={field.handleBlur}
@@ -324,7 +325,7 @@ export function ListingForm(props: ListingFormProps) {
 											form.setFieldValue("region", region);
 										}}
 									/>
-									<FieldError errors={field.state.meta.errors} />
+									<FieldError id="city" errors={field.state.meta.errors} />
 								</div>
 							)}
 						</form.Field>
@@ -338,7 +339,7 @@ export function ListingForm(props: ListingFormProps) {
 										{t("form.fields.region")} <span className="text-destructive">*</span>
 									</label>
 									<Select value={field.state.value} onValueChange={(v) => field.handleChange(v)}>
-										<SelectTrigger id="region">
+										<SelectTrigger id="region" {...errorProps("region", field.state.meta.errors)}>
 											<SelectValue placeholder={t("form.fields.regionPlaceholder")} />
 										</SelectTrigger>
 										<SelectContent>
@@ -349,7 +350,7 @@ export function ListingForm(props: ListingFormProps) {
 											))}
 										</SelectContent>
 									</Select>
-									<FieldError errors={field.state.meta.errors} />
+									<FieldError id="region" errors={field.state.meta.errors} />
 								</div>
 							)}
 						</form.Field>
@@ -365,13 +366,14 @@ export function ListingForm(props: ListingFormProps) {
 								</label>
 								<Input
 									id="postal_code"
+									{...errorProps("postal_code", field.state.meta.errors)}
 									autoComplete="postal-code"
 									value={field.state.value}
 									onBlur={field.handleBlur}
 									onChange={(e) => field.handleChange(e.target.value)}
 									maxLength={10}
 								/>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError id="postal_code" errors={field.state.meta.errors} />
 							</div>
 						)}
 					</form.Field>
@@ -394,6 +396,7 @@ export function ListingForm(props: ListingFormProps) {
 							</label>
 							<Textarea
 								id="description"
+								{...errorProps("description", field.state.meta.errors)}
 								rows={6}
 								value={field.state.value}
 								onBlur={field.handleBlur}
@@ -404,7 +407,7 @@ export function ListingForm(props: ListingFormProps) {
 								{t("form.fields.descriptionCharCount", { n: field.state.value.length })} ·{" "}
 								{t("form.fields.descriptionMinHint")}
 							</p>
-							<FieldError errors={field.state.meta.errors} />
+							<FieldError id="description" errors={field.state.meta.errors} />
 						</div>
 					)}
 				</form.Field>
@@ -521,13 +524,18 @@ export function ListingForm(props: ListingFormProps) {
 				) : null}
 
 				{!!images.imageError && (
-					<p className="mt-2 text-sm text-destructive">{images.imageError}</p>
+					<p role="alert" className="mt-2 text-sm text-destructive">
+						{images.imageError}
+					</p>
 				)}
 			</section>
 
 			{/* ── Submit ────────────────────────────────────────────────────── */}
 			{!!submitError && (
-				<div className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">
+				<div
+					role="alert"
+					className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive"
+				>
 					{submitError}
 				</div>
 			)}

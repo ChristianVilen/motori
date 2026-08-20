@@ -5,7 +5,7 @@
 import { Input } from "@motori/ui/input";
 import { useTranslation } from "~/lib/i18n";
 import type { ListingFormData } from "~/lib/validators";
-import { FieldError } from "./shared-fields";
+import { errorProps, FieldError } from "./shared-fields";
 import type { CategoryFormSection, MotorcyclePayload, SharedPayload } from "./types";
 
 export interface RentalFieldValues {
@@ -97,6 +97,7 @@ export function RentalFields({ form }: RentalFieldsProps) {
 								</label>
 								<Input
 									id="price_per_day"
+									{...errorProps("price_per_day", field.state.meta.errors)}
 									type="number"
 									min={1}
 									max={10000}
@@ -108,7 +109,7 @@ export function RentalFields({ form }: RentalFieldsProps) {
 										)
 									}
 								/>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError id="price_per_day" errors={field.state.meta.errors} />
 							</div>
 						)}
 					</form.Field>
@@ -127,6 +128,7 @@ export function RentalFields({ form }: RentalFieldsProps) {
 								</label>
 								<Input
 									id="price_per_week"
+									{...errorProps("price_per_week", field.state.meta.errors)}
 									type="number"
 									min={1}
 									max={50000}
@@ -136,7 +138,7 @@ export function RentalFields({ form }: RentalFieldsProps) {
 										field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
 									}
 								/>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError id="price_per_week" errors={field.state.meta.errors} />
 							</div>
 						)}
 					</form.Field>
@@ -157,6 +159,7 @@ export function RentalFields({ form }: RentalFieldsProps) {
 							</label>
 							<Input
 								id="price_per_weekend"
+								{...errorProps("price_per_weekend", field.state.meta.errors)}
 								type="number"
 								min={1}
 								max={50000}
@@ -166,7 +169,7 @@ export function RentalFields({ form }: RentalFieldsProps) {
 									field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
 								}
 							/>
-							<FieldError errors={field.state.meta.errors} />
+							<FieldError id="price_per_weekend" errors={field.state.meta.errors} />
 						</div>
 					)}
 				</form.Field>
@@ -186,11 +189,12 @@ export function RentalFields({ form }: RentalFieldsProps) {
 							</label>
 							<Input
 								id="price_description"
+								{...errorProps("price_description", field.state.meta.errors)}
 								value={field.state.value}
 								onBlur={field.handleBlur}
 								onChange={(e) => field.handleChange(e.target.value)}
 							/>
-							<FieldError errors={field.state.meta.errors} />
+							<FieldError id="price_description" errors={field.state.meta.errors} />
 						</div>
 					)}
 				</form.Field>
@@ -210,6 +214,7 @@ export function RentalFields({ form }: RentalFieldsProps) {
 							</label>
 							<Input
 								id="mileage_limit"
+								{...errorProps("mileage_limit", field.state.meta.errors)}
 								type="number"
 								min={0}
 								max={10000}
@@ -220,7 +225,7 @@ export function RentalFields({ form }: RentalFieldsProps) {
 								}
 							/>
 							<p className="mt-1 text-xs text-muted">{t("form.fields.mileageLimitHint")}</p>
-							<FieldError errors={field.state.meta.errors} />
+							<FieldError id="mileage_limit" errors={field.state.meta.errors} />
 						</div>
 					)}
 				</form.Field>

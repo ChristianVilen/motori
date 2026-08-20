@@ -144,7 +144,7 @@ function HomePage() {
 								name="q"
 								type="text"
 								placeholder={t("hero.searchPlaceholder")}
-								className="h-10 flex-1 rounded-lg bg-transparent px-4 text-white placeholder:text-white/60 focus:outline-none"
+								className="h-10 flex-1 rounded-lg bg-transparent px-4 text-white placeholder:text-white/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
 							/>
 							<button
 								data-testid="home-search-submit"

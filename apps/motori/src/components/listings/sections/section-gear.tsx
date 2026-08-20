@@ -5,7 +5,7 @@ import { Input } from "@motori/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@motori/ui/select";
 import { useTranslation } from "~/lib/i18n";
 import type { CONDITIONS, GEAR_TYPES, GearFormData, ListingFormData } from "~/lib/validators";
-import { ConditionSelect, FieldError } from "./shared-fields";
+import { ConditionSelect, errorProps, FieldError } from "./shared-fields";
 import type { CategoryFormSection, SharedPayload } from "./types";
 
 type Condition = (typeof CONDITIONS)[number];
@@ -80,7 +80,10 @@ export function GearFields({ form }: GearFieldsProps) {
 								{t("form.fields.gearType")} <span className="text-destructive">*</span>
 							</label>
 							<Select value={field.state.value ?? ""} onValueChange={(v) => field.handleChange(v)}>
-								<SelectTrigger id="gear-type-select">
+								<SelectTrigger
+									id="gear-type-select"
+									{...errorProps("gear-type-select", field.state.meta.errors)}
+								>
 									<SelectValue placeholder={t("form.fields.gearTypePlaceholder")} />
 								</SelectTrigger>
 								<SelectContent>
@@ -91,7 +94,7 @@ export function GearFields({ form }: GearFieldsProps) {
 									))}
 								</SelectContent>
 							</Select>
-							<FieldError errors={field.state.meta.errors} />
+							<FieldError id="gear-type-select" errors={field.state.meta.errors} />
 						</div>
 					)}
 				</form.Field>
@@ -110,11 +113,12 @@ export function GearFields({ form }: GearFieldsProps) {
 								</label>
 								<Input
 									id="gear_brand"
+									{...errorProps("gear_brand", field.state.meta.errors)}
 									value={field.state.value ?? ""}
 									onChange={(e) => field.handleChange(e.target.value || null)}
 									maxLength={50}
 								/>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError id="gear_brand" errors={field.state.meta.errors} />
 							</div>
 						)}
 					</form.Field>
@@ -181,6 +185,7 @@ export function GearFields({ form }: GearFieldsProps) {
 							</label>
 							<Input
 								id="gear_price"
+								{...errorProps("gear_price", field.state.meta.errors)}
 								type="number"
 								min={1}
 								value={field.state.value ?? ""}
@@ -191,7 +196,7 @@ export function GearFields({ form }: GearFieldsProps) {
 									)
 								}
 							/>
-							<FieldError errors={field.state.meta.errors} />
+							<FieldError id="gear_price" errors={field.state.meta.errors} />
 						</div>
 					)}
 				</form.Field>
