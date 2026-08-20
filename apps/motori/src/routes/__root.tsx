@@ -203,6 +203,9 @@ function RootDocument({
 	const { data: clientSession } = useSession();
 	const session = clientSession ?? serverSession;
 	const isAdmin = router.state.location.pathname.startsWith("/admin");
+	const isFullHeightRoute =
+		router.state.location.pathname === "/viestit" ||
+		router.state.location.pathname.startsWith("/viestit/");
 	const [resent, setResent] = useState(false);
 	const [checkedSpam, setCheckedSpam] = useState(false);
 	const verified = useEmailVerified();
@@ -324,7 +327,7 @@ function RootDocument({
 						<main id="main-content" className="pb-16 md:pb-0">
 							{children}
 						</main>
-						{!isAdmin && (
+						{!isAdmin && !isFullHeightRoute && (
 							<footer className="relative border-t border-border px-4 pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom)+4rem)] md:py-6 text-center text-xs text-muted">
 								<div className="mb-3 flex flex-wrap justify-center gap-x-4 gap-y-1">
 									<Link to="/pyorat/myynti" className="hover:text-foreground">

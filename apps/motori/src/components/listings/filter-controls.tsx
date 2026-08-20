@@ -101,7 +101,7 @@ export function FilterProvider({
 export function RegionFilter() {
 	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
-	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm text-foreground`;
+	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base text-foreground md:text-sm`;
 	return (
 		<div>
 			<label htmlFor={`${idPrefix}-region`} className="mb-1.5 block text-xs font-medium text-muted">
@@ -189,7 +189,7 @@ export function LicenseFilter() {
 export function PriceFilter({ labelKey = "filters.pricePerDay" }: { labelKey?: string }) {
 	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
-	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm`;
+	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base md:text-sm`;
 	return (
 		<div>
 			<p className="mb-1.5 text-xs font-medium text-muted">{t(labelKey)}</p>
@@ -219,7 +219,7 @@ export function PriceFilter({ labelKey = "filters.pricePerDay" }: { labelKey?: s
 export function MakeFilter() {
 	const { search, makes, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
-	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm text-foreground`;
+	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base text-foreground md:text-sm`;
 	return (
 		<div>
 			<label htmlFor={`${idPrefix}-make`} className="mb-1.5 block text-xs font-medium text-muted">
@@ -246,7 +246,7 @@ export function MakeFilter() {
 export function CcFilter() {
 	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
-	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm`;
+	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base md:text-sm`;
 	return (
 		<div>
 			<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.engineCc")}</p>
@@ -276,7 +276,7 @@ export function CcFilter() {
 export function YearFilter() {
 	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
-	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm`;
+	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base md:text-sm`;
 	return (
 		<div>
 			<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.yearRange")}</p>
@@ -306,7 +306,7 @@ export function YearFilter() {
 export function SortFilter() {
 	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
-	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm text-foreground`;
+	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base text-foreground md:text-sm`;
 	const { current, options } = getSortState(search);
 	return (
 		<div>
@@ -332,7 +332,7 @@ export function SortFilter() {
 export function ConditionFilter() {
 	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
-	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm text-foreground`;
+	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base text-foreground md:text-sm`;
 	return (
 		<div>
 			<label
@@ -365,7 +365,7 @@ export function ConditionFilter() {
 export function GearTypeFilter() {
 	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
-	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm text-foreground`;
+	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base text-foreground md:text-sm`;
 	return (
 		<div>
 			<label
@@ -398,7 +398,7 @@ export function GearTypeFilter() {
 export function SizeFilter() {
 	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
-	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm text-foreground`;
+	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base text-foreground md:text-sm`;
 	return (
 		<div>
 			<label htmlFor={`${idPrefix}-size`} className="mb-1.5 block text-xs font-medium text-muted">
@@ -426,7 +426,7 @@ export function SizeFilter() {
 export function PartCategoryFilter() {
 	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
-	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm text-foreground`;
+	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base text-foreground md:text-sm`;
 	return (
 		<div>
 			<label
@@ -459,7 +459,7 @@ export function PartCategoryFilter() {
 export function KmMaxFilter() {
 	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
-	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-sm`;
+	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base md:text-sm`;
 	return (
 		<div>
 			<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.kmMax")}</p>

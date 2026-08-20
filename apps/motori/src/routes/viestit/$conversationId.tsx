@@ -123,7 +123,7 @@ function ThreadPage() {
 						}}
 						maxLength={4000}
 						rows={2}
-						className="flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors"
+						className="flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-base placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors md:text-sm"
 						placeholder={t("thread.placeholder")}
 					/>
 					<button

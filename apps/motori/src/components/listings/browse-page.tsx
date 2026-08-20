@@ -149,7 +149,7 @@ export function BrowsePage({
 							type="text"
 							defaultValue={search.q ?? ""}
 							placeholder={t("browse.searchPlaceholder")}
-							className="h-11 flex-1 rounded-lg bg-white/10 px-4 text-sm text-white placeholder:text-white/70 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent"
+							className="h-11 flex-1 rounded-lg bg-white/10 px-4 text-base text-white placeholder:text-white/70 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent md:text-sm"
 						/>
 						<button
 							data-testid="listings-search-submit"
@@ -289,8 +289,10 @@ export function BrowsePage({
 					</div>
 				</div>
 			) : (
-				/* Map view */
-				<div className="flex h-[calc(100vh-10rem)] flex-col lg:flex-row">
+				/* Map view. Measured heights: 293 = top nav 56 + search header 68 + mobile
+				   chips/sort row 96 + bottom nav 73; 152 = top nav 56 + md search header 96
+				   (count row visible). Re-measure if any of those change. */
+				<div className="flex h-[calc(100dvh-293px)] md:h-[calc(100dvh-152px)] flex-col lg:flex-row">
 					{/* Collapsible filter sidebar — desktop only */}
 					<div className="hidden shrink-0 lg:flex lg:flex-col">
 						<div
