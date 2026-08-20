@@ -174,6 +174,107 @@ describe("listingFormSchema", () => {
 			true,
 		);
 	});
+
+	function firstMessageFor(input: unknown, field: string): string | undefined {
+		const result = listingFormSchema().safeParse(input);
+		if (result.success) {
+			return undefined;
+		}
+		return result.error.issues.find((i) => i.path[0] === field)?.message;
+	}
+
+	it("reports missing sale price in Finnish", () => {
+		expect(firstMessageFor({ ...validSale, price: 0 }, "price")).toBe("Hinta on pakollinen");
+		expect(firstMessageFor({ ...validSale, price: "" }, "price")).toBe("Hinta on pakollinen");
+		expect(firstMessageFor({ ...validSale, price: undefined }, "price")).toBe(
+			"Hinta on pakollinen",
+		);
+	});
+
+	it("reports invalid sale price in Finnish", () => {
+		expect(firstMessageFor({ ...validSale, price: 7.5 }, "price")).toBe("Virheellinen hinta");
+		expect(firstMessageFor({ ...validSale, price: 2_000_000 }, "price")).toBe("Virheellinen hinta");
+	});
+
+	it("reports missing gear and part price in Finnish", () => {
+		expect(firstMessageFor({ ...validGear, price: 0 }, "price")).toBe("Hinta on pakollinen");
+		expect(firstMessageFor({ ...validPart, price: 0 }, "price")).toBe("Hinta on pakollinen");
+	});
+
+	it("reports missing condition in Finnish", () => {
+		expect(firstMessageFor({ ...validSale, condition: "" }, "condition")).toBe("Valitse kunto");
+		expect(firstMessageFor({ ...validGear, condition: undefined }, "condition")).toBe(
+			"Valitse kunto",
+		);
+		expect(firstMessageFor({ ...validPart, condition: "" }, "condition")).toBe("Valitse kunto");
+	});
+
+	it("reports missing gear_type in Finnish", () => {
+		expect(firstMessageFor({ ...validGear, gear_type: "" }, "gear_type")).toBe("Valitse tyyppi");
+	});
+
+	it("reports missing part_category in Finnish", () => {
+		expect(firstMessageFor({ ...validPart, part_category: "" }, "part_category")).toBe(
+			"Valitse osakategoria",
+		);
+	});
+
+	const validRental = {
+		category: "rental",
+		title: "Testi pyörä jolla on pitkä nimi",
+		make_id: "some-uuid",
+		year: 2020,
+		motorcycle_type: "naked",
+		price_per_day: 50,
+		city: "Helsinki",
+		region: "uusimaa",
+		description: "Tämä on kuvaus joka on tarpeeksi pitkä validointia varten",
+	};
+
+	it("reports invalid optional rental prices in Finnish", () => {
+		expect(firstMessageFor({ ...validRental, price_per_week: 0 }, "price_per_week")).toBe(
+			"Virheellinen hinta",
+		);
+		expect(firstMessageFor({ ...validRental, price_per_weekend: 0 }, "price_per_weekend")).toBe(
+			"Virheellinen hinta",
+		);
+	});
+
+	it("reports missing price_per_day in Finnish", () => {
+		expect(firstMessageFor({ ...validRental, price_per_day: "" }, "price_per_day")).toBe(
+			"Päivähinta on pakollinen",
+		);
+		expect(firstMessageFor({ ...validRental, price_per_day: undefined }, "price_per_day")).toBe(
+			"Päivähinta on pakollinen",
+		);
+		expect(firstMessageFor({ ...validRental, price_per_day: 20000 }, "price_per_day")).toBe(
+			"Virheellinen arvo",
+		);
+	});
+
+	it("reports missing year in Finnish", () => {
+		expect(firstMessageFor({ ...validSale, year: "" }, "year")).toBe("Vuosimalli on pakollinen");
+		expect(firstMessageFor({ ...validRental, year: undefined }, "year")).toBe(
+			"Vuosimalli on pakollinen",
+		);
+	});
+
+	it("reports out-of-range numeric details in Finnish", () => {
+		expect(firstMessageFor({ ...validSale, km_driven: 12000.5 }, "km_driven")).toBe(
+			"Virheellinen arvo",
+		);
+		expect(firstMessageFor({ ...validSale, km_driven: 1_000_000 }, "km_driven")).toBe(
+			"Virheellinen arvo",
+		);
+		expect(firstMessageFor({ ...validSale, engine_cc: 30 }, "engine_cc")).toBe("Virheellinen arvo");
+		expect(firstMessageFor({ ...validSale, owner_count: 100 }, "owner_count")).toBe(
+			"Virheellinen arvo",
+		);
+		expect(firstMessageFor({ ...validSale, power_kw: 501 }, "power_kw")).toBe("Virheellinen arvo");
+		expect(firstMessageFor({ ...validRental, mileage_limit: 20000 }, "mileage_limit")).toBe(
+			"Virheellinen arvo",
+		);
+	});
 });
 
 describe("isValidImageUrl", () => {

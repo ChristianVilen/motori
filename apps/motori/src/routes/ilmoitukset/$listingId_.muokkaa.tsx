@@ -13,6 +13,7 @@ import { centsToEuros } from "~/lib/currency";
 import type { ListingCategory } from "~/lib/db/schema";
 import { AppError } from "~/lib/errors";
 import { useTranslation } from "~/lib/i18n";
+import { getValidationT } from "~/lib/i18n/validation";
 import { updateListing } from "~/lib/listings-commands";
 import { getListingAvailability, getListingForEdit } from "~/lib/listings-detail";
 import { log } from "~/lib/log";
@@ -42,7 +43,7 @@ const updateListingFn = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("update-listing", 5, 60))
 	.inputValidator((data: { id: string; form: ListingFormData }) => ({
 		id: data.id,
-		form: listingFormSchema().parse(data.form),
+		form: listingFormSchema(getValidationT()).parse(data.form),
 	}))
 	.handler(async ({ data }) => {
 		const userId = await requireUserId();

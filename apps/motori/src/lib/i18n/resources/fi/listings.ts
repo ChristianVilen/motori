@@ -248,6 +248,7 @@ export default {
 		submit: {
 			saving: "Tallennetaan...",
 			genericError: "Jokin meni pieleen. Yritä uudelleen.",
+			checkFields: "Tarkista merkityt kentät.",
 		},
 	},
 } as const;

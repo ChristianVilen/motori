@@ -54,9 +54,21 @@ function sharedFields(t: T) {
 			.refine((v) => MUNICIPALITY_NAME_SET.has(v), t("validation.cityInvalid")),
 		region: z.string().trim().min(1, t("validation.regionRequired")),
 		postal_code: z.string().trim().max(10).nullable().optional(),
-		description: z.string().trim().min(20, t("validation.descriptionTooShort")).max(5000),
+		description: z
+			.string()
+			.trim()
+			.min(20, t("validation.descriptionTooShort"))
+			.max(5000, t("validation.valueInvalid")),
 		images: z.array(listingImageSchema(t)).max(8).default([]),
 	};
+}
+
+function priceSchema(t: T, max: number) {
+	return z
+		.number({ error: t("validation.priceRequired") })
+		.int(t("validation.priceInvalid"))
+		.min(1, t("validation.priceRequired"))
+		.max(max, t("validation.priceInvalid"));
 }
 
 export function listingFormSchema(t: T = defaultT) {
@@ -68,18 +80,48 @@ export function listingFormSchema(t: T = defaultT) {
 			make_id: z.string().min(1, t("validation.brandRequired")),
 			model_id: z.string().nullable().optional(),
 			year: z
-				.number()
-				.int()
+				.number({ error: t("validation.yearRequired") })
+				.int(t("validation.valueInvalid"))
 				.min(1970, t("validation.yearTooOld"))
 				.max(CURRENT_YEAR + 1, t("validation.yearInFuture")),
-			engine_cc: z.number().int().min(50).max(3000).nullable().optional(),
+			engine_cc: z
+				.number()
+				.int(t("validation.valueInvalid"))
+				.min(50, t("validation.valueInvalid"))
+				.max(3000, t("validation.valueInvalid"))
+				.nullable()
+				.optional(),
 			motorcycle_type: z.string().trim().min(1, t("validation.typeRequired")),
 			required_license: z.enum(["A1", "A2", "A"]).nullable().optional(),
-			price_per_day: z.number().min(1, t("validation.pricePerDayRequired")).max(10000),
-			price_per_week: z.number().min(1).max(50000).nullable().optional(),
-			price_per_weekend: z.number().min(1).max(50000).nullable().optional(),
-			price_description: z.string().trim().max(200).nullable().optional(),
-			mileage_limit: z.number().int().min(0).max(10000).nullable().optional(),
+			price_per_day: z
+				.number({ error: t("validation.pricePerDayRequired") })
+				.min(1, t("validation.pricePerDayRequired"))
+				.max(10000, t("validation.valueInvalid")),
+			price_per_week: z
+				.number()
+				.min(1, t("validation.priceInvalid"))
+				.max(50000, t("validation.priceInvalid"))
+				.nullable()
+				.optional(),
+			price_per_weekend: z
+				.number()
+				.min(1, t("validation.priceInvalid"))
+				.max(50000, t("validation.priceInvalid"))
+				.nullable()
+				.optional(),
+			price_description: z
+				.string()
+				.trim()
+				.max(200, t("validation.valueInvalid"))
+				.nullable()
+				.optional(),
+			mileage_limit: z
+				.number()
+				.int(t("validation.valueInvalid"))
+				.min(0, t("validation.valueInvalid"))
+				.max(10000, t("validation.valueInvalid"))
+				.nullable()
+				.optional(),
 		}),
 		z.object({
 			...shared,
@@ -89,44 +131,62 @@ export function listingFormSchema(t: T = defaultT) {
 				.string({ error: t("validation.modelRequired") })
 				.min(1, t("validation.modelRequired")),
 			year: z
-				.number()
-				.int()
+				.number({ error: t("validation.yearRequired") })
+				.int(t("validation.valueInvalid"))
 				.min(1970, t("validation.yearTooOld"))
 				.max(CURRENT_YEAR + 1, t("validation.yearInFuture")),
-			engine_cc: z.number().int().min(50).max(3000).nullable().optional(),
+			engine_cc: z
+				.number()
+				.int(t("validation.valueInvalid"))
+				.min(50, t("validation.valueInvalid"))
+				.max(3000, t("validation.valueInvalid"))
+				.nullable()
+				.optional(),
 			motorcycle_type: z.string().trim().min(1, t("validation.typeRequired")),
 			required_license: z.enum(["A1", "A2", "A"]).nullable().optional(),
-			condition: z.enum(CONDITIONS),
+			condition: z.enum(CONDITIONS, { error: t("validation.conditionRequired") }),
 			km_driven: z
 				.number({ error: t("validation.kmRequired") })
-				.int()
+				.int(t("validation.valueInvalid"))
 				.min(0, t("validation.kmRequired"))
-				.max(999999),
+				.max(999999, t("validation.valueInvalid")),
 			color: z.string().trim().max(30).nullable().optional(),
-			owner_count: z.number().int().min(1).max(99).nullable().optional(),
-			power_kw: z.number().int().min(1).max(500).nullable().optional(),
+			owner_count: z
+				.number()
+				.int(t("validation.valueInvalid"))
+				.min(1, t("validation.valueInvalid"))
+				.max(99, t("validation.valueInvalid"))
+				.nullable()
+				.optional(),
+			power_kw: z
+				.number()
+				.int(t("validation.valueInvalid"))
+				.min(1, t("validation.valueInvalid"))
+				.max(500, t("validation.valueInvalid"))
+				.nullable()
+				.optional(),
 			trade_possible: z.boolean().default(false),
-			price: z.number().int().min(1).max(1_000_000),
+			price: priceSchema(t, 1_000_000),
 			negotiable: z.boolean().default(false),
 		}),
 		z.object({
 			...shared,
 			category: z.literal("gear"),
-			gear_type: z.enum(GEAR_TYPES),
+			gear_type: z.enum(GEAR_TYPES, { error: t("validation.typeRequired") }),
 			size: z.enum(GEAR_SIZES).nullable().optional(),
 			brand: z.string().trim().max(50).nullable().optional(),
-			condition: z.enum(CONDITIONS),
-			price: z.number().int().min(1).max(100_000),
+			condition: z.enum(CONDITIONS, { error: t("validation.conditionRequired") }),
+			price: priceSchema(t, 100_000),
 		}),
 		z.object({
 			...shared,
 			category: z.literal("part"),
-			part_category: z.string().trim().min(1).max(100),
+			part_category: z.string().trim().min(1, t("validation.partCategoryRequired")).max(100),
 			compatible_make_id: z.string().nullable().optional(),
 			compatible_model_id: z.string().nullable().optional(),
 			oem_number: z.string().trim().max(50).nullable().optional(),
-			condition: z.enum(CONDITIONS),
-			price: z.number().int().min(1).max(100_000),
+			condition: z.enum(CONDITIONS, { error: t("validation.conditionRequired") }),
+			price: priceSchema(t, 100_000),
 		}),
 	]);
 }

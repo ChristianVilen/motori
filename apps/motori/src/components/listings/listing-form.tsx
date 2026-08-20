@@ -12,7 +12,7 @@ import { Button } from "@motori/ui/button";
 import { Input } from "@motori/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@motori/ui/select";
 import { Textarea } from "@motori/ui/textarea";
-import { useForm } from "@tanstack/react-form";
+import { revalidateLogic, useForm } from "@tanstack/react-form";
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -23,12 +23,16 @@ import {
 	Wrench,
 	X,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { CitySelect } from "~/components/listings/city-select";
 import { MotorcycleFields } from "~/components/listings/sections/motorcycle-fields";
+import type { GearFieldValues } from "~/components/listings/sections/section-gear";
 import { GearFields, gearSection } from "~/components/listings/sections/section-gear";
+import type { PartFieldValues } from "~/components/listings/sections/section-part";
 import { PartFields, partSection } from "~/components/listings/sections/section-part";
+import type { RentalFieldValues } from "~/components/listings/sections/section-rental";
 import { RentalFields, rentalSection } from "~/components/listings/sections/section-rental";
+import type { SaleFieldValues } from "~/components/listings/sections/section-sale";
 import { SaleFields, saleSection } from "~/components/listings/sections/section-sale";
 import { FieldError, TitleField } from "~/components/listings/sections/shared-fields";
 import type { SharedPayload } from "~/components/listings/sections/types";
@@ -37,6 +41,7 @@ import { REGIONS } from "~/lib/constants";
 import type { ListingCategory } from "~/lib/db/schema";
 import { handleAppError } from "~/lib/errors-client";
 import { useTranslation } from "~/lib/i18n";
+import { mapListingIssues } from "~/lib/listing-form-errors";
 import type { ListingFormData } from "~/lib/validators";
 import { listingFormSchema } from "~/lib/validators";
 
@@ -58,6 +63,47 @@ const sectionFor: Record<ListingCategory, (typeof ALL_SECTIONS)[number]> = {
 	part: partSection,
 };
 
+type ListingFormValues = {
+	title: string;
+	city: string;
+	region: string;
+	postal_code: string;
+	description: string;
+	make_id: string;
+	model_id: string | null;
+	year: number;
+	engine_cc: number | null;
+	motorcycle_type: string;
+	required_license: "A1" | "A2" | "A" | null;
+} & RentalFieldValues &
+	SaleFieldValues &
+	GearFieldValues &
+	PartFieldValues;
+
+function buildFormPayload(
+	value: ListingFormValues,
+	category: ListingCategory,
+	imageList: SharedPayload["images"],
+): ListingFormData {
+	const shared: SharedPayload = {
+		title: value.title,
+		city: value.city,
+		region: value.region,
+		postal_code: value.postal_code || null,
+		description: value.description,
+		images: imageList,
+	};
+	const moto = {
+		make_id: value.make_id,
+		model_id: value.model_id,
+		year: value.year,
+		engine_cc: value.engine_cc,
+		motorcycle_type: value.motorcycle_type,
+		required_license: value.required_license,
+	};
+	return sectionFor[category].toPayload(shared, value, moto);
+}
+
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: form shell — remaining complexity is conditional JSX rendering per category
 export function ListingForm(props: ListingFormProps) {
 	const { initialImages = [], initialValues, onSubmit, submitLabel } = props;
@@ -69,8 +115,33 @@ export function ListingForm(props: ListingFormProps) {
 	);
 	const images = useImageUpload(initialImages);
 	const [submitError, setSubmitError] = useState<string | null>(null);
+	const schema = useMemo(() => listingFormSchema(tCommon), [tCommon]);
 
 	const form = useForm({
+		// After a submit attempt the schema check reruns on change, so errors clear as they're fixed.
+		validationLogic: revalidateLogic({ mode: "blur", modeAfterSubmission: "change" }),
+		validators: {
+			onDynamic: ({ value, formApi }) => {
+				const parsed = schema.safeParse(buildFormPayload(value, category, []));
+				if (parsed.success) {
+					return undefined;
+				}
+				const { fieldErrors } = mapListingIssues(parsed.error.issues, category, Object.keys(value));
+				// Only surface errors on fields the user has visited, until a
+				// submit attempt puts every remaining problem on screen.
+				const showAll = formApi.state.submissionAttempts > 0;
+				const fields: Record<string, string> = {};
+				for (const [field, message] of Object.entries(fieldErrors)) {
+					if (showAll || formApi.getFieldMeta(field as never)?.isBlurred) {
+						fields[field] = message;
+					}
+				}
+				return Object.keys(fields).length > 0 ? { fields } : undefined;
+			},
+		},
+		onSubmitInvalid: () => {
+			setSubmitError(t("form.submit.checkFields"));
+		},
 		defaultValues: {
 			// Shared
 			title: initialValues?.title ?? "",
@@ -98,41 +169,22 @@ export function ListingForm(props: ListingFormProps) {
 			setSubmitError(null);
 			try {
 				const allImages = await images.uploadFiles();
-
-				const shared: SharedPayload = {
-					title: value.title,
-					city: value.city,
-					region: value.region,
-					postal_code: value.postal_code || null,
-					description: value.description,
-					images: allImages,
-				};
-
-				const section = sectionFor[category];
-				const moto = {
-					make_id: value.make_id,
-					model_id: value.model_id,
-					year: value.year,
-					engine_cc: value.engine_cc,
-					motorcycle_type: value.motorcycle_type,
-					required_license: value.required_license,
-				};
-				const formPayload = section.toPayload(shared, value, moto);
-
-				const parsed = listingFormSchema(tCommon).safeParse(formPayload);
+				const parsed = schema.safeParse(buildFormPayload(value, category, allImages));
 				if (!parsed.success) {
-					const first = parsed.error.issues[0];
-					const fieldName = first?.path[0] as string | undefined;
-					// Section-owned fields are prefixed in form state (km_driven → sale_km_driven).
-					const target =
-						fieldName && [fieldName, `${category}_${fieldName}`].find((c) => c in value);
-					if (target) {
-						form.setFieldMeta(target as never, (prev) => ({
+					const { fieldErrors, unmapped } = mapListingIssues(
+						parsed.error.issues,
+						category,
+						Object.keys(value),
+					);
+					// Fallback: the submit-time onDynamic pass already catches mappable
+					// issues on these same values; unmapped ones (images) hit the banner.
+					for (const [field, message] of Object.entries(fieldErrors)) {
+						form.setFieldMeta(field as never, (prev) => ({
 							...prev,
-							errors: [first.message],
+							errorMap: { ...prev.errorMap, onSubmit: message },
 						}));
 					}
-					setSubmitError(first?.message ?? t("form.submit.genericError"));
+					setSubmitError(unmapped[0] ?? t("form.submit.checkFields"));
 					return;
 				}
 				await onSubmit(parsed.data);
