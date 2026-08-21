@@ -5,6 +5,7 @@ export default {
 		subheading:
 			"Osta, myy, vuokraa ja vaihda moottoripyöriä, varusteita ja varaosia suoraan toisilta motoristeilta.",
 		searchPlaceholder: "Hae merkkiä, mallia tai varusteita...",
+		searchLabel: "Hae ilmoituksia",
 		searchButton: "Hae",
 		chips: {
 			uusimaa: "Uusimaa",

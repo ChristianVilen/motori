@@ -1,6 +1,7 @@
 export default {
 	browse: {
 		searchPlaceholder: "Search brand, model, city...",
+		searchLabel: "Search listings",
 		searchButton: "Search",
 		filterButtonAriaLabel: "Filters",
 		resultCountWord: "listings",
@@ -35,6 +36,8 @@ export default {
 		pricePerDay: "Price / day",
 		priceMinPlaceholder: "Min €",
 		priceMaxPlaceholder: "Max €",
+		minLabel: "minimum",
+		maxLabel: "maximum",
 		sort: "Sort",
 		showResults: "Show {{total}} results",
 		removeChipAriaLabel: "Remove {{label}}",

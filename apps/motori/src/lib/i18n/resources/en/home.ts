@@ -4,6 +4,7 @@ export default {
 		heading: "A community for riders",
 		subheading: "Buy, sell, rent and swap motorcycles, gear and parts directly with other riders.",
 		searchPlaceholder: "Search make, model or gear...",
+		searchLabel: "Search listings",
 		searchButton: "Search",
 		chips: {
 			uusimaa: "Uusimaa",

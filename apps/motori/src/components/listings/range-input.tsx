@@ -1,16 +1,25 @@
 interface RangeInputProps {
 	name: string;
+	label: string;
 	value: number | undefined;
 	placeholder: string;
 	className: string;
 	onChange: (value: number | undefined) => void;
 }
 
-export function RangeInput({ name, value, placeholder, className, onChange }: RangeInputProps) {
+export function RangeInput({
+	name,
+	label,
+	value,
+	placeholder,
+	className,
+	onChange,
+}: RangeInputProps) {
 	return (
 		<input
 			data-testid={name}
 			type="number"
+			aria-label={label}
 			placeholder={placeholder}
 			defaultValue={value ?? ""}
 			onBlur={(e) => onChange(e.target.value ? Number(e.target.value) : undefined)}

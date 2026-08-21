@@ -87,7 +87,11 @@ export function ReportButton({ targetType, targetId }: ReportButtonProps) {
 								<h2 className="mb-4 text-lg font-semibold text-foreground">
 									{t("report.modalTitle")}
 								</h2>
+								<label htmlFor="report-reason" className="sr-only">
+									{t("report.reasonLabel")}
+								</label>
 								<textarea
+									id="report-reason"
 									value={reason}
 									onChange={(e) => setReason(e.target.value)}
 									placeholder={t("report.placeholder")}

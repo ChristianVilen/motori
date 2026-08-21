@@ -6,6 +6,8 @@ export default {
 	thread: {
 		send: "Send",
 		placeholder: "Write a message…",
+		composerLabel: "Message",
+		logLabel: "Conversation",
 		readOnly: "This conversation is read-only (the listing has been removed).",
 	},
 	openConversation: "Open conversation",

@@ -1,6 +1,7 @@
 export default {
 	browse: {
 		searchPlaceholder: "Hae merkkiä, mallia, kaupunkia...",
+		searchLabel: "Hae ilmoituksia",
 		searchButton: "Hae",
 		filterButtonAriaLabel: "Suodattimet",
 		resultCountWord: "ilmoitusta",
@@ -35,6 +36,8 @@ export default {
 		pricePerDay: "Hinta / päivä",
 		priceMinPlaceholder: "Min €",
 		priceMaxPlaceholder: "Max €",
+		minLabel: "vähintään",
+		maxLabel: "enintään",
 		sort: "Järjestä",
 		showResults: "Näytä {{total}} tulosta",
 		removeChipAriaLabel: "Poista {{label}}",

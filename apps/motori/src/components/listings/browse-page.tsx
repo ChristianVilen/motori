@@ -143,7 +143,11 @@ export function BrowsePage({
 			<div className={`bg-primary px-4 ${view === "map" ? "py-3" : "py-6"}`}>
 				<div className="mx-auto max-w-6xl">
 					<form onSubmit={handleSearch} data-testid="listings-search-form" className="flex gap-2">
+						<label htmlFor="listings-search" className="sr-only">
+							{t("browse.searchLabel")}
+						</label>
 						<input
+							id="listings-search"
 							data-testid="listings-search-input"
 							name="q"
 							type="text"

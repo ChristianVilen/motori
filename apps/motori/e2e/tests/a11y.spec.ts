@@ -9,6 +9,7 @@ const PAGES = [
 	{ name: "Login", path: "/kirjaudu" },
 	{ name: "Register", path: "/rekisteroidy" },
 	{ name: "Forgot password", path: "/unohdin-salasanan" },
+	{ name: "Verify email", path: "/vahvista-sahkoposti" },
 	{ name: "Terms", path: "/kayttoehdot" },
 	{ name: "Privacy", path: "/tietosuoja" },
 ];

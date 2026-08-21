@@ -49,6 +49,7 @@ export default {
 		button: "Report",
 		modalTitle: "Report content",
 		placeholder: "Tell us why you want to report this content...",
+		reasonLabel: "Reason for report",
 		submit: "Send report",
 		submitting: "Sending...",
 		success: "Thanks for your report. We'll review it as soon as possible.",

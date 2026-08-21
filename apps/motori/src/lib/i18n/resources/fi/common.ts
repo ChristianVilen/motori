@@ -49,6 +49,7 @@ export default {
 		button: "Ilmoita",
 		modalTitle: "Ilmoita sisällöstä",
 		placeholder: "Kerro miksi haluat ilmoittaa tästä sisällöstä...",
+		reasonLabel: "Ilmoituksen syy",
 		submit: "Lähetä ilmoitus",
 		submitting: "Lähetetään...",
 		success: "Kiitos ilmoituksestasi. Käsittelemme sen mahdollisimman pian.",
