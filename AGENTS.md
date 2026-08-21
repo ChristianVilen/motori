@@ -138,6 +138,7 @@ Use the `gh` CLI for all GitHub interactions — never open the web UI for thing
 
 - Minimal comments. Only write a comment when the WHY is non-obvious (hidden constraint, subtle invariant, workaround). The existing `schema.ts` and `__root.tsx` show the style.
 - No premature abstraction; three similar lines beats a helper.
+- Colour tokens in `packages/ui/src/theme.css` (`ring`, `destructive`, `success`, `warning`) are tuned to pass WCAG AA on the tinted surfaces they are used on (`bg-*/10`–`/20`), not just on white. Compute the contrast ratio before lightening any of them.
 - Production deploy runbook: `DEPLOY.md`. Design specs and implementation plans produced via the superpowers skills go under `docs/superpowers/` (specs in `docs/superpowers/specs/`, plans in `docs/superpowers/plans/`).
 - Commits: no `Co-Authored-By` lines.
 - Issues and feature tracking: GitHub Issues on this repo (labels: `bug`, `enhancement`, `p1`, `p2`, `auth`, `i18n`). Use `gh issue list` to browse, `gh issue create` to add new ones.
