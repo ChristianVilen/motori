@@ -1,5 +1,5 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
-import { ArrowLeft, MapPin, Star, Tag, User } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin, Star, Tag, User } from "lucide-react";
 import type { ReactNode } from "react";
 import { FavoriteButton } from "~/components/listings/favorite-button";
 import { ListingGallery } from "~/components/listings/listing-gallery";
@@ -8,9 +8,11 @@ import { ReportButton } from "~/components/report-button";
 import { categoryDetailPath } from "~/lib/category-routes";
 import { LICENSE_CLASSES, LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
 import type { Listing } from "~/lib/db/schema";
-import { useTranslation } from "~/lib/i18n";
+import { formatDate, useTranslation } from "~/lib/i18n";
 import type { ListingForDisplay } from "~/lib/listings-detail";
 import { computeListingSlug } from "~/lib/slug";
+
+type TFunc = ReturnType<typeof useTranslation>["t"];
 
 interface ReviewSummary {
 	averageRating: number | null;
@@ -36,7 +38,7 @@ function SellerCard({
 	listing: Listing;
 	data: ListingForDisplay;
 	ownerReviewSummary: ReviewSummary;
-	t: (key: string) => string;
+	t: TFunc;
 	tProfile: (key: string) => string;
 }) {
 	return (
@@ -78,6 +80,14 @@ function SellerCard({
 							<>
 								<span className="text-border">&bull;</span>
 								<span className="truncate">{data.ownerCity}</span>
+							</>
+						)}
+						{!!data.ownerSince && (
+							<>
+								<span className="text-border">&bull;</span>
+								<span data-testid="seller-member-since">
+									{t("detail.memberSince", { year: new Date(data.ownerSince).getFullYear() })}
+								</span>
 							</>
 						)}
 					</div>
@@ -194,6 +204,13 @@ export function ListingDetailShell({
 								>
 									<MapPin className="h-3 w-3" />
 									{listing.city}, {regionLabel}
+								</span>
+								<span
+									data-testid="listing-posted-date"
+									className="flex items-center gap-1 rounded-full bg-muted-light px-2.5 py-0.5 text-xs text-muted"
+								>
+									<CalendarDays className="h-3 w-3" />
+									{t("detail.postedOn", { date: formatDate(new Date(listing.created_at)) })}
 								</span>
 								{!!licenseLabel && (
 									<span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">

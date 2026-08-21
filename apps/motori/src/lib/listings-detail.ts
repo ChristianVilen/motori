@@ -31,6 +31,7 @@ export type ListingForDisplay = {
 	modelName: string | null;
 	ownerName: string | null;
 	ownerCity: string | null;
+	ownerSince: Date | null;
 	ownerContact: { phone: string | null; showPhone: boolean };
 };
 
@@ -137,7 +138,7 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 		fetchListingChildren(db, listing),
 		db
 			.selectFrom("profile")
-			.select(["display_name", "city", "phone", "show_phone"])
+			.select(["display_name", "city", "phone", "show_phone", "created_at"])
 			.where("user_id", "=", listing.owner_id)
 			.executeTakeFirst(),
 	]);
@@ -150,6 +151,7 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 		modelName: modelName ?? null,
 		ownerName: ownerProfile?.display_name ?? null,
 		ownerCity: ownerProfile?.city ?? null,
+		ownerSince: ownerProfile?.created_at ?? null,
 		ownerContact: {
 			phone: ownerProfile?.phone ?? null,
 			showPhone: ownerProfile?.show_phone ?? false,

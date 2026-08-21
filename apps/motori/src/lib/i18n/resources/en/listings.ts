@@ -93,6 +93,8 @@ export default {
 		sellerLabel: "Seller",
 		viewProfile: "View profile",
 		noReviews: "No reviews yet",
+		memberSince: "Member since {{year}}",
+		postedOn: "Posted {{date}}",
 		pricing: {
 			perDay: "/day",
 			perWeek: "{{price}} / week",

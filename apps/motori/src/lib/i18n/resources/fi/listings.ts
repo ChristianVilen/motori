@@ -104,6 +104,8 @@ export default {
 		sellerLabel: "Ilmoittaja",
 		viewProfile: "Katso profiili",
 		noReviews: "Ei arvosteluja vielä",
+		memberSince: "Jäsen vuodesta {{year}}",
+		postedOn: "Julkaistu {{date}}",
 		pricing: {
 			perDay: "/päivä",
 			perWeek: "{{price}} / viikko",

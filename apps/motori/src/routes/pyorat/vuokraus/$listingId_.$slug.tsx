@@ -344,6 +344,7 @@ function ListingDetailPage() {
 		availability,
 		ownerName,
 		ownerCity,
+		ownerSince,
 		ownerReviewSummary,
 		ownerContact,
 	} = Route.useLoaderData();
@@ -420,6 +421,7 @@ function ListingDetailPage() {
 				modelName,
 				ownerName,
 				ownerCity,
+				ownerSince,
 				ownerReviewSummary,
 				ownerContact,
 			}}
