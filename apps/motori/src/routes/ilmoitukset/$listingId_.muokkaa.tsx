@@ -204,11 +204,9 @@ function AvailabilityEditor(props: {
 					onToggleException={toggle}
 				/>
 			</div>
-			<div className="mt-4">
-				<Button onClick={handleSave} disabled={saving}>
-					{t("availability.saveButton")}
-				</Button>
-			</div>
+			<Button className="mt-4" onClick={handleSave} disabled={saving}>
+				{t("availability.saveButton")}
+			</Button>
 		</section>
 	);
 }

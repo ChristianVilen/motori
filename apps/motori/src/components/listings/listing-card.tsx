@@ -3,6 +3,7 @@ import { FavoriteButton } from "~/components/listings/favorite-button";
 import { categoryDetailPath } from "~/lib/category-routes";
 import {
 	CONDITION_LABELS,
+	type Condition,
 	LISTING_STATUSES,
 	MOTORCYCLE_TYPES,
 	REGIONS,
@@ -10,11 +11,14 @@ import {
 } from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, formatNumber, useTranslation } from "~/lib/i18n";
-import type { ListingRowExtras } from "~/lib/listings-search";
 import { computeListingSlug } from "~/lib/slug";
 
 // Summary rows (favorites, profile) left-join every child table, so each extra may be null or absent.
-type CardListing = Listing & { [K in keyof ListingRowExtras]?: ListingRowExtras[K] | null };
+type CardListing = Listing & {
+	price?: number | null;
+	km_driven?: number | null;
+	condition?: Condition | null;
+};
 
 interface ListingCardProps {
 	listing: CardListing;
@@ -24,12 +28,12 @@ interface ListingCardProps {
 	isOwn?: boolean;
 }
 
-function buildFacts(listing: ListingCardProps["listing"]): string[] {
+function buildFacts(listing: CardListing): string[] {
 	return [
 		listing.year != null ? String(listing.year) : null,
 		listing.km_driven != null ? `${formatNumber(listing.km_driven)} km` : null,
 		listing.condition ? CONDITION_LABELS[listing.condition] : null,
-	].filter((f): f is string => f != null);
+	].filter((f) => f != null);
 }
 
 export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: ListingCardProps) {

@@ -8,11 +8,9 @@ import { ReportButton } from "~/components/report-button";
 import { categoryDetailPath } from "~/lib/category-routes";
 import { LICENSE_CLASSES, LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
 import type { Listing } from "~/lib/db/schema";
-import { formatDate, useTranslation } from "~/lib/i18n";
+import { formatDate, type TFunc, useTranslation } from "~/lib/i18n";
 import type { ListingForDisplay } from "~/lib/listings-detail";
 import { computeListingSlug } from "~/lib/slug";
-
-type TFunc = ReturnType<typeof useTranslation>["t"];
 
 interface ReviewSummary {
 	averageRating: number | null;

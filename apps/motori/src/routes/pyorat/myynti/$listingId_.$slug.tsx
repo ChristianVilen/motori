@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { NonRentalSidebar } from "~/components/listings/non-rental-sidebar";
 import { CONDITION_LABELS, SITE_NAME, SITE_URL } from "~/lib/constants";
 import { centsToEuros } from "~/lib/currency";
+import { formatNumber } from "~/lib/i18n";
 import { defineCategoryDetailRoute } from "~/lib/listings-detail-route";
 import { computeListingSlug } from "~/lib/slug";
 
@@ -18,7 +19,7 @@ const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute
 				statRows={[
 					{ label: "Kunto", value: CONDITION_LABELS[s.condition] ?? s.condition },
 					...(s.km_driven != null
-						? [{ label: "Kilometrit", value: `${s.km_driven.toLocaleString("fi")} km` as const }]
+						? [{ label: "Kilometrit", value: `${formatNumber(s.km_driven)} km` as const }]
 						: []),
 					...(s.power_kw != null ? [{ label: "Teho", value: `${s.power_kw} kW` as const }] : []),
 					...(s.color ? [{ label: "Väri", value: s.color }] : []),

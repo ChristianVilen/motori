@@ -15,6 +15,8 @@ export function useFocusTrap(active: boolean) {
 	const ref = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
+		// Deps are [active] only: the trapped element must already be rendered on the
+		// render where `active` flips true, or the trap never arms.
 		if (!active || !ref.current) {
 			return;
 		}

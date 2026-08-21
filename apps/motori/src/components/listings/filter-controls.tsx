@@ -249,15 +249,16 @@ export function MakeFilter() {
 export function CcFilter() {
 	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
+	const label = t("filters.engineCc");
 	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base md:text-sm`;
 	return (
 		<div>
-			<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.engineCc")}</p>
+			<p className="mb-1.5 text-xs font-medium text-muted">{label}</p>
 			<div className="flex items-center gap-2">
 				<RangeInput
 					key={`cc-min-${search.cc_min}`}
 					name={`${idPrefix}-cc-min`}
-					label={`${t("filters.engineCc")}, ${t("filters.minAriaLabel")}`}
+					label={`${label}, ${t("filters.minAriaLabel")}`}
 					value={search.cc_min}
 					placeholder={t("filters.ccMinPlaceholder")}
 					className={cls}
@@ -267,7 +268,7 @@ export function CcFilter() {
 				<RangeInput
 					key={`cc-max-${search.cc_max}`}
 					name={`${idPrefix}-cc-max`}
-					label={`${t("filters.engineCc")}, ${t("filters.maxAriaLabel")}`}
+					label={`${label}, ${t("filters.maxAriaLabel")}`}
 					value={search.cc_max}
 					placeholder={t("filters.ccMaxPlaceholder")}
 					className={cls}
@@ -281,15 +282,16 @@ export function CcFilter() {
 export function YearFilter() {
 	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
+	const label = t("filters.yearRange");
 	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base md:text-sm`;
 	return (
 		<div>
-			<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.yearRange")}</p>
+			<p className="mb-1.5 text-xs font-medium text-muted">{label}</p>
 			<div className="flex items-center gap-2">
 				<RangeInput
 					key={`year-min-${search.year_min}`}
 					name={`${idPrefix}-year-min`}
-					label={`${t("filters.yearRange")}, ${t("filters.minAriaLabel")}`}
+					label={`${label}, ${t("filters.minAriaLabel")}`}
 					value={search.year_min}
 					placeholder={t("filters.yearMinPlaceholder")}
 					className={cls}
@@ -299,7 +301,7 @@ export function YearFilter() {
 				<RangeInput
 					key={`year-max-${search.year_max}`}
 					name={`${idPrefix}-year-max`}
-					label={`${t("filters.yearRange")}, ${t("filters.maxAriaLabel")}`}
+					label={`${label}, ${t("filters.maxAriaLabel")}`}
 					value={search.year_max}
 					placeholder={t("filters.yearMaxPlaceholder")}
 					className={cls}

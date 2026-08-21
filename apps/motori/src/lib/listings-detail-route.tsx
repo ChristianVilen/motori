@@ -19,7 +19,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import type { FC, ReactNode } from "react";
 import { z } from "zod";
 import { ListingDetailShell } from "~/components/listings/listing-detail-shell";
-import { formatEur, useTranslation } from "~/lib/i18n";
+import { formatEur, type TFunc, useTranslation } from "~/lib/i18n";
 import { getListingForDisplay, type ListingForDisplay, recordView } from "~/lib/listings-detail";
 import { startConversation } from "~/lib/messages";
 import { getReviewSummaryForUser } from "~/lib/reviews.server";
@@ -33,8 +33,6 @@ type LoaderResult = ListingForDisplay & {
 };
 
 type HeadInput = LoaderResult;
-
-type TFunc = ReturnType<typeof useTranslation>["t"];
 
 interface DefineCategoryDetailRouteArgs<C extends "sale" | "gear" | "part"> {
 	category: C;
