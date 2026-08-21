@@ -10,12 +10,15 @@ interface FieldErrorProps {
 }
 export function FieldError({ id, errors }: FieldErrorProps) {
 	const first = errors.find((e) => e != null);
-	if (first == null) {
-		return null;
-	}
-	const msg = typeof first === "string" ? first : String(first);
+	const msg = first == null ? undefined : String(first);
+	// Always mounted: screen readers only announce changes inside a live region that
+	// already exists. Empty <p> has no height, so it costs no layout.
 	return (
-		<p id={`${id}-error`} role="alert" className="mt-1 text-sm text-destructive">
+		<p
+			id={`${id}-error`}
+			aria-live="polite"
+			className={msg === undefined ? undefined : "mt-1 text-sm text-destructive"}
+		>
 			{msg}
 		</p>
 	);
