@@ -1,19 +1,31 @@
 import { Link } from "@tanstack/react-router";
 import { FavoriteButton } from "~/components/listings/favorite-button";
 import { categoryDetailPath } from "~/lib/category-routes";
-import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, TYPE_EMOJI } from "~/lib/constants";
+import {
+	CONDITION_LABELS,
+	type Condition,
+	LISTING_STATUSES,
+	MOTORCYCLE_TYPES,
+	REGIONS,
+	TYPE_EMOJI,
+} from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";
-import { formatEur, useTranslation } from "~/lib/i18n";
+import { formatEur, formatNumber, useTranslation } from "~/lib/i18n";
 import { computeListingSlug } from "~/lib/slug";
 
 interface ListingCardProps {
-	listing: Listing & { price?: number | null };
+	listing: Listing & {
+		price?: number | null;
+		km_driven?: number | null;
+		condition?: Condition | null;
+	};
 	images: ListingImage[];
 	makeSlug: string | null;
 	modelName: string | null;
 	isOwn?: boolean;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: card is a stack of optional badges and fact lines — conditional JSX only
 export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: ListingCardProps) {
 	const { t } = useTranslation("listings");
 	const firstImage = images[0];
@@ -22,6 +34,11 @@ export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: Lis
 		MOTORCYCLE_TYPES.find((mt) => mt.value === listing.motorcycle_type)?.label ??
 		listing.motorcycle_type;
 	const typeEmoji = listing.motorcycle_type ? (TYPE_EMOJI[listing.motorcycle_type] ?? "") : "";
+	const facts = [
+		listing.year,
+		listing.km_driven != null ? `${formatNumber(listing.km_driven)} km` : null,
+		listing.condition ? CONDITION_LABELS[listing.condition] : null,
+	].filter((f) => f != null);
 
 	const isNew = Date.now() - new Date(listing.created_at).getTime() < 48 * 60 * 60 * 1000;
 	const imageCount = images.length;
@@ -113,6 +130,12 @@ export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: Lis
 						</span>
 					)}
 				</div>
+
+				{facts.length > 0 && (
+					<p data-testid="listing-card-facts" className="mt-1 text-xs text-foreground">
+						{facts.join(" · ")}
+					</p>
+				)}
 
 				<p className="mt-1 text-xs text-muted">
 					{typeEmoji} {typeLabel}

@@ -6,6 +6,7 @@ import { eurosToCents } from "~/lib/currency";
 const getDb = async () => (await import("~/lib/db/index")).db;
 
 import { rateLimitMiddleware } from "@motori/server/rate-limit";
+import type { Condition } from "~/lib/constants";
 import type { Database, Listing, ListingCategory, ListingImage } from "~/lib/db/schema";
 import { CATEGORY_CHILD_TABLE } from "~/lib/listings-category";
 import { toPrefixTsQuery, toTsQuery } from "~/lib/search";
@@ -15,6 +16,13 @@ const PAGE_SIZE = 12;
 const categorySchema = z.enum(["sale", "rental", "gear", "part"]);
 
 type SortMode = "relevance" | "price_asc" | "price_desc" | "newest";
+
+// Browse-card facts ride along from the category child table; rental has neither column.
+type ListingRow = Listing & {
+	price: number;
+	km_driven?: number | null;
+	condition?: Condition;
+};
 
 export type ListingWithImages = Listing & {
 	images: ListingImage[];
@@ -55,6 +63,7 @@ type FilterKey =
 interface CategoryConfig {
 	childTable: (typeof CATEGORY_CHILD_TABLE)[ListingCategory];
 	priceColumn: RawBuilder<number>;
+	factColumns: readonly ("km_driven" | "condition")[];
 	supportedFilters: readonly FilterKey[];
 }
 
@@ -62,6 +71,7 @@ const CATEGORY_CONFIGS: Record<ListingCategory, CategoryConfig> = {
 	rental: {
 		childTable: CATEGORY_CHILD_TABLE.rental,
 		priceColumn: sql<number>`child.price_per_day`,
+		factColumns: [],
 		supportedFilters: [
 			"region",
 			"type",
@@ -78,6 +88,7 @@ const CATEGORY_CONFIGS: Record<ListingCategory, CategoryConfig> = {
 	sale: {
 		childTable: CATEGORY_CHILD_TABLE.sale,
 		priceColumn: sql<number>`child.price`,
+		factColumns: ["km_driven", "condition"],
 		supportedFilters: [
 			"region",
 			"type",
@@ -96,11 +107,13 @@ const CATEGORY_CONFIGS: Record<ListingCategory, CategoryConfig> = {
 	gear: {
 		childTable: CATEGORY_CHILD_TABLE.gear,
 		priceColumn: sql<number>`child.price`,
+		factColumns: ["condition"],
 		supportedFilters: ["region", "price_min", "price_max", "condition", "gear_type", "size"],
 	},
 	part: {
 		childTable: CATEGORY_CHILD_TABLE.part,
 		priceColumn: sql<number>`child.price`,
+		factColumns: ["condition"],
 		supportedFilters: ["region", "price_min", "price_max", "make", "condition", "part_category"],
 	},
 };
@@ -389,14 +402,17 @@ async function searchForCategory(
 		.select(sql<number>`count(*)::int`.as("count"))
 		.executeTakeFirstOrThrow();
 
-	let query: AnyQuery = baseQuery.selectAll("listing").select(config.priceColumn.as("price"));
+	let query: AnyQuery = baseQuery
+		.selectAll("listing")
+		.select(config.priceColumn.as("price"))
+		.select(config.factColumns.map((c) => sql.ref(`child.${c}`).as(c)));
 	if (params.cursor) {
 		query = applyCursor(query, params.cursor, sort, config);
 	}
 	query = applySort(query, sort, searchMode, config);
 	query = query.limit(PAGE_SIZE);
 
-	const listings = (await query.execute()) as (Listing & { price: number })[];
+	const listings = (await query.execute()) as ListingRow[];
 	return {
 		listings: await hydrateListings(listings),
 		nextCursor: buildNextCursor(listings, sort),
@@ -424,11 +440,12 @@ export const getLatestListings = createServerFn({ method: "GET" })
 			.innerJoin(`${config.childTable} as child`, "child.listing_id", "listing.id")
 			.selectAll()
 			.select(config.priceColumn.as("price"))
+			.select(config.factColumns.map((c) => sql.ref(`child.${c}`).as(c)))
 			.where("listing.status", "=", "active")
 			.where("listing.category", "=", category)
 			.orderBy("listing.created_at", "desc")
 			.limit(6)
-			.execute()) as (Listing & { price: number })[];
+			.execute()) as ListingRow[];
 
 		if (listings.length === 0) {
 			return [] as ListingWithImages[];

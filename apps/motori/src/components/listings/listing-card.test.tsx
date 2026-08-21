@@ -7,6 +7,7 @@ import { ListingCard } from "./listing-card";
 
 vi.mock("~/lib/i18n", () => ({
 	formatEur: (cents: number) => `${(cents / 100).toFixed(0)} €`,
+	formatNumber: (n: number) => n.toLocaleString("fi"),
 	useTranslation: () => ({ t: (key: string) => key }),
 }));
 
@@ -181,5 +182,43 @@ describe("ListingCard", () => {
 		);
 
 		expect(screen.getByText("📷 3")).toBeInTheDocument();
+	});
+
+	// jest-dom normalises whitespace, so the NBSP thousands separator matches a plain space here;
+	// the real grouping char is pinned in format.test.ts.
+	it("shows year, km and condition for a sale listing", () => {
+		const saleListing = {
+			...baseListing,
+			category: "sale" as const,
+			km_driven: 12300,
+			condition: "good" as const,
+		};
+
+		render(
+			<ListingCard listing={saleListing} images={baseImages} makeSlug="honda" modelName="CB500F" />,
+		);
+
+		expect(screen.getByTestId("listing-card-facts")).toHaveTextContent("2022 · 12 300 km · Hyvä");
+	});
+
+	it("shows only the year for a rental listing", () => {
+		render(
+			<ListingCard listing={baseListing} images={baseImages} makeSlug="honda" modelName="CB500F" />,
+		);
+
+		expect(screen.getByTestId("listing-card-facts")).toHaveTextContent(/^2022$/);
+	});
+
+	it("renders no facts line when year, km and condition are all missing", () => {
+		render(
+			<ListingCard
+				listing={{ ...baseListing, year: null }}
+				images={baseImages}
+				makeSlug="honda"
+				modelName="CB500F"
+			/>,
+		);
+
+		expect(screen.queryByTestId("listing-card-facts")).not.toBeInTheDocument();
 	});
 });
