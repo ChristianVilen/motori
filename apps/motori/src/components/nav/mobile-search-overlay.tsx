@@ -6,6 +6,7 @@ import { categoryChipClass } from "~/components/category-chip-class";
 import { CitySelect } from "~/components/listings/city-select";
 import { BROWSE_CATEGORIES } from "~/lib/constants";
 import { addRecentSearch, getRecentSearches } from "~/lib/recent-searches";
+import { useFocusTrap } from "~/lib/use-focus-trap";
 import { getBrowseCategory } from "./active-tab";
 
 type Props = { onClose: () => void };
@@ -19,13 +20,12 @@ export function MobileSearchOverlay({ onClose }: Props) {
 	const [q, setQ] = useState("");
 	const [category, setCategory] = useState(() => getBrowseCategory(pathname));
 	const [recent] = useState(getRecentSearches);
+	const trapRef = useFocusTrap(true, inputRef);
 
 	useEffect(() => {
 		document.body.style.overflow = "hidden";
-		const t0 = window.setTimeout(() => inputRef.current?.focus(), 0);
 		return () => {
 			document.body.style.overflow = "";
-			window.clearTimeout(t0);
 		};
 	}, []);
 
@@ -61,6 +61,7 @@ export function MobileSearchOverlay({ onClose }: Props) {
 
 	return (
 		<div
+			ref={trapRef}
 			role="dialog"
 			aria-modal="true"
 			aria-label={t("nav.search.title")}

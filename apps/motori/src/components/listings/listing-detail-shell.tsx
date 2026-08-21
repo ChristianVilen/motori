@@ -1,5 +1,5 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
-import { ArrowLeft, MapPin, Star, Tag, User } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin, Star, Tag, User } from "lucide-react";
 import type { ReactNode } from "react";
 import { FavoriteButton } from "~/components/listings/favorite-button";
 import { ListingGallery } from "~/components/listings/listing-gallery";
@@ -8,7 +8,7 @@ import { ReportButton } from "~/components/report-button";
 import { categoryDetailPath } from "~/lib/category-routes";
 import { LICENSE_CLASSES, LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
 import type { Listing } from "~/lib/db/schema";
-import { useTranslation } from "~/lib/i18n";
+import { formatDate, useTranslation } from "~/lib/i18n";
 import type { ListingForDisplay } from "~/lib/listings-detail";
 import { computeListingSlug } from "~/lib/slug";
 
@@ -30,15 +30,13 @@ function SellerCard({
 	listing,
 	data,
 	ownerReviewSummary,
-	t,
-	tProfile,
 }: {
 	listing: Listing;
 	data: ListingForDisplay;
 	ownerReviewSummary: ReviewSummary;
-	t: (key: string) => string;
-	tProfile: (key: string) => string;
 }) {
+	const { t } = useTranslation("listings");
+	const { t: tProfile } = useTranslation("profile");
 	return (
 		<div>
 			<h2 className="mb-2 text-sm font-semibold text-foreground">{t("detail.sellerLabel")}</h2>
@@ -80,6 +78,14 @@ function SellerCard({
 								<span className="truncate">{data.ownerCity}</span>
 							</>
 						)}
+						{!!data.ownerSince && (
+							<>
+								<span className="text-border">&bull;</span>
+								<span data-testid="seller-member-since">
+									{t("detail.memberSince", { year: new Date(data.ownerSince).getFullYear() })}
+								</span>
+							</>
+						)}
 					</div>
 				</div>
 			</Link>
@@ -96,7 +102,6 @@ export function ListingDetailShell({
 	mobileBar,
 }: ListingDetailShellProps) {
 	const { t } = useTranslation("listings");
-	const { t: tProfile } = useTranslation("profile");
 	const { listing, images, ownerReviewSummary } = data;
 
 	const isOwner = session?.user.id === listing.owner_id;
@@ -195,6 +200,13 @@ export function ListingDetailShell({
 									<MapPin className="h-3 w-3" />
 									{listing.city}, {regionLabel}
 								</span>
+								<span
+									data-testid="listing-posted-date"
+									className="flex items-center gap-1 rounded-full bg-muted-light px-2.5 py-0.5 text-xs text-muted"
+								>
+									<CalendarDays className="h-3 w-3" />
+									{t("detail.postedOn", { date: formatDate(new Date(listing.created_at)) })}
+								</span>
 								{!!licenseLabel && (
 									<span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
 										{t("detail.licenseBadge", { license: licenseLabel })}
@@ -205,13 +217,7 @@ export function ListingDetailShell({
 
 						{!isOwner && (
 							<div className="block lg:hidden">
-								<SellerCard
-									listing={listing}
-									data={data}
-									ownerReviewSummary={ownerReviewSummary}
-									t={t}
-									tProfile={tProfile}
-								/>
+								<SellerCard listing={listing} data={data} ownerReviewSummary={ownerReviewSummary} />
 							</div>
 						)}
 
@@ -235,13 +241,7 @@ export function ListingDetailShell({
 						{sidebar}
 						{!isOwner && (
 							<div className="hidden lg:block">
-								<SellerCard
-									listing={listing}
-									data={data}
-									ownerReviewSummary={ownerReviewSummary}
-									t={t}
-									tProfile={tProfile}
-								/>
+								<SellerCard listing={listing} data={data} ownerReviewSummary={ownerReviewSummary} />
 							</div>
 						)}
 					</div>

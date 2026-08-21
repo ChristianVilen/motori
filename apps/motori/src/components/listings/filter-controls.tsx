@@ -186,33 +186,65 @@ export function LicenseFilter() {
 	);
 }
 
-export function PriceFilter({ labelKey = "filters.pricePerDay" }: { labelKey?: string }) {
+interface RangeFilterProps {
+	id: "price" | "cc" | "year";
+	label: string;
+	minKey: "price_min" | "cc_min" | "year_min";
+	maxKey: "price_max" | "cc_max" | "year_max";
+	minPlaceholder: string;
+	maxPlaceholder: string;
+}
+
+function RangeFilter({
+	id,
+	label,
+	minKey,
+	maxKey,
+	minPlaceholder,
+	maxPlaceholder,
+}: RangeFilterProps) {
 	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
 	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base md:text-sm`;
 	return (
 		<div>
-			<p className="mb-1.5 text-xs font-medium text-muted">{t(labelKey)}</p>
+			<p className="mb-1.5 text-xs font-medium text-muted">{label}</p>
 			<div className="flex items-center gap-2">
 				<RangeInput
-					key={`price-min-${search.price_min}`}
-					name={`${idPrefix}-price-min`}
-					value={search.price_min}
-					placeholder={t("filters.priceMinPlaceholder")}
+					key={`${id}-min-${search[minKey]}`}
+					name={`${idPrefix}-${id}-min`}
+					label={`${label}, ${t("filters.minAriaLabel")}`}
+					value={search[minKey]}
+					placeholder={minPlaceholder}
 					className={cls}
-					onChange={(v) => updateFilter({ price_min: v })}
+					onChange={(v) => updateFilter({ [minKey]: v })}
 				/>
 				<span className="text-muted">–</span>
 				<RangeInput
-					key={`price-max-${search.price_max}`}
-					name={`${idPrefix}-price-max`}
-					value={search.price_max}
-					placeholder={t("filters.priceMaxPlaceholder")}
+					key={`${id}-max-${search[maxKey]}`}
+					name={`${idPrefix}-${id}-max`}
+					label={`${label}, ${t("filters.maxAriaLabel")}`}
+					value={search[maxKey]}
+					placeholder={maxPlaceholder}
 					className={cls}
-					onChange={(v) => updateFilter({ price_max: v })}
+					onChange={(v) => updateFilter({ [maxKey]: v })}
 				/>
 			</div>
 		</div>
+	);
+}
+
+export function PriceFilter({ labelKey = "filters.pricePerDay" }: { labelKey?: string }) {
+	const { t } = useTranslation("listings");
+	return (
+		<RangeFilter
+			id="price"
+			label={t(labelKey)}
+			minKey="price_min"
+			maxKey="price_max"
+			minPlaceholder={t("filters.priceMinPlaceholder")}
+			maxPlaceholder={t("filters.priceMaxPlaceholder")}
+		/>
 	);
 }
 
@@ -244,62 +276,30 @@ export function MakeFilter() {
 }
 
 export function CcFilter() {
-	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
-	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base md:text-sm`;
 	return (
-		<div>
-			<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.engineCc")}</p>
-			<div className="flex items-center gap-2">
-				<RangeInput
-					key={`cc-min-${search.cc_min}`}
-					name={`${idPrefix}-cc-min`}
-					value={search.cc_min}
-					placeholder={t("filters.ccMinPlaceholder")}
-					className={cls}
-					onChange={(v) => updateFilter({ cc_min: v })}
-				/>
-				<span className="text-muted">–</span>
-				<RangeInput
-					key={`cc-max-${search.cc_max}`}
-					name={`${idPrefix}-cc-max`}
-					value={search.cc_max}
-					placeholder={t("filters.ccMaxPlaceholder")}
-					className={cls}
-					onChange={(v) => updateFilter({ cc_max: v })}
-				/>
-			</div>
-		</div>
+		<RangeFilter
+			id="cc"
+			label={t("filters.engineCc")}
+			minKey="cc_min"
+			maxKey="cc_max"
+			minPlaceholder={t("filters.ccMinPlaceholder")}
+			maxPlaceholder={t("filters.ccMaxPlaceholder")}
+		/>
 	);
 }
 
 export function YearFilter() {
-	const { search, idPrefix, inputHeight, updateFilter } = useFilterCtx();
 	const { t } = useTranslation("listings");
-	const cls = `${inputHeight} w-full rounded-md border border-input bg-background px-3 text-base md:text-sm`;
 	return (
-		<div>
-			<p className="mb-1.5 text-xs font-medium text-muted">{t("filters.yearRange")}</p>
-			<div className="flex items-center gap-2">
-				<RangeInput
-					key={`year-min-${search.year_min}`}
-					name={`${idPrefix}-year-min`}
-					value={search.year_min}
-					placeholder={t("filters.yearMinPlaceholder")}
-					className={cls}
-					onChange={(v) => updateFilter({ year_min: v })}
-				/>
-				<span className="text-muted">–</span>
-				<RangeInput
-					key={`year-max-${search.year_max}`}
-					name={`${idPrefix}-year-max`}
-					value={search.year_max}
-					placeholder={t("filters.yearMaxPlaceholder")}
-					className={cls}
-					onChange={(v) => updateFilter({ year_max: v })}
-				/>
-			</div>
-		</div>
+		<RangeFilter
+			id="year"
+			label={t("filters.yearRange")}
+			minKey="year_min"
+			maxKey="year_max"
+			minPlaceholder={t("filters.yearMinPlaceholder")}
+			maxPlaceholder={t("filters.yearMaxPlaceholder")}
+		/>
 	);
 }
 
@@ -466,6 +466,7 @@ export function KmMaxFilter() {
 			<RangeInput
 				key={`km-max-${search.km_max}`}
 				name={`${idPrefix}-km-max`}
+				label={t("filters.kmMax")}
 				value={search.km_max}
 				placeholder={t("filters.kmMaxPlaceholder")}
 				className={cls}

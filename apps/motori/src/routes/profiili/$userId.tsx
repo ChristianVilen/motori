@@ -59,7 +59,7 @@ function PublicProfilePage() {
 		imagesByListing.set(img.listing_id, arr);
 	}
 
-	const memberSince = formatDate(new Date(profile.created_at), {
+	const memberSince = formatDate(new Date(profile.member_since), {
 		year: "numeric",
 		month: "long",
 	});

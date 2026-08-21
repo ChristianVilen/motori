@@ -1,6 +1,7 @@
 export default {
 	browse: {
 		searchPlaceholder: "Search brand, model, city...",
+		searchLabel: "Search listings",
 		searchButton: "Search",
 		filterButtonAriaLabel: "Filters",
 		resultCountWord: "listings",
@@ -35,6 +36,8 @@ export default {
 		pricePerDay: "Price / day",
 		priceMinPlaceholder: "Min €",
 		priceMaxPlaceholder: "Max €",
+		minAriaLabel: "minimum",
+		maxAriaLabel: "maximum",
 		sort: "Sort",
 		showResults: "Show {{total}} results",
 		removeChipAriaLabel: "Remove {{label}}",
@@ -90,6 +93,8 @@ export default {
 		sellerLabel: "Seller",
 		viewProfile: "View profile",
 		noReviews: "No reviews yet",
+		memberSince: "Member since {{year}}",
+		postedOn: "Posted {{date}}",
 		pricing: {
 			perDay: "/day",
 			perWeek: "{{price}} / week",
@@ -105,6 +110,7 @@ export default {
 		pageTitle: "New listing",
 		pageSubtitle: "Fill in the details and publish your listing",
 		submitLabel: "Publish listing",
+		published: "Listing published",
 	},
 	edit: {
 		pageTitle: "Edit listing",
@@ -112,6 +118,7 @@ export default {
 		notFound: "Listing not found.",
 		notFoundBack: "My listings",
 		submitLabel: "Save changes",
+		saved: "Changes saved",
 	},
 	booking: {
 		calendarTitle: "Availability",

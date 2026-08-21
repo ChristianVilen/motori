@@ -31,6 +31,7 @@ export type ListingForDisplay = {
 	modelName: string | null;
 	ownerName: string | null;
 	ownerCity: string | null;
+	ownerSince: Date | null;
 	ownerContact: { phone: string | null; showPhone: boolean };
 };
 
@@ -133,12 +134,21 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 	}
 	const { makeName, makeSlug, modelName, ...listing } = row;
 
-	const [children, ownerProfile] = await Promise.all([
+	// Member-since comes from the auth user row: profile rows are created lazily, so
+	// profile.created_at can be years after sign-up.
+	const [children, owner] = await Promise.all([
 		fetchListingChildren(db, listing),
 		db
-			.selectFrom("profile")
-			.select(["display_name", "city", "phone", "show_phone"])
-			.where("user_id", "=", listing.owner_id)
+			.selectFrom("user")
+			.leftJoin("profile", "profile.user_id", "user.id")
+			.select([
+				"user.createdAt",
+				"profile.display_name",
+				"profile.city",
+				"profile.phone",
+				"profile.show_phone",
+			])
+			.where("user.id", "=", listing.owner_id)
 			.executeTakeFirst(),
 	]);
 
@@ -148,11 +158,12 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 		makeName: makeName ?? null,
 		makeSlug: makeSlug ?? null,
 		modelName: modelName ?? null,
-		ownerName: ownerProfile?.display_name ?? null,
-		ownerCity: ownerProfile?.city ?? null,
+		ownerName: owner?.display_name ?? null,
+		ownerCity: owner?.city ?? null,
+		ownerSince: owner?.createdAt ?? null,
 		ownerContact: {
-			phone: ownerProfile?.phone ?? null,
-			showPhone: ownerProfile?.show_phone ?? false,
+			phone: owner?.phone ?? null,
+			showPhone: owner?.show_phone ?? false,
 		},
 	};
 }

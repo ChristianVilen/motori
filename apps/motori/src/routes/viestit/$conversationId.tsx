@@ -94,7 +94,12 @@ function ThreadPage() {
 				</div>
 			</header>
 
-			<div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-2">
+			<div
+				role="log"
+				aria-live="polite"
+				aria-label={t("thread.logLabel")}
+				className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-2"
+			>
 				{messages.map((m, i) => (
 					<MessageBubble
 						key={m.id}
@@ -123,6 +128,7 @@ function ThreadPage() {
 						}}
 						maxLength={4000}
 						rows={2}
+						aria-label={t("thread.composerLabel")}
 						className="flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-base placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors md:text-sm"
 						placeholder={t("thread.placeholder")}
 					/>

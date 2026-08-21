@@ -23,7 +23,7 @@ import {
 	Wrench,
 	X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CitySelect } from "~/components/listings/city-select";
 import { MotorcycleFields } from "~/components/listings/sections/motorcycle-fields";
 import type { GearFieldValues } from "~/components/listings/sections/section-gear";
@@ -115,7 +115,22 @@ export function ListingForm(props: ListingFormProps) {
 	);
 	const images = useImageUpload(initialImages);
 	const [submitError, setSubmitError] = useState<string | null>(null);
+	const [invalidSubmits, setInvalidSubmits] = useState(0);
+	const formRef = useRef<HTMLFormElement>(null);
+	const bannerRef = useRef<HTMLDivElement>(null);
 	const schema = useMemo(() => listingFormSchema(tCommon), [tCommon]);
+
+	// After a rejected submit, move focus to the first flagged control in DOM order; the
+	// banner is the fallback for rules with no control (images, required_license).
+	useEffect(() => {
+		if (invalidSubmits === 0) {
+			return;
+		}
+		const target =
+			formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]') ?? bannerRef.current;
+		target?.focus({ preventScroll: true });
+		target?.scrollIntoView({ block: "center" });
+	}, [invalidSubmits]);
 
 	const form = useForm({
 		// After a submit attempt the schema check reruns on change, so errors clear as they're fixed.
@@ -143,6 +158,7 @@ export function ListingForm(props: ListingFormProps) {
 		},
 		onSubmitInvalid: () => {
 			setSubmitError(t("form.submit.checkFields"));
+			setInvalidSubmits((n) => n + 1);
 		},
 		defaultValues: {
 			// Shared
@@ -189,6 +205,7 @@ export function ListingForm(props: ListingFormProps) {
 					}));
 				}
 				setSubmitError(unmapped[0] ?? t("form.submit.checkFields"));
+				setInvalidSubmits((n) => n + 1);
 				return;
 			}
 			try {
@@ -228,6 +245,7 @@ export function ListingForm(props: ListingFormProps) {
 
 	return (
 		<form
+			ref={formRef}
 			onSubmit={(e) => {
 				e.preventDefault();
 				form.handleSubmit();
@@ -445,7 +463,7 @@ export function ListingForm(props: ListingFormProps) {
 									<button
 										type="button"
 										onClick={() => images.removeItem(item.key)}
-										className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white"
+										className="absolute right-1 top-1 rounded-full bg-black/60 p-1.5 text-white"
 										aria-label={t("form.images.removeImageAriaLabel")}
 									>
 										<X className="h-3 w-3" />
@@ -455,7 +473,7 @@ export function ListingForm(props: ListingFormProps) {
 											type="button"
 											onClick={() => images.moveItem(item.key, -1)}
 											disabled={isCover}
-											className="rounded-full bg-black/60 p-1 text-white disabled:opacity-30"
+											className="rounded-full bg-black/60 p-1.5 text-white disabled:opacity-30"
 											aria-label={t("form.images.moveLeftAriaLabel")}
 										>
 											<ChevronLeft className="h-3 w-3" />
@@ -464,7 +482,7 @@ export function ListingForm(props: ListingFormProps) {
 											<button
 												type="button"
 												onClick={() => images.setAsCover(item.key)}
-												className="rounded-full bg-black/60 p-1 text-white"
+												className="rounded-full bg-black/60 p-1.5 text-white"
 												aria-label={t("form.images.setCoverAriaLabel")}
 											>
 												<Star className="h-3 w-3" />
@@ -474,7 +492,7 @@ export function ListingForm(props: ListingFormProps) {
 											type="button"
 											onClick={() => images.moveItem(item.key, 1)}
 											disabled={isLast}
-											className="rounded-full bg-black/60 p-1 text-white disabled:opacity-30"
+											className="rounded-full bg-black/60 p-1.5 text-white disabled:opacity-30"
 											aria-label={t("form.images.moveRightAriaLabel")}
 										>
 											<ChevronRight className="h-3 w-3" />
@@ -533,6 +551,8 @@ export function ListingForm(props: ListingFormProps) {
 			{/* ── Submit ────────────────────────────────────────────────────── */}
 			{!!submitError && (
 				<div
+					ref={bannerRef}
+					tabIndex={-1}
 					role="alert"
 					className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive"
 				>

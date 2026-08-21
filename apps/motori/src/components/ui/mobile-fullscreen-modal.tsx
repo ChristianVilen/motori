@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "~/lib/i18n";
+import { useFocusTrap } from "~/lib/use-focus-trap";
 
 export interface MobileFullscreenModalProps {
 	open: boolean;
@@ -46,6 +47,7 @@ export function MobileFullscreenModal({
 	}, [open, onClose]);
 
 	const { t } = useTranslation("listings");
+	const trapRef = useFocusTrap(mounted && open);
 
 	if (!mounted || !open) {
 		return null;
@@ -53,6 +55,7 @@ export function MobileFullscreenModal({
 
 	return createPortal(
 		<div
+			ref={trapRef}
 			role="dialog"
 			aria-modal="true"
 			aria-label={title}

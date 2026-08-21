@@ -1,6 +1,7 @@
 export default {
 	browse: {
 		searchPlaceholder: "Hae merkkiä, mallia, kaupunkia...",
+		searchLabel: "Hae ilmoituksia",
 		searchButton: "Hae",
 		filterButtonAriaLabel: "Suodattimet",
 		resultCountWord: "ilmoitusta",
@@ -35,6 +36,8 @@ export default {
 		pricePerDay: "Hinta / päivä",
 		priceMinPlaceholder: "Min €",
 		priceMaxPlaceholder: "Max €",
+		minAriaLabel: "vähintään",
+		maxAriaLabel: "enintään",
 		sort: "Järjestä",
 		showResults: "Näytä {{total}} tulosta",
 		removeChipAriaLabel: "Poista {{label}}",
@@ -101,6 +104,8 @@ export default {
 		sellerLabel: "Ilmoittaja",
 		viewProfile: "Katso profiili",
 		noReviews: "Ei arvosteluja vielä",
+		memberSince: "Jäsen vuodesta {{year}}",
+		postedOn: "Julkaistu {{date}}",
 		pricing: {
 			perDay: "/päivä",
 			perWeek: "{{price}} / viikko",
@@ -116,6 +121,7 @@ export default {
 		pageTitle: "Uusi ilmoitus",
 		pageSubtitle: "Täytä tiedot ja julkaise ilmoituksesi",
 		submitLabel: "Julkaise ilmoitus",
+		published: "Ilmoitus julkaistu",
 	},
 	edit: {
 		pageTitle: "Muokkaa ilmoitusta",
@@ -123,6 +129,7 @@ export default {
 		notFound: "Ilmoitusta ei löydy.",
 		notFoundBack: "Omat ilmoitukset",
 		submitLabel: "Tallenna muutokset",
+		saved: "Muutokset tallennettu",
 	},
 	booking: {
 		calendarTitle: "Saatavuus",

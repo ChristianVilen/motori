@@ -105,7 +105,7 @@ describe("getPublicProfile", () => {
 			user_id: "user-1",
 			display_name: "Matti",
 			city: "Helsinki",
-			created_at: new Date(),
+			member_since: new Date(),
 		};
 		executeTakeFirstQueue.push(profile);
 		const listings = [{ id: "l1" }];

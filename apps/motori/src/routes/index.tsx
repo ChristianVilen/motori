@@ -139,7 +139,11 @@ function HomePage() {
 							data-testid="home-search-form"
 							className="mt-8 flex max-w-lg gap-2 rounded-xl border border-white/20 bg-white/10 p-1.5 backdrop-blur-xl"
 						>
+							<label htmlFor="home-search" className="sr-only">
+								{t("hero.searchLabel")}
+							</label>
 							<input
+								id="home-search"
 								data-testid="home-search-input"
 								name="q"
 								type="text"

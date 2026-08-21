@@ -172,7 +172,7 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
 			<button
 				type="button"
 				onClick={onRemove}
-				className="text-muted hover:text-foreground"
+				className="-m-1.5 p-1.5 text-muted hover:text-foreground"
 				aria-label={t("filters.removeChipAriaLabel", { label })}
 			>
 				<X className="h-3 w-3" />

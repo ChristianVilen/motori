@@ -81,6 +81,7 @@ export function BookingRequestForm(props: Props) {
 		return (
 			<div
 				data-testid="booking-success"
+				role="status"
 				className="rounded-l border border-success/30 bg-success/5 p-4"
 			>
 				<h3 className="font-semibold text-success">{t("booking.successTitle")}</h3>

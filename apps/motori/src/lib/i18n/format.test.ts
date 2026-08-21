@@ -1,18 +1,33 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, formatEur } from "./format";
+import { formatDate, formatEur, formatNumber } from "./format";
 
 describe("formatEur", () => {
-	it("formats cents as Finnish euros with non-breaking space and comma", () => {
-		// Finnish locale uses NBSP (U+00A0) before the currency symbol and comma as decimal.
-		expect(formatEur(4500)).toBe("45,00\u00a0€");
+	// Finnish locale uses NBSP (U+00A0) as the thousands separator and before the currency
+	// symbol, with comma as decimal. Pinned on Node 24 / ICU 78; the grouping char is ICU-dependent.
+	it("drops decimals for whole-euro amounts", () => {
+		expect(formatEur(4500)).toBe("45\u00a0€");
+	});
+
+	it("groups thousands with NBSP", () => {
+		expect(formatEur(1290000)).toBe("12\u00a0900\u00a0€");
+	});
+
+	it("keeps two decimals for non-whole amounts", () => {
+		expect(formatEur(4550)).toBe("45,50\u00a0€");
 	});
 
 	it("handles zero", () => {
-		expect(formatEur(0)).toBe("0,00\u00a0€");
+		expect(formatEur(0)).toBe("0\u00a0€");
 	});
 
 	it("handles values under one euro", () => {
 		expect(formatEur(50)).toBe("0,50\u00a0€");
+	});
+});
+
+describe("formatNumber", () => {
+	it("groups thousands with NBSP", () => {
+		expect(formatNumber(12300)).toBe("12\u00a0300");
 	});
 });
 

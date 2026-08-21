@@ -6,7 +6,8 @@ import { Button } from "@motori/ui/button";
 import { Input } from "@motori/ui/input";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { CitySelect } from "~/components/listings/city-select";
 import { authClient } from "~/lib/auth-client";
 import { SITE_NAME } from "~/lib/constants";
@@ -67,18 +68,16 @@ function SettingsPage() {
 	const [showPhone, setShowPhone] = useState(profile?.show_phone ?? false);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [saved, setSaved] = useState(false);
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		setError(null);
-		setSaved(false);
 		setLoading(true);
 		try {
 			await saveSettings({
 				data: { displayName, city, phone, showPhone },
 			});
-			setSaved(true);
+			toast.success(t("settings.saved"));
 		} catch {
 			setError(t("settings.saveError"));
 		} finally {
@@ -159,7 +158,6 @@ function SettingsPage() {
 						<Button type="button" variant="outline" onClick={() => navigate({ to: "/omat" })}>
 							{t("settings.cancel")}
 						</Button>
-						{!!saved && <span className="text-sm text-success">{t("settings.saved")}</span>}
 						{!!error && <span className="text-sm text-destructive">{error}</span>}
 					</div>
 				</form>
@@ -180,21 +178,11 @@ function ChangePasswordSection() {
 	const [confirm, setConfirm] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [success, setSuccess] = useState(false);
 	const strength = passwordStrength(newPassword);
-
-	useEffect(() => {
-		if (!success) {
-			return;
-		}
-		const id = setTimeout(() => setSuccess(false), 4000);
-		return () => clearTimeout(id);
-	}, [success]);
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		setError(null);
-		setSuccess(false);
 
 		if (newPassword !== confirm) {
 			setError(t("settings.changePasswordErrorMismatch"));
@@ -216,7 +204,7 @@ function ChangePasswordSection() {
 				);
 				return;
 			}
-			setSuccess(true);
+			toast.success(t("settings.changePasswordSuccess"));
 			setCurrentPassword("");
 			setNewPassword("");
 			setConfirm("");
@@ -300,9 +288,6 @@ function ChangePasswordSection() {
 					>
 						{loading ? t("settings.changePasswordSubmitting") : t("settings.changePasswordSubmit")}
 					</Button>
-					{!!success && (
-						<span className="text-sm text-success">{t("settings.changePasswordSuccess")}</span>
-					)}
 					{!!error && <span className="text-sm text-destructive">{error}</span>}
 				</div>
 			</form>

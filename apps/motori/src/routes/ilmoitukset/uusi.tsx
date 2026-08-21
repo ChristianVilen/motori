@@ -1,6 +1,7 @@
 // src/routes/ilmoitukset/uusi.tsx
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { ListingForm } from "~/components/listings/listing-form";
 import { categoryDetailPath } from "~/lib/category-routes";
 import { SITE_NAME } from "~/lib/constants";
@@ -56,6 +57,7 @@ function NewListingPage() {
 			href: categoryDetailPath(data.category, result.shortId, slug),
 			replace: true,
 		});
+		toast.success(t("create.published"));
 	}
 
 	return (

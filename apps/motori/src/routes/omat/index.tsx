@@ -6,6 +6,7 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { Bookmark, Heart, LogOut, MapPin, Pencil, Settings } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { signOut } from "~/lib/auth-client";
 import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, SITE_NAME } from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";
@@ -77,30 +78,35 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 	const statusLabel = LISTING_STATUSES[listing.status];
 	const statusStyle = STATUS_STYLES[listing.status] ?? "bg-muted-light text-muted";
 
-	async function handleTogglePause() {
-		const newStatus = listing.status === "active" ? "paused" : "active";
-		await setListingStatusFn({ data: { id: listing.id, status: newStatus } });
+	async function changeStatus(status: ListingStatusChange, toastKey: string) {
+		await setListingStatusFn({ data: { id: listing.id, status } });
+		toast.success(t(toastKey));
 		onStatusChange();
 	}
 
-	async function handleMarkSold() {
-		await setListingStatusFn({ data: { id: listing.id, status: "sold" } });
-		onStatusChange();
+	function handleTogglePause() {
+		const next = listing.status === "active" ? "paused" : "active";
+		return changeStatus(
+			next,
+			next === "paused" ? "dashboard.row.toastPaused" : "dashboard.row.toastActivated",
+		);
+	}
+
+	function handleMarkSold() {
+		return changeStatus("sold", "dashboard.row.toastSold");
 	}
 
 	// Setting "active" resets the expiry clock (buildStatusUpdate), so this
 	// doubles as renew for a still-active listing.
-	async function handleRenew() {
-		await setListingStatusFn({ data: { id: listing.id, status: "active" } });
-		onStatusChange();
+	function handleRenew() {
+		return changeStatus("active", "dashboard.row.toastRenewed");
 	}
 
 	async function handleDelete() {
 		if (!window.confirm(t("dashboard.row.confirmDelete"))) {
 			return;
 		}
-		await setListingStatusFn({ data: { id: listing.id, status: "removed" } });
-		onStatusChange();
+		await changeStatus("removed", "dashboard.row.toastDeleted");
 	}
 
 	const slug = computeListingSlug(listing.makeSlug, listing.modelName, listing.city);
