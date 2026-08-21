@@ -24,6 +24,11 @@ export default {
 			renew: "Renew",
 			delete: "Delete",
 			confirmDelete: "Delete this listing? This can't be undone.",
+			toastPaused: "Listing paused",
+			toastActivated: "Listing activated",
+			toastSold: "Marked as sold",
+			toastRenewed: "Listing renewed",
+			toastDeleted: "Listing deleted",
 		},
 	},
 	favorites: {

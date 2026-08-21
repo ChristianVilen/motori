@@ -6,6 +6,7 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { Bookmark, Heart, LogOut, MapPin, Pencil, Settings } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { signOut } from "~/lib/auth-client";
 import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, SITE_NAME } from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";
@@ -80,11 +81,15 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 	async function handleTogglePause() {
 		const newStatus = listing.status === "active" ? "paused" : "active";
 		await setListingStatusFn({ data: { id: listing.id, status: newStatus } });
+		toast.success(
+			t(newStatus === "paused" ? "dashboard.row.toastPaused" : "dashboard.row.toastActivated"),
+		);
 		onStatusChange();
 	}
 
 	async function handleMarkSold() {
 		await setListingStatusFn({ data: { id: listing.id, status: "sold" } });
+		toast.success(t("dashboard.row.toastSold"));
 		onStatusChange();
 	}
 
@@ -92,6 +97,7 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 	// doubles as renew for a still-active listing.
 	async function handleRenew() {
 		await setListingStatusFn({ data: { id: listing.id, status: "active" } });
+		toast.success(t("dashboard.row.toastRenewed"));
 		onStatusChange();
 	}
 
@@ -100,6 +106,7 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 			return;
 		}
 		await setListingStatusFn({ data: { id: listing.id, status: "removed" } });
+		toast.success(t("dashboard.row.toastDeleted"));
 		onStatusChange();
 	}
 

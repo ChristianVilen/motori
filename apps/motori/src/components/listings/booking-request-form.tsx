@@ -1,6 +1,7 @@
 import { Button } from "@motori/ui/button";
 import { Textarea } from "@motori/ui/textarea";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { BookingCalendar } from "~/components/listings/booking-calendar";
 import { BookingPricing } from "~/components/listings/booking-pricing";
 import { type BookingCost, computeBookingCost } from "~/lib/bookings";
@@ -66,6 +67,7 @@ export function BookingRequestForm(props: Props) {
 				message: message.trim(),
 			});
 			setSuccess(true);
+			toast.success(t("booking.successTitle"));
 		} catch (err) {
 			setError(null);
 			const fieldError = handleAppError(err, t);

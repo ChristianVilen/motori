@@ -1,5 +1,6 @@
 import { Flag } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { parseAppError } from "~/lib/errors-client";
 import { useTranslation } from "~/lib/i18n";
 import { submitReport } from "~/lib/reports";
@@ -14,9 +15,7 @@ export function ReportButton({ targetType, targetId }: ReportButtonProps) {
 	const { t } = useTranslation("common");
 	const [open, setOpen] = useState(false);
 	const [reason, setReason] = useState("");
-	const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error" | "duplicate">(
-		"idle",
-	);
+	const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
 	const dialogRef = useFocusTrap(open);
 
 	async function handleSubmit(e: React.FormEvent) {
@@ -29,10 +28,16 @@ export function ReportButton({ targetType, targetId }: ReportButtonProps) {
 			await submitReport({
 				data: { targetType, targetId, reason: reason.trim() },
 			});
-			setStatus("done");
+			toast.success(t("report.success"));
+			handleClose();
 		} catch (err: unknown) {
 			const parsed = parseAppError(err);
-			setStatus(parsed?.code === "report.already_reported" ? "duplicate" : "error");
+			if (parsed?.code === "report.already_reported") {
+				toast.info(t("report.duplicate"));
+				handleClose();
+				return;
+			}
+			setStatus("error");
 		}
 	}
 
@@ -67,60 +72,43 @@ export function ReportButton({ targetType, targetId }: ReportButtonProps) {
 						aria-label={t("report.modalTitle")}
 						className="w-full max-w-md rounded-l bg-white p-6 shadow-lg"
 					>
-						{status === "done" || status === "duplicate" ? (
-							<div className="text-center">
-								<p
-									className={`mb-4 text-sm ${status === "done" ? "text-foreground" : "text-muted"}`}
-								>
-									{t(status === "done" ? "report.success" : "report.duplicate")}
-								</p>
+						<form onSubmit={handleSubmit}>
+							<h2 className="mb-4 text-lg font-semibold text-foreground">
+								{t("report.modalTitle")}
+							</h2>
+							<label htmlFor="report-reason" className="sr-only">
+								{t("report.reasonLabel")}
+							</label>
+							<textarea
+								id="report-reason"
+								value={reason}
+								onChange={(e) => setReason(e.target.value)}
+								placeholder={t("report.placeholder")}
+								maxLength={1000}
+								rows={4}
+								required
+								className="w-full rounded-md border border-border bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none"
+							/>
+							{status === "error" && (
+								<p className="mt-2 text-xs text-red-600">{t("errors.generic")}</p>
+							)}
+							<div className="mt-4 flex justify-end gap-2">
 								<button
 									type="button"
 									onClick={handleClose}
-									className="rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary/90"
+									className="rounded-md border border-border px-4 py-2 text-sm hover:bg-muted-light"
 								>
 									{t("actions.cancel")}
 								</button>
+								<button
+									type="submit"
+									disabled={status === "submitting" || !reason.trim()}
+									className="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50"
+								>
+									{status === "submitting" ? t("report.submitting") : t("report.submit")}
+								</button>
 							</div>
-						) : (
-							<form onSubmit={handleSubmit}>
-								<h2 className="mb-4 text-lg font-semibold text-foreground">
-									{t("report.modalTitle")}
-								</h2>
-								<label htmlFor="report-reason" className="sr-only">
-									{t("report.reasonLabel")}
-								</label>
-								<textarea
-									id="report-reason"
-									value={reason}
-									onChange={(e) => setReason(e.target.value)}
-									placeholder={t("report.placeholder")}
-									maxLength={1000}
-									rows={4}
-									required
-									className="w-full rounded-md border border-border bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none"
-								/>
-								{status === "error" && (
-									<p className="mt-2 text-xs text-red-600">{t("errors.generic")}</p>
-								)}
-								<div className="mt-4 flex justify-end gap-2">
-									<button
-										type="button"
-										onClick={handleClose}
-										className="rounded-md border border-border px-4 py-2 text-sm hover:bg-muted-light"
-									>
-										{t("actions.cancel")}
-									</button>
-									<button
-										type="submit"
-										disabled={status === "submitting" || !reason.trim()}
-										className="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50"
-									>
-										{status === "submitting" ? t("report.submitting") : t("report.submit")}
-									</button>
-								</div>
-							</form>
-						)}
+						</form>
 					</div>
 				</div>
 			) : null}

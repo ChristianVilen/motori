@@ -6,6 +6,7 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { createServerFn } from "@tanstack/react-start";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { AvailabilityCalendar } from "~/components/listings/availability-calendar";
 import { ListingForm } from "~/components/listings/listing-form";
 import { categoryDetailPath } from "~/lib/category-routes";
@@ -144,7 +145,6 @@ function AvailabilityEditor(props: {
 	const [defaultMode, setDefaultMode] = useState(props.initialDefault);
 	const [exceptions, setExceptions] = useState(props.initialExceptions);
 	const [saving, setSaving] = useState(false);
-	const [savedAt, setSavedAt] = useState<number | null>(null);
 
 	function toggle(date: string) {
 		setExceptions((prev) =>
@@ -162,7 +162,7 @@ function AvailabilityEditor(props: {
 					exception_dates: exceptions,
 				},
 			});
-			setSavedAt(Date.now());
+			toast.success(t("availability.saved"));
 		} finally {
 			setSaving(false);
 		}
@@ -204,11 +204,10 @@ function AvailabilityEditor(props: {
 					onToggleException={toggle}
 				/>
 			</div>
-			<div className="mt-4 flex items-center gap-3">
+			<div className="mt-4">
 				<Button onClick={handleSave} disabled={saving}>
 					{t("availability.saveButton")}
 				</Button>
-				{savedAt ? <span className="text-sm text-success">{t("availability.saved")}</span> : null}
 			</div>
 		</section>
 	);
@@ -301,6 +300,7 @@ function EditListingPage() {
 			href: categoryDetailPath(listing.category as ListingCategory, listing.short_id, slug),
 			replace: true,
 		});
+		toast.success(t("edit.saved"));
 	}
 
 	const slug = computeListingSlug(makeSlug, modelName, listing.city);

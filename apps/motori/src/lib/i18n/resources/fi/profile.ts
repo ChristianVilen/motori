@@ -24,6 +24,11 @@ export default {
 			renew: "Jatka voimassaoloa",
 			delete: "Poista",
 			confirmDelete: "Poistetaanko ilmoitus? Tätä ei voi peruuttaa.",
+			toastPaused: "Ilmoitus asetettu tauolle",
+			toastActivated: "Ilmoitus aktivoitu",
+			toastSold: "Merkitty myydyksi",
+			toastRenewed: "Voimassaoloa jatkettu",
+			toastDeleted: "Ilmoitus poistettu",
 		},
 	},
 	favorites: {

@@ -108,6 +108,7 @@ export default {
 		pageTitle: "New listing",
 		pageSubtitle: "Fill in the details and publish your listing",
 		submitLabel: "Publish listing",
+		published: "Listing published",
 	},
 	edit: {
 		pageTitle: "Edit listing",
@@ -115,6 +116,7 @@ export default {
 		notFound: "Listing not found.",
 		notFoundBack: "My listings",
 		submitLabel: "Save changes",
+		saved: "Changes saved",
 	},
 	booking: {
 		calendarTitle: "Availability",

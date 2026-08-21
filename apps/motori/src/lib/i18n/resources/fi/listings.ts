@@ -119,6 +119,7 @@ export default {
 		pageTitle: "Uusi ilmoitus",
 		pageSubtitle: "Täytä tiedot ja julkaise ilmoituksesi",
 		submitLabel: "Julkaise ilmoitus",
+		published: "Ilmoitus julkaistu",
 	},
 	edit: {
 		pageTitle: "Muokkaa ilmoitusta",
@@ -126,6 +127,7 @@ export default {
 		notFound: "Ilmoitusta ei löydy.",
 		notFoundBack: "Omat ilmoitukset",
 		submitLabel: "Tallenna muutokset",
+		saved: "Muutokset tallennettu",
 	},
 	booking: {
 		calendarTitle: "Saatavuus",
