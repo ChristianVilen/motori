@@ -445,7 +445,7 @@ export function ListingForm(props: ListingFormProps) {
 									<button
 										type="button"
 										onClick={() => images.removeItem(item.key)}
-										className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white"
+										className="absolute right-1 top-1 rounded-full bg-black/60 p-1.5 text-white"
 										aria-label={t("form.images.removeImageAriaLabel")}
 									>
 										<X className="h-3 w-3" />
@@ -455,7 +455,7 @@ export function ListingForm(props: ListingFormProps) {
 											type="button"
 											onClick={() => images.moveItem(item.key, -1)}
 											disabled={isCover}
-											className="rounded-full bg-black/60 p-1 text-white disabled:opacity-30"
+											className="rounded-full bg-black/60 p-1.5 text-white disabled:opacity-30"
 											aria-label={t("form.images.moveLeftAriaLabel")}
 										>
 											<ChevronLeft className="h-3 w-3" />
@@ -464,7 +464,7 @@ export function ListingForm(props: ListingFormProps) {
 											<button
 												type="button"
 												onClick={() => images.setAsCover(item.key)}
-												className="rounded-full bg-black/60 p-1 text-white"
+												className="rounded-full bg-black/60 p-1.5 text-white"
 												aria-label={t("form.images.setCoverAriaLabel")}
 											>
 												<Star className="h-3 w-3" />
@@ -474,7 +474,7 @@ export function ListingForm(props: ListingFormProps) {
 											type="button"
 											onClick={() => images.moveItem(item.key, 1)}
 											disabled={isLast}
-											className="rounded-full bg-black/60 p-1 text-white disabled:opacity-30"
+											className="rounded-full bg-black/60 p-1.5 text-white disabled:opacity-30"
 											aria-label={t("form.images.moveRightAriaLabel")}
 										>
 											<ChevronRight className="h-3 w-3" />

@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { ListingImage } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
+import { useFocusTrap } from "~/lib/use-focus-trap";
 
 interface ListingGalleryProps {
 	images: ListingImage[];
@@ -228,6 +229,7 @@ function Lightbox({
 	});
 	const { t } = useTranslation("listings");
 	const [currentIndex, setCurrentIndex] = useState(startIndex);
+	const trapRef = useFocusTrap(true);
 
 	useEffect(() => {
 		if (!emblaApi) {
@@ -262,6 +264,7 @@ function Lightbox({
 
 	return (
 		<div
+			ref={trapRef}
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/95"
 			role="dialog"
 			aria-modal="true"

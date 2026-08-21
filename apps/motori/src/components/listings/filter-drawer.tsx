@@ -69,7 +69,12 @@ export function FilterDrawer({
 					<h2 className="font-heading text-base font-semibold text-foreground">
 						{t("filters.heading")}
 					</h2>
-					<button type="button" onClick={onClose} aria-label={t("filters.closeAriaLabel")}>
+					<button
+						type="button"
+						onClick={onClose}
+						aria-label={t("filters.closeAriaLabel")}
+						className="-m-2 p-2"
+					>
 						<X className="h-5 w-5 text-muted" />
 					</button>
 				</div>
