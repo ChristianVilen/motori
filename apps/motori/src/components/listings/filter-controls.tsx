@@ -198,7 +198,7 @@ export function PriceFilter({ labelKey = "filters.pricePerDay" }: { labelKey?: s
 				<RangeInput
 					key={`price-min-${search.price_min}`}
 					name={`${idPrefix}-price-min`}
-					label={`${label}, ${t("filters.minLabel")}`}
+					label={`${label}, ${t("filters.minAriaLabel")}`}
 					value={search.price_min}
 					placeholder={t("filters.priceMinPlaceholder")}
 					className={cls}
@@ -208,7 +208,7 @@ export function PriceFilter({ labelKey = "filters.pricePerDay" }: { labelKey?: s
 				<RangeInput
 					key={`price-max-${search.price_max}`}
 					name={`${idPrefix}-price-max`}
-					label={`${label}, ${t("filters.maxLabel")}`}
+					label={`${label}, ${t("filters.maxAriaLabel")}`}
 					value={search.price_max}
 					placeholder={t("filters.priceMaxPlaceholder")}
 					className={cls}
@@ -257,7 +257,7 @@ export function CcFilter() {
 				<RangeInput
 					key={`cc-min-${search.cc_min}`}
 					name={`${idPrefix}-cc-min`}
-					label={`${t("filters.engineCc")}, ${t("filters.minLabel")}`}
+					label={`${t("filters.engineCc")}, ${t("filters.minAriaLabel")}`}
 					value={search.cc_min}
 					placeholder={t("filters.ccMinPlaceholder")}
 					className={cls}
@@ -267,7 +267,7 @@ export function CcFilter() {
 				<RangeInput
 					key={`cc-max-${search.cc_max}`}
 					name={`${idPrefix}-cc-max`}
-					label={`${t("filters.engineCc")}, ${t("filters.maxLabel")}`}
+					label={`${t("filters.engineCc")}, ${t("filters.maxAriaLabel")}`}
 					value={search.cc_max}
 					placeholder={t("filters.ccMaxPlaceholder")}
 					className={cls}
@@ -289,7 +289,7 @@ export function YearFilter() {
 				<RangeInput
 					key={`year-min-${search.year_min}`}
 					name={`${idPrefix}-year-min`}
-					label={`${t("filters.yearRange")}, ${t("filters.minLabel")}`}
+					label={`${t("filters.yearRange")}, ${t("filters.minAriaLabel")}`}
 					value={search.year_min}
 					placeholder={t("filters.yearMinPlaceholder")}
 					className={cls}
@@ -299,7 +299,7 @@ export function YearFilter() {
 				<RangeInput
 					key={`year-max-${search.year_max}`}
 					name={`${idPrefix}-year-max`}
-					label={`${t("filters.yearRange")}, ${t("filters.maxLabel")}`}
+					label={`${t("filters.yearRange")}, ${t("filters.maxAriaLabel")}`}
 					value={search.year_max}
 					placeholder={t("filters.yearMaxPlaceholder")}
 					className={cls}
@@ -473,7 +473,7 @@ export function KmMaxFilter() {
 			<RangeInput
 				key={`km-max-${search.km_max}`}
 				name={`${idPrefix}-km-max`}
-				label={`${t("filters.kmMax")}, ${t("filters.maxLabel")}`}
+				label={t("filters.kmMax")}
 				value={search.km_max}
 				placeholder={t("filters.kmMaxPlaceholder")}
 				className={cls}

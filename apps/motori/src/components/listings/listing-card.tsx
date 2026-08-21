@@ -25,7 +25,14 @@ interface ListingCardProps {
 	isOwn?: boolean;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: card is a stack of optional badges and fact lines — conditional JSX only
+function buildFacts(listing: ListingCardProps["listing"]): string[] {
+	return [
+		listing.year != null ? String(listing.year) : null,
+		listing.km_driven != null ? `${formatNumber(listing.km_driven)} km` : null,
+		listing.condition ? CONDITION_LABELS[listing.condition] : null,
+	].filter((f): f is string => f != null);
+}
+
 export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: ListingCardProps) {
 	const { t } = useTranslation("listings");
 	const firstImage = images[0];
@@ -34,11 +41,7 @@ export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: Lis
 		MOTORCYCLE_TYPES.find((mt) => mt.value === listing.motorcycle_type)?.label ??
 		listing.motorcycle_type;
 	const typeEmoji = listing.motorcycle_type ? (TYPE_EMOJI[listing.motorcycle_type] ?? "") : "";
-	const facts = [
-		listing.year,
-		listing.km_driven != null ? `${formatNumber(listing.km_driven)} km` : null,
-		listing.condition ? CONDITION_LABELS[listing.condition] : null,
-	].filter((f) => f != null);
+	const facts = buildFacts(listing);
 
 	const isNew = Date.now() - new Date(listing.created_at).getTime() < 48 * 60 * 60 * 1000;
 	const imageCount = images.length;

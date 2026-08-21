@@ -128,7 +128,7 @@ export function ListingForm(props: ListingFormProps) {
 		}
 		const target =
 			formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]') ?? bannerRef.current;
-		target?.focus();
+		target?.focus({ preventScroll: true });
 		target?.scrollIntoView({ block: "center" });
 	}, [invalidSubmits]);
 

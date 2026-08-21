@@ -47,7 +47,7 @@ export function MobileFullscreenModal({
 	}, [open, onClose]);
 
 	const { t } = useTranslation("listings");
-	const trapRef = useFocusTrap(open);
+	const trapRef = useFocusTrap(mounted && open);
 
 	if (!mounted || !open) {
 		return null;

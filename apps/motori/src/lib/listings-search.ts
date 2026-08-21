@@ -24,7 +24,7 @@ type ListingRow = Listing & {
 	condition?: Condition;
 };
 
-export type ListingWithImages = Listing & {
+export type ListingWithImages = ListingRow & {
 	images: ListingImage[];
 	makeSlug: string | null;
 	modelName: string | null;
@@ -366,7 +366,7 @@ async function attachMakeModel<T extends Listing>(
 	}));
 }
 
-async function hydrateListings(listings: Listing[]): Promise<ListingWithImages[]> {
+async function hydrateListings(listings: ListingRow[]): Promise<ListingWithImages[]> {
 	if (listings.length === 0) {
 		return [];
 	}
@@ -436,9 +436,12 @@ export const getLatestListings = createServerFn({ method: "GET" })
 	.handler(async ({ data: category }) => {
 		const config = CATEGORY_CONFIGS[category];
 		const db = await getDb();
-		const listings = (await (db.selectFrom("listing") as AnyQuery)
-			.innerJoin(`${config.childTable} as child`, "child.listing_id", "listing.id")
-			.selectAll()
+		const listings = (await (
+			db
+				.selectFrom("listing")
+				.innerJoin(`${config.childTable} as child`, "child.listing_id", "listing.id") as AnyQuery
+		)
+			.selectAll("listing")
 			.select(config.priceColumn.as("price"))
 			.select(config.factColumns.map((c) => sql.ref(`child.${c}`).as(c)))
 			.where("listing.status", "=", "active")

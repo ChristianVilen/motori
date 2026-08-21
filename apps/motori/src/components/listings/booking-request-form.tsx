@@ -1,7 +1,6 @@
 import { Button } from "@motori/ui/button";
 import { Textarea } from "@motori/ui/textarea";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import { BookingCalendar } from "~/components/listings/booking-calendar";
 import { BookingPricing } from "~/components/listings/booking-pricing";
 import { type BookingCost, computeBookingCost } from "~/lib/bookings";
@@ -67,7 +66,6 @@ export function BookingRequestForm(props: Props) {
 				message: message.trim(),
 			});
 			setSuccess(true);
-			toast.success(t("booking.successTitle"));
 		} catch (err) {
 			setError(null);
 			const fieldError = handleAppError(err, t);
@@ -83,6 +81,7 @@ export function BookingRequestForm(props: Props) {
 		return (
 			<div
 				data-testid="booking-success"
+				role="status"
 				className="rounded-l border border-success/30 bg-success/5 p-4"
 			>
 				<h3 className="font-semibold text-success">{t("booking.successTitle")}</h3>
