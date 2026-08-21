@@ -16,10 +16,11 @@ import {
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
+import type { TFunction } from "i18next";
 import type { FC, ReactNode } from "react";
 import { z } from "zod";
 import { ListingDetailShell } from "~/components/listings/listing-detail-shell";
-import { formatEur, type TFunc, useTranslation } from "~/lib/i18n";
+import { formatEur, useTranslation } from "~/lib/i18n";
 import { getListingForDisplay, type ListingForDisplay, recordView } from "~/lib/listings-detail";
 import { startConversation } from "~/lib/messages";
 import { getReviewSummaryForUser } from "~/lib/reviews.server";
@@ -60,7 +61,7 @@ function MobileBottomBar({
 	isLoggedIn: boolean;
 	redirectPath: string;
 	onMessageClick: () => void;
-	t: TFunc;
+	t: TFunction;
 }) {
 	return (
 		<div className="fixed inset-x-0 bottom-16 z-40 border-t border-border bg-card/95 px-4 py-3 backdrop-blur-md md:bottom-0 lg:hidden">

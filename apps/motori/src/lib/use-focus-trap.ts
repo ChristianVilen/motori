@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { type RefObject, useEffect, useRef } from "react";
 
 const FOCUSABLE = [
 	"a[href]",
@@ -11,12 +11,12 @@ const FOCUSABLE = [
 	.map((s) => `${s}:not([tabindex="-1"])`)
 	.join(",");
 
-export function useFocusTrap(active: boolean) {
+export function useFocusTrap(active: boolean, initialFocus?: RefObject<HTMLElement | null>) {
 	const ref = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
-		// Deps are [active] only: the trapped element must already be rendered on the
-		// render where `active` flips true, or the trap never arms.
+		// The trapped element must already be rendered on the render where `active` flips
+		// true, or the trap never arms. `initialFocus` is read once, at that moment.
 		if (!active || !ref.current) {
 			return;
 		}
@@ -24,8 +24,7 @@ export function useFocusTrap(active: boolean) {
 		const el = ref.current;
 		const prev = document.activeElement as HTMLElement | null;
 
-		const first = el.querySelector<HTMLElement>(FOCUSABLE);
-		first?.focus();
+		(initialFocus?.current ?? el.querySelector<HTMLElement>(FOCUSABLE))?.focus();
 
 		function onKeyDown(e: KeyboardEvent) {
 			if (e.key !== "Tab") {
@@ -53,7 +52,7 @@ export function useFocusTrap(active: boolean) {
 			document.removeEventListener("keydown", onKeyDown);
 			prev?.focus();
 		};
-	}, [active]);
+	}, [active, initialFocus]);
 
 	return ref;
 }

@@ -12,13 +12,9 @@ export function FieldError({ id, errors }: FieldErrorProps) {
 	const first = errors.find((e) => e != null);
 	const msg = first == null ? undefined : String(first);
 	// Always mounted: screen readers only announce changes inside a live region that
-	// already exists. Empty <p> has no height, so it costs no layout.
+	// already exists. `empty:mt-0` keeps the empty <p> at zero height.
 	return (
-		<p
-			id={`${id}-error`}
-			aria-live="polite"
-			className={msg === undefined ? undefined : "mt-1 text-sm text-destructive"}
-		>
+		<p id={`${id}-error`} aria-live="polite" className="mt-1 text-sm text-destructive empty:mt-0">
 			{msg}
 		</p>
 	);

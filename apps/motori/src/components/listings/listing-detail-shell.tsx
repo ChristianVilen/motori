@@ -8,7 +8,7 @@ import { ReportButton } from "~/components/report-button";
 import { categoryDetailPath } from "~/lib/category-routes";
 import { LICENSE_CLASSES, LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
 import type { Listing } from "~/lib/db/schema";
-import { formatDate, type TFunc, useTranslation } from "~/lib/i18n";
+import { formatDate, useTranslation } from "~/lib/i18n";
 import type { ListingForDisplay } from "~/lib/listings-detail";
 import { computeListingSlug } from "~/lib/slug";
 
@@ -30,15 +30,13 @@ function SellerCard({
 	listing,
 	data,
 	ownerReviewSummary,
-	t,
-	tProfile,
 }: {
 	listing: Listing;
 	data: ListingForDisplay;
 	ownerReviewSummary: ReviewSummary;
-	t: TFunc;
-	tProfile: TFunc;
 }) {
+	const { t } = useTranslation("listings");
+	const { t: tProfile } = useTranslation("profile");
 	return (
 		<div>
 			<h2 className="mb-2 text-sm font-semibold text-foreground">{t("detail.sellerLabel")}</h2>
@@ -104,7 +102,6 @@ export function ListingDetailShell({
 	mobileBar,
 }: ListingDetailShellProps) {
 	const { t } = useTranslation("listings");
-	const { t: tProfile } = useTranslation("profile");
 	const { listing, images, ownerReviewSummary } = data;
 
 	const isOwner = session?.user.id === listing.owner_id;
@@ -220,13 +217,7 @@ export function ListingDetailShell({
 
 						{!isOwner && (
 							<div className="block lg:hidden">
-								<SellerCard
-									listing={listing}
-									data={data}
-									ownerReviewSummary={ownerReviewSummary}
-									t={t}
-									tProfile={tProfile}
-								/>
+								<SellerCard listing={listing} data={data} ownerReviewSummary={ownerReviewSummary} />
 							</div>
 						)}
 
@@ -250,13 +241,7 @@ export function ListingDetailShell({
 						{sidebar}
 						{!isOwner && (
 							<div className="hidden lg:block">
-								<SellerCard
-									listing={listing}
-									data={data}
-									ownerReviewSummary={ownerReviewSummary}
-									t={t}
-									tProfile={tProfile}
-								/>
+								<SellerCard listing={listing} data={data} ownerReviewSummary={ownerReviewSummary} />
 							</div>
 						)}
 					</div>

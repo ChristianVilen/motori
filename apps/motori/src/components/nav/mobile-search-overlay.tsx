@@ -20,14 +20,12 @@ export function MobileSearchOverlay({ onClose }: Props) {
 	const [q, setQ] = useState("");
 	const [category, setCategory] = useState(() => getBrowseCategory(pathname));
 	const [recent] = useState(getRecentSearches);
-	const trapRef = useFocusTrap(true);
+	const trapRef = useFocusTrap(true, inputRef);
 
 	useEffect(() => {
 		document.body.style.overflow = "hidden";
-		const t0 = window.setTimeout(() => inputRef.current?.focus(), 0);
 		return () => {
 			document.body.style.overflow = "";
-			window.clearTimeout(t0);
 		};
 	}, []);
 
