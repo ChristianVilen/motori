@@ -20,12 +20,21 @@ export async function getProfileForEdit(userId: string): Promise<ProfileEditView
 	return profile ?? null;
 }
 
-/** Public view: safe columns only — never leaks phone or terms_accepted_at. */
+/**
+ * Public view: safe columns only — never leaks phone or terms_accepted_at.
+ * member_since is the auth user's sign-up date; profile.created_at lags it (lazy row).
+ */
 export async function getPublicProfile(userId: string) {
 	const profile = await db
 		.selectFrom("profile")
-		.select(["user_id", "display_name", "city", "created_at"])
-		.where("user_id", "=", userId)
+		.innerJoin("user", "user.id", "profile.user_id")
+		.select([
+			"profile.user_id",
+			"profile.display_name",
+			"profile.city",
+			"user.createdAt as member_since",
+		])
+		.where("profile.user_id", "=", userId)
 		.executeTakeFirst();
 
 	if (!profile) {

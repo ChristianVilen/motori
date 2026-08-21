@@ -52,7 +52,7 @@ export function ReportButton({ targetType, targetId }: ReportButtonProps) {
 			<button
 				type="button"
 				onClick={() => setOpen(true)}
-				className="flex items-center gap-1 text-xs text-muted hover:text-red-600"
+				className="flex items-center gap-1 text-xs text-muted hover:text-destructive"
 			>
 				<Flag size={12} />
 				{t("report.button")}
@@ -90,7 +90,7 @@ export function ReportButton({ targetType, targetId }: ReportButtonProps) {
 								className="w-full rounded-md border border-border bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none"
 							/>
 							{status === "error" && (
-								<p className="mt-2 text-xs text-red-600">{t("errors.generic")}</p>
+								<p className="mt-2 text-xs text-destructive">{t("errors.generic")}</p>
 							)}
 							<div className="mt-4 flex justify-end gap-2">
 								<button
@@ -103,7 +103,7 @@ export function ReportButton({ targetType, targetId }: ReportButtonProps) {
 								<button
 									type="submit"
 									disabled={status === "submitting" || !reason.trim()}
-									className="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50"
+									className="rounded-md bg-destructive px-4 py-2 text-sm text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
 								>
 									{status === "submitting" ? t("report.submitting") : t("report.submit")}
 								</button>

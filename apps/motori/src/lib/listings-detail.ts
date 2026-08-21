@@ -134,13 +134,16 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 	}
 	const { makeName, makeSlug, modelName, ...listing } = row;
 
-	const [children, ownerProfile] = await Promise.all([
+	// Member-since comes from the auth user row: profile rows are created lazily, so
+	// profile.created_at can be years after sign-up.
+	const [children, ownerProfile, owner] = await Promise.all([
 		fetchListingChildren(db, listing),
 		db
 			.selectFrom("profile")
-			.select(["display_name", "city", "phone", "show_phone", "created_at"])
+			.select(["display_name", "city", "phone", "show_phone"])
 			.where("user_id", "=", listing.owner_id)
 			.executeTakeFirst(),
+		db.selectFrom("user").select("createdAt").where("id", "=", listing.owner_id).executeTakeFirst(),
 	]);
 
 	return {
@@ -151,7 +154,7 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 		modelName: modelName ?? null,
 		ownerName: ownerProfile?.display_name ?? null,
 		ownerCity: ownerProfile?.city ?? null,
-		ownerSince: ownerProfile?.created_at ?? null,
+		ownerSince: owner?.createdAt ?? null,
 		ownerContact: {
 			phone: ownerProfile?.phone ?? null,
 			showPhone: ownerProfile?.show_phone ?? false,

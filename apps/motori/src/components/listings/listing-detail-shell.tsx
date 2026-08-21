@@ -39,7 +39,7 @@ function SellerCard({
 	data: ListingForDisplay;
 	ownerReviewSummary: ReviewSummary;
 	t: TFunc;
-	tProfile: (key: string) => string;
+	tProfile: TFunc;
 }) {
 	return (
 		<div>

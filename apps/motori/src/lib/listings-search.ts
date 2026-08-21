@@ -18,11 +18,13 @@ const categorySchema = z.enum(["sale", "rental", "gear", "part"]);
 type SortMode = "relevance" | "price_asc" | "price_desc" | "newest";
 
 // Browse-card facts ride along from the category child table; rental has neither column.
-type ListingRow = Listing & {
+export type ListingRowExtras = {
 	price: number;
 	km_driven?: number | null;
 	condition?: Condition;
 };
+
+type ListingRow = Listing & ListingRowExtras;
 
 export type ListingWithImages = ListingRow & {
 	images: ListingImage[];

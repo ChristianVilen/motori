@@ -3,7 +3,6 @@ import { FavoriteButton } from "~/components/listings/favorite-button";
 import { categoryDetailPath } from "~/lib/category-routes";
 import {
 	CONDITION_LABELS,
-	type Condition,
 	LISTING_STATUSES,
 	MOTORCYCLE_TYPES,
 	REGIONS,
@@ -11,14 +10,14 @@ import {
 } from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, formatNumber, useTranslation } from "~/lib/i18n";
+import type { ListingRowExtras } from "~/lib/listings-search";
 import { computeListingSlug } from "~/lib/slug";
 
+// Summary rows (favorites, profile) left-join every child table, so each extra may be null or absent.
+type CardListing = Listing & { [K in keyof ListingRowExtras]?: ListingRowExtras[K] | null };
+
 interface ListingCardProps {
-	listing: Listing & {
-		price?: number | null;
-		km_driven?: number | null;
-		condition?: Condition | null;
-	};
+	listing: CardListing;
 	images: ListingImage[];
 	makeSlug: string | null;
 	modelName: string | null;

@@ -1,12 +1,15 @@
 const getDb = async () => (await import("~/lib/db/index")).db;
 
 import { type Kysely, sql } from "kysely";
+import type { Condition } from "~/lib/constants";
 import type { Database, Listing, ListingImage } from "~/lib/db/schema";
 
 export type ListingSummary = Listing & {
 	makeSlug: string | null;
 	modelName: string | null;
 	price: number | null;
+	km_driven: number | null;
+	condition: Condition | null;
 };
 
 export type OwnerListingsResult = {
@@ -14,7 +17,7 @@ export type OwnerListingsResult = {
 	images: ListingImage[];
 };
 
-/** Shared base for card/row collections: listing + make/model labels + cross-category price. */
+/** Shared base for card/row collections: listing + make/model labels + cross-category price/facts. */
 export function listingSummaryQuery(db: Kysely<Database>) {
 	return db
 		.selectFrom("listing")
@@ -32,6 +35,10 @@ export function listingSummaryQuery(db: Kysely<Database>) {
 				number | null
 			>`coalesce(listing_sale.price, listing_gear.price, listing_part.price, listing_rental.price_per_day)`.as(
 				"price",
+			),
+			"listing_sale.km_driven",
+			sql<Condition | null>`coalesce(listing_sale.condition, listing_gear.condition, listing_part.condition)`.as(
+				"condition",
 			),
 		]);
 }
