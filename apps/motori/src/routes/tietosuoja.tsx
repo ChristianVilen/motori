@@ -12,7 +12,7 @@ function Tietosuoja() {
 	return (
 		<main className="mx-auto max-w-3xl px-4 py-12">
 			<h1 className="font-heading text-3xl font-bold text-foreground">Tietosuojaseloste</h1>
-			<p className="mt-2 text-sm text-muted">Päivitetty viimeksi: 28.4.2026</p>
+			<p className="mt-2 text-sm text-muted">Päivitetty viimeksi: 21.9.2026</p>
 
 			<p className="mt-6 text-sm text-foreground/80">
 				Tämä tietosuojaseloste kuvaa, miten Motori kerää ja käsittelee henkilötietojasi EU:n yleisen
@@ -103,8 +103,9 @@ function Tietosuoja() {
 					<p>
 						Hetzner Online GmbH (palvelinhostaus, Saksa) — palvelimet, joilla palvelu toimii Resend
 						Inc. (sähköpostipalvelu, USA) — transaktiosähköpostit kuten rekisteröintivahvistukset
-						Cloudflare Inc. (tietoliikenne ja tietoturva, USA) — liikenne kulkee Cloudflaren verkon
-						kautta
+						Cloudflare Inc. (tietoliikenne, tietoturva ja tiedostojen tallennus, USA) — liikenne
+						kulkee Cloudflaren verkon kautta, ja palveluun ladatut kuvat sekä ajoneuvojen asiakirjat
+						säilytetään Cloudflaren R2-tallennuspalvelussa EU:n alueella
 					</p>
 				</div>
 			</section>
