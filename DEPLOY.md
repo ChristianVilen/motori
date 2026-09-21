@@ -378,17 +378,20 @@ All four buckets live in Cloudflare R2, EU jurisdiction, S3 API endpoint `https:
 
 **Tokens.** One S3 API token per consumer, each Object Read & Write on only the buckets it needs: `motori-app` (motori-images), `talli-app` (motori-images, motori-docs), `dokku-backups` (motori-backups), `openobserve` (motori-observability). Bucket configuration (lifecycle, lock, custom domain) is done from a `wrangler login` OAuth session on a laptop. No credential that can change R2 configuration lives on the VPS. A fifth token, `r2-migration-temp` (all four buckets), exists only for the cutover window and is revoked at the end or on abort (`infra/r2/README.md`). If it still exists after the window, revoke it.
 
-**The account id stays out of git.** The repository is public, so every file in git writes `<ACCOUNT_ID>`. The real endpoint lives in the encrypted `secrets/*.age` files (`dokku-config.sh.age`, `backup-setup.sh.age`, `motori.env.age`), in `secrets/r2-drill.env` on the laptop, and in the dokku configs of `motori`, `talli` and `openobserve`. Rotating the account means all of these.
+**The account id stays out of git.** The repository is public, so every file in git writes `<ACCOUNT_ID>`. The real endpoint lives in the encrypted `secrets/*.age` files (`dokku-config.sh.age`, `backup-setup.sh.age`, `motori.env.age`), in `secrets/r2-drill.env` on the laptop (the account id and zone id that `infra/r2/provision.sh` reads; the `DRILL_*` token values are removed before the window), and in the dokku configs of `motori`, `talli` and `openobserve`. Rotating the account means all of these.
 
 **Retention on `motori-backups`** (#230). Lifecycle rule `expire-dumps-30d` deletes objects 30 days after upload. Bucket lock `lock-dumps-14d` (Age 14 days, whole bucket) blocks delete and overwrite for 14 days, also against root on the VPS. The lock goes on last, only after the cutover gates pass, because a locked bucket cannot be emptied. The other three buckets carry no rules: images and documents have no expiry, and OpenObserve manages its own files.
 
 ```bash
+# Read-only: safe to paste as a whole.
 W="pnpm dlx wrangler@4.131.2"                                  # pin: infra/r2/provision.sh
 $W r2 bucket lifecycle list motori-backups --jurisdiction eu   # expire-dumps-30d
 $W r2 bucket lock list motori-backups --jurisdiction eu        # lock-dumps-14d
-R2_APPLY_LOCK=1 infra/r2/provision.sh                          # apply the lock, once
-# ObjectLockedByBucketPolicy anywhere means the lock is in the way: remove it, act, re-add
-$W r2 bucket lock remove motori-backups --name lock-dumps-14d --jurisdiction eu
+
+# State-changing: run one at a time, on purpose.
+# R2_APPLY_LOCK=1 infra/r2/provision.sh                        # apply the lock, once, after the gates pass
+# ObjectLockedByBucketPolicy anywhere means the lock is in the way: remove it, act, re-add.
+# $W r2 bucket lock remove motori-backups --name lock-dumps-14d --jurisdiction eu
 ```
 
 Bulk `DeleteObjects` against locked objects returns HTTP 200 with an `Errors` array and deletes nothing. Read the response body, not the exit code.

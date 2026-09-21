@@ -110,7 +110,8 @@ COPY (
 -- starts at the first byte of the key and every value becomes
 -- https://images.motori.fi/<key>. The WHERE is anchored to the exact old host, so
 -- a second paste updates zero rows and a row on some third host is left alone.
--- LIKE is not true for NULL, so NULLs need no special case.
+-- LIKE is not true for NULL, so NULLs need no special case. talli.vehicle.updated_at
+-- is left alone on purpose: a host swap is not an edit by the owner (#229).
 
 BEGIN;
 

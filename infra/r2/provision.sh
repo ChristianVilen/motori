@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Creates Motori's four EU-jurisdiction R2 buckets, connects images.motori.fi to
 # motori-images and sets the 30-day expiry on motori-backups. Safe to re-run:
-# existing buckets, domains and rules are skipped. The 14-day bucket lock is
-# opt-in (R2_APPLY_LOCK=1): a locked bucket cannot be emptied, so it goes on only
-# at the end of the cutover window, after the validation gates pass.
+# existing buckets, the domain and the lifecycle rule are skipped. The 14-day
+# bucket lock is opt-in (R2_APPLY_LOCK=1) and is added each time the flag is set:
+# a locked bucket cannot be emptied, so it goes on only at the end of the cutover
+# window, after the validation gates pass.
 #
 # Auth: `pnpm dlx wrangler login` once (OAuth), or CLOUDFLARE_API_TOKEN in the env.
 # Needs CLOUDFLARE_ACCOUNT_ID (or CF_ACCOUNT_ID) and CF_ZONE_ID (motori.fi zone id).

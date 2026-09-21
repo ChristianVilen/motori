@@ -37,7 +37,7 @@ Vocabulary: a **module** is anything with an interface and an implementation; **
 
 - [ ] **8. Small consolidations** — low, do opportunistically alongside the above
   - [ ] Route `reports.ts`, `delete-account.ts`, `data-export.ts` through `protectedMutation` / a `csrfAndRateLimit()` sibling instead of hand-rolled chains
-  - [ ] Move `isValidImageUrl` URL-shape knowledge into `@motori/server/image-storage` (currently copied in both apps' `validators.ts`)
+  - [x] Move `isValidImageUrl` URL-shape knowledge into `@motori/server/image-url` (both apps' `validators.ts` re-export it) — done 2026-09-21 in the R2 cutover PR
   - [ ] Fold talli's `createVehicle` preset mapping into the `reminderTypeColumns` branching (`buildReminderRow`)
 
 ## Housekeeping
