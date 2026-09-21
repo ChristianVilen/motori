@@ -1,12 +1,7 @@
 import { z } from "zod";
 import { MAX_PHOTOS_PER_RECORD, REMINDER_PRESETS } from "~/lib/constants";
 
-export function isValidImageUrl(url: string): boolean {
-	return (
-		url.startsWith("/api/uploads/") ||
-		(!!process.env.STORAGE_PUBLIC_URL && url.startsWith(process.env.STORAGE_PUBLIC_URL))
-	);
-}
+export { isValidImageUrl } from "@motori/server/image-url";
 
 const imageUrl = z
 	.string()

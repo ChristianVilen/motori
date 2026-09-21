@@ -3,7 +3,6 @@ import {
 	bookingRequestSchema,
 	browseSearchSchema,
 	countActiveFilters,
-	isValidImageUrl,
 	listingFormSchema,
 	savedSearchParamsSchema,
 	validateFinnishPhone,
@@ -302,33 +301,6 @@ describe("listingFormSchema", () => {
 		expect(firstMessageFor({ ...validRental, mileage_limit: 20000 }, "mileage_limit")).toBe(
 			"Virheellinen arvo",
 		);
-	});
-});
-
-describe("isValidImageUrl", () => {
-	it("accepts local upload paths", () => {
-		expect(isValidImageUrl("/api/uploads/abc.webp")).toBe(true);
-	});
-
-	it("rejects arbitrary URLs when STORAGE_PUBLIC_URL is not set", () => {
-		delete process.env.STORAGE_PUBLIC_URL;
-		expect(isValidImageUrl("https://evil.com/image.webp")).toBe(false);
-	});
-
-	it("accepts URLs matching STORAGE_PUBLIC_URL", () => {
-		process.env.STORAGE_PUBLIC_URL = "https://storage.motori.fi";
-		expect(isValidImageUrl("https://storage.motori.fi/images/abc.webp")).toBe(true);
-		delete process.env.STORAGE_PUBLIC_URL;
-	});
-
-	it("rejects URLs not matching STORAGE_PUBLIC_URL", () => {
-		process.env.STORAGE_PUBLIC_URL = "https://storage.motori.fi";
-		expect(isValidImageUrl("https://evil.com/image.webp")).toBe(false);
-		delete process.env.STORAGE_PUBLIC_URL;
-	});
-
-	it("rejects empty string", () => {
-		expect(isValidImageUrl("")).toBe(false);
 	});
 });
 
