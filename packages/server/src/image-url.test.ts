@@ -6,11 +6,6 @@ describe("isValidImageUrl", () => {
 		delete process.env.STORAGE_PUBLIC_URL;
 	});
 
-	it("rejects a look-alike origin that merely starts with STORAGE_PUBLIC_URL", () => {
-		process.env.STORAGE_PUBLIC_URL = "https://images.motori.fi";
-		expect(isValidImageUrl("https://images.motori.fi.evil.com/x.webp")).toBe(false);
-	});
-
 	it("accepts local upload paths", () => {
 		expect(isValidImageUrl("/api/uploads/abc.webp")).toBe(true);
 	});
@@ -27,6 +22,21 @@ describe("isValidImageUrl", () => {
 	it("rejects URLs not matching STORAGE_PUBLIC_URL", () => {
 		process.env.STORAGE_PUBLIC_URL = "https://storage.motori.fi";
 		expect(isValidImageUrl("https://evil.com/image.webp")).toBe(false);
+	});
+
+	it("rejects a look-alike origin that merely starts with STORAGE_PUBLIC_URL", () => {
+		process.env.STORAGE_PUBLIC_URL = "https://images.motori.fi";
+		expect(isValidImageUrl("https://images.motori.fi.evil.com/x.webp")).toBe(false);
+	});
+
+	it("accepts URLs when STORAGE_PUBLIC_URL has a trailing slash", () => {
+		process.env.STORAGE_PUBLIC_URL = "https://storage.motori.fi/";
+		expect(isValidImageUrl("https://storage.motori.fi/images/abc.webp")).toBe(true);
+	});
+
+	it("rejects the bare public URL with no key", () => {
+		process.env.STORAGE_PUBLIC_URL = "https://storage.motori.fi";
+		expect(isValidImageUrl("https://storage.motori.fi")).toBe(false);
 	});
 
 	it("rejects empty string", () => {

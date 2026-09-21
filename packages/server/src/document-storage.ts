@@ -26,7 +26,7 @@ export interface DocumentStorage {
 	delete(key: string): Promise<void>;
 }
 
-// ── S3-compatible object storage (Cloudflare R2 in prod), PRIVATE bucket ───
+// ── S3-compatible object storage, PRIVATE bucket ───────────────────────────
 // Deliberately no public-URL config: documents are only reachable through the
 // app's authenticated proxy route, so a misconfiguration can't publish PII.
 
