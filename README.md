@@ -7,7 +7,7 @@ Open-source marketplace for motorcycle rentals, sales, gear, and parts in Finlan
 - **Frontend**: React 19, TanStack Router + Start, Tailwind CSS 4
 - **Backend**: Node.js, srvx, Kysely (Postgres)
 - **Auth**: BetterAuth
-- **Storage**: Hetzner Object Storage (S3-compatible)
+- **Storage**: Cloudflare R2 (S3-compatible, EU jurisdiction)
 - **Email**: Resend (with MJML templates)
 - **i18n**: i18next (Finnish, English)
 - **Deploy**: Dokku on Hetzner Cloud
