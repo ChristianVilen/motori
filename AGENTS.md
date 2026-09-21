@@ -99,7 +99,7 @@ Every POST `createServerFn` must include, in order:
 
 Enum/union inputs from the client (status, role, type, etc.) must be runtime-validated in the `inputValidator` — TypeScript types are erased at runtime and provide no protection against crafted requests.
 
-Image URLs stored in listings must be validated against `STORAGE_PUBLIC_URL` when the env var is configured.
+Image URLs from the client must pass `isValidImageUrl()` before they are stored (`${STORAGE_PUBLIC_URL}/` prefix or `/api/uploads/`; see Storage).
 
 ### SEO / canonical URLs
 

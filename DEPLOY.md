@@ -251,7 +251,7 @@ dokku config:set --no-restart openobserve \
   ZO_LOCAL_MODE_STORAGE=s3 ZO_S3_PROVIDER=s3 \
   ZO_S3_SERVER_URL=https://<ACCOUNT_ID>.eu.r2.cloudflarestorage.com ZO_S3_REGION_NAME=auto \
   ZO_S3_BUCKET_NAME=motori-observability ZO_S3_BUCKET_PREFIX=openobserve/ \
-  ZO_S3_ACCESS_KEY='<key>' ZO_S3_SECRET_KEY='<secret>' \
+  ZO_S3_ACCESS_KEY='<openobserve token id>' ZO_S3_SECRET_KEY='<openobserve token secret>' \
   ZO_S3_FEATURE_FORCE_HOSTED_STYLE=false ZO_COMPACT_DATA_RETENTION_DAYS=30 \
   ZO_MEMORY_CACHE_ENABLED=false ZO_MEMORY_CACHE_DATAFUSION_MAX_SIZE=256 \
   ZO_MEM_TABLE_MAX_SIZE=128 ZO_MAX_FILE_SIZE_IN_MEMORY=128 ZO_FILE_MOVE_THREAD_NUM=1
@@ -380,11 +380,11 @@ All four buckets live in Cloudflare R2, EU jurisdiction, S3 API endpoint `https:
 
 **Retention on `motori-backups`** (#230). Lifecycle rule `expire-dumps-30d` deletes objects 30 days after upload. Bucket lock `lock-dumps-14d` (Age 14 days, whole bucket) blocks delete and overwrite for 14 days, also against root on the VPS. The lock is applied with `R2_APPLY_LOCK=1 infra/r2/provision.sh`, only after the cutover gates pass, because a locked bucket cannot be emptied. Read back with `pnpm dlx wrangler@4.131.2 r2 bucket lifecycle list motori-backups --jurisdiction eu` and the matching `lock list`. If `ObjectLockedByBucketPolicy` appears anywhere, the lock is in the way: `pnpm dlx wrangler@4.131.2 r2 bucket lock remove motori-backups --name lock-dumps-14d --jurisdiction eu`, act, then re-add. Bulk `DeleteObjects` against locked objects returns HTTP 200 with an `Errors` array and deletes nothing, so read the response body, not the exit code. The other three buckets carry no rules: images and documents have no expiry, and OpenObserve manages its own files.
 
-**Cache.** A Cache Rule on the motori.fi zone bypasses the edge cache for `images.motori.fi` (`cf-cache-status: DYNAMIC`), so a deleted image disappears at once. Enable caching only if Class B operations pass 1 million in a rolling 30 days: set the host cacheable with Edge TTL one hour, and accept that a deleted image can stay served for up to an hour.
+**Cache.** A Cache Rule on the motori.fi zone bypasses the edge cache for `images.motori.fi` (`cf-cache-status: DYNAMIC`), so a deleted image disappears at once. Enable caching only if Class B operations on `motori-images` pass 1 million in a rolling 30 days: set the host cacheable with Edge TTL one hour, and accept that a deleted image can stay served for up to an hour.
 
-**Usage alerts.** Cloudflare Notifications by email, each at 10% of the free allowance: stored bytes above 1 GB, Class A above 100,000 per month, Class B above 1,000,000 per month. Egress from R2 is free. Record the alert type, threshold and address when they are created.
+**Usage alerts.** Cloudflare Notifications by email, each at 10% of the free allowance: stored bytes above 1 GB, Class A above 100,000 per month, Class B above 1,000,000 per month. Egress from R2 is free. Record the alert type, threshold and address when they are created, and run one delivery test.
 
-**The move from Hetzner** is one maintenance window (#227): both apps stopped, 60 images and 131 dumps copied, 38 stored image URLs rewritten with `infra/r2/rewrite-image-urls.sql`, config flipped with `--no-restart`, the R2 pull request merged (the merge is the deploy), gates checked, lock applied, Hetzner buckets deleted. OpenObserve's old parquet is not copied; queries over data older than the window return file-not-found until 30-day retention ages those entries out.
+**The move from Hetzner** was done in one maintenance window (#227 holds the runbook and the date): both apps stopped, 60 images and 131 dumps copied, 38 stored image URLs rewritten with `infra/r2/rewrite-image-urls.sql`, config flipped with `--no-restart`, the R2 pull request merged (the merge is the deploy), gates checked, lock applied, Hetzner buckets deleted. OpenObserve's old parquet is not copied; queries over data older than the window return file-not-found until 30-day retention ages those entries out.
 
 ## Restore from backup
 
