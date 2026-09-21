@@ -83,6 +83,8 @@ dokku nginx:set motori client-max-body-size 12m
 
 ### 4. Config (env vars)
 
+Buckets and API tokens must exist first (§13). A VPS rebuild is unaffected: the buckets survive.
+
 Source of truth: `secrets/dokku-config.sh.age`. Apply in one command:
 
 ```bash
@@ -202,7 +204,7 @@ ssh root@motori 'dokku postgres:backup motori motori-backups'   # one-shot test
 
 Schedule lives in `secrets/backup-setup.sh.age` (default: 03:15 UTC daily). Encryption passphrase is also in there — losing the .age means losing all past backups, so the off-VPS backup of `~/.config/sops/age/keys.txt` is critical.
 
-`backup-auth` (also in that file) uses the `dokku-backups` R2 token, region `auto`, signature version `v4` and the endpoint `https://<ACCOUNT_ID>.eu.r2.cloudflarestorage.com`. Retention is on the bucket, not in the script: a 30-day expiry and a 14-day lock (§13).
+The `dokku postgres:backup-auth` call in that file uses the `dokku-backups` R2 token, region `auto`, signature version `v4` and the endpoint `https://<ACCOUNT_ID>.eu.r2.cloudflarestorage.com`. Retention is on the bucket, not in the script: a 30-day expiry and a 14-day lock (§13).
 
 ### 9. Host crontab (`/api/cron` jobs)
 
@@ -374,22 +376,35 @@ All four buckets live in Cloudflare R2, EU jurisdiction, S3 API endpoint `https:
 | `motori-backups` | private | encrypted nightly Postgres dumps (§8) | dokku-postgres |
 | `motori-observability` | private | OpenObserve parquet under `openobserve/` (§11) | openobserve |
 
-**Tokens.** One S3 API token per consumer, each Object Read & Write on only the buckets it needs: `motori-app` (motori-images), `talli-app` (motori-images, motori-docs), `dokku-backups` (motori-backups), `openobserve` (motori-observability). Bucket configuration (lifecycle, lock, custom domain) is done from a `wrangler login` OAuth session on a laptop. No credential that can change R2 configuration lives on the VPS.
+**Tokens.** One S3 API token per consumer, each Object Read & Write on only the buckets it needs: `motori-app` (motori-images), `talli-app` (motori-images, motori-docs), `dokku-backups` (motori-backups), `openobserve` (motori-observability). Bucket configuration (lifecycle, lock, custom domain) is done from a `wrangler login` OAuth session on a laptop. No credential that can change R2 configuration lives on the VPS. A fifth token, `r2-migration-temp` (all four buckets), exists only for the cutover window and is revoked at the end or on abort (`infra/r2/README.md`). If it still exists after the window, revoke it.
 
-**The account id stays out of git.** The repository is public, so every file in git writes `<ACCOUNT_ID>`. The real endpoint lives only in `secrets/dokku-config.sh`, `secrets/backup-setup.sh` and the OpenObserve dokku config.
+**The account id stays out of git.** The repository is public, so every file in git writes `<ACCOUNT_ID>`. The real endpoint lives in the encrypted `secrets/*.age` files (`dokku-config.sh.age`, `backup-setup.sh.age`, `motori.env.age`), in `secrets/r2-drill.env` on the laptop, and in the dokku configs of `motori`, `talli` and `openobserve`. Rotating the account means all of these.
 
-**Retention on `motori-backups`** (#230). Lifecycle rule `expire-dumps-30d` deletes objects 30 days after upload. Bucket lock `lock-dumps-14d` (Age 14 days, whole bucket) blocks delete and overwrite for 14 days, also against root on the VPS. The lock is applied with `R2_APPLY_LOCK=1 infra/r2/provision.sh`, only after the cutover gates pass, because a locked bucket cannot be emptied. Read back with `pnpm dlx wrangler@4.131.2 r2 bucket lifecycle list motori-backups --jurisdiction eu` and the matching `lock list`. If `ObjectLockedByBucketPolicy` appears anywhere, the lock is in the way: `pnpm dlx wrangler@4.131.2 r2 bucket lock remove motori-backups --name lock-dumps-14d --jurisdiction eu`, act, then re-add. Bulk `DeleteObjects` against locked objects returns HTTP 200 with an `Errors` array and deletes nothing, so read the response body, not the exit code. The other three buckets carry no rules: images and documents have no expiry, and OpenObserve manages its own files.
+**Retention on `motori-backups`** (#230). Lifecycle rule `expire-dumps-30d` deletes objects 30 days after upload. Bucket lock `lock-dumps-14d` (Age 14 days, whole bucket) blocks delete and overwrite for 14 days, also against root on the VPS. The lock goes on last, only after the cutover gates pass, because a locked bucket cannot be emptied. The other three buckets carry no rules: images and documents have no expiry, and OpenObserve manages its own files.
+
+```bash
+W="pnpm dlx wrangler@4.131.2"                                  # pin: infra/r2/provision.sh
+$W r2 bucket lifecycle list motori-backups --jurisdiction eu   # expire-dumps-30d
+$W r2 bucket lock list motori-backups --jurisdiction eu        # lock-dumps-14d
+R2_APPLY_LOCK=1 infra/r2/provision.sh                          # apply the lock, once
+# ObjectLockedByBucketPolicy anywhere means the lock is in the way: remove it, act, re-add
+$W r2 bucket lock remove motori-backups --name lock-dumps-14d --jurisdiction eu
+```
+
+Bulk `DeleteObjects` against locked objects returns HTTP 200 with an `Errors` array and deletes nothing. Read the response body, not the exit code.
 
 **Cache.** A Cache Rule on the motori.fi zone bypasses the edge cache for `images.motori.fi` (`cf-cache-status: DYNAMIC`), so a deleted image disappears at once. Enable caching only if Class B operations on `motori-images` pass 1 million in a rolling 30 days: set the host cacheable with Edge TTL one hour, and accept that a deleted image can stay served for up to an hour.
 
 **Usage alerts.** Cloudflare Notifications by email, each at 10% of the free allowance: stored bytes above 1 GB, Class A above 100,000 per month, Class B above 1,000,000 per month. Egress from R2 is free. Record the alert type, threshold and address when they are created, and run one delivery test.
 
-**The move from Hetzner** was done in one maintenance window (#227 holds the runbook and the date): both apps stopped, 60 images and 131 dumps copied, 38 stored image URLs rewritten with `infra/r2/rewrite-image-urls.sql`, config flipped with `--no-restart`, the R2 pull request merged (the merge is the deploy), gates checked, lock applied, Hetzner buckets deleted. OpenObserve's old parquet is not copied; queries over data older than the window return file-not-found until 30-day retention ages those entries out.
+**The move from Hetzner** runs in one maintenance window. #227 holds the step-by-step runbook, the evidence required at each gate and the abort points. Stored image URLs are rewritten with `infra/r2/rewrite-image-urls.sql`. OpenObserve's old parquet is not copied, so queries over data older than the window return file-not-found until the 30-day retention ages those entries out.
 
 ## Restore from backup
 
 ```bash
-# 1. list backups in the bucket (credentials: the dokku-backups R2 token from secrets/backup-setup.sh)
+# 1. list backups in the bucket
+#    credentials: the dokku-backups R2 token (decrypt secrets/backup-setup.sh.age)
+export AWS_ACCESS_KEY_ID='<dokku-backups token id>' AWS_SECRET_ACCESS_KEY='<dokku-backups token secret>' AWS_DEFAULT_REGION=auto
 aws s3 ls --endpoint-url https://<ACCOUNT_ID>.eu.r2.cloudflarestorage.com s3://motori-backups/
 
 # 2. download latest
