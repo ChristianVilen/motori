@@ -27,8 +27,8 @@ export interface DocumentStorage {
 }
 
 // ── S3-compatible object storage, PRIVATE bucket ───────────────────────────
-// Deliberately no public-URL config: documents are only reachable through the
-// app's authenticated proxy route, so a misconfiguration can't publish PII.
+// Documents are served through the authenticated proxy.
+// STORAGE_DOCS_BUCKET must remain private.
 
 export class S3DocumentStorage implements DocumentStorage {
 	private client: S3Client;

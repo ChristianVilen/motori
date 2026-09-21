@@ -46,8 +46,6 @@ else
     --expire-days 30 --jurisdiction $J --force
 fi
 
-# Deletion protection. Opt-in, because it must not go on before the cutover's
-# validation gates pass: a locked bucket cannot be emptied.
 if [[ "${R2_APPLY_LOCK:-}" == "1" ]]; then
   $WRANGLER r2 bucket lock add motori-backups lock-dumps-14d "" \
     --retention-days 14 --jurisdiction $J --force

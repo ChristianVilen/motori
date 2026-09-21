@@ -398,7 +398,7 @@ Bulk `DeleteObjects` against locked objects returns HTTP 200 with an `Errors` ar
 
 **Cache.** A Cache Rule on the motori.fi zone bypasses the edge cache for `images.motori.fi` (`cf-cache-status: DYNAMIC`), so a deleted image disappears at once. Enable caching only if Class B operations on `motori-images` pass 1 million in a rolling 30 days: set the host cacheable with Edge TTL one hour, and accept that a deleted image can stay served for up to an hour.
 
-**Usage alerts.** Cloudflare Notifications by email, each at 10% of the free allowance: stored bytes above 1 GB, Class A above 100,000 per month, Class B above 1,000,000 per month. Egress from R2 is free. Record the alert type, threshold and address when they are created, and run one delivery test.
+**Usage alerts.** Cloudflare Notifications by email, each at 10% of the free allowance: stored bytes above 1 GB, Class A above 100,000 per month, Class B above 1,000,000 per month. Egress from R2 is free. If R2 usage notifications are unavailable, use the account's usage-based billing notification at the lowest accepted amount. Record the alert type, threshold and address when they are created, and run one delivery test.
 
 **The move from Hetzner** runs in one maintenance window. #227 holds the step-by-step runbook, the evidence required at each gate and the abort points. Stored image URLs are rewritten with `infra/r2/rewrite-image-urls.sql`. OpenObserve's old parquet is not copied, so queries over data older than the window return file-not-found until the 30-day retention ages those entries out.
 

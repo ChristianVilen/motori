@@ -101,17 +101,13 @@ COPY (
 --   wc -l < fetch-before.tsv                  # 38
 --   awk -F'\t' '$1 != "200"' fetch-before.tsv # prints nothing
 --
--- Join the len column against the R2 manifest taken at window start, by the key
--- after the host. Every size must match. A 404 here means the object copy is not
--- finished. Nothing has been written yet, so a failure here costs nothing.
+-- Compare each response length with the R2 manifest by object key.
+-- Stop before the rewrite if any request fails or any size differs.
 
 -- ─── 3. The transaction (interactive psql, COMMIT typed by hand) ──────────────
--- The old prefix ends with a slash and the new one begins the result, so substr
--- starts at the first byte of the key and every value becomes
--- https://images.motori.fi/<key>. The WHERE is anchored to the exact old host, so
--- a second paste updates zero rows and a row on some third host is left alone.
--- LIKE is not true for NULL, so NULLs need no special case. talli.vehicle.updated_at
--- is left alone on purpose: a host swap is not an edit by the owner (#229).
+-- Preserve object keys; rewrite only URLs on the old host.
+-- Re-running updates zero rows. NULLs remain unchanged.
+-- Keep talli.vehicle.updated_at: changing the host is not an owner edit (#229).
 
 BEGIN;
 

@@ -14,8 +14,6 @@ export interface ImageStorage {
 	deleteByPrefix(prefix: string): Promise<void>;
 }
 
-// ── S3-compatible object storage ───────────────────────────────────────────
-
 export class S3Storage implements ImageStorage {
 	private client: S3Client;
 	private bucket: string;
