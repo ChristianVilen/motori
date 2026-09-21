@@ -4,10 +4,13 @@
 -- it must run after the object copy is verified and while both apps are stopped,
 -- and it writes two schemas (public and talli) in one transaction.
 --
--- How to run. Sections 1, 2, 4a and 4b are piped, each with the two \set lines
--- below at the top of what is piped:
+-- How to run. Copy each of sections 1, 2, 4a and 4b into its own scratch file with
+-- the two \set lines below at the top, then pipe it:
 --
 --   ssh root@motori "dokku postgres:connect motori" < <section>.sql > <output>
+--
+-- Never pipe the whole file: 4a and 4b would then report success from inside the
+-- transaction that section 3 opened, and nothing would be committed.
 --
 -- Section 3 is pasted into an interactive `just psql` (paste the \set lines first),
 -- so the numbers are read before COMMIT is typed by hand.
@@ -135,10 +138,9 @@ UPDATE talli.service_record_photo
    SET thumbnail_url = :'new_prefix' || substr(thumbnail_url, length(:'old_prefix') + 1)
  WHERE thumbnail_url LIKE :'old_prefix' || '%';          -- UPDATE 0
 
--- Assertion, still inside the transaction. Written with literals rather than the
--- two variables: a check that reuses the variable which built the value would
--- agree with a wrong variable. Expected: 0, 38, 0, 0. no_slash catches a literal
--- edited by hand during the window.
+-- Assertion, still inside the transaction. Literals, not the two variables: a check
+-- built from the same variable would pass even if the variable was wrong.
+-- Expected: 0, 38, 0, 0. no_slash catches a literal edited by hand during the window.
 
 WITH v AS (
             SELECT url           AS value FROM listing_image
@@ -160,8 +162,8 @@ SELECT count(*) FILTER (WHERE value LIKE 'https://motori-images.hel1.your-object
 --
 --   COMMIT;    -- or ROLLBACK; if any number is wrong
 --
--- Do not close the terminal with the transaction open; it holds locks on
--- listing_image.
+-- Do not leave the session idle inside the transaction: it holds row locks on
+-- listing_image. Commit or roll back before you step away.
 
 -- ─── 4a. After the commit: the same assertion, outside the transaction ────────
 -- Expected: 0, 38, 0, 0.
@@ -185,6 +187,8 @@ SELECT count(*) FILTER (WHERE value LIKE 'https://motori-images.hel1.your-object
 -- ─── 4b. After the commit: read the values back and fetch them again ──────────
 -- Pipe this section with its output to urls-after.txt, then run the same shell
 -- loop as section 2. Expected: 38 lines, all 200, sizes equal to the manifest.
+-- The two talli.service_record_photo selects carry no IS NOT NULL filter because
+-- both columns are NOT NULL in the schema, so the 38-line count still holds.
 -- Then the inventory's cross-reference with BASE=https://images.motori.fi/:
 -- 0 missing references, orphans still 22.
 
