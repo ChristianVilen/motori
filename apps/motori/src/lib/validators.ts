@@ -12,6 +12,7 @@ import {
 import fiCommon from "~/lib/i18n/resources/fi/common";
 import { MUNICIPALITY_NAME_SET } from "~/lib/municipalities";
 
+export { isValidImageUrl } from "@motori/server/image-url";
 export type { Condition, GearTypeValue } from "~/lib/constants";
 export { CONDITIONS, GEAR_TYPES };
 
@@ -260,13 +261,6 @@ export function countActiveFilters(search: BrowseSearchParams): number {
 }
 
 const FINNISH_PHONE_RE = /^(\+358|0)\d{6,9}$/;
-
-export function isValidImageUrl(url: string): boolean {
-	return (
-		url.startsWith("/api/uploads/") ||
-		(!!process.env.STORAGE_PUBLIC_URL && url.startsWith(process.env.STORAGE_PUBLIC_URL))
-	);
-}
 
 export function validateFinnishPhone(raw: string, errorMsg?: string): string {
 	const phone = raw.trim();

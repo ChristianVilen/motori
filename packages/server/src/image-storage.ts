@@ -14,16 +14,14 @@ export interface ImageStorage {
 	deleteByPrefix(prefix: string): Promise<void>;
 }
 
-// ── Hetzner Object Storage (S3-compatible) ─────────────────────────────────
-
-export class HetznerStorage implements ImageStorage {
+export class S3Storage implements ImageStorage {
 	private client: S3Client;
 	private bucket: string;
 	private publicUrl: string;
 
 	constructor() {
 		this.client = new S3Client({
-			region: "hel1",
+			region: "auto",
 			endpoint: process.env.STORAGE_ENDPOINT,
 			credentials: {
 				accessKeyId: process.env.STORAGE_ACCESS_KEY ?? "",
@@ -119,7 +117,7 @@ export function getImageStorage(): ImageStorage {
 	if (_storage) {
 		return _storage;
 	}
-	_storage = process.env.STORAGE_ENDPOINT ? new HetznerStorage() : new LocalStorage();
+	_storage = process.env.STORAGE_ENDPOINT ? new S3Storage() : new LocalStorage();
 	return _storage;
 }
 

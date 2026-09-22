@@ -26,17 +26,17 @@ export interface DocumentStorage {
 	delete(key: string): Promise<void>;
 }
 
-// ── Hetzner Object Storage (S3-compatible), PRIVATE bucket ─────────────────
-// Deliberately no public-URL config: documents are only reachable through the
-// app's authenticated proxy route, so a misconfiguration can't publish PII.
+// ── S3-compatible object storage, PRIVATE bucket ───────────────────────────
+// Documents are served through the authenticated proxy.
+// STORAGE_DOCS_BUCKET must remain private.
 
-export class HetznerDocumentStorage implements DocumentStorage {
+export class S3DocumentStorage implements DocumentStorage {
 	private client: S3Client;
 	private bucket: string;
 
 	constructor() {
 		this.client = new S3Client({
-			region: "hel1",
+			region: "auto",
 			endpoint: process.env.STORAGE_ENDPOINT,
 			credentials: {
 				accessKeyId: process.env.STORAGE_ACCESS_KEY ?? "",
@@ -145,8 +145,6 @@ export function getDocumentStorage(): DocumentStorage {
 		// silently write PII documents to ephemeral local disk in a deployed environment.
 		throw new Error("STORAGE_DOCS_BUCKET must be set when STORAGE_ENDPOINT is configured");
 	}
-	_storage = process.env.STORAGE_ENDPOINT
-		? new HetznerDocumentStorage()
-		: new LocalDocumentStorage();
+	_storage = process.env.STORAGE_ENDPOINT ? new S3DocumentStorage() : new LocalDocumentStorage();
 	return _storage;
 }

@@ -18,7 +18,7 @@ pnpm workspace: `apps/*` are deployable apps, `packages/*` are shared libraries.
 - `apps/motori` — the app (routes, components, app-specific lib code, migrations)
 - `apps/talli` — the motorcycle-owner companion app at talli.motori.fi (garage, maintenance log, reminders, digest). Runs on port 3001, owns the `talli` Postgres schema with its own migration table, mounts no auth routes (SSO via motori).
 - `packages/db` (`@motori/db`) — `createDb`/`createMigrator` + BetterAuth table types
-- `packages/server` (`@motori/server`) — server-only subpath exports: csrf, rate-limit, security-headers, nonce, log (incl. OpenObserve stream), email, email-wrapper, image-storage, image-upload, uploads-route, document-storage, password-strength, the `createAuth` factory, session, require-verified-email, origins. **Cross-app server infra lives here, not copied between apps** — when a second app needs the same server logic (upload handler, verify middleware, origin derivation, …), parameterise it in `@motori/server` and have both apps call it; never copy motori's code into talli (or vice versa). The genuinely app-local exceptions are `session.ts` (must stay in-app for client-bundle pruning of the eager `auth` singleton) and `protectedMutation` (a 3-line composition of shared middleware).
+- `packages/server` (`@motori/server`) — server-only subpath exports: cron, csrf, rate-limit, security-headers, nonce, log (incl. OpenObserve stream), email, email-wrapper, image-storage, image-upload, image-url (the one export both apps re-export into a client-reachable `validators.ts`, so it stays import-free), uploads-route, document-storage, password-strength, the `createAuth` factory, session, require-verified-email, origins. **Cross-app server infra lives here, not copied between apps** — when a second app needs the same server logic (upload handler, verify middleware, origin derivation, …), parameterise it in `@motori/server` and have both apps call it; never copy motori's code into talli (or vice versa). The genuinely app-local exceptions are `session.ts` (must stay in-app for client-bundle pruning of the eager `auth` singleton) and `protectedMutation` (a 3-line composition of shared middleware).
 - `packages/ui` (`@motori/ui`) — `theme.css` design tokens + button/input/select/textarea + `cn`
 
 ## Commands
@@ -48,7 +48,7 @@ After schema changes: add a new migration file, run `db:migrate`, then `db:codeg
 
 ## Architecture
 
-**Stack:** TanStack Start (SSR + file-based routing) + React 19 + Kysely (Postgres) + BetterAuth + Tailwind v4 + Hetzner Object Storage (S3-compatible, `hel1` region, via `@aws-sdk/client-s3`) + sharp (server-side image optimisation).
+**Stack:** TanStack Start (SSR + file-based routing) + React 19 + Kysely (Postgres) + BetterAuth + Tailwind v4 + Cloudflare R2 (S3-compatible, EU jurisdiction, `region: "auto"`, via `@aws-sdk/client-s3`) + sharp (server-side image optimisation).
 
 ### Routing
 
@@ -99,7 +99,7 @@ Every POST `createServerFn` must include, in order:
 
 Enum/union inputs from the client (status, role, type, etc.) must be runtime-validated in the `inputValidator` — TypeScript types are erased at runtime and provide no protection against crafted requests.
 
-Image URLs stored in listings must be validated against `STORAGE_PUBLIC_URL` when the env var is configured.
+Image URLs from the client must pass `isValidImageUrl()` before they are stored (`${STORAGE_PUBLIC_URL}/` prefix or `/api/uploads/`; see Storage).
 
 ### SEO / canonical URLs
 
@@ -107,11 +107,16 @@ Image URLs stored in listings must be validated against `STORAGE_PUBLIC_URL` whe
 
 ### Storage
 
-Hetzner Object Storage (S3-compatible, `hel1`). The project's buckets share one set of project-wide access keys: **`motori-images`** — the app's `STORAGE_BUCKET`, which must have **public read** access so objects are served directly via `STORAGE_PUBLIC_URL`; and **`motori-backups`** — **private**, holding the encrypted nightly Postgres backups (see `DEPLOY.md` §8). Never store non-public data in `motori-images`. Env vars: `STORAGE_ENDPOINT`, `STORAGE_BUCKET`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`, `STORAGE_PUBLIC_URL`.
+Cloudflare R2, EU jurisdiction, through the S3 API (`@aws-sdk/client-s3`, `region: "auto"`, `forcePathStyle: true`). Four buckets, one S3 API token per consumer scoped to only the buckets it needs (token list, retention rules, alerts: `DEPLOY.md` §13):
 
-There is a third bucket, **`motori-docs`** — **private**, talli's per-vehicle documents (rekisteriote, insurance docs, etc.), served only via talli's authenticated `/api/documents/$id` proxy (`STORAGE_DOCS_BUCKET`). Never enable public read on it.
+- **`motori-images`** — the apps' `STORAGE_BUCKET`, public only through the custom domain `https://images.motori.fi` (= `STORAGE_PUBLIC_URL`; the `r2.dev` URL stays disabled). Listing photos, and talli's photos under the `talli/` prefix. Never store non-public data here.
+- **`motori-docs`** — **private**, talli's per-vehicle documents (rekisteriote, insurance docs, etc.), served only via talli's authenticated `/api/documents/$id` proxy. `STORAGE_DOCS_BUCKET` is set in talli only; motori's config does not carry it. Never enable public read on it.
+- **`motori-backups`** — **private**, the encrypted nightly Postgres dumps (`DEPLOY.md` §8).
+- **`motori-observability`** — **private**, OpenObserve's parquet (`DEPLOY.md` §11).
 
-Image uploads go through `POST /api/images/upload` — the server receives the file, optimises it with sharp (1600px main WebP + 400px thumbnail WebP), and stores both via `optimizeAndUpload()` from `@motori/server/image-storage` (`packages/server/src/image-storage.ts`). When `STORAGE_ENDPOINT` is set, `HetznerStorage` is used; otherwise `LocalStorage` saves to `/uploads/` for dev. Image URLs are validated against `STORAGE_PUBLIC_URL` (or `/api/uploads/` in dev) in `isValidImageUrl()`.
+Env vars: `STORAGE_ENDPOINT`, `STORAGE_BUCKET`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`, `STORAGE_PUBLIC_URL`, plus `STORAGE_DOCS_BUCKET` in talli. `STORAGE_ENDPOINT` doubles as the switch: unset (dev, CI) means local disk. The endpoint contains the Cloudflare account id; the repository is public, so never commit it and write `<ACCOUNT_ID>` in examples (`DEPLOY.md` §13). Bucket configuration (lifecycle, lock, custom domain) is done with wrangler from a laptop, never from the JS SDK and never from the VPS; see `infra/r2/`.
+
+Image uploads go through `POST /api/images/upload` — the server receives the file, optimises it with sharp (1600px main WebP + 400px thumbnail WebP), and stores both via `optimizeAndUpload()` from `@motori/server/image-storage` (`packages/server/src/image-storage.ts`). When `STORAGE_ENDPOINT` is set, `S3Storage` is used; otherwise `LocalStorage` saves to `/uploads/` for dev. Image URLs are validated by `isValidImageUrl()` (`@motori/server/image-url`, re-exported from each app's `validators.ts`): a URL must start with `${STORAGE_PUBLIC_URL}/` (the trailing slash matters; it rejects look-alike hosts) or with `/api/uploads/`, the local-disk path used when `STORAGE_ENDPOINT` is unset.
 
 ### Logging
 

@@ -6,10 +6,11 @@ Production runs on a single Hetzner VPS as a Dokku app using the Heroku Node bui
 - **Domains:** `motori.fi` (canonical), `www.motori.fi` (301 → apex via app middleware)
 - **DB:** `dokku-postgres` plugin, Postgres 17, linked as `motori`. Data on Hetzner volume `pgdata` mounted at `/var/lib/dokku/services/postgres` (so DB survives VPS rebuild)
 - **TLS:** Cloudflare Origin Cert installed via `dokku certs:add`. CF in front (Full strict), no ACME
-- **Object storage:** Hetzner Object Storage (`hel1`)
-  - `motori-images` — listing photos, public-read
-  - `motori-backups` — encrypted nightly DB dumps, private
+- **Object storage:** Cloudflare R2, EU jurisdiction, S3 API with `region: auto` (§13)
+  - `motori-images` — listing photos, public only through `https://images.motori.fi`
+  - `motori-backups` — encrypted nightly DB dumps, private, 30-day expiry + 14-day lock
   - `motori-docs` — talli's per-vehicle documents (rekisteriote, insurance), private, no public read (§12)
+  - `motori-observability` — OpenObserve parquet, private (§11)
 - **Deploy:** automatic via GitHub Actions on push to `main` (after CI passes). Manual fallback: `just deploy` (= `git push dokku main`)
 - **Migrations:** auto-run via Procfile `release` phase (`pnpm db:migrate`)
 - **Secrets:** age-encrypted in `secrets/*.age`, decrypt key at `~/.config/sops/age/keys.txt`
@@ -81,6 +82,8 @@ dokku nginx:set motori client-max-body-size 12m
 ```
 
 ### 4. Config (env vars)
+
+Buckets and API tokens must exist first (§13). A VPS rebuild is unaffected: the buckets survive.
 
 Source of truth: `secrets/dokku-config.sh.age`. Apply in one command:
 
@@ -201,6 +204,8 @@ ssh root@motori 'dokku postgres:backup motori motori-backups'   # one-shot test
 
 Schedule lives in `secrets/backup-setup.sh.age` (default: 03:15 UTC daily). Encryption passphrase is also in there — losing the .age means losing all past backups, so the off-VPS backup of `~/.config/sops/age/keys.txt` is critical.
 
+The `dokku postgres:backup-auth` call in that file uses the `dokku-backups` R2 token, region `auto`, signature version `v4` and the endpoint `https://<ACCOUNT_ID>.eu.r2.cloudflarestorage.com`. Retention is on the bucket, not in the script: a 30-day expiry and a 14-day lock (§13).
+
 ### 9. Host crontab (`/api/cron` jobs)
 
 ```bash
@@ -228,7 +233,7 @@ age -d -i ~/.config/sops/age/keys.txt secrets/motori.env.age
 
 ### 11. Observability (OpenObserve)
 
-Self-hosted OpenObserve ships the app's pino logs (Phase 1). It runs as a **Dokku app** (`openobserve`) served at **https://logs.motori.fi** (Dokku nginx + the wildcard `*.motori.fi` cert), parquet offloaded to the private `motori-backups` bucket under `openobserve/`. The `motori` app ships logs over a private Docker network, not the public URL. UI auth is OpenObserve's built-in login — use a strong root password (OSS has no SSO/MFA).
+Self-hosted OpenObserve ships the app's pino logs (Phase 1). It runs as a **Dokku app** (`openobserve`) served at **https://logs.motori.fi** (Dokku nginx + the wildcard `*.motori.fi` cert), parquet offloaded to the private `motori-observability` R2 bucket under `openobserve/`. The `motori` app ships logs over a private Docker network, not the public URL. UI auth is OpenObserve's built-in login — use a strong root password (OSS has no SSO/MFA).
 
 First-time setup — run on the VPS (`ssh root@motori`, then `dokku …`):
 
@@ -240,15 +245,15 @@ fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /
 dokku apps:create openobserve
 dokku domains:set openobserve logs.motori.fi
 
-# 2. Config — values from infra/observability/.env.example (fill secrets; reuse the
-#    project-wide Hetzner keys for ZO_S3_ACCESS_KEY/SECRET_KEY). Single --no-restart set:
+# 2. Config — values from infra/observability/.env.example (fill secrets; ZO_S3_ACCESS_KEY/
+#    SECRET_KEY are the `openobserve` R2 token, §13). Single --no-restart set:
 dokku config:set --no-restart openobserve \
   ZO_ROOT_USER_EMAIL=admin@motori.fi ZO_ROOT_USER_PASSWORD='<strong-unique>' \
   ZO_TELEMETRY=false ZO_LOCAL_MODE=true ZO_DATA_DIR=/data \
   ZO_LOCAL_MODE_STORAGE=s3 ZO_S3_PROVIDER=s3 \
-  ZO_S3_SERVER_URL=https://hel1.your-objectstorage.com ZO_S3_REGION_NAME=hel1 \
-  ZO_S3_BUCKET_NAME=motori-backups ZO_S3_BUCKET_PREFIX=openobserve/ \
-  ZO_S3_ACCESS_KEY='<key>' ZO_S3_SECRET_KEY='<secret>' \
+  ZO_S3_SERVER_URL=https://<ACCOUNT_ID>.eu.r2.cloudflarestorage.com ZO_S3_REGION_NAME=auto \
+  ZO_S3_BUCKET_NAME=motori-observability ZO_S3_BUCKET_PREFIX=openobserve/ \
+  ZO_S3_ACCESS_KEY='<openobserve token id>' ZO_S3_SECRET_KEY='<openobserve token secret>' \
   ZO_S3_FEATURE_FORCE_HOSTED_STYLE=false ZO_COMPACT_DATA_RETENTION_DAYS=30 \
   ZO_MEMORY_CACHE_ENABLED=false ZO_MEMORY_CACHE_DATAFUSION_MAX_SIZE=256 \
   ZO_MEM_TABLE_MAX_SIZE=128 ZO_MAX_FILE_SIZE_IN_MEMORY=128 ZO_FILE_MOVE_THREAD_NUM=1
@@ -324,10 +329,10 @@ dokku config:set --no-restart talli \
     BETTER_AUTH_SECRET='<same value as motori>' \
     BETTER_AUTH_URL=https://motori.fi \
     APP_ORIGIN=https://talli.motori.fi \
-    STORAGE_ENDPOINT='https://hel1.your-objectstorage.com' \
+    STORAGE_ENDPOINT='https://<ACCOUNT_ID>.eu.r2.cloudflarestorage.com' \
     STORAGE_BUCKET=motori-images \
-    STORAGE_ACCESS_KEY='<key>' STORAGE_SECRET_KEY='<secret>' \
-    STORAGE_PUBLIC_URL='https://motori-images.hel1.your-objectstorage.com' \
+    STORAGE_ACCESS_KEY='<talli-app token id>' STORAGE_SECRET_KEY='<talli-app token secret>' \
+    STORAGE_PUBLIC_URL='https://images.motori.fi' \
     STORAGE_DOCS_BUCKET=motori-docs \
     RESEND_API_KEY='<key>' \
     CRON_SECRET='<new value, distinct from motori>' \
@@ -339,7 +344,7 @@ dokku config:set --no-restart talli \
 - `BETTER_AUTH_SECRET` **must** equal motori's — the session cookie is shared across `.motori.fi`.
 - `BETTER_AUTH_URL=https://motori.fi` (motori is the auth host); `APP_ORIGIN=https://talli.motori.fi` scopes csrf to talli's own origin.
 - Same `motori-images` bucket as motori; talli writes under the `talli/` key prefix.
-- `STORAGE_DOCS_BUCKET=motori-docs` is a **third, private** bucket — created in the same Hetzner Object Storage project, reachable with the existing project-wide access keys. Never enable public read on it: per-vehicle documents (rekisteriote, insurance docs — PII) are served only through talli's authenticated `/api/documents/$documentId` proxy, never a public URL.
+- `STORAGE_DOCS_BUCKET=motori-docs` is a **private** R2 bucket that only the `talli-app` token reaches (§13); motori's config does not carry this variable. Never enable public read on it: per-vehicle documents (rekisteriote, insurance docs — PII) are served only through talli's authenticated `/api/documents/$documentId` proxy, never a public URL.
 - Optional OpenObserve sink on its own stream: add `OPENOBSERVE_URL=http://openobserve.web:5080 OPENOBSERVE_ORG=default OPENOBSERVE_STREAM=talli OPENOBSERVE_USER=… OPENOBSERVE_PASSWORD=…` and join talli to the `observability` network (`dokku network:set talli attach-post-create observability`, cf. §11).
 
 No motori-side config change is needed for talli's cross-origin sign-out: `createAuth` already adds `talli.motori.fi` to `trustedOrigins` and motori's CORS allow-list appends it automatically (`apps/motori/src/lib/cors.ts`).
@@ -360,14 +365,53 @@ Then add the Cloudflare DNS record for `talli` → the VPS (proxied, orange clou
 
 The shared `Procfile` and `app.json` are unchanged — root scripts dispatch on `${DEPLOY_APP:-motori}`.
 
+### 13. Object storage (Cloudflare R2)
+
+All four buckets live in Cloudflare R2, EU jurisdiction, S3 API endpoint `https://<ACCOUNT_ID>.eu.r2.cloudflarestorage.com`, region `auto`. `infra/r2/provision.sh` creates them, connects the custom domain and sets the retention rules; `infra/r2/README.md` lists the manual steps wrangler cannot do (R2 subscription, API tokens, the Cache Rule).
+
+| Bucket | Access | Contents | Written by |
+| --- | --- | --- | --- |
+| `motori-images` | public, only through `https://images.motori.fi` (custom domain; the `r2.dev` URL stays disabled) | listing photos; talli photos under `talli/` | motori, talli |
+| `motori-docs` | private | talli's per-vehicle documents, served only through talli's authenticated `/api/documents/$id` proxy | talli |
+| `motori-backups` | private | encrypted nightly Postgres dumps (§8) | dokku-postgres |
+| `motori-observability` | private | OpenObserve parquet under `openobserve/` (§11) | openobserve |
+
+**Tokens.** One S3 API token per consumer, each Object Read & Write on only the buckets it needs: `motori-app` (motori-images), `talli-app` (motori-images, motori-docs), `dokku-backups` (motori-backups), `openobserve` (motori-observability). Bucket configuration (lifecycle, lock, custom domain) is done from a `wrangler login` OAuth session on a laptop. No credential that can change R2 configuration lives on the VPS.
+
+**The account id stays out of git.** The repository is public, so every file in git writes `<ACCOUNT_ID>`. The real endpoint lives in the encrypted `secrets/*.age` files (`dokku-config.sh.age`, `backup-setup.sh.age`, `motori.env.age`), in `secrets/r2-drill.env` on the laptop (the account id and zone id that `infra/r2/provision.sh` reads; the `DRILL_*` token values are removed before the window), and in the dokku configs of `motori`, `talli` and `openobserve`. Rotating the account means all of these.
+
+**Retention on `motori-backups`** (#230). Lifecycle rule `expire-dumps-30d` deletes objects 30 days after upload. Bucket lock `lock-dumps-14d` (Age 14 days, whole bucket) blocks delete and overwrite for 14 days, also against root on the VPS. The lock goes on last, only after the cutover gates pass, because a locked bucket cannot be emptied. The other three buckets carry no rules: images and documents have no expiry, and OpenObserve manages its own files.
+
+```bash
+# Read-only: safe to paste as a whole.
+W="pnpm dlx wrangler@4.131.2"                                  # pin: infra/r2/provision.sh
+$W r2 bucket lifecycle list motori-backups --jurisdiction eu   # expire-dumps-30d
+$W r2 bucket lock list motori-backups --jurisdiction eu        # lock-dumps-14d
+
+# State-changing: run one at a time, on purpose.
+# R2_APPLY_LOCK=1 infra/r2/provision.sh                        # apply the lock, once, after the gates pass
+# ObjectLockedByBucketPolicy anywhere means the lock is in the way: remove it, act, re-add.
+# $W r2 bucket lock remove motori-backups --name lock-dumps-14d --jurisdiction eu
+```
+
+Bulk `DeleteObjects` against locked objects returns HTTP 200 with an `Errors` array and deletes nothing. Read the response body, not the exit code.
+
+**Cache.** A Cache Rule on the motori.fi zone bypasses the edge cache for `images.motori.fi` (`cf-cache-status: DYNAMIC`), so a deleted image disappears at once. Enable caching only if Class B operations on `motori-images` pass 1 million in a rolling 30 days: set the host cacheable with Edge TTL one hour, and accept that a deleted image can stay served for up to an hour.
+
+**Usage alerts.** Cloudflare Notifications by email, each at 10% of the free allowance: stored bytes above 1 GB, Class A above 100,000 per month, Class B above 1,000,000 per month. Egress from R2 is free. If R2 usage notifications are unavailable, use the account's usage-based billing notification at the lowest accepted amount. Record the alert type, threshold and address when they are created, and run one delivery test.
+
+**The move from Hetzner** copies nothing, because the site had no real users when it happened (#227). The test listings that pointed at Hetzner images are deleted first, so no database row references the old host. The nightly dumps stay behind; the first R2 dump is written by hand right after the switch. OpenObserve's old parquet is not copied, so queries over data older than the switch return file-not-found until the 30-day retention ages those entries out. The switch itself is `just config-apply` and `just backup-setup` with `--no-restart`, the OpenObserve config, then the merge that deploys both apps; the apps stay up throughout. `infra/r2/rewrite-image-urls.sql` stays in the repo for the day a Hetzner URL turns up in the database.
+
 ## Restore from backup
 
 ```bash
 # 1. list backups in the bucket
-aws s3 ls --endpoint-url https://hel1.your-objectstorage.com s3://motori-backups/
+#    credentials: the dokku-backups R2 token (decrypt secrets/backup-setup.sh.age)
+export AWS_ACCESS_KEY_ID='<dokku-backups token id>' AWS_SECRET_ACCESS_KEY='<dokku-backups token secret>' AWS_DEFAULT_REGION=auto
+aws s3 ls --endpoint-url https://<ACCOUNT_ID>.eu.r2.cloudflarestorage.com s3://motori-backups/
 
 # 2. download latest
-aws s3 cp --endpoint-url https://hel1.your-objectstorage.com \
+aws s3 cp --endpoint-url https://<ACCOUNT_ID>.eu.r2.cloudflarestorage.com \
   s3://motori-backups/postgres-motori-YYYY-MM-DD-HH-MM-SS.tgz.gpg /tmp/dump.tgz.gpg
 
 # 3. decrypt (passphrase from secrets/backup-setup.sh.age)
