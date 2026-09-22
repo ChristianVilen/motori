@@ -21,13 +21,12 @@ cannot set lifecycle rules on R2.
    Permission Object Read & Write, scoped to the buckets below. Copy the
    Access Key ID and the Secret Access Key from the result screen.
 
-   | Token             | Buckets                                                           |
-   | ----------------- | ----------------------------------------------------------------- |
-   | motori-app        | motori-images                                                     |
-   | talli-app         | motori-images, motori-docs                                        |
-   | dokku-backups     | motori-backups                                                    |
-   | openobserve       | motori-observability                                              |
-   | r2-migration-temp | all four; created at window start, revoked at the end or on abort |
+   | Token         | Buckets                    |
+   | ------------- | -------------------------- |
+   | motori-app    | motori-images              |
+   | talli-app     | motori-images, motori-docs |
+   | dokku-backups | motori-backups             |
+   | openobserve   | motori-observability       |
 
 3. Cache Rule on the motori.fi zone: Caching > Cache Rules > Create rule,
    expression `(http.host eq "images.motori.fi")`, cache eligibility

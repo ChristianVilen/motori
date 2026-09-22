@@ -1,8 +1,12 @@
 -- Rewrite the stored image URLs from the Hetzner host to images.motori.fi (#229).
 --
--- Hand-run SQL for the R2 cutover window (issue #227), not a Kysely migration:
--- it must run after the object copy is verified and while both apps are stopped,
--- and it writes two schemas (public and talli) in one transaction.
+-- Hand-run SQL, not a Kysely migration: it writes two schemas (public and talli)
+-- in one transaction and must run while both apps are stopped.
+--
+-- The cutover itself (#227) copied nothing: the test listings were deleted first,
+-- so section 1 showed zeros and nothing else ran. Keep the file for the day a
+-- Hetzner URL turns up in the database; the objects would have to exist on
+-- images.motori.fi first.
 --
 -- How to run. Copy each of sections 1, 2, 4a and 4b into its own scratch file with
 -- the two \set lines below at the top, then pipe it:

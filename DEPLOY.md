@@ -376,7 +376,7 @@ All four buckets live in Cloudflare R2, EU jurisdiction, S3 API endpoint `https:
 | `motori-backups` | private | encrypted nightly Postgres dumps (§8) | dokku-postgres |
 | `motori-observability` | private | OpenObserve parquet under `openobserve/` (§11) | openobserve |
 
-**Tokens.** One S3 API token per consumer, each Object Read & Write on only the buckets it needs: `motori-app` (motori-images), `talli-app` (motori-images, motori-docs), `dokku-backups` (motori-backups), `openobserve` (motori-observability). Bucket configuration (lifecycle, lock, custom domain) is done from a `wrangler login` OAuth session on a laptop. No credential that can change R2 configuration lives on the VPS. A fifth token, `r2-migration-temp` (all four buckets), exists only for the cutover window and is revoked at the end or on abort (`infra/r2/README.md`). If it still exists after the window, revoke it.
+**Tokens.** One S3 API token per consumer, each Object Read & Write on only the buckets it needs: `motori-app` (motori-images), `talli-app` (motori-images, motori-docs), `dokku-backups` (motori-backups), `openobserve` (motori-observability). Bucket configuration (lifecycle, lock, custom domain) is done from a `wrangler login` OAuth session on a laptop. No credential that can change R2 configuration lives on the VPS.
 
 **The account id stays out of git.** The repository is public, so every file in git writes `<ACCOUNT_ID>`. The real endpoint lives in the encrypted `secrets/*.age` files (`dokku-config.sh.age`, `backup-setup.sh.age`, `motori.env.age`), in `secrets/r2-drill.env` on the laptop (the account id and zone id that `infra/r2/provision.sh` reads; the `DRILL_*` token values are removed before the window), and in the dokku configs of `motori`, `talli` and `openobserve`. Rotating the account means all of these.
 
@@ -400,7 +400,7 @@ Bulk `DeleteObjects` against locked objects returns HTTP 200 with an `Errors` ar
 
 **Usage alerts.** Cloudflare Notifications by email, each at 10% of the free allowance: stored bytes above 1 GB, Class A above 100,000 per month, Class B above 1,000,000 per month. Egress from R2 is free. If R2 usage notifications are unavailable, use the account's usage-based billing notification at the lowest accepted amount. Record the alert type, threshold and address when they are created, and run one delivery test.
 
-**The move from Hetzner** runs in one maintenance window. #227 holds the step-by-step runbook, the evidence required at each gate and the abort points. Stored image URLs are rewritten with `infra/r2/rewrite-image-urls.sql`. OpenObserve's old parquet is not copied, so queries over data older than the window return file-not-found until the 30-day retention ages those entries out.
+**The move from Hetzner** copies nothing, because the site had no real users when it happened (#227). The test listings that pointed at Hetzner images are deleted first, so no database row references the old host. The nightly dumps stay behind; the first R2 dump is written by hand right after the switch. OpenObserve's old parquet is not copied, so queries over data older than the switch return file-not-found until the 30-day retention ages those entries out. The switch itself is `just config-apply` and `just backup-setup` with `--no-restart`, the OpenObserve config, then the merge that deploys both apps; the apps stay up throughout. `infra/r2/rewrite-image-urls.sql` stays in the repo for the day a Hetzner URL turns up in the database.
 
 ## Restore from backup
 
