@@ -96,17 +96,25 @@ function Tietosuoja() {
 
 			<section className="mt-8">
 				<h2 className="font-heading text-xl font-semibold text-foreground">
-					5. Alihankkijat ja tietojen siirrotKäytämme seuraavia alihankkijoita henkilötietojen
-					käsittelyssä:
+					5. Alihankkijat ja tietojen siirrot
 				</h2>
 				<div className="mt-3 space-y-3 text-sm text-foreground/80">
-					<p>
-						Hetzner Online GmbH (palvelinhostaus, Saksa) — palvelimet, joilla palvelu toimii Resend
-						Inc. (sähköpostipalvelu, USA) — transaktiosähköpostit kuten rekisteröintivahvistukset
-						Cloudflare Inc. (tietoliikenne, tietoturva ja tiedostojen tallennus, USA) — liikenne
-						kulkee Cloudflaren verkon kautta, ja palveluun ladatut kuvat sekä ajoneuvojen asiakirjat
-						säilytetään Cloudflaren R2-tallennuspalvelussa EU:n alueella
-					</p>
+					<p>Käytämme seuraavia alihankkijoita henkilötietojen käsittelyssä:</p>
+					<ul className="ml-4 list-disc space-y-2">
+						<li>
+							<strong>Hetzner Online GmbH</strong> (palvelinhostaus, Saksa) — palvelimet, joilla
+							palvelu toimii
+						</li>
+						<li>
+							<strong>Resend Inc.</strong> (sähköpostipalvelu, USA) — transaktiosähköpostit kuten
+							rekisteröintivahvistukset
+						</li>
+						<li>
+							<strong>Cloudflare Inc.</strong> (tietoliikenne, tietoturva ja tiedostojen tallennus,
+							USA) — liikenne kulkee Cloudflaren verkon kautta, ja palveluun ladatut kuvat sekä
+							ajoneuvojen asiakirjat säilytetään Cloudflaren R2-tallennuspalvelussa EU:n alueella
+						</li>
+					</ul>
 				</div>
 			</section>
 
