@@ -20,5 +20,4 @@ pre_remove:
 panes:
   - command: <agent>
     focus: true
-  - command: pnpm dev
-    split: vertical
+  - split: horizontal
