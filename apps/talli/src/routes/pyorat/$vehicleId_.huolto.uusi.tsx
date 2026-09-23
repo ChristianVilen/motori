@@ -159,7 +159,7 @@ function NewServiceRecordPage() {
 							handlePhoto(e.target.files?.[0]);
 							e.target.value = "";
 						}}
-						className="text-sm"
+						className="text-base md:text-sm"
 					/>
 					{uploading ? <span className="text-xs text-muted">Ladataan kuvaa…</span> : null}
 				</label>

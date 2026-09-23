@@ -106,7 +106,7 @@ function RenameCell({
 						save();
 					}
 				}}
-				className="rounded border border-input bg-background px-2 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+				className="rounded border border-input bg-background px-2 py-0.5 text-base focus:outline-none focus:ring-1 focus:ring-accent md:text-sm"
 			/>
 			{error ? <span className="text-xs text-destructive">{error}</span> : null}
 		</span>
@@ -169,7 +169,7 @@ function MergeCell({
 				<select
 					value={targetId}
 					onChange={(e) => setTargetId(e.target.value)}
-					className="rounded border border-input bg-background px-2 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-accent"
+					className="rounded border border-input bg-background px-2 py-0.5 text-base focus:outline-none focus:ring-1 focus:ring-accent md:text-xs"
 				>
 					{others.map((o) => (
 						<option key={o.id} value={o.id}>
@@ -348,7 +348,7 @@ function ModelsTable({ models, makes }: { models: AdminModel[]; makes: AdminMake
 				<select
 					value={makeFilter}
 					onChange={(e) => setMakeFilter(e.target.value)}
-					className="rounded-md border border-border bg-white px-3 py-1.5 text-sm"
+					className="rounded-md border border-border bg-white px-3 py-1.5 text-base md:text-sm"
 					aria-label="Filter by make"
 				>
 					<option value="">All makes</option>

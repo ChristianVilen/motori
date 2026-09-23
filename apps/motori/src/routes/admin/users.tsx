@@ -122,7 +122,7 @@ function UsersPage() {
 					value={searchInput}
 					onChange={(e) => setSearchInput(e.target.value)}
 					placeholder="Search by email…"
-					className="rounded-md border border-border bg-white px-3 py-2 text-sm"
+					className="rounded-md border border-border bg-white px-3 py-2 text-base md:text-sm"
 				/>
 				<button
 					type="submit"

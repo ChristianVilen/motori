@@ -1,5 +1,5 @@
 import { ChevronDown, Plus } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { createMake, createModel, getMakes, getModels } from "~/lib/makes";
 import { errorProps, FieldError } from "./sections/shared-fields";
 
@@ -58,6 +58,7 @@ export function MakeModelSelect({
 	const [modelLoading, setModelLoading] = useState(false);
 	const [makeAddError, setMakeAddError] = useState<string | null>(null);
 	const [modelAddError, setModelAddError] = useState<string | null>(null);
+	const [menuBounds, setMenuBounds] = useState({ maxHeight: 320, shift: 0 });
 
 	const makeRef = useRef<HTMLDivElement>(null);
 	const modelRef = useRef<HTMLDivElement>(null);
@@ -107,6 +108,39 @@ export function MakeModelSelect({
 		document.addEventListener("mousedown", onClickOutside);
 		return () => document.removeEventListener("mousedown", onClickOutside);
 	}, []);
+
+	useEffect(() => {
+		if (!makeOpen && !modelOpen) {
+			return;
+		}
+		const anchor = makeOpen ? makeRef.current : modelRef.current;
+		const viewport = window.visualViewport;
+		function updateBounds() {
+			if (anchor) {
+				const visualTop = viewport?.offsetTop ?? 0;
+				const visualBottom = visualTop + (viewport?.height ?? window.innerHeight);
+				const navTop =
+					document.querySelector("nav.fixed.bottom-0")?.getBoundingClientRect().top ?? visualBottom;
+				const anchorTop = anchor.getBoundingClientRect().top;
+				const bottom = Math.min(anchorTop - 4, navTop - 8, visualBottom - 8);
+				setMenuBounds({
+					maxHeight: Math.max(0, bottom - visualTop - 8),
+					shift: Math.max(0, anchorTop - 4 - bottom),
+				});
+			}
+		}
+		updateBounds();
+		window.addEventListener("scroll", updateBounds, { passive: true });
+		window.addEventListener("resize", updateBounds);
+		viewport?.addEventListener("scroll", updateBounds);
+		viewport?.addEventListener("resize", updateBounds);
+		return () => {
+			window.removeEventListener("scroll", updateBounds);
+			window.removeEventListener("resize", updateBounds);
+			viewport?.removeEventListener("scroll", updateBounds);
+			viewport?.removeEventListener("resize", updateBounds);
+		};
+	}, [makeOpen, modelOpen]);
 
 	useEffect(() => {
 		function onClickOutside(e: MouseEvent) {
@@ -191,13 +225,17 @@ export function MakeModelSelect({
 		"flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent";
 
 	const dropdownClass =
-		"absolute left-0 top-full z-10 mt-1 w-max min-w-full rounded-md border border-border bg-card shadow-lg";
+		"absolute bottom-[calc(100%+var(--menu-shift))] z-50 mb-1 flex max-h-[var(--menu-max-height)] w-max min-w-full max-w-[calc(100vw-2rem)] flex-col rounded-md border border-border bg-card shadow-lg md:top-full md:bottom-auto md:mt-1 md:mb-0 md:max-h-none";
+	const menuStyle = {
+		"--menu-max-height": `${menuBounds.maxHeight}px`,
+		"--menu-shift": `${menuBounds.shift}px`,
+	} as CSSProperties;
 
 	const filterInputClass =
-		"w-full rounded border border-input bg-background px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-accent";
+		"w-full rounded border border-input bg-background px-2 py-1 text-base outline-none focus:ring-1 focus:ring-accent md:text-sm";
 
 	const addInputClass =
-		"flex-1 rounded border border-input bg-background px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-accent";
+		"flex-1 rounded border border-input bg-background px-2 py-1 text-base outline-none focus:ring-1 focus:ring-accent md:text-sm";
 
 	return (
 		<div className="grid grid-cols-2 gap-4">
@@ -224,7 +262,7 @@ export function MakeModelSelect({
 				</button>
 
 				{makeOpen ? (
-					<div className={dropdownClass}>
+					<div className={`${dropdownClass} left-0`} style={menuStyle}>
 						<div className="p-2">
 							<input
 								type="text"
@@ -239,7 +277,7 @@ export function MakeModelSelect({
 								className={filterInputClass}
 							/>
 						</div>
-						<ul className="max-h-52 overflow-y-auto">
+						<ul className="min-h-0 overflow-y-auto md:max-h-52">
 							{onMakeClear && selectedMake !== null ? (
 								<li>
 									<button
@@ -367,7 +405,7 @@ export function MakeModelSelect({
 				</button>
 
 				{modelOpen ? (
-					<div className={dropdownClass}>
+					<div className={`${dropdownClass} right-0 md:right-auto md:left-0`} style={menuStyle}>
 						<div className="p-2">
 							<input
 								type="text"
@@ -382,7 +420,7 @@ export function MakeModelSelect({
 								className={filterInputClass}
 							/>
 						</div>
-						<ul className="max-h-52 overflow-y-auto">
+						<ul className="min-h-0 overflow-y-auto md:max-h-52">
 							{selectedModel !== null ? (
 								<li>
 									<button

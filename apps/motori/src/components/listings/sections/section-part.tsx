@@ -98,7 +98,7 @@ export function PartFields({
 								{...errorProps("part_part_category", field.state.meta.errors)}
 								value={field.state.value ?? ""}
 								onChange={(e) => field.handleChange(e.target.value)}
-								className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+								className="h-10 w-full rounded-md border border-input bg-background px-3 text-base text-foreground md:text-sm"
 							>
 								<option value="">{t("form.fields.partCategoryPlaceholder")}</option>
 								{PART_CATEGORIES.map((c) => (

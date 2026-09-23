@@ -106,7 +106,7 @@ export function DocumentsSection({
 							type="file"
 							accept="application/pdf,image/*"
 							data-testid="doc-file-input"
-							className="text-sm"
+							className="text-base md:text-sm"
 							onChange={(e) => {
 								const f = e.target.files?.[0] ?? null;
 								setFile(f);
