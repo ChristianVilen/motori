@@ -3,12 +3,20 @@ import { runCronTasks } from "./cron";
 
 const log = { error: vi.fn() };
 
-function request(token?: string, task?: string): Request {
+// The rate-limit buckets are module state, so each request gets its own IP
+// unless a test pins one.
+let nextIp = 0;
+
+function request(token?: string, task?: string, ip: string | null = `10.0.0.${++nextIp}`): Request {
 	const url = task ? `https://app.test/api/cron?task=${task}` : "https://app.test/api/cron";
-	return new Request(url, {
-		method: "POST",
-		headers: token ? { authorization: `Bearer ${token}` } : undefined,
-	});
+	const headers: Record<string, string> = {};
+	if (token) {
+		headers.authorization = `Bearer ${token}`;
+	}
+	if (ip) {
+		headers["x-forwarded-for"] = ip;
+	}
+	return new Request(url, { method: "POST", headers });
 }
 
 beforeEach(() => {
@@ -94,5 +102,32 @@ describe("runCronTasks", () => {
 		const res = await runCronTasks(request("s3cret"), tasks, log);
 		expect(res.status).toBe(200);
 		expect(await res.json()).toEqual({ boom: { error: "kaboom-string" } });
+	});
+
+	it("returns 429 after 10 requests from one IP, even with the right token", async () => {
+		for (let i = 0; i < 10; i++) {
+			await runCronTasks(request("wrong!", undefined, "203.0.113.1"), {}, log);
+		}
+		const task = vi.fn(async () => ({}));
+		const res = await runCronTasks(request("s3cret", undefined, "203.0.113.1"), { task }, log);
+		expect(res.status).toBe(429);
+		expect(Number(res.headers.get("retry-after"))).toBeGreaterThan(0);
+		expect(task).not.toHaveBeenCalled();
+	});
+
+	it("keeps the limit per IP", async () => {
+		for (let i = 0; i < 10; i++) {
+			await runCronTasks(request("wrong!", undefined, "203.0.113.2"), {}, log);
+		}
+		const res = await runCronTasks(request("s3cret", undefined, "203.0.113.3"), {}, log);
+		expect(res.status).toBe(200);
+	});
+
+	it("limits requests that carry no client IP", async () => {
+		for (let i = 0; i < 10; i++) {
+			await runCronTasks(request("wrong!", undefined, null), {}, log);
+		}
+		const res = await runCronTasks(request("s3cret", undefined, null), {}, log);
+		expect(res.status).toBe(429);
 	});
 });

@@ -97,6 +97,8 @@ Every POST `createServerFn` must include, in order:
 2. `rateLimitMiddleware(max, windowSec, prefix)` — per-IP fixed-window limiter (see `packages/server/src/rate-limit.ts`).
 3. `requireVerifiedEmail()` where the action requires a verified account.
 
+`/api/cron` is a plain route handler, not a `createServerFn`, so it has its own per-IP limit inside `runCronTasks` (`packages/server/src/cron.ts`) instead of `rateLimitMiddleware`.
+
 Enum/union inputs from the client (status, role, type, etc.) must be runtime-validated in the `inputValidator` — TypeScript types are erased at runtime and provide no protection against crafted requests.
 
 Image URLs from the client must pass `isValidImageUrl()` before they are stored (`${STORAGE_PUBLIC_URL}/` prefix or `/api/uploads/`; see Storage).

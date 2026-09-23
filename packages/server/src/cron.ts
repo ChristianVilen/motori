@@ -1,4 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
+import { checkRateLimit, getClientIp } from "./rate-limit";
 
 export type CronTask = () => Promise<Record<string, unknown>>;
 
@@ -7,16 +8,29 @@ type CronLogger = {
 };
 
 /**
- * Shared POST /api/cron handler. Checks the CRON_SECRET Bearer token in
- * constant time, then runs the ?task=<name> from the query string, or every
- * task in the map when none is given. A failing task is logged and reported
- * in the JSON body without stopping the remaining tasks.
+ * Shared POST /api/cron handler. Rate-limits per client IP, checks the
+ * CRON_SECRET Bearer token in constant time, then runs the ?task=<name> from
+ * the query string, or every task in the map when none is given. A failing
+ * task is logged and reported in the JSON body without stopping the remaining
+ * tasks.
  */
 export async function runCronTasks(
 	request: Request,
 	tasks: Record<string, CronTask>,
 	log: CronLogger,
 ): Promise<Response> {
+	// infra/cron/*.crontab sends at most three requests per 15 minutes, so this
+	// only ever stops secret guessing; keep it above that when adding jobs.
+	// Requests with no client IP share one bucket instead of skipping the limit.
+	const ip = getClientIp(request) ?? "unknown";
+	const { allowed, retryAfter } = checkRateLimit(`cron:${ip}`, 10, 15 * 60_000);
+	if (!allowed) {
+		return new Response("Too many requests", {
+			status: 429,
+			headers: { "Retry-After": String(retryAfter) },
+		});
+	}
+
 	const secret = process.env.CRON_SECRET;
 	if (!secret) {
 		return new Response("CRON_SECRET not configured", { status: 500 });

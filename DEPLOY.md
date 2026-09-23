@@ -195,6 +195,14 @@ Cloudflare DNS, both records **proxied (orange cloud)**:
 
 SSL/TLS mode: **Full (strict)**.
 
+**Visitor IP.** With the proxy on, nginx sees a Cloudflare edge IP, and Dokku's nginx passes that on as `X-Forwarded-For`. Every per-IP rate limit, and the listing view count (which counts each visitor once), would then see the edge, not the visitor. Fix it once per VPS:
+
+```bash
+just real-ip-apply
+```
+
+This writes `/etc/nginx/conf.d/cloudflare-real-ip.conf` (`set_real_ip_from` for each Cloudflare range, `real_ip_header CF-Connecting-IP`) and reloads nginx. The header is trusted only from Cloudflare ranges, so a direct request to the VPS cannot spoof it. This also depends on Dokku's default `proxy_set_header X-Forwarded-For $remote_addr` in each app's `nginx.conf`: the apps read the first `X-Forwarded-For` entry, so a template that appends (`$proxy_add_x_forwarded_for`) would let clients set it again. Re-run it when Cloudflare changes its ranges (https://www.cloudflare.com/ips/). With a stale list nothing can be spoofed, but visitors behind a new edge range share that edge's IP, and so its rate limits, until you re-run it.
+
 ### 8. Backups (encrypted nightly + verified restore)
 
 ```bash
@@ -219,6 +227,8 @@ Schedules in `infra/cron/motori.crontab`:
 After changing task names in `apps/motori/src/routes/api/cron.ts`, re-run `just cron-install` on the VPS so the crontab matches the deployed code.
 
 Wrapper script (`/usr/local/bin/motori-cron`) reads `CRON_SECRET` from `dokku config` at runtime and POSTs to `https://motori.fi/api/cron?task=…` via `--resolve 127.0.0.1` (bypassing CF, faster + avoids CF bot rules).
+
+`/api/cron` answers on the public hostnames too. Make `CRON_SECRET` long and random (`openssl rand -hex 32`), a different value per app; the handler also allows only 10 requests per 15 minutes per client IP.
 
 ### 10. Off-VPS secrets backup (age-encrypted)
 
@@ -450,7 +460,7 @@ just make-admin email=user@example.com # promote user to admin
 3. Run Phase 1 (cloud-init bootstrap). Volume auto-mounts via fstab.
 4. Run Phase 2 (Dokku install). The pre-existing data dir is now under the freshly-installed dokku-postgres — **import the latest backup instead of trusting the pre-existing data** unless you've verified it matches your latest backup.
 5. Phase 3 (postgres + app create + link). If you imported from backup, skip create and use `dokku postgres:import`.
-6. `just config-apply` (env), `just certs-apply` (TLS), `just backup-setup` (backups), `just cron-install` (crons).
+6. `just config-apply` (env), `just certs-apply` (TLS), `just backup-setup` (backups), `just cron-install` (crons), `just real-ip-apply` (visitor IP).
 7. `just deploy`. Release phase runs migrations against the restored DB.
 8. Update Cloudflare DNS A/AAAA records to the new VPS IPs.
 
