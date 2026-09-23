@@ -222,7 +222,7 @@ function ReportsTab({
 				<select
 					value={reportStatus}
 					onChange={(e) => onStatusChange(e.target.value as ReportStatus)}
-					className="rounded-md border border-border bg-white px-3 py-2 text-sm"
+					className="rounded-md border border-border bg-white px-3 py-2 text-base md:text-sm"
 					aria-label="Filter by status"
 				>
 					<option value="pending">Pending</option>
@@ -293,7 +293,7 @@ function ReportsTab({
 													value={adminNote}
 													onChange={(e) => setAdminNote(e.target.value)}
 													placeholder="Admin note (optional)"
-													className="rounded border border-border px-2 py-1 text-xs"
+													className="rounded border border-border px-2 py-1 text-base md:text-xs"
 												/>
 												<div className="flex gap-1">
 													<button

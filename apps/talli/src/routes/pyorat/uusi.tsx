@@ -168,7 +168,7 @@ function NewVehiclePage() {
 						type="file"
 						accept="image/jpeg,image/png,image/webp"
 						onChange={(e) => handlePhoto(e.target.files?.[0])}
-						className="text-sm"
+						className="text-base md:text-sm"
 					/>
 					{uploading ? <span className="text-xs text-muted">Ladataan kuvaa…</span> : null}
 					{photo ? <img src={photo.thumbnail_url} alt="" className="mt-2 h-24 rounded" /> : null}
