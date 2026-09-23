@@ -220,6 +220,8 @@ After changing task names in `apps/motori/src/routes/api/cron.ts`, re-run `just 
 
 Wrapper script (`/usr/local/bin/motori-cron`) reads `CRON_SECRET` from `dokku config` at runtime and POSTs to `https://motori.fi/api/cron?task=…` via `--resolve 127.0.0.1` (bypassing CF, faster + avoids CF bot rules).
 
+`/api/cron` answers on the public hostnames too. Make `CRON_SECRET` long and random (`openssl rand -hex 32`), a different value per app; the handler also allows only 10 requests per 15 minutes per client IP.
+
 ### 10. Off-VPS secrets backup (age-encrypted)
 
 ```bash
