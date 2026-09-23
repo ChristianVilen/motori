@@ -52,7 +52,7 @@ After schema changes: add a new migration file, run `db:migrate`, then `db:codeg
 
 ### Routing
 
-File-based under `apps/motori/src/routes/`. `routeTree.gen.ts` is auto-generated — never edit. `__root.tsx` owns the HTML shell, nav, fonts, and 404 component. Dynamic segments use `$param` (e.g. `listings/$listingId.tsx`); the trailing-underscore variant `$listingId_.edit.tsx` is a sibling route, not nested.
+File-based under `apps/motori/src/routes/`. Both apps' `routeTree.gen.ts` files are generated. Do not edit them by hand; commit changes produced by the route generator. `__root.tsx` owns the HTML shell, nav, fonts, and 404 component. Dynamic segments use `$param` (e.g. `listings/$listingId.tsx`); the trailing-underscore variant `$listingId_.edit.tsx` is a sibling route, not nested.
 
 Hydration signal: `__root.tsx` sets `data-hydrated="true"` on `<html>` after mount — e2e tests must wait for this before interacting, otherwise clicks fire before React attaches handlers and forms do native submits.
 

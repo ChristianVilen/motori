@@ -59,7 +59,7 @@ export const Route = createRootRoute({
 					) : null}
 					{process.env.NODE_ENV !== "production" && (
 						<pre className="mt-4 max-w-lg overflow-auto rounded bg-muted-light p-3 text-left text-xs">
-							{error.message}
+							{error instanceof Error ? error.message : String(error)}
 						</pre>
 					)}
 					<a
