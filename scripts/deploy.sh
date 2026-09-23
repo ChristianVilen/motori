@@ -33,34 +33,37 @@ fi
 
 git push --force "dokku@motori:$app" "$sha:refs/heads/main"
 
-# Check through the public path, so this covers Cloudflare and nginx too, not just
-# the container. The query string gets past any Cloudflare cache of /api/health.
+# Ask the host itself, over the same Tailscale connection as everything else here,
+# rather than fetching the public URL. Cloudflare's Bot Fight Mode answers a GitHub
+# runner with a managed challenge, which curl cannot solve, so a public check
+# returns 403 whatever the app is doing. On the free plan no rule can skip it: a
+# custom skip rule matched our own laptop and never applied to the runner
+# (2026-09-23, DEPLOY.md §5b). --resolve pins the host to loopback, so nginx picks
+# the right vhost and the request never leaves the machine.
 # Retry: the old container serves for a moment while Dokku swaps them over, so an
 # early answer can be a healthy 200 carrying the previous version.
 health_url="https://$public_host/api/health?sha=$sha"
+probe="curl -sS -k --max-time 10 -w '\n%{http_code}' --resolve $public_host:443:127.0.0.1 '$health_url'"
 for attempt in $(seq 1 6); do
-	response=$(curl -sS --max-time 10 -w '\n%{http_code}' "$health_url" 2>/dev/null) || response=$'\n000'
-	status=${response##*$'\n'}
+	response=$(ssh dokku@motori "$probe" 2>/dev/null) || response=$'\n000'
+	http_status=${response##*$'\n'}
 	body=${response%$'\n'*}
 	version=$(jq -r '.version // empty' <<<"$body" 2>/dev/null || true)
-	if [ "$status" = "200" ] && [ "$version" = "$short" ]; then
+	if [ "$http_status" = "200" ] && [ "$version" = "$short" ]; then
 		break
 	fi
 	[ "$attempt" = 6 ] || sleep 5
 done
 
-if [ "$status" != "200" ]; then
-	echo "error: $health_url returned HTTP $status" >&2
-	if [ "$status" = "403" ]; then
-		# Seen on 2026-09-23: every deploy reported failure while the app was live.
-		echo "  A 403 here is Cloudflare, not the app. Runners sit on datacenter IPs that bot" >&2
-		echo "  protection blocks. The WAF skip rule for /api/health is in DEPLOY.md §5b;" >&2
-		echo "  confirm under Security > Events in the Cloudflare dashboard." >&2
-	fi
+if [ "$http_status" != "200" ]; then
+	echo "error: $app answered HTTP $http_status on $public_host/api/health (asked on the host)" >&2
+	echo "  body: ${body:-<empty>}" >&2
+	echo "  000 means the host could not be reached at all; 503 means the app is up but its database is not." >&2
 	exit 1
 fi
 if [ "$version" != "$short" ]; then
-	echo "error: $public_host still reports version $version, expected $short" >&2
+	echo "error: $app still reports version ${version:-<none>}, expected $short" >&2
+	echo "  an empty version means the running build predates the version field; deploy again." >&2
 	exit 1
 fi
 
