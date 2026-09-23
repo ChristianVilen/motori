@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
@@ -34,6 +35,20 @@ const opencvDepWithoutSourcemap = {
 	},
 };
 
+// Dokku sets GIT_REV to the pushed commit; its builds have no .git directory.
+const appVersion = (() => {
+	if (process.env.GIT_REV) {
+		return process.env.GIT_REV.slice(0, 7);
+	}
+	try {
+		return execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] })
+			.toString()
+			.trim();
+	} catch {
+		return "dev";
+	}
+})();
+
 export default defineConfig({
 	server: {
 		port: Number(process.env.PORT) || 3001,
@@ -52,6 +67,7 @@ export default defineConfig({
 		"process.env.BETTER_AUTH_URL": JSON.stringify(
 			process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
 		),
+		__APP_VERSION__: JSON.stringify(appVersion),
 	},
 	resolve: {
 		alias: {

@@ -6,9 +6,10 @@ import react from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
 
+// Dokku sets GIT_REV to the pushed commit; its builds have no .git directory.
 const appVersion = (() => {
-	if (process.env.SOURCE_VERSION) {
-		return process.env.SOURCE_VERSION.slice(0, 7);
+	if (process.env.GIT_REV) {
+		return process.env.GIT_REV.slice(0, 7);
 	}
 	try {
 		return execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] })

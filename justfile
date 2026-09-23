@@ -34,9 +34,12 @@ status:
 
 # --- Deploy ---
 
-# Deploy current local main to Dokku (Procfile release runs migrations)
+# Deploy origin/main to Dokku and check that it went live (Procfile release runs migrations)
 deploy:
-    git push dokku main
+    scripts/deploy.sh motori motori.fi
+
+deploy-talli:
+    scripts/deploy.sh talli talli.motori.fi
 
 # Restart app (no rebuild)
 restart:
@@ -126,6 +129,10 @@ cron-install:
     scp infra/cron/talli.crontab {{host}}:/etc/cron.d/talli
     ssh {{host}} "chmod 755 /usr/local/bin/motori-cron /usr/local/bin/talli-cron && chmod 644 /etc/cron.d/motori /etc/cron.d/talli"
     @echo "✓ cron installed; check with: ssh {{host}} 'cat /etc/cron.d/motori /etc/cron.d/talli'"
+
+# Make nginx pass the visitor IP (not the Cloudflare edge IP) to every app; re-run when Cloudflare's ranges change
+real-ip-apply:
+    ssh {{host}} bash < infra/nginx/cloudflare-real-ip.sh
 
 # Decrypt secrets/certs/*.age, build a tarball, and install on Dokku as the app's TLS cert
 certs-apply:

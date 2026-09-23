@@ -11,7 +11,7 @@ Production runs on a single Hetzner VPS as a Dokku app using the Heroku Node bui
   - `motori-backups` — encrypted nightly DB dumps, private, 30-day expiry + 14-day lock
   - `motori-docs` — talli's per-vehicle documents (rekisteriote, insurance), private, no public read (§12)
   - `motori-observability` — OpenObserve parquet, private (§11)
-- **Deploy:** automatic via GitHub Actions on push to `main` (after CI passes). Manual fallback: `just deploy` (= `git push dokku main`)
+- **Deploy:** automatic via GitHub Actions on push to `main` (after CI passes). Manual fallback: `just deploy` / `just deploy-talli` (run `scripts/deploy.sh`, the same checks as CI, §5b)
 - **Migrations:** auto-run via Procfile `release` phase (`pnpm db:migrate`)
 - **Secrets:** age-encrypted in `secrets/*.age`, decrypt key at `~/.config/sops/age/keys.txt`
 
@@ -103,15 +103,17 @@ rm secrets/dokku-config.sh   # keep only the .age in git
 
 ```bash
 just add-remote <your-vps-ip>      # one-time, registers `dokku` git remote
-just deploy                        # = git push dokku main
+git push dokku main
 just logs                          # tail
 ```
 
 Smoke test: `curl -kI --resolve motori.fi:443:<ip> https://motori.fi` → 200.
 
+Use a plain `git push` here, not `just deploy`. `scripts/deploy.sh` needs the Tailscale host `motori` and checks the public `https://motori.fi`, and neither works before the DNS cutover (§7).
+
 ### 5b. CI/CD deploy (GitHub Actions over Tailscale)
 
-After the first manual deploy works, hand off recurring deploys to GHA. The `deploy` job joins our tailnet (UFW only allows port 22 from `tailscale0`) and runs `git push dokku motori:motori` from the runner once `lint`, `format`, `typecheck`, `test`, and `e2e` all pass.
+After the first manual deploy works, hand off recurring deploys to GHA. The `deploy` job joins our tailnet (UFW only allows port 22 from `tailscale0`) and pushes `main` to the `motori` and `talli` Dokku apps from the runner once `lint`, `format`, `typecheck`, `test`, `e2e`, and `e2e-talli` all pass.
 
 One-time setup:
 
@@ -155,7 +157,7 @@ remotes must use the scp-style path (`dokku@motori:motori`, resolving to `/home/
 
 Tailscale admin → Settings → OAuth clients → **Generate OAuth client**. Scopes: `auth_keys` (write), tags: `tag:ci`. Copy the client ID and secret.
 
-**4. Add four GitHub repo secrets** (Settings → Secrets and variables → Actions):
+**4. Add three GitHub repo secrets** (Settings → Secrets and variables → Actions):
 
 | Name                    | Value                                                  |
 |-------------------------|--------------------------------------------------------|
@@ -172,6 +174,33 @@ shred -u /tmp/dokku_deploy /tmp/dokku_deploy.pub
 The Dokku host is reached as `dokku@motori` over Tailscale MagicDNS — no public IP or static host key needed.
 
 To revoke deploy access later: `ssh root@motori "dokku ssh-keys:remove gha"` and revoke the OAuth client in the Tailscale admin.
+
+**What the deploy job checks**
+
+A failed push used to show up only as a red job in Actions, and it once went unnoticed for a month (issue #250). The job runs `scripts/deploy.sh` once for each app, and `just deploy` / `just deploy-talli` run the same script. For each app, the script:
+
+- Deploys `origin/main`. In CI, if `main` has moved past the commit of the run, it skips the deploy, because the run for the newer commit deploys it. So a re-run of an old failed job cannot force-push an old commit over a newer deploy.
+- Fails if `dokku apps:report <app>` shows `App locked: true`. The `deploy-production` concurrency group stops two CI deploys at the same time, so a lock at this point is stale. The one exception is a manual deploy that is running now.
+- After the push, reads `version` from `https://<host>/api/health` and fails if the version is not the short SHA of the pushed commit. The build takes the version from `GIT_REV`, which Dokku sets to the pushed commit before the build starts.
+- Sets `SOURCE_VERSION` only after that check passes. This makes `dokku config:get <app> SOURCE_VERSION` the commit that production actually runs. Before this change, CI set it before the push, so it named the newest commit even when the push was rejected.
+
+Each deploy step in CI has a 20 minute timeout, and the whole job has 60 minutes. If a step fails, the job opens a "Deploy failed" issue assigned to the repo owner, or adds a comment to the one that is already open. Close that issue after the next deploy succeeds. Runs on `main` are never cancelled by a newer push, because a cancelled job skips that report.
+
+**Stale deploy lock**
+
+Symptom: the push fails with `motori currently has a deploy lock in place`, or the lock check fails. The last time, `plugn trigger check-deploy` hung after a healthy deploy and held the lock for 33 days. Recovery, as root on the host:
+
+```bash
+ps -eo pid,etime,args | grep -E 'dokku|plugn' | grep -v grep   # find the old deploy tree
+kill <pid> ...                                                  # kill that tree
+docker ps -a --format '{{.Names}} {{.CreatedAt}}' | grep upcoming
+docker rm -f <app>.web.1.upcoming-<n>                          # remove the orphan container, if there is one
+dokku apps:report <app> | grep 'App locked'                    # should say false
+```
+
+If it still says `true`, make sure that no deploy is running (`ps` as above), then run `dokku apps:unlock <app>`. Last time, killing the tree released the lock, and `apps:unlock` then only reported "Unable to remove deploy lock".
+
+Then re-run the failed job in Actions, or run `just deploy`.
 
 ### 6. TLS
 
@@ -194,6 +223,14 @@ Cloudflare DNS, both records **proxied (orange cloud)**:
 | AAAA | www       | `<vps-ipv6>`         |
 
 SSL/TLS mode: **Full (strict)**.
+
+**Visitor IP.** With the proxy on, nginx sees a Cloudflare edge IP, and Dokku's nginx passes that on as `X-Forwarded-For`. Every per-IP rate limit, and the listing view count (which counts each visitor once), would then see the edge, not the visitor. Fix it once per VPS:
+
+```bash
+just real-ip-apply
+```
+
+This writes `/etc/nginx/conf.d/cloudflare-real-ip.conf` (`set_real_ip_from` for each Cloudflare range, `real_ip_header CF-Connecting-IP`) and reloads nginx. The header is trusted only from Cloudflare ranges, so a direct request to the VPS cannot spoof it. This also depends on Dokku's default `proxy_set_header X-Forwarded-For $remote_addr` in each app's `nginx.conf`: the apps read the first `X-Forwarded-For` entry, so a template that appends (`$proxy_add_x_forwarded_for`) would let clients set it again. Re-run it when Cloudflare changes its ranges (https://www.cloudflare.com/ips/). With a stale list nothing can be spoofed, but visitors behind a new edge range share that edge's IP, and so its rate limits, until you re-run it.
 
 ### 8. Backups (encrypted nightly + verified restore)
 
@@ -219,6 +256,8 @@ Schedules in `infra/cron/motori.crontab`:
 After changing task names in `apps/motori/src/routes/api/cron.ts`, re-run `just cron-install` on the VPS so the crontab matches the deployed code.
 
 Wrapper script (`/usr/local/bin/motori-cron`) reads `CRON_SECRET` from `dokku config` at runtime and POSTs to `https://motori.fi/api/cron?task=…` via `--resolve 127.0.0.1` (bypassing CF, faster + avoids CF bot rules).
+
+`/api/cron` answers on the public hostnames too. Make `CRON_SECRET` long and random (`openssl rand -hex 32`), a different value per app; the handler also allows only 10 requests per 15 minutes per client IP.
 
 ### 10. Off-VPS secrets backup (age-encrypted)
 
@@ -450,8 +489,8 @@ just make-admin email=user@example.com # promote user to admin
 3. Run Phase 1 (cloud-init bootstrap). Volume auto-mounts via fstab.
 4. Run Phase 2 (Dokku install). The pre-existing data dir is now under the freshly-installed dokku-postgres — **import the latest backup instead of trusting the pre-existing data** unless you've verified it matches your latest backup.
 5. Phase 3 (postgres + app create + link). If you imported from backup, skip create and use `dokku postgres:import`.
-6. `just config-apply` (env), `just certs-apply` (TLS), `just backup-setup` (backups), `just cron-install` (crons).
-7. `just deploy`. Release phase runs migrations against the restored DB.
+6. `just config-apply` (env), `just certs-apply` (TLS), `just backup-setup` (backups), `just cron-install` (crons), `just real-ip-apply` (visitor IP).
+7. `git push dokku main` (not `just deploy`: DNS still points to the lost VPS, §5). Release phase runs migrations against the restored DB.
 8. Update Cloudflare DNS A/AAAA records to the new VPS IPs.
 
 If the volume is also lost, restore from the latest object-storage backup (see "Restore from backup" above).
