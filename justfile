@@ -34,9 +34,12 @@ status:
 
 # --- Deploy ---
 
-# Deploy current local main to Dokku (Procfile release runs migrations)
+# Deploy origin/main to Dokku and check that it went live (Procfile release runs migrations)
 deploy:
-    git push dokku main
+    scripts/deploy.sh motori motori.fi
+
+deploy-talli:
+    scripts/deploy.sh talli talli.motori.fi
 
 # Restart app (no rebuild)
 restart:

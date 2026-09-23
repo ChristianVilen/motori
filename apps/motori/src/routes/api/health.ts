@@ -8,7 +8,7 @@ export const Route = createFileRoute("/api/health")({
 				try {
 					const { db } = await import("~/lib/db/index");
 					await db.selectFrom("user").select(sql`1`.as("ok")).limit(1).execute();
-					return new Response(JSON.stringify({ status: "ok" }), {
+					return new Response(JSON.stringify({ status: "ok", version: __APP_VERSION__ }), {
 						headers: { "Content-Type": "application/json" },
 					});
 				} catch {
