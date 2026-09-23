@@ -33,11 +33,34 @@ fi
 
 git push --force "dokku@motori:$app" "$sha:refs/heads/main"
 
-# The query string gets past any Cloudflare cache of /api/health.
-version=$(curl -fsS --max-time 10 --retry 5 --retry-all-errors --retry-delay 5 \
-	"https://$public_host/api/health?sha=$sha" | jq -r .version)
+# Check through the public path, so this covers Cloudflare and nginx too, not just
+# the container. The query string gets past any Cloudflare cache of /api/health.
+# Retry: the old container serves for a moment while Dokku swaps them over, so an
+# early answer can be a healthy 200 carrying the previous version.
+health_url="https://$public_host/api/health?sha=$sha"
+for attempt in $(seq 1 6); do
+	response=$(curl -sS --max-time 10 -w '\n%{http_code}' "$health_url" 2>/dev/null) || response=$'\n000'
+	status=${response##*$'\n'}
+	body=${response%$'\n'*}
+	version=$(jq -r '.version // empty' <<<"$body" 2>/dev/null || true)
+	if [ "$status" = "200" ] && [ "$version" = "$short" ]; then
+		break
+	fi
+	[ "$attempt" = 6 ] || sleep 5
+done
+
+if [ "$status" != "200" ]; then
+	echo "error: $health_url returned HTTP $status" >&2
+	if [ "$status" = "403" ]; then
+		# Seen on 2026-09-23: every deploy reported failure while the app was live.
+		echo "  A 403 here is Cloudflare, not the app. Runners sit on datacenter IPs that bot" >&2
+		echo "  protection blocks. The WAF skip rule for /api/health is in DEPLOY.md §5b;" >&2
+		echo "  confirm under Security > Events in the Cloudflare dashboard." >&2
+	fi
+	exit 1
+fi
 if [ "$version" != "$short" ]; then
-	echo "error: $public_host reports version $version, expected $short" >&2
+	echo "error: $public_host still reports version $version, expected $short" >&2
 	exit 1
 fi
 
