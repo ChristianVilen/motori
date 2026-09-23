@@ -95,7 +95,7 @@ function StatsPage() {
 						<select
 							value={period ?? "7d"}
 							onChange={(e) => navigate({ search: { period: e.target.value as Period } })}
-							className="rounded border border-border bg-white px-1.5 py-0.5 text-xs text-muted"
+							className="rounded border border-border bg-white px-1.5 py-0.5 text-base text-muted md:text-xs"
 							aria-label="Signups time period"
 						>
 							{Object.entries(PERIODS).map(([key, { label }]) => (
