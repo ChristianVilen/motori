@@ -9,43 +9,28 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AsetuksetRouteImport } from './routes/asetukset'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PyoratUusiRouteImport } from './routes/pyorat/uusi'
-import { Route as PyoratVehicleIdRouteImport } from './routes/pyorat/$vehicleId'
-import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as AsetuksetRouteImport } from './routes/asetukset'
 import { Route as ApiCronRouteImport } from './routes/api/cron'
-import { Route as PyoratVehicleIdSkannaaRouteImport } from './routes/pyorat/$vehicleId_.skannaa'
-import { Route as PyoratVehicleIdMuistutuksetRouteImport } from './routes/pyorat/$vehicleId_.muistutukset'
-import { Route as ApiUploadsSplatRouteImport } from './routes/api/uploads/$'
-import { Route as ApiImagesUploadRouteImport } from './routes/api/images/upload'
-import { Route as ApiDocumentsUploadRouteImport } from './routes/api/documents/upload'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as PyoratVehicleIdRouteImport } from './routes/pyorat/$vehicleId'
+import { Route as PyoratUusiRouteImport } from './routes/pyorat/uusi'
 import { Route as ApiDocumentsDocumentIdRouteImport } from './routes/api/documents/$documentId'
+import { Route as ApiDocumentsUploadRouteImport } from './routes/api/documents/upload'
+import { Route as ApiImagesUploadRouteImport } from './routes/api/images/upload'
+import { Route as ApiUploadsSplatRouteImport } from './routes/api/uploads/$'
+import { Route as PyoratVehicleIdMuistutuksetRouteImport } from './routes/pyorat/$vehicleId_.muistutukset'
+import { Route as PyoratVehicleIdSkannaaRouteImport } from './routes/pyorat/$vehicleId_.skannaa'
 import { Route as PyoratVehicleIdHuoltoUusiRouteImport } from './routes/pyorat/$vehicleId_.huolto.uusi'
 
-const AsetuksetRoute = AsetuksetRouteImport.update({
-  id: '/asetukset',
-  path: '/asetukset',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PyoratUusiRoute = PyoratUusiRouteImport.update({
-  id: '/pyorat/uusi',
-  path: '/pyorat/uusi',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PyoratVehicleIdRoute = PyoratVehicleIdRouteImport.update({
-  id: '/pyorat/$vehicleId',
-  path: '/pyorat/$vehicleId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiHealthRoute = ApiHealthRouteImport.update({
-  id: '/api/health',
-  path: '/api/health',
+const AsetuksetRoute = AsetuksetRouteImport.update({
+  id: '/asetukset',
+  path: '/asetukset',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCronRoute = ApiCronRouteImport.update({
@@ -53,9 +38,39 @@ const ApiCronRoute = ApiCronRouteImport.update({
   path: '/api/cron',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PyoratVehicleIdSkannaaRoute = PyoratVehicleIdSkannaaRouteImport.update({
-  id: '/pyorat/$vehicleId_/skannaa',
-  path: '/pyorat/$vehicleId/skannaa',
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PyoratVehicleIdRoute = PyoratVehicleIdRouteImport.update({
+  id: '/pyorat/$vehicleId',
+  path: '/pyorat/$vehicleId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PyoratUusiRoute = PyoratUusiRouteImport.update({
+  id: '/pyorat/uusi',
+  path: '/pyorat/uusi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDocumentsDocumentIdRoute = ApiDocumentsDocumentIdRouteImport.update({
+  id: '/api/documents/$documentId',
+  path: '/api/documents/$documentId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDocumentsUploadRoute = ApiDocumentsUploadRouteImport.update({
+  id: '/api/documents/upload',
+  path: '/api/documents/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiImagesUploadRoute = ApiImagesUploadRouteImport.update({
+  id: '/api/images/upload',
+  path: '/api/images/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiUploadsSplatRoute = ApiUploadsSplatRouteImport.update({
+  id: '/api/uploads/$',
+  path: '/api/uploads/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PyoratVehicleIdMuistutuksetRoute =
@@ -64,24 +79,9 @@ const PyoratVehicleIdMuistutuksetRoute =
     path: '/pyorat/$vehicleId/muistutukset',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiUploadsSplatRoute = ApiUploadsSplatRouteImport.update({
-  id: '/api/uploads/$',
-  path: '/api/uploads/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiImagesUploadRoute = ApiImagesUploadRouteImport.update({
-  id: '/api/images/upload',
-  path: '/api/images/upload',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiDocumentsUploadRoute = ApiDocumentsUploadRouteImport.update({
-  id: '/api/documents/upload',
-  path: '/api/documents/upload',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiDocumentsDocumentIdRoute = ApiDocumentsDocumentIdRouteImport.update({
-  id: '/api/documents/$documentId',
-  path: '/api/documents/$documentId',
+const PyoratVehicleIdSkannaaRoute = PyoratVehicleIdSkannaaRouteImport.update({
+  id: '/pyorat/$vehicleId_/skannaa',
+  path: '/pyorat/$vehicleId/skannaa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PyoratVehicleIdHuoltoUusiRoute =
@@ -203,13 +203,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/asetukset': {
-      id: '/asetukset'
-      path: '/asetukset'
-      fullPath: '/asetukset'
-      preLoaderRoute: typeof AsetuksetRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -217,25 +210,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pyorat/uusi': {
-      id: '/pyorat/uusi'
-      path: '/pyorat/uusi'
-      fullPath: '/pyorat/uusi'
-      preLoaderRoute: typeof PyoratUusiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pyorat/$vehicleId': {
-      id: '/pyorat/$vehicleId'
-      path: '/pyorat/$vehicleId'
-      fullPath: '/pyorat/$vehicleId'
-      preLoaderRoute: typeof PyoratVehicleIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/health': {
-      id: '/api/health'
-      path: '/api/health'
-      fullPath: '/api/health'
-      preLoaderRoute: typeof ApiHealthRouteImport
+    '/asetukset': {
+      id: '/asetukset'
+      path: '/asetukset'
+      fullPath: '/asetukset'
+      preLoaderRoute: typeof AsetuksetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/cron': {
@@ -245,32 +224,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCronRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pyorat/$vehicleId_/skannaa': {
-      id: '/pyorat/$vehicleId_/skannaa'
-      path: '/pyorat/$vehicleId/skannaa'
-      fullPath: '/pyorat/$vehicleId/skannaa'
-      preLoaderRoute: typeof PyoratVehicleIdSkannaaRouteImport
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pyorat/$vehicleId_/muistutukset': {
-      id: '/pyorat/$vehicleId_/muistutukset'
-      path: '/pyorat/$vehicleId/muistutukset'
-      fullPath: '/pyorat/$vehicleId/muistutukset'
-      preLoaderRoute: typeof PyoratVehicleIdMuistutuksetRouteImport
+    '/pyorat/$vehicleId': {
+      id: '/pyorat/$vehicleId'
+      path: '/pyorat/$vehicleId'
+      fullPath: '/pyorat/$vehicleId'
+      preLoaderRoute: typeof PyoratVehicleIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/uploads/$': {
-      id: '/api/uploads/$'
-      path: '/api/uploads/$'
-      fullPath: '/api/uploads/$'
-      preLoaderRoute: typeof ApiUploadsSplatRouteImport
+    '/pyorat/uusi': {
+      id: '/pyorat/uusi'
+      path: '/pyorat/uusi'
+      fullPath: '/pyorat/uusi'
+      preLoaderRoute: typeof PyoratUusiRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/images/upload': {
-      id: '/api/images/upload'
-      path: '/api/images/upload'
-      fullPath: '/api/images/upload'
-      preLoaderRoute: typeof ApiImagesUploadRouteImport
+    '/api/documents/$documentId': {
+      id: '/api/documents/$documentId'
+      path: '/api/documents/$documentId'
+      fullPath: '/api/documents/$documentId'
+      preLoaderRoute: typeof ApiDocumentsDocumentIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/documents/upload': {
@@ -280,11 +259,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDocumentsUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/documents/$documentId': {
-      id: '/api/documents/$documentId'
-      path: '/api/documents/$documentId'
-      fullPath: '/api/documents/$documentId'
-      preLoaderRoute: typeof ApiDocumentsDocumentIdRouteImport
+    '/api/images/upload': {
+      id: '/api/images/upload'
+      path: '/api/images/upload'
+      fullPath: '/api/images/upload'
+      preLoaderRoute: typeof ApiImagesUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/uploads/$': {
+      id: '/api/uploads/$'
+      path: '/api/uploads/$'
+      fullPath: '/api/uploads/$'
+      preLoaderRoute: typeof ApiUploadsSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pyorat/$vehicleId_/muistutukset': {
+      id: '/pyorat/$vehicleId_/muistutukset'
+      path: '/pyorat/$vehicleId/muistutukset'
+      fullPath: '/pyorat/$vehicleId/muistutukset'
+      preLoaderRoute: typeof PyoratVehicleIdMuistutuksetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pyorat/$vehicleId_/skannaa': {
+      id: '/pyorat/$vehicleId_/skannaa'
+      path: '/pyorat/$vehicleId/skannaa'
+      fullPath: '/pyorat/$vehicleId/skannaa'
+      preLoaderRoute: typeof PyoratVehicleIdSkannaaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pyorat/$vehicleId_/huolto/uusi': {

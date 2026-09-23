@@ -83,7 +83,7 @@ jobs:
     # is downloaded at job time — apt-get against a slow Ubuntu mirror used to eat
     # the whole timeout. Keep the tag in sync with the pinned @playwright/test.
     container:
-      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
       options: --ipc=host
     # Normal job time is 1.5-3 min; a wedged runner otherwise hangs forever,
     # never uploads the report artifact, and silently blocks deploy.
@@ -126,7 +126,7 @@ jobs:
   e2e-talli:
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
       options: --ipc=host
     timeout-minutes: 10
     services:
