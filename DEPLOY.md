@@ -165,24 +165,7 @@ Tailscale admin → Settings → OAuth clients → **Generate OAuth client**. Sc
 | `TS_OAUTH_CLIENT_ID`    | OAuth client ID from step 3                            |
 | `TS_OAUTH_SECRET`       | OAuth client secret from step 3                        |
 
-**5. Cloudflare: let the health check through**
-
-The deploy verifies through the public URL, so Cloudflare sees a request from a GitHub runner. Runners use datacenter IP ranges, which bot protection blocks with a `403` before nginx ever sees them. On 2026-09-23 this made every deploy report failure while the app was live.
-
-On the `motori.fi` zone: Security → WAF → Custom rules → Create rule.
-
-| Field | Value |
-|---|---|
-| Name | `health check skip` |
-| Expression | `(http.request.uri.path eq "/api/health")` |
-| Action | **Skip** |
-| Skip | All remaining custom rules, plus the bot protection components the plan offers (Bot Fight Mode / Super Bot Fight Mode) |
-
-Matching on path alone covers `talli.motori.fi` too, since the rule is zone-wide. The route exposes only `{status, version}` and reads one row, so it is safe to leave open.
-
-When a deploy fails with `403`, check Security → Events filtered to `/api/health` to see which rule fired.
-
-**6. Clean up locally**
+**5. Clean up locally**
 
 ```bash
 shred -u /tmp/dokku_deploy /tmp/dokku_deploy.pub
@@ -198,7 +181,9 @@ A failed push used to show up only as a red job in Actions, and it once went unn
 
 - Deploys `origin/main`. In CI, if `main` has moved past the commit of the run, it skips the deploy, because the run for the newer commit deploys it. So a re-run of an old failed job cannot force-push an old commit over a newer deploy.
 - Fails if `dokku apps:report <app>` shows `App locked: true`. The `deploy-production` concurrency group stops two CI deploys at the same time, so a lock at this point is stale. The one exception is a manual deploy that is running now.
-- After the push, reads `version` from `https://<host>/api/health` and fails if the version is not the short SHA of the pushed commit. The build takes the version from `GIT_REV`, which Dokku sets to the pushed commit before the build starts. It retries for about half a minute, because the old container answers for a moment while Dokku swaps them over, so an early `200` can still carry the previous version. A non-`200` is reported with its status code, and a `403` prints where to look, since that one means Cloudflare rather than the app (step 5 above).
+- After the push, reads `version` from `/api/health` and fails if it is not the short SHA of the pushed commit. The build takes the version from `GIT_REV`, which Dokku sets to the pushed commit before the build starts. It retries for about half a minute, because the old container answers for a moment while Dokku swaps them over, so an early `200` can still carry the previous version.
+
+  **The check asks the host, not the public URL.** It runs `curl --resolve <host>:443:127.0.0.1` over the same Tailscale ssh connection as the rest of the script, so the request reaches the host's own nginx and never leaves the machine. Fetching the public URL from CI does not work: Cloudflare's Bot Fight Mode answers a GitHub runner with a managed challenge, curl cannot solve it, and the deploy sees `403` however healthy the app is. On the free plan nothing can be excluded from it. We tried a custom rule (`(http.request.uri.path eq "/api/health")`, action Skip) on 2026-09-23 and Security → Events showed it matching our own laptop while the runner, on `AS8075 Microsoft`, was challenged by Bot Fight Mode as a separate service. The trade is deliberate: the check no longer covers the Cloudflare edge, only nginx and the app, which is what a deploy can actually break.
 - Sets `SOURCE_VERSION` only after that check passes. This makes `dokku config:get <app> SOURCE_VERSION` the commit that production actually runs. Before this change, CI set it before the push, so it named the newest commit even when the push was rejected.
 
 Each deploy step in CI has a 20 minute timeout, and the whole job has 60 minutes. If a step fails, the job opens a "Deploy failed" issue assigned to the repo owner, or adds a comment to the one that is already open. Close that issue after the next deploy succeeds. Runs on `main` are never cancelled by a newer push, because a cancelled job skips that report.
