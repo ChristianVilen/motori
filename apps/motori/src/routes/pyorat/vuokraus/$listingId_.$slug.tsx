@@ -265,6 +265,7 @@ function BookingSidebar({
 }) {
 	const { t } = useTranslation("listings");
 	const navigate = useNavigate();
+	const [startingConversation, setStartingConversation] = useState(false);
 	const isOwner = session?.user.id === listing.owner_id;
 
 	if (isOwner) {
@@ -284,6 +285,18 @@ function BookingSidebar({
 
 	if (listing.status !== "active") {
 		return null;
+	}
+
+	async function onMessageSeller() {
+		setStartingConversation(true);
+		try {
+			const { conversationId } = await startConversation({
+				data: { listingId: listing.id },
+			});
+			await navigate({ to: "/viestit/$conversationId", params: { conversationId } });
+		} finally {
+			setStartingConversation(false);
+		}
 	}
 
 	const bookingFormProps = {
@@ -311,13 +324,9 @@ function BookingSidebar({
 			{!!session && !isOwner && (
 				<button
 					type="button"
-					onClick={async () => {
-						const { conversationId } = await startConversation({
-							data: { listingId: listing.id },
-						});
-						navigate({ to: "/viestit/$conversationId", params: { conversationId } });
-					}}
-					className="mt-2 block w-full rounded-lg border border-accent px-4 py-2.5 text-center text-sm font-medium text-accent hover:bg-accent/5"
+					onClick={onMessageSeller}
+					disabled={startingConversation}
+					className="mt-2 block w-full rounded-lg border border-accent px-4 py-2.5 text-center text-sm font-medium text-accent hover:bg-accent/5 disabled:opacity-50"
 				>
 					{t("detail.messageSeller", "Lähetä viesti")}
 				</button>

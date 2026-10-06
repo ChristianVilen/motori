@@ -1,6 +1,6 @@
 import { Button } from "@motori/ui/button";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { startConversation } from "~/lib/messages";
@@ -31,10 +31,16 @@ export function NonRentalSidebar({
 	const { t } = useTranslation("listings");
 	const navigate = useNavigate();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const [startingConversation, setStartingConversation] = useState(false);
 
 	async function onMessageSeller() {
-		const { conversationId } = await startConversation({ data: { listingId: listing.id } });
-		navigate({ to: "/viestit/$conversationId", params: { conversationId } });
+		setStartingConversation(true);
+		try {
+			const { conversationId } = await startConversation({ data: { listingId: listing.id } });
+			await navigate({ to: "/viestit/$conversationId", params: { conversationId } });
+		} finally {
+			setStartingConversation(false);
+		}
 	}
 	return (
 		<div id="pricing" className="space-y-4 lg:self-start">
@@ -66,6 +72,7 @@ export function NonRentalSidebar({
 						ownerPhoneVisible={ownerPhoneVisible}
 						ownerPhone={ownerPhone}
 						onMessage={onMessageSeller}
+						messagePending={startingConversation}
 					/>
 				) : null}
 			</div>
@@ -101,12 +108,14 @@ function SellerCta({
 	ownerPhoneVisible,
 	ownerPhone,
 	onMessage,
+	messagePending,
 }: {
 	isLoggedIn: boolean;
 	redirectPath: string;
 	ownerPhoneVisible: boolean;
 	ownerPhone: string | null;
 	onMessage: () => void;
+	messagePending: boolean;
 }) {
 	const { t } = useTranslation("listings");
 	return (
@@ -115,7 +124,8 @@ function SellerCta({
 				<button
 					type="button"
 					onClick={onMessage}
-					className="hidden w-full rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-accent-hover lg:block"
+					disabled={messagePending}
+					className="hidden w-full rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50 lg:block"
 				>
 					{t("detail.messageSeller", "Lähetä viesti")}
 				</button>
