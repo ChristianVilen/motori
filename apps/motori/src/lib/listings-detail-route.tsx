@@ -1,5 +1,5 @@
 // Factory for the three non-rental category detail routes (sale, gear, part).
-// Rental is bespoke (booking form + mobile bar) and lives in its own file.
+// Rental has its own route file (booking form + mobile bar).
 //
 // The factory holds the duplicated server fn + loader + component + notFoundComponent.
 // Each route file owns its createFileRoute path (the codegen reads the literal
