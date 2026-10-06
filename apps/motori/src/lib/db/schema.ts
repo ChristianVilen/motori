@@ -122,15 +122,12 @@ export interface ListingSaleTable {
 	km_driven: number | null; // required by the validator since #166; null only on pre-#166 rows
 	color: string | null;
 	owner_count: number | null;
-	power_kw: ColumnType<string, number, number> | null; // pg returns numeric as a string
+	power_kw: number | null;
 	trade_possible: Generated<boolean>;
 	negotiable: Generated<boolean>;
 }
 
-// power_kw is converted to a number on read, in fetchListingChildren (listings-detail.ts).
-export type ListingSale = Omit<Selectable<ListingSaleTable>, "power_kw"> & {
-	power_kw: number | null;
-};
+export type ListingSale = Selectable<ListingSaleTable>;
 export type NewListingSale = Insertable<ListingSaleTable>;
 export type ListingSaleUpdate = Updateable<ListingSaleTable>;
 

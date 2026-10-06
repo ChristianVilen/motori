@@ -8,6 +8,8 @@ export async function createDb<DB>(): Promise<Kysely<DB>> {
 		return null as unknown as Kysely<DB>;
 	}
 	const { default: pg } = await import("pg");
+	// pg returns numeric as a string. Ours hold small values only (money is integer cents).
+	pg.types.setTypeParser(pg.types.builtins.NUMERIC, Number);
 	return new Kysely<DB>({
 		dialect: new PostgresDialect({
 			pool: new pg.Pool({

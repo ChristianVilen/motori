@@ -69,14 +69,13 @@ async function fetchListingChildren(
 				)
 			: null,
 		listing.category === "sale"
-			? db
-					.selectFrom("listing_sale")
-					.selectAll()
-					.where("listing_id", "=", listing.id)
-					.executeTakeFirst()
-					.then((row) =>
-						row ? { ...row, power_kw: row.power_kw === null ? null : Number(row.power_kw) } : null,
-					)
+			? orNull(
+					db
+						.selectFrom("listing_sale")
+						.selectAll()
+						.where("listing_id", "=", listing.id)
+						.executeTakeFirst(),
+				)
 			: null,
 		listing.category === "gear"
 			? orNull(
