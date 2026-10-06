@@ -37,7 +37,6 @@ const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute
 			/>
 		);
 	},
-	priceCents: (data) => data.part?.price ?? 0,
 	head: (loaderData) => {
 		const l = loaderData?.listing;
 		if (!l) {

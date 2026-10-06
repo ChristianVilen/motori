@@ -178,8 +178,6 @@ function MobileBottomBar({
 	pricePerDayCents,
 	pricePerWeekCents,
 	pricePerWeekendCents,
-	isOwner,
-	isActive,
 	isLoggedIn,
 	redirectPath,
 	onBookClick,
@@ -188,8 +186,6 @@ function MobileBottomBar({
 	pricePerDayCents: number;
 	pricePerWeekCents: number | null;
 	pricePerWeekendCents: number | null;
-	isOwner: boolean;
-	isActive: boolean;
 	isLoggedIn: boolean;
 	redirectPath: string;
 	onBookClick: () => void;
@@ -216,16 +212,7 @@ function MobileBottomBar({
 						</div>
 					) : null}
 				</div>
-				{!isOwner && isActive && !isLoggedIn && (
-					<Link
-						to="/kirjaudu"
-						search={{ redirect: redirectPath }}
-						className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
-					>
-						{t("booking.loginRequired")}
-					</Link>
-				)}
-				{!isOwner && isActive && isLoggedIn && (
+				{isLoggedIn ? (
 					<button
 						type="button"
 						data-testid="mobile-book-button"
@@ -234,6 +221,14 @@ function MobileBottomBar({
 					>
 						{t("detail.bookingCta")}
 					</button>
+				) : (
+					<Link
+						to="/kirjaudu"
+						search={{ redirect: redirectPath }}
+						className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
+					>
+						{t("booking.loginRequired")}
+					</Link>
 				)}
 			</div>
 		</div>
@@ -355,47 +350,45 @@ function ListingDetailPage() {
 		/>
 	);
 
-	const mobileBar = (
-		<>
-			<MobileBottomBar
-				pricePerDayCents={rental?.price_per_day ?? 0}
-				pricePerWeekCents={rental?.price_per_week ?? null}
-				pricePerWeekendCents={rental?.price_per_weekend ?? null}
-				isOwner={!!isOwner}
-				isActive={listing.status === "active"}
-				isLoggedIn={!!session}
-				redirectPath={redirectPath}
-				onBookClick={() => setBookingModalOpen(true)}
-				t={t}
-			/>
+	const mobileBar =
+		!isOwner && listing.status === "active" ? (
+			<>
+				<MobileBottomBar
+					pricePerDayCents={rental?.price_per_day ?? 0}
+					pricePerWeekCents={rental?.price_per_week ?? null}
+					pricePerWeekendCents={rental?.price_per_weekend ?? null}
+					isLoggedIn={!!session}
+					redirectPath={redirectPath}
+					onBookClick={() => setBookingModalOpen(true)}
+					t={t}
+				/>
 
-			{/* Mobile booking modal */}
-			<MobileFullscreenModal
-				open={bookingModalOpen}
-				onClose={() => setBookingModalOpen(false)}
-				title={t("booking.calendarTitle")}
-			>
-				<div data-testid="booking-section">
-					<BookingRequestForm
-						listingId={listing.id}
-						availabilityDefault={availability.availability_default}
-						exceptionDates={availability.exception_dates}
-						bookedDates={availability.booked_dates}
-						isLoggedIn={!!session}
-						pricePerDayCents={rental?.price_per_day ?? 0}
-						pricePerWeekCents={rental?.price_per_week ?? null}
-						pricePerWeekendCents={rental?.price_per_weekend ?? null}
-						heroImageUrl={images[0]?.thumbnail_url ?? images[0]?.url ?? null}
-						onSubmit={async (input) => {
-							await submitBookingRequest({
-								data: { listing_id: listing.id, ...input },
-							});
-						}}
-					/>
-				</div>
-			</MobileFullscreenModal>
-		</>
-	);
+				<MobileFullscreenModal
+					open={bookingModalOpen}
+					onClose={() => setBookingModalOpen(false)}
+					title={t("booking.calendarTitle")}
+				>
+					<div data-testid="booking-section">
+						<BookingRequestForm
+							listingId={listing.id}
+							availabilityDefault={availability.availability_default}
+							exceptionDates={availability.exception_dates}
+							bookedDates={availability.booked_dates}
+							isLoggedIn={!!session}
+							pricePerDayCents={rental?.price_per_day ?? 0}
+							pricePerWeekCents={rental?.price_per_week ?? null}
+							pricePerWeekendCents={rental?.price_per_weekend ?? null}
+							heroImageUrl={images[0]?.thumbnail_url ?? images[0]?.url ?? null}
+							onSubmit={async (input) => {
+								await submitBookingRequest({
+									data: { listing_id: listing.id, ...input },
+								});
+							}}
+						/>
+					</div>
+				</MobileFullscreenModal>
+			</>
+		) : null;
 
 	return (
 		<ListingDetailShell

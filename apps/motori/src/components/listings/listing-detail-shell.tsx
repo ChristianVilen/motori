@@ -1,3 +1,4 @@
+import { cn } from "@motori/ui/cn";
 import { Link, type LinkProps } from "@tanstack/react-router";
 import { ArrowLeft, CalendarDays, MapPin, Star, Tag, User } from "lucide-react";
 import type { ReactNode } from "react";
@@ -119,7 +120,10 @@ export function ListingDetailShell({
 	const statusLabel = LISTING_STATUSES[listing.status];
 
 	return (
-		<div data-testid="listing-detail" className="min-h-screen bg-background pb-20 md:pb-0">
+		<div
+			data-testid="listing-detail"
+			className={cn("min-h-screen bg-background", mobileBar && "pb-20 md:pb-0")}
+		>
 			<div className="mx-auto max-w-4xl px-4 py-4 md:py-8">
 				<Link
 					data-testid="listing-detail-back"
