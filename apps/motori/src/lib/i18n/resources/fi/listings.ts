@@ -223,6 +223,7 @@ export default {
 			color: "Väri",
 			ownerCount: "Omistajien määrä",
 			powerKw: "Teho (kW)",
+			powerHv: "Teho (hv)",
 			tradePossible: "Vaihto mahdollinen",
 			condition: "Kunto",
 			conditionPlaceholder: "Valitse kunto",

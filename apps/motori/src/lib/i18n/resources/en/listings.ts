@@ -213,6 +213,7 @@ export default {
 			color: "Color",
 			ownerCount: "Number of owners",
 			powerKw: "Power (kW)",
+			powerHv: "Power (hp)",
 			tradePossible: "Trade possible",
 			condition: "Condition",
 			conditionPlaceholder: "Select condition",
