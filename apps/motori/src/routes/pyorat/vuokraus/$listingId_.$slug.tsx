@@ -2,13 +2,14 @@
 // $slug is decorative — only $listingId (the short_id) is used for DB lookup.
 
 import { Button } from "@motori/ui/button";
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useRouterState } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { useState } from "react";
 import { z } from "zod";
 import { BookingRequestForm } from "~/components/listings/booking-request-form";
 import { ListingDetailShell } from "~/components/listings/listing-detail-shell";
+import { MessageSellerButton } from "~/components/listings/message-seller-button";
 import { ReportButton } from "~/components/report-button";
 import { MobileFullscreenModal } from "~/components/ui/mobile-fullscreen-modal";
 import { createBookingRequest } from "~/lib/bookings.server";
@@ -17,7 +18,6 @@ import { centsToEuros } from "~/lib/currency";
 import type { Listing } from "~/lib/db/schema";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { getListingAvailability, getListingForDisplay, recordView } from "~/lib/listings-detail";
-import { startConversation } from "~/lib/messages";
 import { protectedMutation } from "~/lib/middleware";
 import { getReviewSummaryForUser } from "~/lib/reviews.server";
 import { getSession, requireSession } from "~/lib/session";
@@ -178,65 +178,64 @@ function MobileBottomBar({
 	pricePerDayCents,
 	pricePerWeekCents,
 	pricePerWeekendCents,
-	isOwner,
-	isActive,
 	isLoggedIn,
 	redirectPath,
 	onBookClick,
-	t,
 }: {
 	pricePerDayCents: number;
 	pricePerWeekCents: number | null;
 	pricePerWeekendCents: number | null;
-	isOwner: boolean;
-	isActive: boolean;
 	isLoggedIn: boolean;
 	redirectPath: string;
 	onBookClick: () => void;
-	t: (key: string, opts?: Record<string, unknown>) => string;
 }) {
+	const { t } = useTranslation("listings");
 	return (
-		<div className="fixed inset-x-0 bottom-16 z-40 border-t border-border bg-card/95 px-4 py-3 backdrop-blur-md md:bottom-0 lg:hidden">
-			<div className="flex items-center justify-between gap-4">
-				<div>
+		<>
+			<div aria-hidden="true" className="h-20 lg:hidden" />
+			<div className="fixed inset-x-0 bottom-16 z-40 border-t border-border bg-card/95 px-4 py-3 backdrop-blur-md md:bottom-0 lg:hidden">
+				<div className="flex items-center justify-between gap-4">
 					<div>
-						<span className="text-lg font-bold text-accent">{formatEur(pricePerDayCents)}</span>
-						<span className="ml-1 text-xs text-muted">{t("detail.pricing.perDay")}</span>
-					</div>
-					{(pricePerWeekCents ?? pricePerWeekendCents) ? (
-						<div className="mt-0.5 flex flex-wrap gap-x-2 text-xs text-muted">
-							{pricePerWeekCents ? (
-								<span>{t("detail.pricing.perWeek", { price: formatEur(pricePerWeekCents) })}</span>
-							) : null}
-							{pricePerWeekendCents ? (
-								<span>
-									{t("detail.pricing.perWeekend", { price: formatEur(pricePerWeekendCents) })}
-								</span>
-							) : null}
+						<div>
+							<span className="text-lg font-bold text-accent">{formatEur(pricePerDayCents)}</span>
+							<span className="ml-1 text-xs text-muted">{t("detail.pricing.perDay")}</span>
 						</div>
-					) : null}
+						{(pricePerWeekCents ?? pricePerWeekendCents) ? (
+							<div className="mt-0.5 flex flex-wrap gap-x-2 text-xs text-muted">
+								{pricePerWeekCents ? (
+									<span>
+										{t("detail.pricing.perWeek", { price: formatEur(pricePerWeekCents) })}
+									</span>
+								) : null}
+								{pricePerWeekendCents ? (
+									<span>
+										{t("detail.pricing.perWeekend", { price: formatEur(pricePerWeekendCents) })}
+									</span>
+								) : null}
+							</div>
+						) : null}
+					</div>
+					{isLoggedIn ? (
+						<button
+							type="button"
+							data-testid="mobile-book-button"
+							onClick={onBookClick}
+							className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
+						>
+							{t("detail.bookingCta")}
+						</button>
+					) : (
+						<Link
+							to="/kirjaudu"
+							search={{ redirect: redirectPath }}
+							className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
+						>
+							{t("booking.loginRequired")}
+						</Link>
+					)}
 				</div>
-				{!isOwner && isActive && !isLoggedIn && (
-					<Link
-						to="/kirjaudu"
-						search={{ redirect: redirectPath }}
-						className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
-					>
-						{t("booking.loginRequired")}
-					</Link>
-				)}
-				{!isOwner && isActive && isLoggedIn && (
-					<button
-						type="button"
-						data-testid="mobile-book-button"
-						onClick={onBookClick}
-						className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
-					>
-						{t("detail.bookingCta")}
-					</button>
-				)}
 			</div>
-		</div>
+		</>
 	);
 }
 
@@ -264,7 +263,8 @@ function BookingSidebar({
 	images: { thumbnail_url?: string | null; url: string }[];
 }) {
 	const { t } = useTranslation("listings");
-	const navigate = useNavigate();
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const [bookingModalOpen, setBookingModalOpen] = useState(false);
 	const isOwner = session?.user.id === listing.owner_id;
 
 	if (isOwner) {
@@ -304,30 +304,41 @@ function BookingSidebar({
 	};
 
 	return (
-		<div id="pricing" className="space-y-4 lg:self-start">
-			<div className="hidden lg:block" data-testid="booking-section">
-				<BookingRequestForm {...bookingFormProps} />
-			</div>
-			{!!session && !isOwner && (
-				<button
-					type="button"
-					onClick={async () => {
-						const { conversationId } = await startConversation({
-							data: { listingId: listing.id },
-						});
-						navigate({ to: "/viestit/$conversationId", params: { conversationId } });
-					}}
-					className="mt-2 block w-full rounded-lg border border-accent px-4 py-2.5 text-center text-sm font-medium text-accent hover:bg-accent/5"
-				>
-					{t("detail.messageSeller", "Lähetä viesti")}
-				</button>
-			)}
-			{!!session && (
-				<div className="text-center">
-					<ReportButton targetType="listing" targetId={listing.id} />
+		<>
+			<div id="pricing" className="space-y-4 lg:self-start">
+				<div className="hidden lg:block" data-testid="booking-section">
+					<BookingRequestForm {...bookingFormProps} />
 				</div>
-			)}
-		</div>
+				{!!session && !isOwner && (
+					<MessageSellerButton
+						listingId={listing.id}
+						className="mt-2 block w-full rounded-lg border border-accent px-4 py-2.5 text-center text-sm font-medium text-accent hover:bg-accent/5"
+					/>
+				)}
+				{!!session && (
+					<div className="text-center">
+						<ReportButton targetType="listing" targetId={listing.id} />
+					</div>
+				)}
+			</div>
+			<MobileBottomBar
+				pricePerDayCents={rental?.price_per_day ?? 0}
+				pricePerWeekCents={rental?.price_per_week ?? null}
+				pricePerWeekendCents={rental?.price_per_weekend ?? null}
+				isLoggedIn={!!session}
+				redirectPath={pathname}
+				onBookClick={() => setBookingModalOpen(true)}
+			/>
+			<MobileFullscreenModal
+				open={bookingModalOpen}
+				onClose={() => setBookingModalOpen(false)}
+				title={t("booking.calendarTitle")}
+			>
+				<div data-testid="booking-section">
+					<BookingRequestForm {...bookingFormProps} />
+				</div>
+			</MobileFullscreenModal>
+		</>
 	);
 }
 
@@ -349,12 +360,6 @@ function ListingDetailPage() {
 		ownerContact,
 	} = Route.useLoaderData();
 
-	const [bookingModalOpen, setBookingModalOpen] = useState(false);
-
-	const isOwner = session?.user.id === listing.owner_id;
-	const slug = computeListingSlug(makeSlug, modelName, listing.city);
-	const redirectPath = `/pyorat/vuokraus/${listing.short_id}/${slug}`;
-
 	const sidebar = (
 		<BookingSidebar
 			listing={listing}
@@ -363,48 +368,6 @@ function ListingDetailPage() {
 			session={session}
 			images={images}
 		/>
-	);
-
-	const mobileBar = (
-		<>
-			<MobileBottomBar
-				pricePerDayCents={rental?.price_per_day ?? 0}
-				pricePerWeekCents={rental?.price_per_week ?? null}
-				pricePerWeekendCents={rental?.price_per_weekend ?? null}
-				isOwner={!!isOwner}
-				isActive={listing.status === "active"}
-				isLoggedIn={!!session}
-				redirectPath={redirectPath}
-				onBookClick={() => setBookingModalOpen(true)}
-				t={t}
-			/>
-
-			{/* Mobile booking modal */}
-			<MobileFullscreenModal
-				open={bookingModalOpen}
-				onClose={() => setBookingModalOpen(false)}
-				title={t("booking.calendarTitle")}
-			>
-				<div data-testid="booking-section">
-					<BookingRequestForm
-						listingId={listing.id}
-						availabilityDefault={availability.availability_default}
-						exceptionDates={availability.exception_dates}
-						bookedDates={availability.booked_dates}
-						isLoggedIn={!!session}
-						pricePerDayCents={rental?.price_per_day ?? 0}
-						pricePerWeekCents={rental?.price_per_week ?? null}
-						pricePerWeekendCents={rental?.price_per_weekend ?? null}
-						heroImageUrl={images[0]?.thumbnail_url ?? images[0]?.url ?? null}
-						onSubmit={async (input) => {
-							await submitBookingRequest({
-								data: { listing_id: listing.id, ...input },
-							});
-						}}
-					/>
-				</div>
-			</MobileFullscreenModal>
-		</>
 	);
 
 	return (
@@ -429,7 +392,6 @@ function ListingDetailPage() {
 			backTo="/pyorat/vuokraus"
 			backLabel={t("detail.back")}
 			sidebar={sidebar}
-			mobileBar={mobileBar}
 		/>
 	);
 }

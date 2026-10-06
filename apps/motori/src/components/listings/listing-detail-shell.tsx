@@ -23,7 +23,6 @@ export interface ListingDetailShellProps {
 	backTo: LinkProps["to"];
 	backLabel: string;
 	sidebar: ReactNode;
-	mobileBar?: ReactNode;
 }
 
 function SellerCard({
@@ -99,7 +98,6 @@ export function ListingDetailShell({
 	backTo,
 	backLabel,
 	sidebar,
-	mobileBar,
 }: ListingDetailShellProps) {
 	const { t } = useTranslation("listings");
 	const { listing, images, ownerReviewSummary } = data;
@@ -119,7 +117,7 @@ export function ListingDetailShell({
 	const statusLabel = LISTING_STATUSES[listing.status];
 
 	return (
-		<div data-testid="listing-detail" className="min-h-screen bg-background pb-20 md:pb-0">
+		<div data-testid="listing-detail" className="min-h-screen bg-background">
 			<div className="mx-auto max-w-4xl px-4 py-4 md:py-8">
 				<Link
 					data-testid="listing-detail-back"
@@ -247,7 +245,6 @@ export function ListingDetailShell({
 					</div>
 				</div>
 			</div>
-			{mobileBar}
 		</div>
 	);
 }
