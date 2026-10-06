@@ -8,10 +8,13 @@ import {
 	S3Client,
 } from "@aws-sdk/client-s3";
 
+export type StoredObject = { url: string; lastModified: Date };
+
 export interface ImageStorage {
 	upload(buffer: Buffer, key: string, contentType: string): Promise<string>;
 	delete(url: string): Promise<void>;
 	deleteByPrefix(prefix: string): Promise<void>;
+	list(prefix: string): Promise<StoredObject[]>;
 }
 
 export class S3Storage implements ImageStorage {
@@ -78,6 +81,30 @@ export class S3Storage implements ImageStorage {
 			continuationToken = list.IsTruncated ? list.NextContinuationToken : undefined;
 		} while (continuationToken);
 	}
+
+	async list(prefix: string): Promise<StoredObject[]> {
+		const objects: StoredObject[] = [];
+		let continuationToken: string | undefined;
+		do {
+			const page = await this.client.send(
+				new ListObjectsV2Command({
+					Bucket: this.bucket,
+					Prefix: prefix,
+					ContinuationToken: continuationToken,
+				}),
+			);
+			for (const o of page.Contents ?? []) {
+				if (o.Key) {
+					objects.push({
+						url: `${this.publicUrl}/${o.Key}`,
+						lastModified: o.LastModified ?? new Date(),
+					});
+				}
+			}
+			continuationToken = page.IsTruncated ? page.NextContinuationToken : undefined;
+		} while (continuationToken);
+		return objects;
+	}
 }
 
 // ── Local filesystem (dev) ─────────────────────────────────────────────────
@@ -85,8 +112,10 @@ export class S3Storage implements ImageStorage {
 const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
 
 export class LocalStorage implements ImageStorage {
+	constructor(private readonly root = UPLOADS_DIR) {}
+
 	async upload(buffer: Buffer, key: string, _contentType: string): Promise<string> {
-		const filePath = path.join(UPLOADS_DIR, key);
+		const filePath = path.join(this.root, key);
 		await fs.mkdir(path.dirname(filePath), { recursive: true });
 		await fs.writeFile(filePath, buffer);
 		return `/api/uploads/${key}`;
@@ -96,16 +125,30 @@ export class LocalStorage implements ImageStorage {
 		if (!url.startsWith("/api/uploads/")) {
 			return;
 		}
-		const filePath = path.join(UPLOADS_DIR, url.replace("/api/uploads/", ""));
-		if (!filePath.startsWith(UPLOADS_DIR)) {
+		const filePath = path.join(this.root, url.replace("/api/uploads/", ""));
+		if (!filePath.startsWith(this.root)) {
 			return;
 		}
 		await fs.unlink(filePath).catch(() => {});
 	}
 
 	async deleteByPrefix(prefix: string): Promise<void> {
-		const dir = path.join(UPLOADS_DIR, prefix);
+		const dir = path.join(this.root, prefix);
 		await fs.rm(dir, { recursive: true, force: true }).catch(() => {});
+	}
+
+	async list(prefix: string): Promise<StoredObject[]> {
+		const dir = path.join(this.root, prefix);
+		const entries = await fs.readdir(dir, { recursive: true }).catch(() => []);
+		const objects: StoredObject[] = [];
+		for (const entry of entries) {
+			const stat = await fs.stat(path.join(dir, entry));
+			if (stat.isFile()) {
+				const key = path.posix.join(prefix, entry.split(path.sep).join("/"));
+				objects.push({ url: `/api/uploads/${key}`, lastModified: stat.mtime });
+			}
+		}
+		return objects;
 	}
 }
 

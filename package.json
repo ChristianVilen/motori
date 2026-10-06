@@ -17,6 +17,7 @@
 		"db:codegen": "pnpm --filter motori db:codegen",
 		"notify:expiry": "pnpm --filter motori notify:expiry",
 		"purge:sessions": "pnpm --filter motori purge:sessions",
+		"images:orphans": "pnpm --filter motori images:orphans",
 		"typecheck": "pnpm -r typecheck",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",

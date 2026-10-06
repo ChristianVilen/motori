@@ -189,7 +189,7 @@ export async function updateListing(
 		throw new AppError("listing.forbidden");
 	}
 
-	await db.transaction().execute(async (trx) => {
+	const oldImages = await db.transaction().execute(async (trx) => {
 		const result = await trx
 			.updateTable("listing")
 			.set({ ...editableListingColumns(data), updated_at: new Date() })
@@ -200,6 +200,12 @@ export async function updateListing(
 		if (result.numUpdatedRows === 0n) {
 			throw new AppError("listing.forbidden");
 		}
+
+		const oldRows = await trx
+			.selectFrom("listing_image")
+			.select(["url", "thumbnail_url"])
+			.where("listing_id", "=", id)
+			.execute();
 
 		if (data.category === "rental") {
 			await trx
@@ -243,7 +249,15 @@ export async function updateListing(
 				)
 				.execute();
 		}
+
+		return oldRows;
 	});
+
+	const { imageObjectsToDelete, deleteImageObjects } = await import("~/lib/listing-images.server");
+	const urls = imageObjectsToDelete(oldImages, data.images, ownerId);
+	if (urls.length > 0) {
+		await deleteImageObjects(urls, id);
+	}
 }
 
 export type ListingStatusChange = "active" | "paused" | "removed" | "sold";
