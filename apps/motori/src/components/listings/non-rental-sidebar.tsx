@@ -108,23 +108,22 @@ function SellerCta({
 			{isLoggedIn ? (
 				<MessageSellerButton
 					listingId={listingId}
-					className="hidden w-full rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-accent-hover lg:block"
+					className="block w-full rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-accent-hover"
 				/>
-			) : null}
-			{!isLoggedIn ? (
+			) : (
 				<Link
 					to="/kirjaudu"
 					search={{ redirect: redirectPath }}
 					data-testid="login-to-contact"
-					className="hidden w-full rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-accent-hover lg:block"
+					className="block w-full rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-accent-hover"
 				>
 					{t("detail.loginToContact")}
 				</Link>
-			) : null}
+			)}
 			{ownerPhoneVisible && ownerPhone ? (
 				<a
 					href={`tel:${ownerPhone}`}
-					className="block w-full rounded-lg border border-border px-4 py-2.5 text-center text-sm font-medium text-muted transition-colors hover:border-accent hover:text-accent lg:mt-2"
+					className="mt-2 block w-full rounded-lg border border-border px-4 py-2.5 text-center text-sm font-medium text-muted transition-colors hover:border-accent hover:text-accent"
 				>
 					{ownerPhone}
 				</a>
