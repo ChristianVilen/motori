@@ -6,7 +6,8 @@
 		".": "./src/index.ts"
 	},
 	"scripts": {
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run"
 	},
 	"dependencies": {
 		"kysely": "0.29.6",
@@ -14,6 +15,7 @@
 	},
 	"devDependencies": {
 		"@types/pg": "8.23.1",
-		"typescript": "7.0.2"
+		"typescript": "7.0.2",
+		"vitest": "5.0.2"
 	}
 }

@@ -80,6 +80,7 @@ TanStack Start ships `apps/motori/src/start.ts`, `apps/motori/src/router.tsx`, a
 - BetterAuth tables use **camelCase** columns (externally dictated). App tables use **snake_case**.
 - `updated_at` DB defaults fire only on INSERT — every UPDATE must explicitly set `updated_at: new Date()` in application code. Exception: fire-and-forget increments (e.g. `view_count`) where bumping `updated_at` would pollute sort order or sitemap `lastmod`.
 - Money is stored as EUR **cents** (integer).
+- `createDb` parses `numeric` into a JS number, so use `numeric` only for small values (money stays integer cents). `listing_sale.power_kw` is kW `numeric(5,1)`. Its hv conversion and display format are in `apps/motori/src/lib/power.ts`.
 - `listing.search_vector` is a `tsvector` maintained by a DB trigger; never write to it from app code.
 - `Generated<T>` columns (e.g. booleans with DB defaults, `view_count`) must be omitted on insert to use the default.
 
