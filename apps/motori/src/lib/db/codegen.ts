@@ -11,7 +11,8 @@ await withLogContext({ script: "codegen" }, async () => {
 		process.exit(1);
 	}
 
-	execSync(`kysely-codegen --url="${url}" --out-file=src/lib/db/schema.generated.ts`, {
-		stdio: "inherit",
-	});
+	execSync(
+		`kysely-codegen --url="${url}" --numeric-parser=number --out-file=src/lib/db/schema.generated.ts`,
+		{ stdio: "inherit" },
+	);
 });

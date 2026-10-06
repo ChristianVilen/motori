@@ -22,6 +22,8 @@ export type JsonPrimitive = boolean | number | string | null;
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
+export type Numeric = ColumnType<number, number | string, number | string>;
+
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Account {
@@ -149,7 +151,7 @@ export interface ListingSale {
 	listing_id: string;
 	negotiable: Generated<boolean>;
 	owner_count: number | null;
-	power_kw: number | null;
+	power_kw: Numeric | null;
 	price: number;
 	trade_possible: Generated<boolean>;
 }

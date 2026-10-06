@@ -4,6 +4,7 @@ import { CONDITION_LABELS, SITE_NAME, SITE_URL } from "~/lib/constants";
 import { centsToEuros } from "~/lib/currency";
 import { formatNumber } from "~/lib/i18n";
 import { defineCategoryDetailRoute } from "~/lib/listings-detail-route";
+import { formatPower } from "~/lib/power";
 import { computeListingSlug } from "~/lib/slug";
 
 const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute({
@@ -21,7 +22,7 @@ const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute
 					...(s.km_driven != null
 						? [{ label: "Kilometrit", value: `${formatNumber(s.km_driven)} km` as const }]
 						: []),
-					...(s.power_kw != null ? [{ label: "Teho", value: `${s.power_kw} kW` as const }] : []),
+					...(s.power_kw != null ? [{ label: "Teho", value: formatPower(s.power_kw) }] : []),
 					...(s.color ? [{ label: "Väri", value: s.color }] : []),
 					...(s.owner_count != null ? [{ label: "Omistajia", value: String(s.owner_count) }] : []),
 					...(s.trade_possible ? [{ label: "Vaihto", value: "Mahdollinen" }] : []),

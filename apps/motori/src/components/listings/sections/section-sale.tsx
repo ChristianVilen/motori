@@ -1,9 +1,11 @@
 // Sale category section adapter.
-// Owns: condition / km_driven / price / negotiable.
+// Owns: condition / km_driven / power_kw (kW and hv inputs) / color / owner_count /
+// trade_possible / price / negotiable.
 // Motorcycle fields are owned by the shell and passed via MotorcyclePayload.
 
 import { Input } from "@motori/ui/input";
 import { useTranslation } from "~/lib/i18n";
+import { hvToKw, kwToHv, roundKw } from "~/lib/power";
 import type { CONDITIONS, ListingFormData, SaleFormData } from "~/lib/validators";
 import { ConditionSelect, errorProps, FieldError } from "./shared-fields";
 import type { CategoryFormSection, MotorcyclePayload, SharedPayload } from "./types";
@@ -73,7 +75,7 @@ export const saleSection: CategoryFormSection<"sale", SaleFieldValues> = {
 			km_driven: value.sale_km_driven as number,
 			color: value.sale_color,
 			owner_count: value.sale_owner_count,
-			power_kw: value.sale_power_kw,
+			power_kw: value.sale_power_kw == null ? null : roundKw(value.sale_power_kw),
 			trade_possible: value.sale_trade_possible,
 			price: value.sale_price,
 			negotiable: value.sale_negotiable,
@@ -138,41 +140,41 @@ export function SaleFields({ form }: SaleFieldsProps) {
 						/>
 					)}
 				</form.Field>
-				<div className="grid grid-cols-2 gap-4">
-					<form.Field name="sale_km_driven">
-						{(field: {
-							state: { value: number | null; meta: { errors: unknown[] } };
-							handleBlur: () => void;
-							handleChange: (v: number | null) => void;
-						}) => (
-							<div>
-								<label
-									htmlFor="sale_km_driven"
-									className="mb-1 block text-sm font-medium text-foreground"
-								>
-									{t("form.fields.kmDriven")} <span className="text-destructive">*</span>
-								</label>
-								<Input
-									id="sale_km_driven"
-									{...errorProps("sale_km_driven", field.state.meta.errors)}
-									type="number"
-									min={0}
-									value={field.state.value ?? ""}
-									onBlur={field.handleBlur}
-									onChange={(e) =>
-										field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
-									}
-								/>
-								<FieldError id="sale_km_driven" errors={field.state.meta.errors} />
-							</div>
-						)}
-					</form.Field>
-					<form.Field name="sale_power_kw">
-						{(field: {
-							state: { value: number | null; meta: { errors: unknown[] } };
-							handleBlur: () => void;
-							handleChange: (v: number | null) => void;
-						}) => (
+				<form.Field name="sale_km_driven">
+					{(field: {
+						state: { value: number | null; meta: { errors: unknown[] } };
+						handleBlur: () => void;
+						handleChange: (v: number | null) => void;
+					}) => (
+						<div>
+							<label
+								htmlFor="sale_km_driven"
+								className="mb-1 block text-sm font-medium text-foreground"
+							>
+								{t("form.fields.kmDriven")} <span className="text-destructive">*</span>
+							</label>
+							<Input
+								id="sale_km_driven"
+								{...errorProps("sale_km_driven", field.state.meta.errors)}
+								type="number"
+								min={0}
+								value={field.state.value ?? ""}
+								onBlur={field.handleBlur}
+								onChange={(e) =>
+									field.handleChange(e.target.value === "" ? null : e.target.valueAsNumber)
+								}
+							/>
+							<FieldError id="sale_km_driven" errors={field.state.meta.errors} />
+						</div>
+					)}
+				</form.Field>
+				<form.Field name="sale_power_kw">
+					{(field: {
+						state: { value: number | null; meta: { errors: unknown[] } };
+						handleBlur: () => void;
+						handleChange: (v: number | null) => void;
+					}) => (
+						<div className="grid grid-cols-2 gap-4">
 							<div>
 								<label
 									htmlFor="sale_power_kw"
@@ -186,6 +188,8 @@ export function SaleFields({ form }: SaleFieldsProps) {
 									type="number"
 									min={1}
 									max={500}
+									// Default step 1 would make the browser reject decimals like 73.5 on submit.
+									step="any"
 									value={field.state.value ?? ""}
 									onBlur={field.handleBlur}
 									onChange={(e) =>
@@ -194,9 +198,29 @@ export function SaleFields({ form }: SaleFieldsProps) {
 								/>
 								<FieldError id="sale_power_kw" errors={field.state.meta.errors} />
 							</div>
-						)}
-					</form.Field>
-				</div>
+							<div>
+								<label
+									htmlFor="sale_power_hv"
+									className="mb-1 block text-sm font-medium text-foreground"
+								>
+									{t("form.fields.powerHv")}
+								</label>
+								<Input
+									id="sale_power_hv"
+									{...errorProps("sale_power_kw", field.state.meta.errors)}
+									type="number"
+									value={field.state.value == null ? "" : kwToHv(field.state.value)}
+									onBlur={field.handleBlur}
+									onChange={(e) =>
+										field.handleChange(
+											e.target.value === "" ? null : hvToKw(e.target.valueAsNumber),
+										)
+									}
+								/>
+							</div>
+						</div>
+					)}
+				</form.Field>
 				<div className="grid grid-cols-2 gap-4">
 					<form.Field name="sale_color">
 						{(field: {
