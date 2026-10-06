@@ -1,4 +1,4 @@
-# CONTEXT.md — domain glossary
+# GLOSSARY.md — domain glossary
 
 Names for the domain concepts and the modules that own them. Grown lazily: a term is added when a module is named after it. Architecture vocabulary (module, seam, depth, locality) is defined in `docs/adr/0001-listing-module.md` and `DEEPENING_OPS.md`.
 

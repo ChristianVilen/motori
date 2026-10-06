@@ -7,7 +7,7 @@ Vocabulary: a **module** is anything with an interface and an implementation; **
 ## Candidates
 
 - [x] **1. Profile module (motori)** — high impact — DONE 2026-07-13
-  - Landed as `src/lib/profile.server.ts`: intent-based reads (`getProfileForEdit`, `getPublicProfile`) + two write intents (`completeProfile`, `updateSettings`). Design decisions: two intent methods over upsert+acceptTerms; `completeProfile` stamps a null `terms_accepted_at` retroactively (fixes the settings-first gap); public read composes `getOwnerActiveListings` (new, in `listings-owner.ts`) + `reviews.server`; routes now use `AppError` codes. `Profile` term added to `CONTEXT.md`.
+  - Landed as `src/lib/profile.server.ts`: intent-based reads (`getProfileForEdit`, `getPublicProfile`) + two write intents (`completeProfile`, `updateSettings`). Design decisions: two intent methods over upsert+acceptTerms; `completeProfile` stamps a null `terms_accepted_at` retroactively (fixes the settings-first gap); public read composes `getOwnerActiveListings` (new, in `listings-owner.ts`) + `reviews.server`; routes now use `AppError` codes. `Profile` term added to `GLOSSARY.md`.
 
 - [x] **2. Session guards for reads (motori)** — DONE 2026-07-13
   - `lib/session.ts` now owns `requireSession()` / `requireUserId()` / `requireSessionOrRedirect(redirectTo?)` (unit-tested). All hand-rolled guards swept: server fns throw `AppError("auth.unauthorized")`, loaders redirect to `/kirjaudu` passing `location.pathname` as the return path (uniform across all guarded loaders). `tori-commands.ts`'s private `getOwnerId` folded into `requireUserId`. Intentionally untouched: `getUnreadTotal`'s anonymous `{unread: 0}` default, `admin.ts`'s `requireAdmin`, and genuinely optional-session reads (search pages, listing detail, `__root`).
@@ -43,7 +43,7 @@ Vocabulary: a **module** is anything with an interface and an implementation; **
 ## Housekeeping
 
 - [ ] Update ADR-0001: `src/lib/listings.ts` no longer exists (split into six `listings-*` files by axis); describe the real seam
-- [x] Create `CONTEXT.md` when the first candidate introduces a new named module — created 2026-07-13 with Listing + Profile
+- [x] Create `GLOSSARY.md` (named `CONTEXT.md` until 2026-10-06) when the first candidate introduces a new named module — created 2026-07-13 with Listing + Profile
 
 ## Explicitly not doing
 
