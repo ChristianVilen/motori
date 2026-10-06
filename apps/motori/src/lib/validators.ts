@@ -163,7 +163,7 @@ export function listingFormSchema(t: T = defaultT) {
 				.optional(),
 			power_kw: z
 				.number()
-				.int(t("validation.valueInvalid"))
+				.multipleOf(0.1, t("validation.valueInvalid"))
 				.min(1, t("validation.valueInvalid"))
 				.max(500, t("validation.valueInvalid"))
 				.nullable()
