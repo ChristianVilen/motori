@@ -1,7 +1,7 @@
 nerdfont: true
 
 merge_strategy: rebase
-agent: claude
+agent: codex
 
 files:
   copy:
@@ -12,7 +12,6 @@ files:
 
 post_create:
   - mise trust
-  - bash -c "docker compose up -d db && pnpm install && pnpm db:migrate && DEPLOY_APP=talli pnpm db:migrate && pnpm db:seed"
 
 pre_remove:
   - docker compose down -v
