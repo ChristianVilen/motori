@@ -253,7 +253,7 @@ just cron-install
 
 Schedules in `infra/cron/motori.crontab`:
 - hourly: `expire-bookings`, `expire-listings`
-- 03:30–03:35 UTC daily: `purge-sessions`, `notify-expiry`
+- 03:30–03:40 UTC daily: `purge-sessions`, `notify-expiry`, `purge-removed-listing-images`
 
 After changing task names in `apps/motori/src/routes/api/cron.ts`, re-run `just cron-install` on the VPS so the crontab matches the deployed code.
 

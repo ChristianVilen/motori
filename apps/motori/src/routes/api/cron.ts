@@ -2,6 +2,7 @@ import { type CronTask, runCronTasks } from "@motori/server/cron";
 import { createFileRoute } from "@tanstack/react-router";
 import { sql } from "kysely";
 import { expireStaleBookings } from "~/lib/bookings.server";
+import { purgeRemovedListingImages } from "~/lib/listing-images.server";
 import { log } from "~/lib/log";
 import { sendListingExpiryWarnings } from "~/lib/notifications";
 
@@ -20,6 +21,11 @@ const TASKS: Record<string, CronTask> = {
 		const sent = await sendListingExpiryWarnings();
 		log.info("cron: expiry warnings complete", { sent });
 		return { sent };
+	},
+	"purge-removed-listing-images": async () => {
+		const result = await purgeRemovedListingImages();
+		log.info("cron: removed listing images purged", result);
+		return result;
 	},
 	"expire-bookings": async () => {
 		const expired = await expireStaleBookings();

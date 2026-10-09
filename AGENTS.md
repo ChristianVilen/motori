@@ -121,6 +121,10 @@ Env vars: `STORAGE_ENDPOINT`, `STORAGE_BUCKET`, `STORAGE_ACCESS_KEY`, `STORAGE_S
 
 Image uploads go through `POST /api/images/upload` — the server receives the file, optimises it with sharp (1600px main WebP + 400px thumbnail WebP), and stores both via `optimizeAndUpload()` from `@motori/server/image-storage` (`packages/server/src/image-storage.ts`). When `STORAGE_ENDPOINT` is set, `S3Storage` is used; otherwise `LocalStorage` saves to `/uploads/` for dev. Image URLs are validated by `isValidImageUrl()` (`@motori/server/image-url`, re-exported from each app's `validators.ts`): a URL must start with `${STORAGE_PUBLIC_URL}/` (the trailing slash matters; it rejects look-alike hosts) or with `/api/uploads/`, the local-disk path used when `STORAGE_ENDPOINT` is unset.
 
+An edit deletes the objects of removed images after the commit. The cron task `purge-removed-listing-images` deletes the objects and rows of listings removed more than 30 days ago. Both only delete keys under `listings/<listing owner id>/` (code: `apps/motori/src/lib/listing-images.server.ts`).
+
+`pnpm images:orphans` lists objects under `listings/` that no `listing_image` row points to. It skips objects younger than 24 h and never looks at `talli/`. It is a dry run unless you pass `--delete --expect <N>`, where `<N>` is the count from the dry run.
+
 ### Logging
 
 The pino core lives in `packages/server/src/log/` (`pino.ts` root logger + OpenObserve sink, `context.ts` AsyncLocalStorage-based `withLogContext`, `middleware.ts` for `loggingMiddleware`), exposed via the `@motori/server/log`, `@motori/server/log/pino`, `@motori/server/log/context`, `@motori/server/log/middleware` subpath exports. The app wraps it with its own typed logger at `apps/motori/src/lib/log/index.ts`, pairing `createLog()` with the app's event catalog in `apps/motori/src/lib/log/events.ts`.
