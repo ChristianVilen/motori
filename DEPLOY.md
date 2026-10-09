@@ -99,6 +99,15 @@ just config-encrypt
 rm secrets/dokku-config.sh   # keep only the .age in git
 ```
 
+`just config-apply` sets every value with `--no-restart`. Afterwards, rebuild each app whose values changed:
+
+```bash
+just rebuild             # motori
+just app=talli rebuild   # talli
+```
+
+A restart is not enough. The running app keeps the environment of its last build: after `dokku ps:restart`, `dokku config:get` and `docker exec … printenv` show the new value, but the Node process still has the old one. This happened when `CRON_SECRET` was changed (#242): cron got 401 until both apps were rebuilt.
+
 ### 5. First deploy + smoke test
 
 ```bash
@@ -476,11 +485,11 @@ dokku postgres:import motori < /path/to/backup/export
 ```bash
 just logs                              # tail app logs
 just status                            # ps:report + config keys
-just restart                           # restart without rebuild
-just rebuild                           # rebuild (re-runs release phase)
+just restart                           # restart without rebuild; keeps the env of the last build (§4)
+just rebuild                           # rebuild: picks up config changes, re-runs release phase
 just psql                              # interactive psql
 just backup                            # out-of-schedule backup
-just config-set BOOL=true              # set single env var
+just config-set BOOL=true              # set single env var, then just rebuild (§4)
 just make-admin email=user@example.com # promote user to admin
 ```
 
