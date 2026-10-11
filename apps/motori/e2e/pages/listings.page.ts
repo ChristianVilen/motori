@@ -52,6 +52,12 @@ export class ListingsPage {
 		await this.searchSubmit.click();
 	}
 
+	async gotoGear(params?: Record<string, string>) {
+		const query = params ? `?${new URLSearchParams(params).toString()}` : "";
+		await this.page.goto(`/varusteet${query}`);
+		await waitForHydration(this.page);
+	}
+
 	cardById(id: string): Locator {
 		return this.page.locator(`[data-testid="listing-card"][data-listing-id="${id}"]`);
 	}

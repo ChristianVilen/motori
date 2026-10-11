@@ -12,6 +12,10 @@ export class ListingFormPage {
 	readonly regionSelect: Locator;
 	readonly descriptionInput: Locator;
 	readonly submitButton: Locator;
+	readonly gearTypeSelect: Locator;
+	readonly gearSizeSelect: Locator;
+	readonly gearConditionSelect: Locator;
+	readonly gearPriceInput: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
@@ -24,6 +28,10 @@ export class ListingFormPage {
 		this.regionSelect = page.locator("#region");
 		this.descriptionInput = page.locator("#description");
 		this.submitButton = page.getByTestId("listing-form-submit");
+		this.gearTypeSelect = page.getByText("Valitse tyyppi", { exact: true });
+		this.gearSizeSelect = page.getByText("Valitse koko", { exact: true });
+		this.gearConditionSelect = page.getByText("Valitse kunto", { exact: true });
+		this.gearPriceInput = page.locator("#gear_price");
 	}
 
 	async gotoCreate() {
@@ -64,10 +72,40 @@ export class ListingFormPage {
 		await this.yearInput.fill(String(data.year));
 		await this.selectMotorcycleType(data.motorcycleType);
 		await this.pricePerDayInput.fill(String(data.pricePerDay));
-		await this.cityInput.fill(data.city.slice(0, -1));
-		await this.cityInput.press("ArrowDown");
-		await this.cityInput.press("Enter");
-		await this.descriptionInput.fill(data.description);
+		await this.fillLocationAndDescription(data);
 		await attachTestImage(this.page);
+	}
+
+	async fillGear(data: {
+		title: string;
+		type: string;
+		size: string;
+		condition: string;
+		price: number;
+		city: string;
+		description: string;
+	}) {
+		await this.page.getByTestId("category-tile-gear").click();
+		await this.titleInput.fill(data.title);
+		await this.gearTypeSelect.click();
+		await this.page.getByRole("option", { name: data.type, exact: true }).click();
+		await this.gearSizeSelect.click();
+		await this.page.getByRole("option", { name: data.size, exact: true }).click();
+		await this.gearConditionSelect.click();
+		await this.page.getByRole("option", { name: data.condition, exact: true }).click();
+		await this.gearPriceInput.fill(String(data.price));
+		await this.fillLocationAndDescription(data);
+		await attachTestImage(this.page);
+	}
+
+	private async fillLocationAndDescription(data: { city: string; description: string }) {
+		await this.cityInput.fill(data.city);
+		await this.descriptionInput.fill(data.description);
+	}
+
+	async submitGear() {
+		await this.submitButton.click();
+		await this.page.waitForURL(/\/varusteet\/[^/]+\/[^/]+$/, { timeout: 15000 });
+		await waitForHydration(this.page);
 	}
 }

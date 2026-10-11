@@ -56,6 +56,8 @@ File-based under `apps/motori/src/routes/`. Both apps' `routeTree.gen.ts` files 
 
 Hydration signal: `__root.tsx` sets `data-hydrated="true"` on `<html>` after mount — e2e tests must wait for this before interacting, otherwise clicks fire before React attaches handlers and forms do native submits.
 
+For new or updated Playwright tests, keep selectors, form actions, navigation, and readiness in page objects under each app's `e2e/pages/`. Reuse an existing page object before adding one. Keep behavior assertions and request capture in the test. Do not add a shared base class or general form engine. Fill a complete city name; `CitySelect` commits an exact match without keyboard selection.
+
 ### SSR / client boundary
 
 TanStack Start ships `apps/motori/src/start.ts`, `apps/motori/src/router.tsx`, and the route tree to **both** server and client bundles. `.server(...)` strips the _callback_ but **not module-top-level code or imports**.
