@@ -41,8 +41,9 @@ test.describe("Gear listing lifecycle", () => {
 
 		await page.locator("#gear_price").fill("280");
 
-		await page.locator("#city").fill("Helsinki");
-		await page.getByRole("option", { name: "Helsinki", exact: true }).first().click();
+		await page.locator("#city").fill("Helsin");
+		await page.locator("#city").press("ArrowDown");
+		await page.locator("#city").press("Enter");
 
 		await page
 			.locator("#description")

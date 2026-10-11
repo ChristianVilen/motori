@@ -64,8 +64,9 @@ export class ListingFormPage {
 		await this.yearInput.fill(String(data.year));
 		await this.selectMotorcycleType(data.motorcycleType);
 		await this.pricePerDayInput.fill(String(data.pricePerDay));
-		await this.cityInput.fill(data.city);
-		await this.page.getByRole("option", { name: data.city, exact: true }).first().click();
+		await this.cityInput.fill(data.city.slice(0, -1));
+		await this.cityInput.press("ArrowDown");
+		await this.cityInput.press("Enter");
 		await this.descriptionInput.fill(data.description);
 		await attachTestImage(this.page);
 	}
