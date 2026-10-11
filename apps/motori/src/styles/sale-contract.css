@@ -121,7 +121,7 @@
 		grid-template-columns: minmax(0, 1fr);
 	}
 }
-@page {
+@page sale-contract {
 	size: A4;
 	margin: 12mm 14mm;
 }
@@ -149,6 +149,7 @@
 		padding: 0;
 	}
 	.sale-contract-document {
+		page: sale-contract;
 		width: auto;
 		min-height: 0;
 		padding: 0;

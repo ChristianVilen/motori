@@ -3,6 +3,7 @@ import { Input } from "@motori/ui/input";
 import { Textarea } from "@motori/ui/textarea";
 import type { ReactNode } from "react";
 import { useTranslation } from "~/lib/i18n";
+import type fiContract from "~/lib/i18n/resources/fi/contract";
 import {
 	type Contract,
 	type OptionalBlock,
@@ -18,6 +19,35 @@ type LayoutProps = {
 	setDraft: (draft: Contract) => void;
 	mode: "edit" | "document";
 };
+
+type FieldName = keyof typeof fiContract.fields;
+const vehicleFields = [
+	"registration",
+	"vin",
+	"make",
+	"model",
+	"year",
+	"mileage",
+	"color",
+	"power",
+] satisfies (keyof Contract["vehicle"])[];
+const partyFields = [
+	"lastName",
+	"firstNames",
+	"identity",
+	"address",
+	"postalCode",
+	"city",
+	"phone",
+] satisfies (keyof Contract["seller"])[];
+const saleFields = ["price", "place", "date", "time"] satisfies (keyof Contract["sale"])[];
+const paymentFields = ["paymentMethod", "paymentTime"] satisfies (keyof Contract["optional"])[];
+const accessoryFields = [
+	"keys",
+	"serviceBook",
+	"otherItems",
+] satisfies (keyof Contract["optional"])[];
+const signatureFields = ["sellerName", "buyerName"] satisfies (keyof Contract["sale"])[];
 
 function Field({
 	label,
@@ -63,6 +93,62 @@ function Field({
 				/>
 			)}
 		</div>
+	);
+}
+
+function FieldGrid<Key extends FieldName>({
+	group,
+	fields,
+	values,
+	mode,
+	onChange,
+	children,
+}: {
+	group: "vehicle" | "seller" | "buyer" | "sale" | "optional";
+	fields: readonly Key[];
+	values: Record<Key, string>;
+	mode: LayoutProps["mode"];
+	onChange: (key: Key, value: string) => void;
+	children?: ReactNode;
+}) {
+	const { t } = useTranslation("contract", { lng: mode === "document" ? "fi" : undefined });
+	return (
+		<div className="contract-grid">
+			{children}
+			{fields.map((key) => (
+				<Field
+					key={key}
+					label={t(`fields.${key}`)}
+					id={`${group}-${key}`}
+					value={values[key]}
+					editing={mode === "edit"}
+					onChange={(value) => onChange(key, value)}
+				/>
+			))}
+		</div>
+	);
+}
+
+function PartySection({
+	party,
+	draft,
+	setDraft,
+	mode,
+}: LayoutProps & { party: "seller" | "buyer" }) {
+	const { t } = useTranslation("contract", { lng: mode === "document" ? "fi" : undefined });
+	return (
+		<section className="contract-section">
+			<h2>{t(party)}</h2>
+			<FieldGrid
+				group={party}
+				fields={partyFields}
+				values={draft[party]}
+				mode={mode}
+				onChange={(key, value) =>
+					setDraft({ ...draft, [party]: { ...draft[party], [key]: value } })
+				}
+			/>
+		</section>
 	);
 }
 
@@ -138,285 +224,78 @@ export function ContractLayout({ draft, setDraft, mode }: LayoutProps) {
 			{!editing && <h1 className="contract-document-title">{t("title")}</h1>}
 			<section className="contract-section">
 				<h2>{t("vehicle")}</h2>
-				<div className="contract-grid">
-					<Field
-						label={t("fields.registration")}
-						id="vehicle-registration"
-						value={draft.vehicle.registration}
-						editing={editing}
-						onChange={(value) => update("vehicle", "registration", value)}
-					/>
-					<Field
-						label={t("fields.vin")}
-						id="vehicle-vin"
-						value={draft.vehicle.vin}
-						editing={editing}
-						onChange={(value) => update("vehicle", "vin", value)}
-					/>
-					<Field
-						label={t("fields.make")}
-						id="vehicle-make"
-						value={draft.vehicle.make}
-						editing={editing}
-						onChange={(value) => update("vehicle", "make", value)}
-					/>
-					<Field
-						label={t("fields.model")}
-						id="vehicle-model"
-						value={draft.vehicle.model}
-						editing={editing}
-						onChange={(value) => update("vehicle", "model", value)}
-					/>
-					<Field
-						label={t("fields.year")}
-						id="vehicle-year"
-						value={draft.vehicle.year}
-						editing={editing}
-						onChange={(value) => update("vehicle", "year", value)}
-					/>
-					<Field
-						label={t("fields.mileage")}
-						id="vehicle-mileage"
-						value={draft.vehicle.mileage}
-						editing={editing}
-						onChange={(value) => update("vehicle", "mileage", value)}
-					/>
-					<Field
-						label={t("fields.color")}
-						id="vehicle-color"
-						value={draft.vehicle.color}
-						editing={editing}
-						onChange={(value) => update("vehicle", "color", value)}
-					/>
-					<Field
-						label={t("fields.power")}
-						id="vehicle-power"
-						value={draft.vehicle.power}
-						editing={editing}
-						onChange={(value) => update("vehicle", "power", value)}
-					/>
-				</div>
+				<FieldGrid
+					group="vehicle"
+					fields={vehicleFields}
+					values={draft.vehicle}
+					mode={mode}
+					onChange={(key, value) => update("vehicle", key, value)}
+				/>
 			</section>
 			<div className="contract-parties">
-				<section className="contract-section">
-					<h2>{t("seller")}</h2>
-					<div className="contract-grid">
-						<Field
-							label={t("fields.lastName")}
-							id="seller-lastName"
-							value={draft.seller.lastName}
-							editing={editing}
-							onChange={(value) => update("seller", "lastName", value)}
-						/>
-						<Field
-							label={t("fields.firstNames")}
-							id="seller-firstNames"
-							value={draft.seller.firstNames}
-							editing={editing}
-							onChange={(value) => update("seller", "firstNames", value)}
-						/>
-						<Field
-							label={t("fields.identity")}
-							id="seller-identity"
-							value={draft.seller.identity}
-							editing={editing}
-							onChange={(value) => update("seller", "identity", value)}
-						/>
-						<Field
-							label={t("fields.address")}
-							id="seller-address"
-							value={draft.seller.address}
-							editing={editing}
-							onChange={(value) => update("seller", "address", value)}
-						/>
-						<Field
-							label={t("fields.postalCode")}
-							id="seller-postalCode"
-							value={draft.seller.postalCode}
-							editing={editing}
-							onChange={(value) => update("seller", "postalCode", value)}
-						/>
-						<Field
-							label={t("fields.city")}
-							id="seller-city"
-							value={draft.seller.city}
-							editing={editing}
-							onChange={(value) => update("seller", "city", value)}
-						/>
-						<Field
-							label={t("fields.phone")}
-							id="seller-phone"
-							value={draft.seller.phone}
-							editing={editing}
-							onChange={(value) => update("seller", "phone", value)}
-						/>
-					</div>
-				</section>
-				<section className="contract-section">
-					<h2>{t("buyer")}</h2>
-					<div className="contract-grid">
-						<Field
-							label={t("fields.lastName")}
-							id="buyer-lastName"
-							value={draft.buyer.lastName}
-							editing={editing}
-							onChange={(value) => update("buyer", "lastName", value)}
-						/>
-						<Field
-							label={t("fields.firstNames")}
-							id="buyer-firstNames"
-							value={draft.buyer.firstNames}
-							editing={editing}
-							onChange={(value) => update("buyer", "firstNames", value)}
-						/>
-						<Field
-							label={t("fields.identity")}
-							id="buyer-identity"
-							value={draft.buyer.identity}
-							editing={editing}
-							onChange={(value) => update("buyer", "identity", value)}
-						/>
-						<Field
-							label={t("fields.address")}
-							id="buyer-address"
-							value={draft.buyer.address}
-							editing={editing}
-							onChange={(value) => update("buyer", "address", value)}
-						/>
-						<Field
-							label={t("fields.postalCode")}
-							id="buyer-postalCode"
-							value={draft.buyer.postalCode}
-							editing={editing}
-							onChange={(value) => update("buyer", "postalCode", value)}
-						/>
-						<Field
-							label={t("fields.city")}
-							id="buyer-city"
-							value={draft.buyer.city}
-							editing={editing}
-							onChange={(value) => update("buyer", "city", value)}
-						/>
-						<Field
-							label={t("fields.phone")}
-							id="buyer-phone"
-							value={draft.buyer.phone}
-							editing={editing}
-							onChange={(value) => update("buyer", "phone", value)}
-						/>
-					</div>
-				</section>
+				<PartySection {...common} party="seller" />
+				<PartySection {...common} party="buyer" />
 			</div>
 			<section className="contract-section">
 				<h2>{t("sale")}</h2>
-				<div className="contract-grid">
-					<Field
-						label={t("fields.price")}
-						id="sale-price"
-						value={draft.sale.price}
-						editing={editing}
-						onChange={(value) => update("sale", "price", value)}
-					/>
-					<Field
-						label={t("fields.place")}
-						id="sale-place"
-						value={draft.sale.place}
-						editing={editing}
-						onChange={(value) => update("sale", "place", value)}
-					/>
-					<Field
-						label={t("fields.date")}
-						id="sale-date"
-						value={draft.sale.date}
-						editing={editing}
-						onChange={(value) => update("sale", "date", value)}
-					/>
-					<Field
-						label={t("fields.time")}
-						id="sale-time"
-						value={draft.sale.time}
-						editing={editing}
-						onChange={(value) => update("sale", "time", value)}
-					/>
-				</div>
+				<FieldGrid
+					group="sale"
+					fields={saleFields}
+					values={draft.sale}
+					mode={mode}
+					onChange={(key, value) => update("sale", key, value)}
+				/>
 			</section>
 			<OptionalSection {...common} id="payment" title={t("payment")}>
-				<div className="contract-grid">
-					<Field
-						label={t("fields.paymentMethod")}
-						id="optional-paymentMethod"
-						value={draft.optional.paymentMethod}
-						editing={editing}
-						onChange={(value) => update("optional", "paymentMethod", value)}
-					/>
-					<Field
-						label={t("fields.paymentTime")}
-						id="optional-paymentTime"
-						value={draft.optional.paymentTime}
-						editing={editing}
-						onChange={(value) => update("optional", "paymentTime", value)}
-					/>
-				</div>
+				<FieldGrid
+					group="optional"
+					fields={paymentFields}
+					values={draft.optional}
+					mode={mode}
+					onChange={(key, value) => update("optional", key, value)}
+				/>
 			</OptionalSection>
 			<OptionalSection {...common} id="accessories" title={t("accessories")}>
-				<div className="contract-grid">
-					<Field
-						label={t("fields.keys")}
-						id="optional-keys"
-						value={draft.optional.keys}
-						editing={editing}
-						onChange={(value) => update("optional", "keys", value)}
-					/>
-					<Field
-						label={t("fields.serviceBook")}
-						id="optional-serviceBook"
-						value={draft.optional.serviceBook}
-						editing={editing}
-						onChange={(value) => update("optional", "serviceBook", value)}
-					/>
-					<Field
-						label={t("fields.otherItems")}
-						id="optional-otherItems"
-						value={draft.optional.otherItems}
-						editing={editing}
-						onChange={(value) => update("optional", "otherItems", value)}
-					/>
-				</div>
+				<FieldGrid
+					group="optional"
+					fields={accessoryFields}
+					values={draft.optional}
+					mode={mode}
+					onChange={(key, value) => update("optional", key, value)}
+				/>
 			</OptionalSection>
 			<OptionalSection {...common} id="assurances" title={t("assurances")}>
 				<ul className="contract-statements">
-					{statements.map((statement) =>
-						draft.removedStatements.includes(statement) ? (
-							<li key={statement} className="contract-controls contract-restoration">
-								<span>{t(`statements.${statement}`)}</span>
-								<Button
-									type="button"
-									variant="ghost"
-									size="sm"
-									aria-label={controls("restoreNamed", { name: t(`statements.${statement}`) })}
-									onClick={() => setDraft(restoreStatement(draft, statement))}
-								>
-									{controls("restore")}
-								</Button>
-							</li>
-						) : (
-							<li key={statement}>
-								<span>{t(`statements.${statement}`)}</span>
-								{!editing && (
+					{statements.map((statement) => {
+						const removed = draft.removedStatements.includes(statement);
+						const label = t(`statements.${statement}`);
+						return (
+							<li
+								key={statement}
+								className={removed ? "contract-controls contract-restoration" : undefined}
+							>
+								<span>{label}</span>
+								{(removed || !editing) && (
 									<Button
 										type="button"
 										variant="ghost"
 										size="sm"
-										className="contract-controls"
-										aria-label={controls("removeNamed", { name: t(`statements.${statement}`) })}
-										onClick={() => setDraft(removeStatement(draft, statement))}
+										className={removed ? undefined : "contract-controls"}
+										aria-label={controls(removed ? "restoreNamed" : "removeNamed", { name: label })}
+										onClick={() =>
+											setDraft(
+												removed
+													? restoreStatement(draft, statement)
+													: removeStatement(draft, statement),
+											)
+										}
 									>
-										{controls("remove")}
+										{controls(removed ? "restore" : "remove")}
 									</Button>
 								)}
 							</li>
-						),
-					)}
+						);
+					})}
 				</ul>
 			</OptionalSection>
 			<OptionalSection {...common} id="defects" title={t("defects")}>
@@ -441,7 +320,13 @@ export function ContractLayout({ draft, setDraft, mode }: LayoutProps) {
 			</OptionalSection>
 			<section className="contract-section">
 				<h2>{t("signatures")}</h2>
-				<div className="contract-grid">
+				<FieldGrid
+					group="sale"
+					fields={signatureFields}
+					values={draft.sale}
+					mode={mode}
+					onChange={(key, value) => update("sale", key, value)}
+				>
 					{!editing && (
 						<>
 							<div className="contract-value contract-signature">
@@ -454,21 +339,7 @@ export function ContractLayout({ draft, setDraft, mode }: LayoutProps) {
 							</div>
 						</>
 					)}
-					<Field
-						label={t("fields.sellerName")}
-						id="sale-sellerName"
-						value={draft.sale.sellerName}
-						editing={editing}
-						onChange={(value) => update("sale", "sellerName", value)}
-					/>
-					<Field
-						label={t("fields.buyerName")}
-						id="sale-buyerName"
-						value={draft.sale.buyerName}
-						editing={editing}
-						onChange={(value) => update("sale", "buyerName", value)}
-					/>
-				</div>
+				</FieldGrid>
 			</section>
 			{!editing && <p className="contract-document-footer">{t("footer")}</p>}
 		</div>
