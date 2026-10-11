@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
+import { Route as KauppakirjaRouteImport } from './routes/kauppakirja'
 import { Route as KayttoehdotRouteImport } from './routes/kayttoehdot'
 import { Route as KirjauduRouteImport } from './routes/kirjaudu'
 import { Route as RekisteroidyRouteImport } from './routes/rekisteroidy'
@@ -63,6 +64,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KauppakirjaRoute = KauppakirjaRouteImport.update({
+  id: '/kauppakirja',
+  path: '/kauppakirja',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KayttoehdotRoute = KayttoehdotRouteImport.update({
@@ -289,6 +295,7 @@ const PyoratVuokrausListingIdSlugRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
+  '/kauppakirja': typeof KauppakirjaRoute
   '/kayttoehdot': typeof KayttoehdotRoute
   '/kirjaudu': typeof KirjauduRoute
   '/rekisteroidy': typeof RekisteroidyRoute
@@ -335,6 +342,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/kauppakirja': typeof KauppakirjaRoute
   '/kayttoehdot': typeof KayttoehdotRoute
   '/kirjaudu': typeof KirjauduRoute
   '/rekisteroidy': typeof RekisteroidyRoute
@@ -383,6 +391,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
+  '/kauppakirja': typeof KauppakirjaRoute
   '/kayttoehdot': typeof KayttoehdotRoute
   '/kirjaudu': typeof KirjauduRoute
   '/rekisteroidy': typeof RekisteroidyRoute
@@ -432,6 +441,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/kauppakirja'
     | '/kayttoehdot'
     | '/kirjaudu'
     | '/rekisteroidy'
@@ -478,6 +488,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/kauppakirja'
     | '/kayttoehdot'
     | '/kirjaudu'
     | '/rekisteroidy'
@@ -525,6 +536,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/kauppakirja'
     | '/kayttoehdot'
     | '/kirjaudu'
     | '/rekisteroidy'
@@ -573,6 +585,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
+  KauppakirjaRoute: typeof KauppakirjaRoute
   KayttoehdotRoute: typeof KayttoehdotRoute
   KirjauduRoute: typeof KirjauduRoute
   RekisteroidyRoute: typeof RekisteroidyRoute
@@ -626,6 +639,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kauppakirja': {
+      id: '/kauppakirja'
+      path: '/kauppakirja'
+      fullPath: '/kauppakirja'
+      preLoaderRoute: typeof KauppakirjaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kayttoehdot': {
@@ -966,6 +986,7 @@ const ViestitRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
+  KauppakirjaRoute: KauppakirjaRoute,
   KayttoehdotRoute: KayttoehdotRoute,
   KirjauduRoute: KirjauduRoute,
   RekisteroidyRoute: RekisteroidyRoute,

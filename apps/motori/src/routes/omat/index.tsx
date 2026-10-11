@@ -185,6 +185,15 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 
 				{/* Actions */}
 				<div className="mt-3 flex flex-wrap gap-2">
+					{listing.category === "sale" && (
+						<Link
+							to="/kauppakirja"
+							search={{ ilmoitus: listing.short_id }}
+							className="inline-flex h-7 items-center rounded-md border border-border px-2 text-xs hover:text-accent"
+						>
+							{t("contract:link")}
+						</Link>
+					)}
 					{verified ? (
 						<Link
 							to="/ilmoitukset/$listingId/muokkaa"

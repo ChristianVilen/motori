@@ -45,6 +45,9 @@ export const SEEDED_LISTING_UUID = "11111111-1111-4111-8111-111111111111"; // st
 export const SEEDED_LISTING_ID = "e2eseed1"; // short_id — used in URLs and data-listing-id
 export const SEEDED_LISTING_SLUG = "honda-e2e-helsinki"; // make slug + city
 export const SEEDED_LISTING_TITLE = "E2E Seed Honda CB500F 2022";
+export const CONTRACT_LISTING_ID = "1234e567";
+export const CONTRACT_LISTING_UUID = "44444444-4444-4444-8444-444444444444";
+export const CONTRACT_LISTING_SLUG = "honda-e2e-cb500f-helsinki";
 
 export default async function globalSetup() {
 	if (!process.env.DATABASE_URL) {
@@ -85,6 +88,49 @@ export default async function globalSetup() {
 	await setAdminRole(adminId);
 	const makeId = await seedListings(userId);
 	await seedAdminListings(userId, makeId);
+	await seedContractListing(userId, makeId);
+}
+
+async function seedContractListing(ownerId: string, makeId: string) {
+	const { db } = await import("../src/lib/db/index");
+	const model = await db
+		.insertInto("motorcycle_model")
+		.values({ id: crypto.randomUUID(), make_id: makeId, name: "CB500F" })
+		.returning("id")
+		.executeTakeFirstOrThrow();
+	await db
+		.insertInto("listing")
+		.values({
+			id: CONTRACT_LISTING_UUID,
+			short_id: CONTRACT_LISTING_ID,
+			owner_id: ownerId,
+			title: "E2E Contract Honda CB500F",
+			category: "sale",
+			make_id: makeId,
+			model_id: model.id,
+			year: 2022,
+			engine_cc: 471,
+			required_license: "A2",
+			motorcycle_type: "naked",
+			city: "Helsinki",
+			region: "uusimaa",
+			postal_code: null,
+			description: "Dedicated bill-of-sale fixture.",
+			expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+		})
+		.execute();
+	await db
+		.insertInto("listing_sale")
+		.values({
+			listing_id: CONTRACT_LISTING_UUID,
+			price: 450050,
+			condition: "good",
+			km_driven: 12345,
+			color: "Punainen",
+			owner_count: 1,
+			power_kw: 35,
+		})
+		.execute();
 }
 
 async function registerAndSaveState(

@@ -1,0 +1,158 @@
+.contract-editor .contract-section {
+	margin-bottom: 2rem;
+}
+.contract-editor h2 {
+	margin-bottom: 0.75rem;
+	font-size: 1.125rem;
+	font-weight: 700;
+}
+.contract-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.75rem 1rem;
+}
+.contract-editor .contract-parties {
+	display: grid;
+	gap: 2rem;
+}
+.contract-section-heading,
+.contract-statements li,
+.contract-restoration {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+}
+.contract-editor .contract-statements {
+	display: grid;
+	gap: 0.5rem;
+	font-size: 0.875rem;
+}
+.contract-restoration {
+	border-bottom: 1px solid #d1d5db;
+	font-size: 0.875rem;
+}
+.contract-preview-scroll {
+	max-width: 100%;
+	overflow-x: auto;
+	padding: 1rem 0;
+}
+.contract-preview-hidden {
+	display: none;
+}
+.sale-contract-document {
+	box-sizing: border-box;
+	width: 210mm;
+	min-height: 297mm;
+	margin: 0 auto;
+	padding: 12mm 14mm;
+	background: white;
+	color: #111827;
+	font-family: Arial, sans-serif;
+	font-size: 10pt;
+	line-height: 1.25;
+	box-shadow: 0 2px 12px #00000018;
+}
+.contract-document-title {
+	margin: 0 0 5mm;
+	font-size: 19pt;
+	font-weight: 700;
+}
+.sale-contract-document .contract-section {
+	margin-bottom: 1.5mm;
+	break-inside: avoid;
+}
+.sale-contract-document .contract-long {
+	break-inside: auto;
+}
+.sale-contract-document h2 {
+	margin: 0 0 1.5mm;
+	font-size: 11pt;
+	font-weight: 700;
+}
+.sale-contract-document .contract-grid {
+	gap: 1mm 4mm;
+}
+.sale-contract-document .contract-parties {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 6mm;
+}
+.contract-label {
+	display: block;
+	font-size: 8pt;
+	color: #374151;
+}
+.contract-written {
+	min-height: 5mm;
+	border-bottom: 1px solid #9ca3af;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+.contract-signature .contract-written {
+	min-height: 10mm;
+}
+.sale-contract-document .contract-prose .contract-label {
+	display: none;
+}
+.sale-contract-document .contract-prose .contract-written {
+	min-height: 8mm;
+}
+.sale-contract-document .contract-controls {
+	font-family: var(--font-body, sans-serif);
+}
+.sale-contract-document .contract-section-heading .contract-controls,
+.sale-contract-document .contract-statements .contract-controls {
+	height: auto;
+	padding: 0 0.4rem;
+	font-size: 0.75rem;
+}
+.contract-document-footer {
+	margin-top: 4mm;
+	font-size: 8pt;
+}
+@media (min-width: 768px) {
+	.contract-editor .contract-parties {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+@media (max-width: 400px) {
+	.contract-editor .contract-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+@page {
+	size: A4;
+	margin: 12mm 14mm;
+}
+@media print {
+	body:has(.sale-contract-page) {
+		background: white;
+	}
+	body:has(.sale-contract-page)
+		:is(nav, header, footer, [data-sonner-toaster], .contract-controls) {
+		display: none;
+	}
+	body:has(.sale-contract-page) > :not(#main-content),
+	.sale-contract-page .contract-editor {
+		display: none;
+	}
+	body:has(.sale-contract-page) #main-content,
+	.sale-contract-page {
+		margin: 0;
+		padding: 0;
+		max-width: none;
+	}
+	.sale-contract-page .contract-preview-scroll {
+		display: block;
+		overflow: visible;
+		padding: 0;
+	}
+	.sale-contract-document {
+		width: auto;
+		min-height: 0;
+		padding: 0;
+		margin: 0;
+		box-shadow: none;
+	}
+}

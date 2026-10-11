@@ -1,5 +1,6 @@
 import enAuth from "./en/auth";
 import enCommon from "./en/common";
+import enContract from "./en/contract";
 import enEmail from "./en/email";
 import enErrors from "./en/errors";
 import enHome from "./en/home";
@@ -8,6 +9,7 @@ import enMessages from "./en/messages";
 import enProfile from "./en/profile";
 import fiAuth from "./fi/auth";
 import fiCommon from "./fi/common";
+import fiContract from "./fi/contract";
 import fiEmail from "./fi/email";
 import fiErrors from "./fi/errors";
 import fiHome from "./fi/home";
@@ -18,6 +20,7 @@ import fiProfile from "./fi/profile";
 export const resources = {
 	fi: {
 		common: fiCommon,
+		contract: fiContract,
 		home: fiHome,
 		listings: fiListings,
 		auth: fiAuth,
@@ -28,6 +31,7 @@ export const resources = {
 	},
 	en: {
 		common: enCommon,
+		contract: enContract,
 		home: enHome,
 		listings: enListings,
 		auth: enAuth,
