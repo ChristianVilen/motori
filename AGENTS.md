@@ -100,7 +100,7 @@ Every POST `createServerFn` must include, in order:
 
 `/api/cron` is a plain route handler, not a `createServerFn`, so it has its own per-IP limit inside `runCronTasks` (`packages/server/src/cron.ts`) instead of `rateLimitMiddleware`.
 
-Enum/union inputs from the client (status, role, type, etc.) must be runtime-validated in the `inputValidator` — TypeScript types are erased at runtime and provide no protection against crafted requests.
+Validate enum and union inputs from the client with `createServerFn().validator()`. TypeScript types do not protect against crafted requests at runtime.
 
 Image URLs from the client must pass `isValidImageUrl()` before they are stored (`${STORAGE_PUBLIC_URL}/` prefix or `/api/uploads/`; see Storage).
 
