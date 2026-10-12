@@ -4,16 +4,15 @@ import {
 	draftKey,
 	normalizeListingQuery,
 	parseDraft,
-	removeBlock,
-	removeStatement,
-	restoreBlock,
-	restoreStatement,
+	remove,
+	restore,
 } from "./sale-contract";
 
 describe("sale contract", () => {
 	it("starts blank and fills only public vehicle and price fields", () => {
 		const blank = createContract(null);
 		expect(blank.vehicle.make).toBe("");
+
 		const draft = createContract({
 			make: "Honda",
 			model: "CB500F",
@@ -23,6 +22,7 @@ describe("sale contract", () => {
 			power_kw: 35,
 			price: 450050,
 		});
+
 		expect(draft.vehicle).toEqual({
 			registration: "",
 			vin: "",
@@ -40,19 +40,21 @@ describe("sale contract", () => {
 
 	it("removes and restores optional blocks and individual statements without changing values", () => {
 		const draft = createContract(null);
-		draft.optional.defects = "Scratch";
-		const removed = removeStatement(removeBlock(draft, "defects"), "debtFree");
-		expect(removed.removedBlocks).toEqual(["defects"]);
-		expect(removed.removedStatements).toEqual(["debtFree"]);
-		expect(removeBlock(removed, "defects").removedBlocks).toEqual(["defects"]);
-		expect(restoreStatement(restoreBlock(removed, "defects"), "debtFree")).toEqual(draft);
+		draft.defects = "Scratch";
+
+		const removed = remove(remove(draft, "defects"), "debtFree");
+
+		expect(removed.removed).toEqual(["defects", "debtFree"]);
+		expect(remove(removed, "defects").removed).toEqual(["defects", "debtFree"]);
+		expect(restore(restore(removed, "defects"), "debtFree")).toEqual(draft);
 	});
 
 	it("rejects corrupt stored drafts and attempts to remove core blocks", () => {
 		const draft = createContract(null);
+
 		expect(parseDraft(JSON.stringify(draft))).toEqual(draft);
 		expect(parseDraft("not json")).toBeNull();
-		expect(parseDraft(JSON.stringify({ ...draft, removedBlocks: ["seller"] }))).toBeNull();
+		expect(parseDraft(JSON.stringify({ ...draft, removed: ["seller"] }))).toBeNull();
 		expect(parseDraft(JSON.stringify({ ...draft, vehicle: {} }))).toBeNull();
 	});
 
@@ -61,6 +63,7 @@ describe("sale contract", () => {
 		for (const value of [undefined, "", "../bad", ["e2esale1"], 12]) {
 			expect(normalizeListingQuery(value)).toBeUndefined();
 		}
+
 		expect(draftKey("e2esale1")).not.toBe(draftKey("e2esale2"));
 		expect(draftKey(undefined)).not.toBe(draftKey("e2esale1"));
 		expect(draftKey(undefined)).not.toBe(draftKey("blank"));

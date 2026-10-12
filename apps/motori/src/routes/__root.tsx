@@ -342,11 +342,7 @@ function RootDocument({
 									<Link to="/varaosat" className="hover:text-foreground">
 										{t("footer.parts")}
 									</Link>
-									<Link
-										to="/kauppakirja"
-										search={{ ilmoitus: undefined }}
-										className="hover:text-foreground"
-									>
+									<Link to="/kauppakirja" className="hover:text-foreground">
 										{t("contract:footerLink")}
 									</Link>
 								</div>

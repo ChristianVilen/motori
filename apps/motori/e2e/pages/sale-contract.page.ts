@@ -1,5 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
-import type { Contract } from "../../src/lib/sale-contract";
+import { type FieldGroup, type FieldName, fieldId } from "../../src/lib/sale-contract";
 import { waitForHydration } from "../helpers";
 
 export class SaleContractPage {
@@ -27,7 +27,7 @@ export class SaleContractPage {
 
 	async waitForReady() {
 		await waitForHydration(this.page);
-		await expect(this.previewButton).toBeEnabled();
+		await expect(this.previewButton).toBeVisible();
 	}
 
 	async reload() {
@@ -35,11 +35,8 @@ export class SaleContractPage {
 		await this.waitForReady();
 	}
 
-	field<Group extends "vehicle" | "seller" | "buyer" | "sale" | "optional">(
-		group: Group,
-		key: keyof Contract[Group] & string,
-	): Locator {
-		return this.page.locator(`#${group}-${key}`);
+	field<Group extends FieldGroup>(group: Group, key: FieldName<Group>): Locator {
+		return this.page.locator(`#${fieldId(group, key)}`);
 	}
 
 	removeButton(name: string): Locator {

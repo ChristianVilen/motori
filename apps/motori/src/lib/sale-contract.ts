@@ -1,56 +1,59 @@
 import { z } from "zod";
 import { formatPower } from "./power";
 
-const partySchema = z.object({
-	lastName: z.string(),
-	firstNames: z.string(),
-	identity: z.string(),
-	address: z.string(),
-	postalCode: z.string(),
-	city: z.string(),
-	phone: z.string(),
-});
-const optionalBlockSchema = z.enum(["payment", "accessories", "assurances", "defects", "terms"]);
-const statementSchema = z.enum(["testDriven", "ownsVehicle", "debtFree", "noDrivingBan"]);
+const partyFields = [
+	"lastName",
+	"firstNames",
+	"identity",
+	"address",
+	"postalCode",
+	"city",
+	"phone",
+] as const;
+
+export const fieldNames = {
+	vehicle: ["registration", "vin", "make", "model", "year", "mileage", "color", "power"],
+	seller: partyFields,
+	buyer: partyFields,
+	sale: ["price", "place", "date", "time"],
+	payment: ["paymentMethod", "paymentTime"],
+	accessories: ["keys", "serviceBook", "otherItems"],
+	signatures: ["sellerName", "buyerName"],
+} as const;
+
+export type FieldGroup = keyof typeof fieldNames;
+export type FieldName<Group extends FieldGroup> = (typeof fieldNames)[Group][number];
+
+function fieldGroup<const Keys extends readonly [string, ...string[]]>(keys: Keys) {
+	return z.record(z.enum(keys), z.string());
+}
+
+const optionalBlocks = ["payment", "accessories", "assurances", "defects", "terms"] as const;
+export const statements = ["testDriven", "ownsVehicle", "debtFree", "noDrivingBan"] as const;
+
+const removableSchema = z.enum([...optionalBlocks, ...statements]);
 
 const contractSchema = z.object({
-	vehicle: z.object({
-		registration: z.string(),
-		vin: z.string(),
-		make: z.string(),
-		model: z.string(),
-		year: z.string(),
-		mileage: z.string(),
-		color: z.string(),
-		power: z.string(),
-	}),
-	seller: partySchema,
-	buyer: partySchema,
-	sale: z.object({
-		price: z.string(),
-		place: z.string(),
-		date: z.string(),
-		time: z.string(),
-		sellerName: z.string(),
-		buyerName: z.string(),
-	}),
-	optional: z.object({
-		paymentMethod: z.string(),
-		paymentTime: z.string(),
-		keys: z.string(),
-		serviceBook: z.string(),
-		otherItems: z.string(),
-		defects: z.string(),
-		terms: z.string(),
-	}),
-	removedBlocks: z.array(optionalBlockSchema),
-	removedStatements: z.array(statementSchema),
+	vehicle: fieldGroup(fieldNames.vehicle),
+	seller: fieldGroup(fieldNames.seller),
+	buyer: fieldGroup(fieldNames.buyer),
+	sale: fieldGroup(fieldNames.sale),
+	payment: fieldGroup(fieldNames.payment),
+	accessories: fieldGroup(fieldNames.accessories),
+	defects: z.string(),
+	terms: z.string(),
+	signatures: fieldGroup(fieldNames.signatures),
+	removed: z.array(removableSchema),
 });
 
 export type Contract = z.infer<typeof contractSchema>;
-export type OptionalBlock = z.infer<typeof optionalBlockSchema>;
-export type Statement = z.infer<typeof statementSchema>;
-export const statements = statementSchema.options;
+export type OptionalBlock = (typeof optionalBlocks)[number];
+export type Statement = (typeof statements)[number];
+export type Removable = z.infer<typeof removableSchema>;
+
+export function fieldId<Group extends FieldGroup>(group: Group, key: FieldName<Group>): string {
+	return `${group}-${key}`;
+}
 
 export type SalePrefill = {
 	make: string | null;
@@ -62,74 +65,66 @@ export type SalePrefill = {
 	price: number;
 };
 
+const priceFormat = new Intl.NumberFormat("fi-FI", {
+	useGrouping: false,
+	minimumFractionDigits: 2,
+	maximumFractionDigits: 2,
+});
+
 export function createContract(listing: SalePrefill | null): Contract {
-	const party = {
-		lastName: "",
-		firstNames: "",
-		identity: "",
-		address: "",
-		postalCode: "",
-		city: "",
-		phone: "",
-	};
+	const contract = blankContract();
+
+	if (!listing) {
+		return contract;
+	}
+
 	return {
+		...contract,
 		vehicle: {
-			registration: "",
-			vin: "",
-			make: listing?.make ?? "",
-			model: listing?.model ?? "",
-			year: listing?.year?.toString() ?? "",
-			mileage: listing?.km_driven?.toString() ?? "",
-			color: listing?.color ?? "",
-			power: listing?.power_kw == null ? "" : formatPower(listing.power_kw),
+			...contract.vehicle,
+			make: listing.make ?? "",
+			model: listing.model ?? "",
+			year: listing.year?.toString() ?? "",
+			mileage: listing.km_driven?.toString() ?? "",
+			color: listing.color ?? "",
+			power: listing.power_kw == null ? "" : formatPower(listing.power_kw),
 		},
-		seller: { ...party },
-		buyer: { ...party },
-		sale: {
-			price: listing
-				? new Intl.NumberFormat("fi-FI", {
-						useGrouping: false,
-						minimumFractionDigits: 2,
-						maximumFractionDigits: 2,
-					}).format(listing.price / 100)
-				: "",
-			place: "",
-			date: "",
-			time: "",
-			sellerName: "",
-			buyerName: "",
-		},
-		optional: {
-			paymentMethod: "",
-			paymentTime: "",
-			keys: "",
-			serviceBook: "",
-			otherItems: "",
-			defects: "",
-			terms: "",
-		},
-		removedBlocks: [],
-		removedStatements: [],
+		sale: { ...contract.sale, price: priceFormat.format(listing.price / 100) },
 	};
 }
 
-export function removeBlock(draft: Contract, block: OptionalBlock): Contract {
-	return { ...draft, removedBlocks: [...new Set([...draft.removedBlocks, block])] };
+function blankContract(): Contract {
+	return {
+		vehicle: blankFields(fieldNames.vehicle),
+		seller: blankFields(fieldNames.seller),
+		buyer: blankFields(fieldNames.buyer),
+		sale: blankFields(fieldNames.sale),
+		payment: blankFields(fieldNames.payment),
+		accessories: blankFields(fieldNames.accessories),
+		defects: "",
+		terms: "",
+		signatures: blankFields(fieldNames.signatures),
+		removed: [],
+	};
 }
-export function restoreBlock(draft: Contract, block: OptionalBlock): Contract {
-	return { ...draft, removedBlocks: draft.removedBlocks.filter((id) => id !== block) };
+
+function blankFields<const Keys extends readonly [string, ...string[]]>(keys: Keys) {
+	return fieldGroup(keys).parse(Object.fromEntries(keys.map((key) => [key, ""])));
 }
-export function removeStatement(draft: Contract, statement: Statement): Contract {
-	return { ...draft, removedStatements: [...new Set([...draft.removedStatements, statement])] };
+
+export function remove(draft: Contract, id: Removable): Contract {
+	return { ...draft, removed: [...new Set([...draft.removed, id])] };
 }
-export function restoreStatement(draft: Contract, statement: Statement): Contract {
-	return { ...draft, removedStatements: draft.removedStatements.filter((id) => id !== statement) };
+
+export function restore(draft: Contract, id: Removable): Contract {
+	return { ...draft, removed: draft.removed.filter((removed) => removed !== id) };
 }
 
 export function parseDraft(value: string | null): Contract | null {
 	if (!value) {
 		return null;
 	}
+
 	try {
 		const parsed = contractSchema.safeParse(JSON.parse(value));
 		return parsed.success ? parsed.data : null;
@@ -138,9 +133,27 @@ export function parseDraft(value: string | null): Contract | null {
 	}
 }
 
+// sessionStorage throws when the browser blocks site data. The form then works without a saved draft.
+export function readDraft(key: string): Contract | null {
+	try {
+		return parseDraft(window.sessionStorage.getItem(key));
+	} catch {
+		return null;
+	}
+}
+
+export function saveDraft(key: string, draft: Contract) {
+	try {
+		window.sessionStorage.setItem(key, JSON.stringify(draft));
+	} catch {
+		// Blocked storage: see readDraft.
+	}
+}
+
 export function normalizeListingQuery(value: unknown): string | undefined {
 	return typeof value === "string" && /^[a-zA-Z0-9]{1,32}$/.test(value) ? value : undefined;
 }
+
 export function draftKey(listing: string | undefined): string {
 	return listing ? `motori:sale-contract:v1:listing:${listing}` : "motori:sale-contract:v1:blank";
 }

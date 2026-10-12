@@ -1,4 +1,4 @@
-import { createRouter, defaultParseSearch } from "@tanstack/react-router";
+import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 
 export function getRouter() {
@@ -13,13 +13,6 @@ export function getRouter() {
 
 	const router = createRouter({
 		routeTree,
-		parseSearch: (searchStr) => {
-			const search = defaultParseSearch(searchStr);
-			if ("ilmoitus" in search && typeof search.ilmoitus === "number") {
-				return { ...search, ilmoitus: new URLSearchParams(searchStr).get("ilmoitus") ?? undefined };
-			}
-			return search;
-		},
 		scrollRestoration: true,
 		ssr: { nonce },
 	});

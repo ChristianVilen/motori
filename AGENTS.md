@@ -106,9 +106,13 @@ Validate enum and union inputs from the client with `createServerFn().validator(
 
 Image URLs from the client must pass `isValidImageUrl()` before they are stored (`${STORAGE_PUBLIC_URL}/` prefix or `/api/uploads/`; see Storage).
 
-### SEO / canonical URLs
+### Bill of sale (`/kauppakirja`)
 
-`/kauppakirja` is a public bill-of-sale editor. Only public vehicle fields and price are read from a sale listing; names and other party data must never be read from a session or owner profile. Typed fields stay in context-keyed `sessionStorage` and must never be sent to a server function. Preview and print share one Finnish document layout. Clear stores a blank draft for the same context so reload cannot reapply listing values. Catch every storage access and restore before enabling edits.
+A public bill-of-sale editor. Only public vehicle fields and price are read from a sale listing; names and other party data must never be read from a session or owner profile. Typed fields stay in context-keyed `sessionStorage` and must never be sent to a server function. Clear stores a blank draft for the same context so reload cannot reapply listing values. The editor renders only in the browser (`ClientOnly`) and reads the saved draft in its first render. Catch every storage access.
+
+Each group in the contract schema (`apps/motori/src/lib/sale-contract.ts`) is one section of the document, and `fieldNames` is the only list of its fields. The form (`components/sale-contract/form.tsx`) and the printed document (`components/sale-contract/document.tsx`) are separate components. Preview and print use the same document. It is always Finnish and reads `fi/contract.ts` directly. `styles/sale-contract.css` holds only the A4 document and print rules; the screen UI uses Tailwind with `print:hidden`.
+
+### SEO / canonical URLs
 
 `SITE_URL` in `apps/motori/src/lib/constants.ts` is derived from `BETTER_AUTH_URL` — no separate env var. All canonical links, `og:url`, and sitemap entries use this constant.
 

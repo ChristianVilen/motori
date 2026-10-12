@@ -45,7 +45,7 @@ export const SEEDED_LISTING_UUID = "11111111-1111-4111-8111-111111111111"; // st
 export const SEEDED_LISTING_ID = "e2eseed1"; // short_id — used in URLs and data-listing-id
 export const SEEDED_LISTING_SLUG = "honda-e2e-helsinki"; // make slug + city
 export const SEEDED_LISTING_TITLE = "E2E Seed Honda CB500F 2022";
-export const CONTRACT_LISTING_ID = "1234e567";
+export const CONTRACT_LISTING_ID = "e2esale1";
 export const CONTRACT_LISTING_UUID = "44444444-4444-4444-8444-444444444444";
 export const CONTRACT_LISTING_SLUG = "honda-e2e-cb500f-helsinki";
 

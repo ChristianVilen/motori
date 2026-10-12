@@ -1,12 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
-import { normalizeListingQuery } from "./sale-contract";
+import { normalizeListingQuery, type SalePrefill } from "./sale-contract";
 
 export const getContractPrefill = createServerFn({ method: "GET" })
-	.validator((value: unknown) => normalizeListingQuery(value))
-	.handler(async ({ data }) => {
+	.inputValidator((value: unknown) => normalizeListingQuery(value))
+	.handler(async ({ data }): Promise<SalePrefill | null> => {
 		if (!data) {
 			return null;
 		}
+
 		const { db } = await import("./db/index");
 		const listing = await db
 			.selectFrom("listing")
@@ -26,5 +27,6 @@ export const getContractPrefill = createServerFn({ method: "GET" })
 			.where("listing.category", "=", "sale")
 			.where("listing.status", "!=", "removed")
 			.executeTakeFirst();
+
 		return listing ?? null;
 	});
