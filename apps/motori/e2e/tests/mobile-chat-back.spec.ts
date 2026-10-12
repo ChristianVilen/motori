@@ -1,42 +1,24 @@
 import { expect, test } from "../fixtures";
 import { SEEDED_LISTING_ID, SEEDED_LISTING_SLUG } from "../global-setup";
-import { waitForHydration } from "../helpers";
-
-const LISTING_URL = `/pyorat/vuokraus/${SEEDED_LISTING_ID}/${SEEDED_LISTING_SLUG}`;
+import { ListingDetailPage } from "../pages/listing-detail.page";
+import { MessagesPage } from "../pages/messages.page";
 
 test.describe("mobile chat navigation", () => {
-	// Only run this on mobile
 	test.use({ isMobile: true });
 
 	test("back button from chat screen shows inbox instead of white screen", async ({
-		authenticatedViewerPage,
+		authenticatedViewerPage: page,
 	}) => {
-		// Go to listing
-		await authenticatedViewerPage.goto(LISTING_URL);
-		await waitForHydration(authenticatedViewerPage);
+		const listing = new ListingDetailPage(page);
+		const messages = new MessagesPage(page);
 
-		// Click "Lähetä viesti"
-		await authenticatedViewerPage.getByRole("button", { name: /lähetä viesti/i }).click();
+		await listing.goto(SEEDED_LISTING_ID, SEEDED_LISTING_SLUG);
+		await listing.messageSellerButton.click();
+		await messages.waitForThread();
 
-		// Wait for chat screen to load
-		await authenticatedViewerPage.waitForURL(/\/viestit\/.+/);
-		await waitForHydration(authenticatedViewerPage);
+		await messages.backLink.click();
 
-		// Ensure we are in thread view (mobile)
-		const backBtn = authenticatedViewerPage.getByRole("link", { name: "Takaisin" });
-		await expect(backBtn).toBeVisible();
-
-		// Click the back button
-		await backBtn.click();
-
-		// Wait for URL to be the inbox index
-		await authenticatedViewerPage.waitForURL(/\/viestit(\?.*)?$/);
-
-		// Confirm the inbox list is visible after navigating back from a thread
-		const inboxTitle = authenticatedViewerPage.getByRole("heading", {
-			name: "Viestit",
-			exact: true,
-		});
-		await expect(inboxTitle).toBeVisible();
+		await expect(page).toHaveURL(/\/viestit(\?.*)?$/);
+		await expect(messages.inboxTitle).toBeVisible();
 	});
 });

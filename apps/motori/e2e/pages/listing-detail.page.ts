@@ -15,6 +15,7 @@ export class ListingDetailPage {
 	readonly mobileBookButton: Locator;
 	readonly notFound: Locator;
 	readonly saleContractLink: Locator;
+	readonly messageSellerButton: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
@@ -30,6 +31,7 @@ export class ListingDetailPage {
 		this.mobileBookButton = page.getByTestId("mobile-book-button");
 		this.notFound = page.getByTestId("listing-not-found");
 		this.saleContractLink = page.getByRole("link", { name: "Tee kauppakirja", exact: true });
+		this.messageSellerButton = page.getByRole("button", { name: /lähetä viesti/i });
 	}
 
 	async goto(shortId: string, slug: string) {
