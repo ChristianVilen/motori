@@ -342,6 +342,9 @@ function RootDocument({
 									<Link to="/varaosat" className="hover:text-foreground">
 										{t("footer.parts")}
 									</Link>
+									<Link to="/kauppakirja" className="hover:text-foreground">
+										{t("contract:footerLink")}
+									</Link>
 								</div>
 								<span>{t("footer.copyright")}</span>
 								<span className="mx-2">·</span>

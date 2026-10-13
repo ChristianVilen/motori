@@ -1,0 +1,111 @@
+.sale-contract-document {
+	box-sizing: border-box;
+	width: 210mm;
+	min-height: 297mm;
+	margin: 0 auto;
+	padding: 12mm 14mm;
+	background: white;
+	color: #111827;
+	font-family: Arial, sans-serif;
+	font-size: 10pt;
+	line-height: 1.25;
+	box-shadow: 0 2px 12px #00000018;
+}
+
+.contract-title {
+	margin: 0 0 5mm;
+	font-size: 19pt;
+	font-weight: 700;
+}
+
+.sale-contract-document h3 {
+	margin: 0 0 1.5mm;
+	font-size: 11pt;
+	font-weight: 700;
+}
+
+.contract-section {
+	margin-bottom: 1.5mm;
+	break-inside: avoid;
+}
+
+.contract-long {
+	break-inside: auto;
+}
+
+.contract-heading,
+.contract-statements li {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+}
+
+.contract-grid,
+.contract-parties {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.contract-grid {
+	gap: 1mm 4mm;
+}
+
+.contract-parties {
+	gap: 6mm;
+}
+
+.contract-label {
+	display: block;
+	font-size: 8pt;
+	color: #374151;
+}
+
+.contract-written {
+	min-height: 5mm;
+	border-bottom: 1px solid #9ca3af;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+
+.contract-prose {
+	min-height: 8mm;
+}
+
+.contract-signature .contract-written {
+	min-height: 10mm;
+}
+
+.contract-footer {
+	margin-top: 4mm;
+	font-size: 8pt;
+}
+
+@page sale-contract {
+	size: A4;
+	margin: 12mm 14mm;
+}
+
+@media print {
+	body:has(.sale-contract-document) {
+		background: white;
+	}
+
+	/* Hides the site chrome. Needs <main id="main-content"> to be a direct child of <body> in __root.tsx. */
+	body:has(.sale-contract-document) > :not(#main-content) {
+		display: none;
+	}
+
+	body:has(.sale-contract-document) #main-content {
+		padding: 0;
+	}
+
+	.sale-contract-document {
+		page: sale-contract;
+		width: auto;
+		min-height: 0;
+		margin: 0;
+		padding: 0;
+		box-shadow: none;
+	}
+}

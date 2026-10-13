@@ -21,8 +21,10 @@ export class DashboardPage {
 		);
 	}
 
-	editButton(listingId: string): Locator {
-		return this.listingRow(listingId).locator('[data-testid="dashboard-listing-edit"]');
+	async openEdit(listingId: string) {
+		await this.listingRow(listingId).getByTestId("dashboard-listing-edit").click();
+		await this.page.waitForURL(/\/muokkaa/, { timeout: 10000 });
+		await waitForHydration(this.page);
 	}
 
 	deleteButton(listingId: string): Locator {

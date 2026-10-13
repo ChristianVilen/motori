@@ -56,6 +56,8 @@ File-based under `apps/motori/src/routes/`. Both apps' `routeTree.gen.ts` files 
 
 Hydration signal: `__root.tsx` sets `data-hydrated="true"` on `<html>` after mount — e2e tests must wait for this before interacting, otherwise clicks fire before React attaches handlers and forms do native submits.
 
+For new or updated Playwright tests, keep selectors, form actions, navigation, and readiness in page objects under each app's `e2e/pages/`. Reuse an existing page object before adding one. Keep behavior assertions and request capture in the test. Do not add a shared base class or general form engine. Fill a complete city name; `CitySelect` commits an exact match without keyboard selection.
+
 ### SSR / client boundary
 
 TanStack Start ships `apps/motori/src/start.ts`, `apps/motori/src/router.tsx`, and the route tree to **both** server and client bundles. `.server(...)` strips the _callback_ but **not module-top-level code or imports**.
@@ -104,6 +106,12 @@ Validate enum and union inputs from the client with `createServerFn().validator(
 
 Image URLs from the client must pass `isValidImageUrl()` before they are stored (`${STORAGE_PUBLIC_URL}/` prefix or `/api/uploads/`; see Storage).
 
+### Bill of sale (`/kauppakirja`)
+
+A public bill-of-sale editor. Only public vehicle fields and price are read from a sale listing; names and other party data must never be read from a session or owner profile. Typed fields stay in context-keyed `sessionStorage` and must never be sent to a server function. Clear stores a blank draft for the same context so reload cannot reapply listing values. The editor renders only in the browser (`ClientOnly`) and reads the saved draft in its first render. Catch every storage access.
+
+Each group in the contract schema (`apps/motori/src/lib/sale-contract.ts`) is one section of the document, and `fieldNames` is the only list of its fields. The form (`components/sale-contract/form.tsx`) and the printed document (`components/sale-contract/document.tsx`) are separate components. Preview and print use the same document. It is always Finnish and reads `fi/contract.ts` directly. `styles/sale-contract.css` holds only the A4 document and print rules; the screen UI uses Tailwind with `print:hidden`.
+
 ### SEO / canonical URLs
 
 `SITE_URL` in `apps/motori/src/lib/constants.ts` is derived from `BETTER_AUTH_URL` — no separate env var. All canonical links, `og:url`, and sitemap entries use this constant.
@@ -144,7 +152,7 @@ Use the `gh` CLI for all GitHub interactions — never open the web UI for thing
 - `gh issue create --title "..." --label enhancement,p2` — open a new issue
 - `gh issue view <number>` — read an issue with full body
 
-**CI** runs on every PR and push to `main` (`.github/workflows/ci.yml`). Five parallel jobs: `build` (both apps), `lint`, `format`, `typecheck`, `test` (unit). Plus an `e2e` job sharded 2-way that spins up a Postgres 17 service container, runs migrations, builds, then runs Playwright against Chromium and WebKit, and an `e2e-talli` job that does the same for talli. The e2e jobs run inside the official Playwright container image (browsers and system deps preinstalled, so nothing downloads at job time) — when bumping `@playwright/test`, bump the `mcr.microsoft.com/playwright` image tag in `ci.yml` to the same version. E2e failures upload a `playwright-report` artifact (7-day retention). CI uses `.env.ci` (not `.env.example`) — keep that file in sync when adding required env vars. On `main`, a `deploy` job runs `scripts/deploy.sh` for each app (`just deploy` uses the same script). The script fails on a stale deploy lock and checks that `/api/health` returns the pushed commit as `version`. The job opens a "Deploy failed" issue if any step fails (`DEPLOY.md` §5b).
+**CI** runs on every PR and push to `main` (`.github/workflows/ci.yml`). Five parallel jobs: `build` (both apps), `lint`, `format`, `typecheck`, `test` (unit). Plus an `e2e` job sharded 2-way that spins up a Postgres 17 service container, runs migrations, builds, then runs Playwright against Chromium and selected iPhone 15 mobile WebKit tests, and an `e2e-talli` job that does the same for talli. The e2e jobs run inside the official Playwright container image (browsers and system deps preinstalled, so nothing downloads at job time) — when bumping `@playwright/test`, bump the `mcr.microsoft.com/playwright` image tag in `ci.yml` to the same version. E2e failures upload a `playwright-report` artifact (7-day retention). CI uses `.env.ci` (not `.env.example`) — keep that file in sync when adding required env vars. On `main`, a `deploy` job runs `scripts/deploy.sh` for each app (`just deploy` uses the same script). The script fails on a stale deploy lock and checks that `/api/health` returns the pushed commit as `version`. The job opens a "Deploy failed" issue if any step fails (`DEPLOY.md` §5b).
 
 **Runner and action versions.** Every workflow job runs on `ubuntu-24.04`. The pin makes a runner image upgrade a reviewed change. Every external action uses a major tag whose `action.yml` declares `runs.using: node24`; check this before you change an action version. The jobs that need dependencies call the local setup action `.github/actions/setup/action.yml`, which installs pnpm, Node and the dependencies. CI reads the Node version from `mise.toml`, so a Node bump is one edit there. Dependabot (`.github/dependabot.yml`) looks for action updates every week in each folder listed under `directories`; add the folder of every new local action there. The workflows use major tags, so each action update is a major bump. It comes as its own PR, and `dependabot-auto-merge.yml` leaves it for manual review.
 

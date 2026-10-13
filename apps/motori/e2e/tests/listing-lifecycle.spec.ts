@@ -80,9 +80,7 @@ test.describe("Listing lifecycle", () => {
 		const dashboard = new DashboardPage(page);
 		await dashboard.goto();
 		await expect(dashboard.listingRow(listingId)).toBeVisible();
-		await dashboard.editButton(listingId).click();
-		await page.waitForURL(/\/muokkaa/, { timeout: 10000 });
-		await waitForHydration(page);
+		await dashboard.openEdit(listingId);
 
 		const form = new ListingFormPage(page);
 		await form.titleInput.fill(LISTING_TITLE_EDITED);

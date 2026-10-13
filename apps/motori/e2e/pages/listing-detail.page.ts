@@ -14,6 +14,8 @@ export class ListingDetailPage {
 	readonly bookingDialog: Locator;
 	readonly mobileBookButton: Locator;
 	readonly notFound: Locator;
+	readonly saleContractLink: Locator;
+	readonly messageSellerButton: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
@@ -28,10 +30,17 @@ export class ListingDetailPage {
 		this.bookingDialog = page.getByRole("dialog", { name: /Saatavuus|Availability/ });
 		this.mobileBookButton = page.getByTestId("mobile-book-button");
 		this.notFound = page.getByTestId("listing-not-found");
+		this.saleContractLink = page.getByRole("link", { name: "Tee kauppakirja", exact: true });
+		this.messageSellerButton = page.getByRole("button", { name: /lähetä viesti/i });
 	}
 
 	async goto(shortId: string, slug: string) {
 		await this.page.goto(`/pyorat/vuokraus/${shortId}/${slug}`);
+		await waitForHydration(this.page);
+	}
+
+	async gotoSale(shortId: string, slug: string) {
+		await this.page.goto(`/pyorat/myynti/${shortId}/${slug}`);
 		await waitForHydration(this.page);
 	}
 }

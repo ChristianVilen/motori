@@ -12,6 +12,7 @@ const STATIC_PATHS = [
 	{ path: "/varaosat", priority: "0.9", changefreq: "daily" },
 	{ path: "/kayttoehdot", priority: "0.3", changefreq: "yearly" },
 	{ path: "/tietosuoja", priority: "0.3", changefreq: "yearly" },
+	{ path: "/kauppakirja", priority: "0.7", changefreq: "yearly" },
 ];
 
 export const Route = createFileRoute("/sitemap.xml")({
