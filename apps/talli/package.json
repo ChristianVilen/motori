@@ -19,14 +19,14 @@
 		"@motori/db": "workspace:*",
 		"@motori/server": "workspace:*",
 		"@motori/ui": "workspace:*",
-		"@tanstack/react-router": "1.170.41",
-		"@tanstack/react-start": "1.168.60",
+		"@tanstack/react-router": "1.170.42",
+		"@tanstack/react-start": "1.168.61",
 		"@techstark/opencv-js": "5.0.0-release.1",
 		"better-auth": "1.7.7",
 		"date-fns": "4.4.0",
 		"jscanify": "1.4.3",
 		"kysely": "0.29.6",
-		"lucide-react": "1.52.0",
+		"lucide-react": "1.55.0",
 		"nitro": "3.0.260429-beta",
 		"pdf-lib": "1.17.1",
 		"pg": "8.23.1",
@@ -35,19 +35,19 @@
 		"sonner": "2.0.8",
 		"srvx": "1.0.5",
 		"tsx": "4.23.15",
-		"zod": "4.6.5"
+		"zod": "4.6.7"
 	},
 	"devDependencies": {
-		"@playwright/test": "1.63.0",
+		"@playwright/test": "1.64.0",
 		"@tailwindcss/vite": "4.3.3",
-		"@types/node": "26.6.4",
+		"@types/node": "26.6.5",
 		"@types/pg": "8.23.1",
 		"@types/react": "19.3.0",
 		"@types/react-dom": "19.3.0",
 		"@vitejs/plugin-react": "6.1.2",
 		"tailwindcss": "4.3.3",
 		"typescript": "7.0.2",
-		"vite": "8.3.3",
-		"vitest": "5.0.3"
+		"vite": "8.3.4",
+		"vitest": "5.0.4"
 	}
 }
