@@ -47,7 +47,7 @@
 		"sonner": "2.0.8",
 		"srvx": "1.0.5",
 		"tsx": "4.23.15",
-		"zod": "4.6.5"
+		"zod": "4.6.6"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "4.13.0",
