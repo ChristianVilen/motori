@@ -2,6 +2,7 @@ import { createContext, type ReactNode, useCallback, useContext, useEffect, useS
 import { getFavoriteIdsFn, toggleFavoriteFn } from "~/lib/favorites-fns";
 
 interface FavoritesContextValue {
+	count: number;
 	isFavorite: (listingId: string) => boolean;
 	toggle: (listingId: string) => void;
 }
@@ -91,6 +92,8 @@ export function FavoritesProvider({ loggedIn, onRequireLogin, children }: Favori
 	);
 
 	return (
-		<FavoritesContext.Provider value={{ isFavorite, toggle }}>{children}</FavoritesContext.Provider>
+		<FavoritesContext.Provider value={{ count: ids.size, isFavorite, toggle }}>
+			{children}
+		</FavoritesContext.Provider>
 	);
 }

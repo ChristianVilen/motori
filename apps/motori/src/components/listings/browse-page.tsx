@@ -153,7 +153,7 @@ export function BrowsePage({
 							type="text"
 							defaultValue={search.q ?? ""}
 							placeholder={t("browse.searchPlaceholder")}
-							className="h-11 flex-1 rounded-lg bg-white/10 px-4 text-base text-white placeholder:text-white/70 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent md:text-sm"
+							className="h-11 min-w-0 flex-1 rounded-lg bg-white/10 px-4 text-base text-white placeholder:text-white/70 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent md:text-sm"
 						/>
 						<button
 							data-testid="listings-search-submit"
@@ -351,7 +351,7 @@ export function BrowsePage({
 					)}
 
 					{/* Map */}
-					<div className="min-h-[50vh] flex-1">
+					<div className="isolate min-h-[50vh] flex-1">
 						<ClientOnly
 							fallback={
 								<div className="flex h-full items-center justify-center bg-muted-light text-sm text-muted">

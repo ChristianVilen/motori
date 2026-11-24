@@ -21,18 +21,11 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 		if (!open) {
 			return;
 		}
-		function onKey(e: KeyboardEvent) {
-			if (e.key === "Escape") {
-				onClose();
-			}
-		}
-		window.addEventListener("keydown", onKey);
 		document.body.style.overflow = "hidden";
 		return () => {
-			window.removeEventListener("keydown", onKey);
 			document.body.style.overflow = "";
 		};
-	}, [open, onClose]);
+	}, [open]);
 
 	if (!open) {
 		return null;
@@ -46,7 +39,11 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 		<div
 			data-testid="login-modal"
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-			onClick={onClose}
+			onClick={(event) => {
+				if (event.target === event.currentTarget) {
+					onClose();
+				}
+			}}
 			onKeyDown={(e) => e.key === "Escape" && onClose()}
 			role="dialog"
 			aria-modal="true"
@@ -55,8 +52,6 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 			<div
 				ref={trapRef}
 				className="w-full max-w-sm rounded-l bg-card p-6 shadow-xl"
-				onClick={(e) => e.stopPropagation()}
-				onKeyDown={(e) => e.stopPropagation()}
 				role="document"
 			>
 				<div className="mb-5 flex items-start justify-between">

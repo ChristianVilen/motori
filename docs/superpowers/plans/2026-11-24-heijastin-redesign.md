@@ -1,10 +1,10 @@
 # Heijastin redesign implementation plan
 
-> **For agentic workers.** Do the phases in order. One phase is one branch and one pull request. Read "Rules for every phase" before you start a phase. Follow `AGENTS.md` in the repository root. If this plan and `AGENTS.md` disagree, `AGENTS.md` wins, and you say so in the pull request.
+> **For agentic workers.** Do the phases in order. Keep all phases on the local `heijastin/redesign` branch. Verify each phase before starting the next. Read "Rules for every phase" before you start a phase. Follow `AGENTS.md` in the repository root. If this plan and `AGENTS.md` disagree, `AGENTS.md` wins, and you say so in the pull request.
 
 **Goal.** Bring the "Heijastin" design from the prototype into the production apps. Motori gets the full redesign. Talli gets the new colours, fonts, and logo, and no layout work.
 
-**Visual reference.** The prototype is in `docs/prototypes/claude-redesign/`. It is the source for layout, spacing, type sizes, and motion. To see it, run `python3 -m http.server 4173 --directory docs/prototypes` and open `http://localhost:4173/claude-redesign/index.html`. The page `index.html?sivu=kattavuus` lists which features the prototype shows and which ones it only names. The prototype is plain HTML with sample data. Copy its look and its CSS values. Do not copy its JavaScript or its data.
+**Visual reference.** The prototype is in `docs/prototypes/claude-redesign/`. It is the source for layout, spacing, type sizes, and motion. Open `http://localhost:4173/claude-redesign/index.html` on the existing prototype server. If it is unavailable, report that to the product owner. The page `index.html?sivu=kattavuus` lists which features the prototype shows and which ones it only names. The prototype is plain HTML with sample data. Copy its look and its CSS values. Do not copy its JavaScript or its data.
 
 **Tech stack.** TanStack Start, React 19, Tailwind v4, Kysely, BetterAuth, i18next, Embla (gallery), Leaflet (map), Playwright, Vitest. No new runtime library is needed. The only new packages are two font packages.
 
@@ -158,23 +158,23 @@ The current theme is one `@theme` block in `packages/ui/src/theme.css`. Phase 1 
 
 **Steps.**
 
-- [ ] **2.1 Header, desktop (≥ `md`).** One row on the paper surface with a hairline under it: wordmark, search field (max width 560px), then **Suosikit** with a count badge, **Viestit** with the unread badge, **Oma** (the user menu), the language selector, and the lime pill **Myy**. Remove the dark `bg-primary` band and `CategoryDropdown`. Categories are reachable from the chips (Phase 3) and from the footer.
+- [x] **2.1 Header, desktop (≥ `md`).** One row on the paper surface with a hairline under it: wordmark, search field (max width 560px), then **Suosikit** with a count badge, **Viestit** with the unread badge, **Oma** (the user menu), the language selector, and the lime pill **Myy**. Remove the dark `bg-primary` band and `CategoryDropdown`. Categories are reachable from the chips (Phase 3) and from the footer.
 	- **Myy** keeps `data-testid="nav-add-listing"` and its three states: link for a verified user, login modal for a logged-out user, disabled with the tooltip for an unverified user.
 	- Logged out: **Suosikit**, **Viestit**, and **Oma** open the login modal. Keep `nav-login`.
 	- The user menu lists: Omat ilmoitukset, Varaukset, Tallennetut haut, Asetukset, Kirjaudu ulos. Keep `nav-user-menu`, `nav-dashboard`, and `nav-signout`.
-- [ ] **2.2 Header, mobile.** Row 1: wordmark on the left. On the right: `nav-login-mobile` when logged out, and the language selector. Row 2, only on the five browse pages: the search trigger from step 2.4.
-- [ ] **2.3 Language selector.** Show both languages as `FI | EN`, with the current one in bold. Each is a button with `aria-pressed`. Persistence does not change. Update `language-selector.spec.ts` through its page object.
-- [ ] **2.4 Search.** Create `SiteSearch`.
+- [x] **2.2 Header, mobile.** Row 1: wordmark on the left. On the right: `nav-login-mobile` when logged out, and the language selector. Row 2, only on the five browse pages: the search trigger from step 2.4.
+- [x] **2.3 Language selector.** Show both languages as `FI | EN`, with the current one in bold. Each is a button with `aria-pressed`. Persistence does not change. Update `language-selector.spec.ts` through its page object.
+- [x] **2.4 Search.** Create `SiteSearch`.
 	- Desktop: a real `<input type="search">` in a `<form>`. On submit it navigates to the current browse page with `q` set and `cursor` cleared. On a page that is not a browse page it navigates to `/pyorat/myynti` with `q` (Phase 3 changes this target to `/`). Test ids: `site-search-form`, `site-search-input`.
 	- Mobile: a button that looks like the field, shows the current `q` or the placeholder "Hae pyörää, varustetta tai varaosaa", and opens `MobileSearchOverlay`. Test id: `site-search-trigger`.
 	- Remove the search forms inside `routes/index.tsx` and `browse-page.tsx` only in Phase 3. In this phase both can exist.
-- [ ] **2.5 Favourites count.** Expose `count` (`ids.size`) from `favorites-context.tsx`. Show it in a lime badge on **Suosikit** in the header and in the tab bar. Hide the badge at 0. The badge has a screen-reader text, for example "3 suosikkia".
-- [ ] **2.6 Bottom tab bar.** Five items: **Selaa** (`/`, `bottom-nav-browse`), **Suosikit** (`/omat/suosikit`, new id `bottom-nav-favorites`), **Myy** (centre, 44px lime circle with an ink plus, `bottom-nav-add`, the same three states as today), **Viestit** (`bottom-nav-messages`, with the unread badge), **Oma** (`bottom-nav-account`). Remove the search tab and `bottom-nav-search`. The active item uses ink and weight 600, not a colour. Pass the unread count from the root `beforeLoad` to `BottomNav`.
-- [ ] **2.7 `active-tab.ts`.** Add the value `favorites` for `/omat/suosikit`. Check this path before the `/omat*` rule. Update `active-tab.test.ts`.
-- [ ] **2.8 Search overlay.** Restyle `MobileSearchOverlay` with the new tokens. Add a category chip "Kaikki" in Phase 3, not now. Behaviour does not change.
-- [ ] **2.9 Footer.** One hairline, links in muted text. Keep all current links and the version text.
-- [ ] **2.10 Layout variables.** Define the heights of the header, the tab bar, and the sticky action bar as CSS variables in `app.css` (the prototype uses 52px, 64px, and 68px). `main` gets bottom padding for the tab bar plus `env(safe-area-inset-bottom)` on mobile. Later phases use these variables. Do not hard-code these heights elsewhere.
-- [ ] **2.11 Tests.** `mobile-bottom-nav.spec.ts` and `mobile-city-combobox.spec.ts` open the overlay with `bottom-nav-search`. Change them to `site-search-trigger`. They must start on a browse page. Add a test: a logged-out tap on `bottom-nav-favorites` opens `login-modal`.
+- [x] **2.5 Favourites count.** Expose `count` (`ids.size`) from `favorites-context.tsx`. Show it in a lime badge on **Suosikit** in the header and in the tab bar. Hide the badge at 0. The badge has a screen-reader text, for example "3 suosikkia".
+- [x] **2.6 Bottom tab bar.** Five items: **Selaa** (`/`, `bottom-nav-browse`), **Suosikit** (`/omat/suosikit`, new id `bottom-nav-favorites`), **Myy** (centre, 44px lime circle with an ink plus, `bottom-nav-add`, the same three states as today), **Viestit** (`bottom-nav-messages`, with the unread badge), **Oma** (`bottom-nav-account`). Remove the search tab and `bottom-nav-search`. The active item uses ink and weight 600, not a colour. Pass the unread count from the root `beforeLoad` to `BottomNav`.
+- [x] **2.7 `active-tab.ts`.** Add the value `favorites` for `/omat/suosikit`. Check this path before the `/omat*` rule. Update `active-tab.test.ts`.
+- [x] **2.8 Search overlay.** Restyle `MobileSearchOverlay` with the new tokens. Add a category chip "Kaikki" in Phase 3, not now. Behaviour does not change.
+- [x] **2.9 Footer.** One hairline, links in muted text. Keep all current links and the version text.
+- [x] **2.10 Layout variables.** Define the heights of the header, the tab bar, and the sticky action bar as CSS variables in `app.css` (the prototype uses 52px, 64px, and 68px). `main` gets bottom padding for the tab bar plus `env(safe-area-inset-bottom)` on mobile. Later phases use these variables. Do not hard-code these heights elsewhere.
+- [x] **2.11 Tests.** `mobile-bottom-nav.spec.ts` and `mobile-city-combobox.spec.ts` open the overlay with `bottom-nav-search`. Change them to `site-search-trigger`. They must start on a browse page. Add a test: a logged-out tap on `bottom-nav-favorites` opens `login-modal`.
 
 **Acceptance.**
 
@@ -184,6 +184,8 @@ The current theme is one `@theme` block in `packages/ui/src/theme.css`. Phase 1 
 - Keyboard: Tab reaches every header item in visual order, and each shows the focus ring.
 
 ---
+
+**Phase 2 verification (2026-11-24).** All six required commands passed. The unit suite passed 474 tests. Motori’s browser suite passed 146 tests and skipped 9. Production checks covered the desktop keyboard order, focus ring, signed-in counts, guest login prompts, and search with an existing category filter. The page checks at 390×844 and 1280×800 found no horizontal overflow or CSP violations. The missing-page check returned HTTP 404 as expected.
 
 ## Phase 3: listing card, home feed, and the "all categories" query
 

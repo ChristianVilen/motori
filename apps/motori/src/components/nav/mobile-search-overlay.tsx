@@ -65,7 +65,7 @@ export function MobileSearchOverlay({ onClose }: Props) {
 			role="dialog"
 			aria-modal="true"
 			aria-label={t("nav.search.title")}
-			className="fixed inset-0 z-50 flex flex-col bg-background"
+			className="fixed inset-0 z-50 flex flex-col bg-background pb-[env(safe-area-inset-bottom)]"
 		>
 			<header className="flex items-center gap-2 border-b border-border px-4 py-3">
 				<h2 className="flex-1 text-base font-semibold">{t("nav.search.title")}</h2>
@@ -73,7 +73,7 @@ export function MobileSearchOverlay({ onClose }: Props) {
 					type="button"
 					onClick={onClose}
 					aria-label={t("nav.search.close")}
-					className="rounded-md p-2 text-muted hover:text-foreground"
+					className="grid size-11 place-items-center rounded-full border border-border bg-card text-foreground hover:bg-muted-light"
 				>
 					<X size={20} />
 				</button>
@@ -86,7 +86,7 @@ export function MobileSearchOverlay({ onClose }: Props) {
 				}}
 				className="border-b border-border px-4 py-3"
 			>
-				<div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 focus-within:ring-2 focus-within:ring-ring">
+				<div className="flex items-center gap-2 rounded-full border border-transparent bg-muted-light px-4 py-2 focus-within:ring-2 focus-within:ring-ring">
 					<SearchIcon size={18} className="text-muted" />
 					<input
 						ref={inputRef}
@@ -94,9 +94,13 @@ export function MobileSearchOverlay({ onClose }: Props) {
 						value={q}
 						onChange={(e) => setQ(e.target.value)}
 						placeholder={t("nav.search.placeholder")}
-						className="flex-1 bg-transparent outline-none"
+						aria-label={t("nav.search.title")}
+						className="min-w-0 flex-1 bg-transparent outline-none"
 					/>
-					<button type="submit" className="text-sm font-medium text-accent">
+					<button
+						type="submit"
+						className="min-h-9 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground"
+					>
 						{t("nav.search.submit")}
 					</button>
 				</div>
@@ -144,7 +148,7 @@ export function MobileSearchOverlay({ onClose }: Props) {
 									<button
 										type="button"
 										onClick={() => runQuery(r)}
-										className="flex w-full items-center gap-2 py-2 text-left text-sm hover:text-accent"
+										className="flex w-full items-center gap-2 py-2 text-left text-sm hover:text-foreground"
 									>
 										<SearchIcon size={16} className="text-muted" />
 										{r}

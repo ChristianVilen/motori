@@ -1,179 +1,123 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, MessageSquare, Plus, Search, User } from "lucide-react";
+import { Heart, LayoutGrid, MessageSquare, Plus, User } from "lucide-react";
 import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "~/lib/i18n";
 import { getActiveTab } from "./active-tab";
+import { FavoritesBadge, UnreadBadge } from "./nav-badges";
 
-type Props = {
+interface Props {
 	session: { user: { id: string } } | null;
 	verified: boolean;
-	onSearchClick: () => void;
+	unread: number;
 	onSignInClick: () => void;
-};
+}
 
-export function BottomNav({ session, verified, onSearchClick, onSignInClick }: Props) {
-	const { t } = useTranslation();
-	const pathname = useRouterState({ select: (s) => s.location.pathname });
-	const active = getActiveTab(pathname);
-
-	const labelBrowse = t("nav.bottom.browse");
-	const labelSearch = t("nav.bottom.search");
-	const labelAdd = t("nav.bottom.add");
-	const labelMessages = t("nav.bottom.messages");
-	const labelAccount = t("nav.bottom.account");
-
+export function BottomNav({ session, verified, unread, onSignInClick }: Props) {
+	const { t } = useTranslation("common");
+	const { t: tAuth } = useTranslation("auth");
+	const active = useRouterState({ select: (state) => getActiveTab(state.location.pathname) });
 	return (
 		<nav
 			aria-label={t("nav.bottom.ariaLabel")}
-			className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-background pb-[env(safe-area-inset-bottom)] md:hidden"
+			className="fixed inset-x-0 bottom-0 z-40 grid h-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] grid-cols-5 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden print:hidden"
 		>
-			<TabLink to="/" label={labelBrowse} active={active === "browse"} testId="bottom-nav-browse">
-				<Home size={22} />
-			</TabLink>
-
-			<TabButton label={labelSearch} onClick={onSearchClick} testId="bottom-nav-search">
-				<Search size={22} />
-			</TabButton>
-
-			{!session ? (
-				<TabButton label={labelAdd} onClick={onSignInClick} elevated testId="bottom-nav-add">
-					<Plus size={22} />
-				</TabButton>
-			) : verified ? (
-				<TabLink
-					to="/ilmoitukset/uusi"
-					label={labelAdd}
-					active={false}
-					elevated
-					testId="bottom-nav-add"
-				>
-					<Plus size={22} />
-				</TabLink>
-			) : (
-				<TabButton label={labelAdd} elevated disabled testId="bottom-nav-add">
-					<Plus size={22} />
-				</TabButton>
-			)}
-
-			{!session ? (
-				<TabButton label={labelMessages} onClick={onSignInClick} testId="bottom-nav-messages">
-					<MessageSquare size={22} />
-				</TabButton>
-			) : (
-				<TabLink
-					to="/viestit"
-					label={labelMessages}
-					active={active === "messages"}
-					testId="bottom-nav-messages"
-				>
-					<MessageSquare size={22} />
-				</TabLink>
-			)}
-
-			{!session ? (
-				<TabButton label={labelAccount} onClick={onSignInClick} testId="bottom-nav-account">
-					<User size={22} />
-				</TabButton>
-			) : (
-				<TabLink
-					to="/omat"
-					label={labelAccount}
-					active={active === "account"}
-					testId="bottom-nav-account"
-				>
-					<User size={22} />
-				</TabLink>
-			)}
+			<Tab
+				to="/"
+				active={active === "browse"}
+				testId="bottom-nav-browse"
+				label={t("nav.bottom.browse")}
+			>
+				<LayoutGrid />
+			</Tab>
+			<Tab
+				to={session ? "/omat/suosikit" : undefined}
+				onClick={onSignInClick}
+				active={active === "favorites"}
+				testId="bottom-nav-favorites"
+				label={t("nav.favorites")}
+				badge={session && <FavoritesBadge />}
+			>
+				<Heart />
+			</Tab>
+			<Tab
+				to={session && verified ? "/ilmoitukset/uusi" : undefined}
+				onClick={onSignInClick}
+				disabled={!!session && !verified}
+				title={session && !verified ? tAuth("unverifiedTooltip") : undefined}
+				testId="bottom-nav-add"
+				label={t("nav.bottom.add")}
+			>
+				<span className="grid size-11 place-items-center rounded-full bg-reflector text-foreground group-disabled:bg-muted-light group-disabled:text-muted">
+					<Plus />
+				</span>
+			</Tab>
+			<Tab
+				to={session ? "/viestit" : undefined}
+				onClick={onSignInClick}
+				active={active === "messages"}
+				testId="bottom-nav-messages"
+				label={t("nav.bottom.messages")}
+				badge={<UnreadBadge count={unread} />}
+			>
+				<MessageSquare />
+			</Tab>
+			<Tab
+				to={session ? "/omat" : undefined}
+				onClick={onSignInClick}
+				active={active === "account"}
+				testId="bottom-nav-account"
+				label={t("nav.bottom.account")}
+			>
+				<User />
+			</Tab>
 		</nav>
 	);
 }
 
-function tabClass(active: boolean): string {
-	return [
-		"flex flex-1 flex-col items-center justify-center gap-1 py-2 text-xs",
-		active ? "text-accent" : "text-muted",
-	].join(" ");
-}
-
-function TabLink({
-	to,
-	label,
-	active,
-	elevated,
-	testId,
-	children,
-}: {
-	to: string;
-	label: string;
-	active: boolean;
-	elevated?: boolean;
+interface TabProps {
+	to?: "/" | "/omat/suosikit" | "/ilmoitukset/uusi" | "/viestit" | "/omat";
 	testId: string;
+	label: string;
 	children: ReactNode;
-}) {
-	return (
+	badge?: ReactNode;
+	active?: boolean;
+	onClick?: () => void;
+	disabled?: boolean;
+	title?: string;
+}
+function Tab({ to, testId, label, children, badge, active, onClick, disabled, title }: TabProps) {
+	const cls =
+		"group flex min-w-0 flex-col items-center justify-center gap-[3px] text-xs leading-[1.1] font-medium text-muted aria-[current=page]:font-semibold aria-[current=page]:text-foreground";
+	const content = (
+		<>
+			<span className="relative">
+				{children}
+				<span className="absolute -top-1.5 left-4">{badge}</span>
+			</span>
+			<span>{label}</span>
+		</>
+	);
+	return to ? (
 		<Link
 			to={to}
-			aria-current={active ? "page" : undefined}
-			className={tabClass(active)}
 			data-testid={testId}
+			aria-current={active ? "page" : undefined}
+			activeOptions={{ exact: true }}
+			activeProps={{}}
+			className={cls}
 		>
-			<IconWrap elevated={elevated}>{children}</IconWrap>
-			<span>{label}</span>
+			{content}
 		</Link>
-	);
-}
-
-function TabButton({
-	label,
-	onClick,
-	elevated,
-	disabled,
-	testId,
-	children,
-}: {
-	label: string;
-	onClick?: () => void;
-	elevated?: boolean;
-	disabled?: boolean;
-	testId: string;
-	children: ReactNode;
-}) {
-	return (
+	) : (
 		<button
 			type="button"
+			data-testid={testId}
 			onClick={onClick}
 			disabled={disabled}
-			className={tabClass(false)}
-			data-testid={testId}
+			title={title}
+			className={cls}
 		>
-			<IconWrap elevated={elevated} dim={disabled}>
-				{children}
-			</IconWrap>
-			<span>{label}</span>
+			{content}
 		</button>
 	);
-}
-
-function IconWrap({
-	elevated,
-	dim,
-	children,
-}: {
-	elevated?: boolean;
-	dim?: boolean;
-	children: ReactNode;
-}) {
-	if (elevated) {
-		return (
-			<span
-				className={[
-					"flex h-9 w-9 items-center justify-center rounded-full text-white",
-					dim ? "bg-muted/40" : "bg-accent",
-				].join(" ")}
-			>
-				{children}
-			</span>
-		);
-	}
-	return <span>{children}</span>;
 }

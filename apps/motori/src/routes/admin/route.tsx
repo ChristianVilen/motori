@@ -81,7 +81,7 @@ function AdminLayout() {
 				</div>
 			</header>
 			<div className="mx-auto max-w-6xl px-4 py-6">
-				<nav className="mb-8 flex gap-1 border-b border-border">
+				<nav className="mb-8 flex gap-1 overflow-x-auto border-b border-border">
 					<NavTab
 						href="/admin"
 						label="Stats"

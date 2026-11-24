@@ -3,6 +3,8 @@ import { expect, test } from "@playwright/test";
 import { BASE_URL, TEST_PASSWORD } from "../global-setup";
 import { uniqueEmail, uniqueName, waitForHydration } from "../helpers";
 
+import { HomePage } from "../pages/home.page";
+
 test.describe("Unverified user flow", () => {
 	test.describe.configure({ mode: "serial" });
 
@@ -33,20 +35,19 @@ test.describe("Unverified user flow", () => {
 	});
 
 	test("nav add-listing link is disabled for unverified user", async () => {
-		await page.goto("/");
-		await waitForHydration(page);
-		await page.getByTestId("nav-dashboard").waitFor();
-		const navAddListing = page.getByTestId("nav-add-listing");
+		const home = new HomePage(page);
+		await home.goto();
+		await home.navUserMenu.waitFor();
+		const navAddListing = home.navAddListing;
 		await expect(navAddListing).toBeVisible();
-		const tag = await navAddListing.evaluate((el) => el.tagName.toLowerCase());
-		expect(tag).toBe("span");
+		await expect(navAddListing).toBeDisabled();
 	});
 
 	test("home page CTA is disabled for unverified user", async () => {
-		await page.goto("/");
-		await waitForHydration(page);
-		await page.getByTestId("nav-dashboard").waitFor();
-		const cta = page.getByTestId("home-add-listing-cta");
+		const home = new HomePage(page);
+		await home.goto();
+		await home.navUserMenu.waitFor();
+		const cta = home.addListingCta;
 		await expect(cta).toBeVisible();
 		const tag = await cta.evaluate((el) => el.tagName.toLowerCase());
 		expect(tag).toBe("span");
@@ -59,9 +60,9 @@ test.describe("Unverified user flow", () => {
 	});
 
 	test("verification banner shows check-spam prompt then resend button", async () => {
-		await page.goto("/");
-		await waitForHydration(page);
-		await page.getByTestId("nav-dashboard").waitFor();
+		const home = new HomePage(page);
+		await home.goto();
+		await home.navUserMenu.waitFor();
 		const banner = page.locator("text=Vahvista sähköpostiosoitteesi");
 		await expect(banner).toBeVisible();
 		const resendButton = page.locator("text=Lähetä uudelleen");

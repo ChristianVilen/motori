@@ -3,6 +3,19 @@
 /* Tailwind only scans the app's module graph — without this, classes used only inside packages/ui vanish from built CSS. Path is relative to this file. */
 @source "../../../../packages/ui/src";
 
+:root {
+	--header-height: 52px;
+	--tabbar-height: 64px;
+	--action-height: 68px;
+}
+
+@media (min-width: 48rem) {
+	:root {
+		--header-height: 72px;
+		--tabbar-height: 0px;
+	}
+}
+
 button,
 [role="button"] {
 	cursor: pointer;

@@ -202,7 +202,7 @@ function MobileBottomBar({
 	return (
 		<>
 			<div aria-hidden="true" className="h-20 lg:hidden" />
-			<div className="fixed inset-x-0 bottom-16 z-40 border-t border-border bg-card/95 px-4 py-3 backdrop-blur-md md:bottom-0 lg:hidden">
+			<div className="fixed inset-x-0 bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] z-40 border-t border-border bg-card/95 px-4 py-3 backdrop-blur-md md:bottom-0 lg:hidden">
 				<div className="flex items-center justify-between gap-4">
 					<div>
 						<div>

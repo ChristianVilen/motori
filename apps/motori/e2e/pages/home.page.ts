@@ -11,7 +11,12 @@ export class HomePage {
 	readonly addListingCta: Locator;
 	readonly navLoginLink: Locator;
 	readonly navLoginMobile: Locator;
-	readonly navDashboardLink: Locator;
+	readonly navAddListing: Locator;
+	readonly mobileSearch: Locator;
+	readonly searchDialog: Locator;
+	readonly overlayInput: Locator;
+	readonly overlayClose: Locator;
+	readonly overlayCity: Locator;
 	readonly navUserMenu: Locator;
 	readonly navSignOutLink: Locator;
 	readonly loginModal: Locator;
@@ -26,7 +31,12 @@ export class HomePage {
 		this.addListingCta = page.getByTestId("home-add-listing-cta");
 		this.navLoginLink = page.getByTestId("nav-login");
 		this.navLoginMobile = page.getByTestId("nav-login-mobile");
-		this.navDashboardLink = page.getByTestId("nav-dashboard");
+		this.navAddListing = page.getByTestId("nav-add-listing");
+		this.mobileSearch = page.getByTestId("site-search-trigger");
+		this.searchDialog = page.getByRole("dialog", { name: "Haku" });
+		this.overlayInput = this.searchDialog.getByRole("searchbox");
+		this.overlayCity = this.searchDialog.getByRole("combobox");
+		this.overlayClose = this.searchDialog.getByRole("button", { name: "Sulje haku" });
 		this.navUserMenu = page.getByTestId("nav-user-menu");
 		this.navSignOutLink = page.getByTestId("nav-signout");
 		this.loginModal = page.getByTestId("login-modal");
@@ -36,6 +46,23 @@ export class HomePage {
 		await this.page.goto("/");
 		await this.heroHeading.waitFor();
 		await waitForHydration(this.page);
+	}
+
+	bottomTab(tab: "add" | "messages" | "favorites") {
+		return this.page.getByTestId(`bottom-nav-${tab}`);
+	}
+
+	cityOption(name: string) {
+		return this.page.getByRole("listbox").getByRole("option", { name, exact: true });
+	}
+
+	async openSearch() {
+		await this.goto();
+		await this.mobileSearch.click();
+	}
+
+	language(code: "FI" | "EN") {
+		return this.page.getByRole("button", { name: new RegExp(`${code}$`) });
 	}
 
 	async search(query: string) {

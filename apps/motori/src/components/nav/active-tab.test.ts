@@ -28,6 +28,7 @@ describe("getActiveTab", () => {
 
 	it("returns 'account' for /omat and sub-paths", () => {
 		expect(getActiveTab("/omat")).toBe("account");
+		expect(getActiveTab("/omat/suosikit")).toBe("favorites");
 		expect(getActiveTab("/omat/varaukset")).toBe("account");
 	});
 

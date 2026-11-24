@@ -1,98 +1,70 @@
 import { Link } from "@tanstack/react-router";
-import { Bookmark, Heart, LogOut, Settings, User } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useDropdownMenu } from "~/components/use-dropdown-menu";
 import { useTranslation } from "~/lib/i18n";
 
-interface UserMenuProps {
-	onSignOut: () => void;
-}
+const links = [
+	{ to: "/omat", key: "nav.myListings", id: "nav-dashboard" },
+	{ to: "/omat/varaukset", key: "nav.bookings", id: "nav-bookings" },
+	{ to: "/omat/haut", key: "nav.savedSearches", id: "nav-saved-searches" },
+	{ to: "/profiili/asetukset", key: "nav.settings", id: "nav-settings" },
+] as const;
+const item =
+	"block w-full rounded-md px-3 py-2 text-left hover:bg-muted-light focus-visible:bg-muted-light";
 
-export function UserMenu({ onSignOut }: UserMenuProps) {
+export function UserMenu({ onSignOut }: { onSignOut: () => void }) {
 	const { t } = useTranslation("common");
-	const [open, setOpen] = useState(false);
-	const ref = useRef<HTMLDivElement>(null);
-
-	useEffect(() => {
-		if (!open) {
-			return;
-		}
-		function onClickOutside(e: MouseEvent) {
-			if (ref.current && !ref.current.contains(e.target as Node)) {
-				setOpen(false);
-			}
-		}
-		function onKey(e: KeyboardEvent) {
-			if (e.key === "Escape") {
-				setOpen(false);
-			}
-		}
-		document.addEventListener("mousedown", onClickOutside);
-		document.addEventListener("keydown", onKey);
-		return () => {
-			document.removeEventListener("mousedown", onClickOutside);
-			document.removeEventListener("keydown", onKey);
-		};
-	}, [open]);
-
+	const menu = useDropdownMenu(links.length + 1);
 	return (
-		<div ref={ref} className="relative">
+		// biome-ignore lint/a11y/noStaticElementInteractions: close the disclosure when focus leaves both trigger and menu
+		<div ref={menu.wrapperRef} className="relative" onBlur={menu.handleBlur}>
 			<button
 				type="button"
 				data-testid="nav-user-menu"
-				onClick={() => setOpen(!open)}
-				aria-label={t("nav.userMenuAriaLabel")}
-				aria-expanded={open}
 				aria-haspopup="menu"
-				className="rounded-full p-1 text-white/70 hover:text-white"
+				aria-expanded={menu.open}
+				onClick={menu.toggle}
+				onKeyDown={menu.handleButtonKeyDown}
+				className="min-h-11 rounded-full px-2 hover:bg-muted-light lg:px-3"
 			>
-				<User className="h-5 w-5" />
+				{t("nav.bottom.account")}
 			</button>
-			{open ? (
+			{menu.open ? (
 				<div
 					role="menu"
-					className="absolute right-0 top-full z-50 mt-2 w-44 rounded-lg border border-border bg-card py-1 shadow-lg"
+					aria-label={t("nav.userMenuAriaLabel")}
+					onKeyDown={menu.handleMenuKeyDown}
+					className="absolute right-0 top-full z-50 w-48 rounded-sheet border border-border bg-card p-1 shadow-md"
 				>
-					<Link
-						to="/omat/suosikit"
-						role="menuitem"
-						data-testid="nav-favorites"
-						onClick={() => setOpen(false)}
-						className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted-light"
-					>
-						<Heart className="h-4 w-4 text-muted" />
-						{t("nav.favorites")}
-					</Link>
-					<Link
-						to="/omat/haut"
-						role="menuitem"
-						data-testid="nav-saved-searches"
-						onClick={() => setOpen(false)}
-						className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted-light"
-					>
-						<Bookmark className="h-4 w-4 text-muted" />
-						{t("nav.savedSearches")}
-					</Link>
-					<Link
-						to="/profiili/asetukset"
-						role="menuitem"
-						data-testid="nav-settings"
-						onClick={() => setOpen(false)}
-						className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted-light"
-					>
-						<Settings className="h-4 w-4 text-muted" />
-						{t("nav.settings")}
-					</Link>
+					{links.map(({ to, key, id }, i) => (
+						<Link
+							key={to}
+							to={to}
+							role="menuitem"
+							tabIndex={menu.focusIndex === i ? 0 : -1}
+							ref={(el) => {
+								menu.itemRefs.current[i] = el;
+							}}
+							className={item}
+							data-testid={id}
+							onClick={menu.close}
+						>
+							{t(key)}
+						</Link>
+					))}
 					<button
 						type="button"
 						role="menuitem"
 						data-testid="nav-signout"
+						ref={(el) => {
+							menu.itemRefs.current[links.length] = el;
+						}}
+						tabIndex={menu.focusIndex === links.length ? 0 : -1}
+						className={item}
 						onClick={() => {
-							setOpen(false);
+							menu.close();
 							onSignOut();
 						}}
-						className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted-light"
 					>
-						<LogOut className="h-4 w-4 text-muted" />
 						{t("nav.signOut")}
 					</button>
 				</div>

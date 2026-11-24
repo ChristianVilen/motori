@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { waitForHydration } from "../helpers";
+import { HomePage } from "../pages/home.page";
 
 test.describe("mobile bottom nav", () => {
 	test("search overlay submits query", async ({ page }) => {
-		await page.goto("/");
-		await page.getByTestId("bottom-nav-search").click();
-		const input = page.getByPlaceholder(/etsi|search/i);
+		const home = new HomePage(page);
+		await home.openSearch();
+		const input = home.overlayInput;
 		await expect(input).toBeVisible();
 		await input.fill("honda");
 		await input.press("Enter");
@@ -13,17 +13,17 @@ test.describe("mobile bottom nav", () => {
 	});
 
 	test("search overlay traps focus and restores it on close", async ({ page }) => {
-		await page.goto("/");
-		await waitForHydration(page);
-		const opener = page.getByTestId("bottom-nav-search");
+		const home = new HomePage(page);
+		await home.goto();
+		const opener = home.mobileSearch;
 		await opener.focus();
 		await opener.press("Enter");
 
-		const dialog = page.getByRole("dialog", { name: "Haku" });
-		await expect(dialog.getByPlaceholder(/etsi|search/i)).toBeFocused();
+		const dialog = home.searchDialog;
+		await expect(home.overlayInput).toBeFocused();
 
-		const first = dialog.getByRole("button", { name: "Sulje haku" });
-		const last = dialog.locator("#mobile-search-city");
+		const first = home.overlayClose;
+		const last = home.overlayCity;
 		await first.focus();
 		await page.keyboard.press("Shift+Tab");
 		await expect(last).toBeFocused();
@@ -35,21 +35,18 @@ test.describe("mobile bottom nav", () => {
 		await expect(opener).toBeFocused();
 	});
 
-	test("add tab opens login modal when signed out", async ({ page }) => {
-		await page.goto("/");
-		await page.getByTestId("bottom-nav-add").click();
-		await expect(page.getByTestId("login-modal")).toBeVisible();
-	});
-
-	test("messages tab opens login modal when signed out", async ({ page }) => {
-		await page.goto("/");
-		await page.getByTestId("bottom-nav-messages").click();
-		await expect(page.getByTestId("login-modal")).toBeVisible();
-	});
-
+	for (const tab of ["add", "favorites", "messages"] as const) {
+		test(`${tab} tab opens login modal when signed out`, async ({ page }) => {
+			const home = new HomePage(page);
+			await home.goto();
+			await home.bottomTab(tab).click();
+			await expect(home.loginModal).toBeVisible();
+		});
+	}
 	test("header sign-in button opens login modal when signed out", async ({ page }) => {
-		await page.goto("/");
-		await page.getByTestId("nav-login-mobile").click();
-		await expect(page.getByTestId("login-modal")).toBeVisible();
+		const home = new HomePage(page);
+		await home.goto();
+		await home.navLoginMobile.click();
+		await expect(home.loginModal).toBeVisible();
 	});
 });

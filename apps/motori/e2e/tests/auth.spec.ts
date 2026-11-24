@@ -60,7 +60,7 @@ test.describe("Auth flow", () => {
 		await home.navUserMenu.click();
 		await home.navSignOutLink.click();
 		await expect(home.navLoginLink).toBeVisible({ timeout: 5000 });
-		await expect(home.navDashboardLink).not.toBeVisible();
+		await expect(home.navUserMenu).not.toBeVisible();
 	});
 
 	test("wrong credentials show login error", async () => {
@@ -75,7 +75,7 @@ test.describe("Auth flow", () => {
 		await login.goto();
 		await login.login(email, password);
 		const home = new HomePage(page);
-		await expect(home.navDashboardLink).toBeVisible({ timeout: 10000 });
+		await expect(home.navUserMenu).toBeVisible({ timeout: 10000 });
 	});
 
 	test("login modal from nav works", async () => {
@@ -90,7 +90,7 @@ test.describe("Auth flow", () => {
 		const modalLogin = new LoginPage(page, home.loginModal);
 		await modalLogin.login(email, password);
 		await expect(home.loginModal).not.toBeVisible({ timeout: 10000 });
-		await expect(home.navDashboardLink).toBeVisible();
+		await expect(home.navUserMenu).toBeVisible();
 	});
 
 	// Delete account — continues the serial chain with the same user

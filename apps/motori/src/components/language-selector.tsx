@@ -1,21 +1,25 @@
 import { useTranslation } from "react-i18next";
-import type { SupportedLocale } from "~/lib/i18n/resources";
-
-const labels: Record<SupportedLocale, string> = { fi: "FI", en: "EN" };
+import { supportedLngs } from "~/lib/i18n/resources";
 
 export function LanguageSelector() {
 	const { i18n, t } = useTranslation("common");
-	const current = i18n.language as SupportedLocale;
-	const next: SupportedLocale = current === "fi" ? "en" : "fi";
-
 	return (
-		<button
-			type="button"
-			onClick={() => i18n.changeLanguage(next)}
-			className="text-sm font-medium text-white/70 hover:text-white"
-			aria-label={t("nav.switchLanguage", { lang: labels[next] })}
-		>
-			{labels[next]}
-		</button>
+		<div className="flex items-center text-sm text-muted">
+			{supportedLngs.map((lng, i) => (
+				<span key={lng} className="flex items-center">
+					{i > 0 && <span aria-hidden="true">|</span>}
+					<button
+						type="button"
+						lang={lng}
+						aria-pressed={i18n.language === lng}
+						aria-label={t("nav.switchLanguage", { lang: lng.toUpperCase() })}
+						onClick={() => i18n.changeLanguage(lng)}
+						className="min-h-11 min-w-10 rounded-lg px-1.5 font-medium tracking-wide aria-pressed:font-bold aria-pressed:text-foreground"
+					>
+						{lng.toUpperCase()}
+					</button>
+				</span>
+			))}
+		</div>
 	);
 }
