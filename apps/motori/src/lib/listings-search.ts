@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { type RawBuilder, type SelectQueryBuilder, type SqlBool, sql } from "kysely";
-import { z } from "zod";
 import { eurosToCents } from "~/lib/currency";
+import { z } from "~/lib/zod";
 
 const getDb = async () => (await import("~/lib/db/index")).db;
 

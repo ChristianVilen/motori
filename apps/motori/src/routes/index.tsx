@@ -203,20 +203,24 @@ function HomePage() {
 						{/* Stats */}
 						<div className="mt-10 flex gap-8">
 							<div>
-								<p className="font-heading text-2xl font-bold text-accent">{stats.totalListings}</p>
+								<p className="font-heading text-2xl font-bold text-primary-foreground">
+									{stats.totalListings}
+								</p>
 								<p className="text-xs tracking-wide text-white/80 uppercase">
 									{t("hero.statsListings")}
 								</p>
 							</div>
 							<div>
-								<p className="font-heading text-2xl font-bold text-accent">{stats.regionCount}</p>
+								<p className="font-heading text-2xl font-bold text-primary-foreground">
+									{stats.regionCount}
+								</p>
 								<p className="text-xs tracking-wide text-white/80 uppercase">
 									{t("hero.statsRegions")}
 								</p>
 							</div>
 							{stats.minPricePerDay > 0 && (
 								<div>
-									<p className="font-heading text-2xl font-bold text-accent">
+									<p className="font-heading text-2xl font-bold text-primary-foreground tabular-nums">
 										{stats.minPricePerDay} €
 									</p>
 									<p className="text-xs tracking-wide text-white/80 uppercase">

@@ -156,7 +156,7 @@ export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: Lis
 					<div className="text-right">
 						<span
 							data-testid="listing-card-price"
-							className="font-heading text-base sm:text-lg font-bold text-accent"
+							className="text-base sm:text-lg font-bold text-foreground font-heading tabular-nums"
 						>
 							{formatEur(listing.price ?? 0)}
 						</span>

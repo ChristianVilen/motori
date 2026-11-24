@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 
+import { Logo } from "@motori/ui/logo";
 import {
 	createRootRoute,
 	HeadContent,
@@ -15,8 +16,8 @@ import { MOTORI_URL, SITE_NAME, SITE_URL } from "~/lib/constants";
 import { getSession } from "~/lib/session";
 import appCss from "~/styles/app.css?url";
 
-import "@fontsource-variable/manrope/index.css";
-import "@fontsource-variable/space-grotesk/index.css";
+import "@fontsource-variable/bricolage-grotesque/index.css";
+import "@fontsource-variable/instrument-sans/index.css";
 import "@fontsource/jetbrains-mono/index.css";
 
 export const Route = createRootRoute({
@@ -39,10 +40,15 @@ export const Route = createRootRoute({
 				name: "description",
 				content: "Huoltokirja, muistutukset ja mittarilukemat moottoripyörällesi.",
 			},
-			{ name: "theme-color", content: "#1a1a2e" },
+			{ name: "theme-color", content: "#f7f6f2" },
 			{ name: "robots", content: "noindex" },
 		],
-		links: [{ rel: "stylesheet", href: appCss }],
+		links: [
+			{ rel: "stylesheet", href: appCss },
+			{ rel: "manifest", href: "/manifest.webmanifest" },
+			{ rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+			{ rel: "apple-touch-icon", href: "/icon-192.png" },
+		],
 	}),
 	component: RootComponent,
 	errorComponent: ({ error }) => {
@@ -132,8 +138,8 @@ function RootDocument({ children, session = null }: RootDocumentProps) {
 			<body className="min-h-screen bg-background font-sans text-foreground antialiased">
 				<nav className="bg-primary px-4 py-3">
 					<div className="mx-auto flex max-w-4xl items-center justify-between">
-						<Link to="/" className="font-heading text-lg font-bold text-white">
-							Talli
+						<Link to="/" aria-label={SITE_NAME}>
+							<Logo variant="dark" />
 						</Link>
 						<div className="flex items-center gap-4">
 							<a
@@ -165,7 +171,7 @@ function RootDocument({ children, session = null }: RootDocumentProps) {
 								<a
 									href={loginHref}
 									data-testid="nav-login"
-									className="rounded-md bg-accent px-3.5 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
+									className="rounded-md bg-card px-3.5 py-1.5 text-sm font-medium text-foreground hover:bg-muted-light"
 								>
 									Kirjaudu
 								</a>

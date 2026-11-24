@@ -1,5 +1,5 @@
 // src/lib/validators.ts
-import { z } from "zod";
+
 import {
 	CONDITIONS,
 	CURRENT_YEAR,
@@ -11,6 +11,7 @@ import {
 } from "~/lib/constants";
 import fiCommon from "~/lib/i18n/resources/fi/common";
 import { MUNICIPALITY_NAME_SET } from "~/lib/municipalities";
+import { z } from "~/lib/zod";
 
 export { isValidImageUrl } from "@motori/server/image-url";
 export type { Condition, GearTypeValue } from "~/lib/constants";

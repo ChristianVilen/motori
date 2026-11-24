@@ -34,7 +34,10 @@ export function NonRentalSidebar({
 		<div id="pricing" className="space-y-4 lg:self-start">
 			<div className="rounded-l border border-border bg-card p-5 shadow-sm">
 				<div data-testid="price-info" className="mb-4">
-					<span data-testid={priceTestId} className="text-3xl font-bold text-accent">
+					<span
+						data-testid={priceTestId}
+						className="text-3xl font-bold text-foreground font-heading tabular-nums"
+					>
 						{formatEur(price)}
 					</span>
 					{negotiable ? (

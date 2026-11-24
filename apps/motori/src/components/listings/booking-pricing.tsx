@@ -61,10 +61,7 @@ function CalendarHero({ cost, maxStayError, heroImageUrl, fromDate, toDate, t }:
 	const toDow = toDate ? FI_DOW_TICKET[toDate.getDay()] : null;
 
 	return (
-		<div
-			className="relative overflow-hidden rounded-2xl p-6 text-white"
-			style={{ background: "linear-gradient(135deg, var(--color-primary) 0%, #2d2540 100%)" }}
-		>
+		<div className="relative overflow-hidden rounded-2xl bg-primary p-6 text-primary-foreground">
 			{heroImageUrl ? (
 				<div
 					aria-hidden="true"
@@ -91,7 +88,7 @@ function CalendarHero({ cost, maxStayError, heroImageUrl, fromDate, toDate, t }:
 					<RateBadge label={cost?.label ?? null} t={t} />
 				</div>
 				{maxStayError ? (
-					<p className="mb-3 text-xs text-orange-300">{t("booking.calendar.maxStayError")}</p>
+					<p className="mb-3 text-xs text-white">{t("booking.calendar.maxStayError")}</p>
 				) : null}
 				<div className="grid grid-cols-[1fr_auto_1fr] items-center">
 					<TicketCard
@@ -100,7 +97,7 @@ function CalendarHero({ cost, maxStayError, heroImageUrl, fromDate, toDate, t }:
 						monthShort={fromMonthShort}
 						dow={fromDow}
 					/>
-					<div className="px-2.5 text-accent-light">
+					<div className="px-2.5 text-white">
 						<svg width="22" height="14" viewBox="0 0 22 14" fill="none" aria-hidden="true">
 							<path
 								d="M1 7h18M14 2l5 5-5 5"
@@ -140,15 +137,17 @@ function PricingRates({
 }: PricingRatesProps) {
 	return (
 		<div className="flex items-baseline gap-2 text-foreground">
-			<span className="text-2xl font-bold text-accent">{formatEur(pricePerDayCents)}</span>
+			<span className="text-2xl font-bold text-foreground font-heading tabular-nums">
+				{formatEur(pricePerDayCents)}
+			</span>
 			<span className="text-sm text-muted">{t("detail.pricing.perDay")}</span>
 			{pricePerWeekCents ? (
-				<span className="ml-1 text-xs text-muted">
+				<span className="ml-1 font-heading text-xs text-muted tabular-nums">
 					· {t("detail.pricing.perWeek", { price: formatEur(pricePerWeekCents) })}
 				</span>
 			) : null}
 			{pricePerWeekendCents ? (
-				<span className="text-xs text-muted">
+				<span className="font-heading text-xs text-muted tabular-nums">
 					· {t("detail.pricing.perWeekend", { price: formatEur(pricePerWeekendCents) })}
 				</span>
 			) : null}
@@ -183,7 +182,7 @@ interface TicketCardProps {
 function TicketCard({ label, dayNum, monthShort, dow }: TicketCardProps) {
 	return (
 		<div className="rounded-[10px] border border-white/12 bg-white/8 px-4 py-3.5">
-			<div className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-accent-light">
+			<div className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white">
 				{label}
 			</div>
 			{dayNum !== null ? (
@@ -222,7 +221,9 @@ function CalendarFooter({ cost, from, to, t }: FooterProps) {
 		>
 			{cost ? (
 				<div className="flex flex-col gap-0.5">
-					<span className="text-2xl font-bold tracking-tight">{formatEur(cost.totalCents)}</span>
+					<span className="text-2xl font-bold tracking-tight font-heading tabular-nums">
+						{formatEur(cost.totalCents)}
+					</span>
 					<span className="text-xs opacity-70">
 						{cost.days} {cost.days === 1 ? t("booking.calendar.day") : t("booking.calendar.days")}
 						{cost.label === "week" ? ` · ${t("booking.costLabelWeek")}` : ""}

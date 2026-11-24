@@ -3,6 +3,7 @@ import { waitForHydration } from "../helpers";
 
 export class HomePage {
 	readonly page: Page;
+	readonly wordmark: Locator;
 	readonly heroHeading: Locator;
 	readonly searchInput: Locator;
 	readonly searchSubmit: Locator;
@@ -17,6 +18,7 @@ export class HomePage {
 
 	constructor(page: Page) {
 		this.page = page;
+		this.wordmark = page.getByRole("link", { name: "Motori", exact: true });
 		this.heroHeading = page.getByTestId("home-hero-heading");
 		this.searchInput = page.getByTestId("home-search-input");
 		this.searchSubmit = page.getByTestId("home-search-submit");

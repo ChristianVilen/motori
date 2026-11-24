@@ -6,6 +6,7 @@ test.describe("Home page", () => {
 		const home = new HomePage(page);
 		await home.goto();
 
+		await expect(home.wordmark).toHaveAttribute("href", "/");
 		await expect(home.heroHeading).toBeVisible();
 		await expect(home.searchInput).toBeVisible();
 	});

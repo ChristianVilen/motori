@@ -182,7 +182,7 @@ function VehicleDetailPage() {
 							>
 								<div className="flex flex-wrap items-baseline justify-between gap-2">
 									<span className="font-medium">{rec.title}</span>
-									<span className="text-xs text-muted">
+									<span className="text-xs text-muted tabular-nums">
 										{parseLocalDate(rec.performed_at).toLocaleDateString("fi-FI")}
 										{rec.odometer_km != null
 											? ` · ${rec.odometer_km.toLocaleString("fi-FI")} km`

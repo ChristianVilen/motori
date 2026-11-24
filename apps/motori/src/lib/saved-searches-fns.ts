@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
 import { protectedMutation } from "~/lib/middleware";
 import { deleteSavedSearch, getSavedSearches, saveSearch } from "~/lib/saved-searches";
 import { requireUserId } from "~/lib/session";
 import { savedSearchParamsSchema } from "~/lib/validators";
+import { z } from "~/lib/zod";
 
 const categorySchema = z.enum(["sale", "rental", "gear", "part"]);
 

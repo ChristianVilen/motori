@@ -1,6 +1,6 @@
+import { Logo } from "@motori/ui/logo";
 import { createFileRoute, Link, Outlet, useMatchRoute, useRouter } from "@tanstack/react-router";
 import { BarChart3, FileText, LogOut, Shield, Users, Wrench } from "lucide-react";
-import { Logo } from "~/components/logo";
 import { requireAdmin } from "~/lib/admin";
 import { signOut } from "~/lib/auth-client";
 import { getModerationCounts } from "~/lib/reports";
@@ -59,7 +59,7 @@ function AdminLayout() {
 				<div className="mx-auto flex max-w-6xl items-center justify-between">
 					<div className="flex items-center gap-3">
 						<a href="/admin" className="flex items-center">
-							<Logo variant="dark" className="h-7 w-auto" />
+							<Logo variant="dark" className="h-7" />
 						</a>
 						<span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/80">
 							Admin

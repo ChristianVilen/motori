@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 
+import { Logo } from "@motori/ui/logo";
 import {
 	createRootRoute,
 	HeadContent,
@@ -14,7 +15,6 @@ import { Toaster } from "sonner";
 import { LoginModal } from "~/components/auth/login-modal";
 import { UserMenu } from "~/components/auth/user-menu";
 import { LanguageSelector } from "~/components/language-selector";
-import { Logo } from "~/components/logo";
 import { BottomNav } from "~/components/nav/bottom-nav";
 import { CategoryDropdown } from "~/components/nav/category-dropdown";
 import { MobileSearchOverlay } from "~/components/nav/mobile-search-overlay";
@@ -32,8 +32,8 @@ import { getSession } from "~/lib/session";
 import { useEmailVerified } from "~/lib/use-email-verified";
 import appCss from "~/styles/app.css?url";
 
-import "@fontsource-variable/manrope/index.css";
-import "@fontsource-variable/space-grotesk/index.css";
+import "@fontsource-variable/bricolage-grotesque/index.css";
+import "@fontsource-variable/instrument-sans/index.css";
 import "@fontsource/jetbrains-mono/index.css";
 
 export const Route = createRootRoute({
@@ -65,7 +65,7 @@ export const Route = createRootRoute({
 			},
 			{
 				name: "theme-color",
-				content: "#1a1a2e",
+				content: "#f7f6f2",
 			},
 			{ property: "og:type", content: "website" },
 			{ property: "og:site_name", content: SITE_NAME },
@@ -81,7 +81,7 @@ export const Route = createRootRoute({
 			{ rel: "stylesheet", href: appCss },
 			{ rel: "manifest", href: "/manifest.webmanifest" },
 			{ rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
-			{ rel: "apple-touch-icon", href: "/app-icon.svg" },
+			{ rel: "apple-touch-icon", href: "/icon-192.png" },
 			...supportedLngs.map((lng) => ({ rel: "alternate", hrefLang: lng, href: `${SITE_URL}/` })),
 			{ rel: "alternate", hrefLang: "x-default", href: `${SITE_URL}/` },
 		],
@@ -252,7 +252,7 @@ function RootDocument({
 							<nav className="bg-primary px-4 py-3">
 								<div className="mx-auto flex max-w-6xl items-center justify-between">
 									<Link to="/" className="flex items-center">
-										<Logo variant="dark" className="h-8 w-auto" />
+										<Logo variant="dark" className="h-8" />
 									</Link>
 									<div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 sm:gap-x-6">
 										<div className="hidden flex-wrap items-center gap-x-4 gap-y-2 md:flex md:gap-x-6">

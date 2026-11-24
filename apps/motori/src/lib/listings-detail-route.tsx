@@ -9,12 +9,12 @@ import { type LinkProps, notFound, useLoaderData } from "@tanstack/react-router"
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import type { FC, ReactNode } from "react";
-import { z } from "zod";
 import { ListingDetailShell } from "~/components/listings/listing-detail-shell";
 import { useTranslation } from "~/lib/i18n";
 import { getListingForDisplay, type ListingForDisplay, recordView } from "~/lib/listings-detail";
 import { getReviewSummaryForUser } from "~/lib/reviews.server";
 import { getSession } from "~/lib/session";
+import { z } from "~/lib/zod";
 
 type ReviewSummary = { averageRating: number | null; reviewCount: number };
 

@@ -1,7 +1,8 @@
 // src/routes/kirjaudu.tsx
+
+import { Logo } from "@motori/ui/logo";
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { LoginForm } from "~/components/auth/login-form";
-import { Logo } from "~/components/logo";
 import { SITE_NAME } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 
@@ -23,7 +24,7 @@ function LoginPage() {
 		<div className="flex min-h-screen items-center justify-center bg-background px-4">
 			<div className="w-full max-w-sm space-y-6">
 				<div className="text-center">
-					<Logo variant="light" className="mx-auto h-10 w-auto" />
+					<Logo variant="light" className="mx-auto h-10" />
 					<p className="mt-1 text-sm text-muted">{t("login.tagline")}</p>
 				</div>
 

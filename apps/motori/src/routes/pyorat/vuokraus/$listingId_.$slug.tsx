@@ -6,7 +6,6 @@ import { createFileRoute, Link, notFound, useRouterState } from "@tanstack/react
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { useState } from "react";
-import { z } from "zod";
 import { BookingRequestForm } from "~/components/listings/booking-request-form";
 import { ListingDetailShell } from "~/components/listings/listing-detail-shell";
 import { MessageSellerButton } from "~/components/listings/message-seller-button";
@@ -23,6 +22,7 @@ import { getReviewSummaryForUser } from "~/lib/reviews.server";
 import { getSession, requireSession } from "~/lib/session";
 import { computeListingSlug } from "~/lib/slug";
 import { bookingRequestSchema } from "~/lib/validators";
+import { z } from "~/lib/zod";
 
 const getListing = createServerFn({ method: "GET" })
 	.inputValidator((shortId: unknown) => z.string().min(1).max(20).parse(shortId))
@@ -135,17 +135,26 @@ function PricingCard({
 	return (
 		<div className="rounded-l border border-border bg-card p-5 shadow-sm">
 			<div data-testid="price-info" className="mb-4">
-				<span data-testid="price-per-day" className="text-3xl font-bold text-accent">
+				<span
+					data-testid="price-per-day"
+					className="text-3xl font-bold text-foreground font-heading tabular-nums"
+				>
 					{formatEur(pricePerDayCents)}
 				</span>
 				<span className="ml-1 text-sm text-muted">{t("detail.pricing.perDay")}</span>
 				{!!pricePerWeekCents && (
-					<div data-testid="price-per-week" className="mt-1 text-sm text-muted">
+					<div
+						data-testid="price-per-week"
+						className="mt-1 text-sm text-muted font-heading tabular-nums"
+					>
 						{t("detail.pricing.perWeek", { price: formatEur(pricePerWeekCents) })}
 					</div>
 				)}
 				{!!pricePerWeekendCents && (
-					<div data-testid="price-per-weekend" className="mt-1 text-sm text-muted">
+					<div
+						data-testid="price-per-weekend"
+						className="mt-1 text-sm text-muted font-heading tabular-nums"
+					>
 						{t("detail.pricing.perWeekend", { price: formatEur(pricePerWeekendCents) })}
 					</div>
 				)}
@@ -197,18 +206,20 @@ function MobileBottomBar({
 				<div className="flex items-center justify-between gap-4">
 					<div>
 						<div>
-							<span className="text-lg font-bold text-accent">{formatEur(pricePerDayCents)}</span>
+							<span className="text-lg font-bold text-foreground font-heading tabular-nums">
+								{formatEur(pricePerDayCents)}
+							</span>
 							<span className="ml-1 text-xs text-muted">{t("detail.pricing.perDay")}</span>
 						</div>
 						{(pricePerWeekCents ?? pricePerWeekendCents) ? (
 							<div className="mt-0.5 flex flex-wrap gap-x-2 text-xs text-muted">
 								{pricePerWeekCents ? (
-									<span>
+									<span className="font-heading tabular-nums">
 										{t("detail.pricing.perWeek", { price: formatEur(pricePerWeekCents) })}
 									</span>
 								) : null}
 								{pricePerWeekendCents ? (
-									<span>
+									<span className="font-heading tabular-nums">
 										{t("detail.pricing.perWeekend", { price: formatEur(pricePerWeekendCents) })}
 									</span>
 								) : null}
