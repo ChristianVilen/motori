@@ -94,10 +94,11 @@ export function getSortState(search: { q?: string; sort?: SortOption }) {
 // The browse surfaces in nav order: category chips, bottom-nav highlight, and
 // (upcoming) the search-overlay category selector all derive from this list.
 export const BROWSE_CATEGORIES = [
+	{ value: "all", to: "/" },
 	{ value: "sale", to: "/pyorat/myynti" },
+	{ value: "rental", to: "/pyorat/vuokraus" },
 	{ value: "gear", to: "/varusteet" },
 	{ value: "part", to: "/varaosat" },
-	{ value: "rental", to: "/pyorat/vuokraus" },
 ] as const;
 
 export type BrowseCategory = (typeof BROWSE_CATEGORIES)[number];

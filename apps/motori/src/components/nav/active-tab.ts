@@ -28,5 +28,5 @@ export function getActiveTab(pathname: string): ActiveTab | null {
 
 export function getBrowseCategory(pathname: string): BrowseCategory {
 	const match = BROWSE_CATEGORIES.find((c) => pathname === c.to || pathname.startsWith(`${c.to}/`));
-	return match ?? BROWSE_CATEGORIES[0];
+	return match ?? BROWSE_CATEGORIES[1];
 }

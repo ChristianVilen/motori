@@ -78,3 +78,21 @@ button,
 		0 0 0 3px var(--color-foreground),
 		0 2px 8px rgba(0, 0, 0, 0.4);
 }
+
+@utility listing-grid {
+	display: grid;
+	grid-template-columns: repeat(var(--listing-columns, 2), minmax(0, 1fr));
+	gap: 22px 10px;
+
+	@media (min-width: 640px) {
+		--listing-columns: 3;
+		gap: 28px 14px;
+	}
+	@media (min-width: 900px) {
+		--listing-columns: 4;
+		gap: 34px 18px;
+	}
+	@media (min-width: 1200px) {
+		--listing-columns: 5;
+	}
+}

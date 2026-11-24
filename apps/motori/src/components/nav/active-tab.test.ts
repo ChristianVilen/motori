@@ -64,7 +64,7 @@ describe("getBrowseCategory", () => {
 	});
 
 	it("defaults to 'sale' for neutral pages", () => {
-		expect(getBrowseCategory("/").value).toBe("sale");
+		expect(getBrowseCategory("/").value).toBe("all");
 		expect(getBrowseCategory("/viestit").value).toBe("sale");
 		expect(getBrowseCategory("/omat/suosikit").value).toBe("sale");
 		expect(getBrowseCategory("/kirjaudu").value).toBe("sale");

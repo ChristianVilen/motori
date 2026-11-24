@@ -24,7 +24,14 @@ test.describe("city combobox", () => {
 		await expect(input).toHaveAttribute("aria-activedescendant", /.+/);
 
 		await input.press("Enter");
-		await expect(page).toHaveURL(/\/pyorat\/myynti\?.*city=Helsinki/);
+		await expect(page).toHaveURL(/\/\?city=Helsinki$/);
+		await expect(home.clearCity).toHaveText(/Helsinki/);
+		await expect(home.cards.first()).toBeVisible();
+		for (const facts of await home.cardFacts.allTextContents()) {
+			expect(facts).toMatch(/Helsinki$/);
+		}
+		await home.clearCity.click();
+		await expect(page).toHaveURL("/");
 	});
 
 	test("commit-on-type: a fully typed city name commits without Enter", async ({ page }) => {
@@ -35,6 +42,6 @@ test.describe("city combobox", () => {
 		await input.click();
 		await input.pressSequentially("espoo");
 
-		await expect(page).toHaveURL(/\/pyorat\/myynti\?.*city=Espoo/);
+		await expect(page).toHaveURL(/\/\?city=Espoo$/);
 	});
 });

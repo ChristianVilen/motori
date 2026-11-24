@@ -54,6 +54,8 @@ After schema changes: add a new migration file, run `db:migrate`, then `db:codeg
 
 File-based under `apps/motori/src/routes/`. Both apps' `routeTree.gen.ts` files are generated. Do not edit them by hand; commit changes produced by the route generator. `__root.tsx` owns the HTML shell, fonts, and 404 component. Motori’s shared navigation is in `components/nav/`. The header, tab bar, and sticky action bar heights are defined in `styles/app.css`. Dynamic segments use `$param` (e.g. `listings/$listingId.tsx`); the trailing-underscore variant `$listingId_.edit.tsx` is a sibling route, not nested.
 
+The home route `/` searches all listing categories. On `/`, `city` filters the listing query. On the category maps, `city` selects the Leaflet panel. Keep map selection separate from search pagination.
+
 Hydration signal: `__root.tsx` sets `data-hydrated="true"` on `<html>` after mount — e2e tests must wait for this before interacting, otherwise clicks fire before React attaches handlers and forms do native submits.
 
 For new or updated Playwright tests, keep selectors, form actions, navigation, and readiness in page objects under each app's `e2e/pages/`. Reuse an existing page object before adding one. Keep behavior assertions and request capture in the test. Do not add a shared base class or general form engine. Fill a complete city name; `CitySelect` commits an exact match without keyboard selection.

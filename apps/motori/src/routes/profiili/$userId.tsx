@@ -66,7 +66,7 @@ function PublicProfilePage() {
 
 	return (
 		<div className="min-h-screen bg-background">
-			<div className="mx-auto max-w-5xl px-4 py-8">
+			<div className="mx-auto max-w-[1304px] px-4 py-8 lg:px-8">
 				<Link
 					to="/ilmoitukset"
 					className="mb-6 flex items-center gap-1 text-sm text-muted hover:text-foreground"
@@ -141,7 +141,7 @@ function PublicProfilePage() {
 				{listings.length === 0 ? (
 					<p className="text-sm text-muted">{t("publicProfile.noListings")}</p>
 				) : (
-					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+					<div className="listing-grid">
 						{listings.map((listing) => (
 							<ListingCard
 								key={listing.id}

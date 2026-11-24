@@ -1,3 +1,5 @@
+import { PART_CATEGORIES } from "~/lib/constants";
+
 export default {
 	browse: {
 		searchPlaceholder: "Hae merkkiä, mallia, kaupunkia...",
@@ -17,6 +19,7 @@ export default {
 		saveSearch: "Tallenna haku",
 		saveSearchSaved: "Haku tallennettu",
 		categoryChips: {
+			all: "Kaikki",
 			sale: "Pyörät",
 			gear: "Varusteet",
 			part: "Varaosat",
@@ -62,11 +65,13 @@ export default {
 		kmMaxPlaceholder: "esim. 50000",
 	},
 	card: {
-		newBadge: "Uusi",
-		ownBadge: "Oma ilmoitus",
-		addToFavoritesAriaLabel: "Lisää suosikkeihin",
-		removeFromFavoritesAriaLabel: "Poista suosikeista",
-		perDay: "/pv",
+		rental: "Vuokra",
+		size: "Koko {{size}}",
+		partCategory: Object.fromEntries(PART_CATEGORIES.map(({ value, label }) => [value, label])),
+		ownBadge: "Oma",
+		addToFavoritesAriaLabel: "Tallenna suosikkeihin: {{title}}",
+		removeFromFavoritesAriaLabel: "Poista suosikeista: {{title}}",
+		perDay: "/ vrk",
 	},
 	empty: {
 		heading: "Ei tuloksia näillä hakuehdoilla",

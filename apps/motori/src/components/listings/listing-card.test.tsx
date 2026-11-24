@@ -1,15 +1,12 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
+import type { ComponentProps } from "react";
+import { I18nextProvider } from "react-i18next";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Listing, ListingImage } from "~/lib/db/schema";
+import { createI18nSync } from "~/lib/i18n/server";
 import { ListingCard } from "./listing-card";
-
-vi.mock("~/lib/i18n", () => ({
-	formatEur: (cents: number) => `${(cents / 100).toFixed(0)} €`,
-	formatNumber: (n: number) => n.toLocaleString("fi"),
-	useTranslation: () => ({ t: (key: string) => key }),
-}));
 
 vi.mock("~/lib/favorites-context", () => ({
 	useFavorites: () => ({ isFavorite: () => false, toggle: () => {} }),
@@ -63,162 +60,73 @@ const baseImages: ListingImage[] = [
 	},
 ];
 
+const i18n = createI18nSync("fi");
+
+function renderCard(props: Partial<ComponentProps<typeof ListingCard>> = {}) {
+	return render(
+		<I18nextProvider i18n={i18n}>
+			<ListingCard
+				listing={baseListing}
+				images={baseImages}
+				makeSlug="honda"
+				modelName="CB500F"
+				{...props}
+			/>
+		</I18nextProvider>,
+	);
+}
+
 describe("ListingCard", () => {
-	it("renders title and price", () => {
-		render(
-			<ListingCard listing={baseListing} images={baseImages} makeSlug="honda" modelName="CB500F" />,
-		);
-
-		expect(screen.getByTestId("listing-card-title")).toHaveTextContent("Honda CB500F vuokraus");
-		expect(screen.getByTestId("listing-card-price")).toHaveTextContent("50 €");
+	it("shows the rental price, title, rental pill and facts", () => {
+		renderCard();
+		expect(screen.getByTestId("listing-card-title")).toHaveTextContent(baseListing.title);
+		expect(screen.getByTestId("listing-card-price")).toHaveTextContent("50 € / vrk");
+		expect(screen.getByText("Vuokra")).toBeVisible();
+		expect(screen.getByTestId("listing-card-facts")).toHaveTextContent("2022 · 471 cc · Helsinki");
 	});
-
-	it("renders image when available", () => {
-		render(
-			<ListingCard listing={baseListing} images={baseImages} makeSlug="honda" modelName="CB500F" />,
+	it("offers thumbnail and full-size sources", () => {
+		renderCard();
+		const image = screen.getByAltText(baseListing.title);
+		expect(image).toHaveAttribute("src", baseImages[0].thumbnail_url);
+		expect(image).toHaveAttribute(
+			"srcset",
+			`${baseImages[0].thumbnail_url} 400w, ${baseImages[0].url} 1600w`,
 		);
-
-		expect(screen.getByAltText("Honda CB500F vuokraus")).toBeInTheDocument();
 	});
-
-	it("uses thumbnail_url as the image src when available", () => {
-		render(
-			<ListingCard listing={baseListing} images={baseImages} makeSlug="honda" modelName="CB500F" />,
-		);
-
-		const img = screen.getByAltText("Honda CB500F vuokraus");
-		expect(img).toHaveAttribute("src", "https://storage.example.com/thumb.webp");
+	it("uses the original when there is no thumbnail", () => {
+		renderCard({ images: [{ ...baseImages[0], thumbnail_url: null }] });
+		expect(screen.getByAltText(baseListing.title)).toHaveAttribute("src", baseImages[0].url);
 	});
-
-	it("falls back to url when thumbnail_url is null", () => {
-		const imagesWithoutThumbnail: ListingImage[] = [{ ...baseImages[0], thumbnail_url: null }];
-
-		render(
-			<ListingCard
-				listing={baseListing}
-				images={imagesWithoutThumbnail}
-				makeSlug="honda"
-				modelName="CB500F"
-			/>,
-		);
-
-		const img = screen.getByAltText("Honda CB500F vuokraus");
-		expect(img).toHaveAttribute("src", "https://storage.example.com/main.webp");
+	it("keeps the card usable when the photo or facts are missing", () => {
+		renderCard({ images: [], listing: { ...baseListing, category: "gear" } });
+		expect(screen.queryByRole("img")).not.toBeInTheDocument();
+		expect(screen.getByTestId("listing-card-facts")).toHaveTextContent(/^Helsinki$/);
 	});
-
-	it("renders no img tag when no images", () => {
-		render(<ListingCard listing={baseListing} images={[]} makeSlug="honda" modelName="CB500F" />);
-
-		expect(screen.queryByAltText("Honda CB500F vuokraus")).not.toBeInTheDocument();
+	it("keeps the favorite control outside the listing link", () => {
+		renderCard();
+		const heart = screen.getByRole("button", {
+			name: `Tallenna suosikkeihin: ${baseListing.title}`,
+		});
+		expect(heart).toHaveAttribute("aria-pressed", "false");
+		expect(screen.getByRole("link")).not.toContainElement(heart);
 	});
-
-	it("shows license badge", () => {
-		render(
-			<ListingCard listing={baseListing} images={baseImages} makeSlug="honda" modelName="CB500F" />,
-		);
-
-		expect(screen.getByText("A2")).toBeInTheDocument();
+	it("retains owner and status badges", () => {
+		renderCard({ listing: { ...baseListing, status: "sold" }, isOwn: true });
+		expect(screen.getByText("Oma")).toBeVisible();
+		expect(screen.getByTestId("listing-card-status")).toHaveTextContent("Myyty");
 	});
-
-	it("shows motorcycle type and engine cc", () => {
-		render(
-			<ListingCard listing={baseListing} images={baseImages} makeSlug="honda" modelName="CB500F" />,
-		);
-
-		expect(screen.getByText(/Naked.*471 cc/)).toBeInTheDocument();
-	});
-
-	it("shows city and region", () => {
-		render(
-			<ListingCard listing={baseListing} images={baseImages} makeSlug="honda" modelName="CB500F" />,
-		);
-
-		expect(screen.getByText(/Helsinki.*Uusimaa/)).toBeInTheDocument();
-	});
-
-	it("shows 'new' badge for recent listings", () => {
-		const recentListing = { ...baseListing, created_at: new Date() };
-
-		render(
-			<ListingCard
-				listing={recentListing}
-				images={baseImages}
-				makeSlug="honda"
-				modelName="CB500F"
-			/>,
-		);
-
-		expect(screen.getByText("card.newBadge")).toBeInTheDocument();
-	});
-
-	it("shows 'own' badge when isOwn", () => {
-		render(
-			<ListingCard
-				listing={baseListing}
-				images={baseImages}
-				makeSlug="honda"
-				modelName="CB500F"
-				isOwn
-			/>,
-		);
-
-		expect(screen.getByText("card.ownBadge")).toBeInTheDocument();
-	});
-
-	it("shows image count when multiple images", () => {
-		const multiImages: ListingImage[] = [
-			baseImages[0],
-			{ ...baseImages[0], id: "img-2", order: 1 },
-			{ ...baseImages[0], id: "img-3", order: 2 },
-		];
-
-		render(
-			<ListingCard
-				listing={baseListing}
-				images={multiImages}
-				makeSlug="honda"
-				modelName="CB500F"
-			/>,
-		);
-
-		expect(screen.getByText("📷 3")).toBeInTheDocument();
-	});
-
-	// jest-dom normalises whitespace, so the NBSP thousands separator matches a plain space here;
-	// the real grouping char is pinned in format.test.ts.
-	it("shows year, km and condition for a sale listing", () => {
-		const saleListing = {
-			...baseListing,
-			category: "sale" as const,
-			km_driven: 12300,
-			condition: "good" as const,
-		};
-
-		render(
-			<ListingCard listing={saleListing} images={baseImages} makeSlug="honda" modelName="CB500F" />,
-		);
-
-		expect(screen.getByTestId("listing-card-facts")).toHaveTextContent("2022 · 12 300 km · Hyvä");
-	});
-
-	it("shows only the year for a rental listing", () => {
-		render(
-			<ListingCard listing={baseListing} images={baseImages} makeSlug="honda" modelName="CB500F" />,
-		);
-
-		expect(screen.getByTestId("listing-card-facts")).toHaveTextContent(/^2022$/);
-	});
-
-	it("renders no facts line when year, km and condition are all missing", () => {
-		render(
-			<ListingCard
-				listing={{ ...baseListing, year: null }}
-				images={baseImages}
-				makeSlug="honda"
-				modelName="CB500F"
-			/>,
-		);
-
-		expect(screen.queryByTestId("listing-card-facts")).not.toBeInTheDocument();
+	it("shows sale mileage, gear size, and translated part categories", () => {
+		for (const [fields, line] of [
+			[{ category: "sale", km_driven: 12300 }, "2022 · 12 300 km · Helsinki"],
+			[{ category: "gear", size: "M", condition: "good" }, "Koko M · Hyvä · Helsinki"],
+			[
+				{ category: "part", part_category: "brakes", condition: "good" },
+				"Jarrut · Hyvä · Helsinki",
+			],
+		] as const) {
+			const view = renderCard({ listing: { ...baseListing, ...fields } });
+			expect(screen.getByTestId("listing-card-facts")).toHaveTextContent(line);
+			view.unmount();
+		}
 	});
 });

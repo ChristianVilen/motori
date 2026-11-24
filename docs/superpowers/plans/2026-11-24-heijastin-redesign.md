@@ -201,13 +201,13 @@ The current theme is one `@theme` block in `packages/ui/src/theme.css`. Phase 1 
 
 **Steps.**
 
-- [ ] **3.1 Query.** `searchListings` and `getLatestListings` require a category today, and `applyFilters` filters on it. Add the value `"all"`.
+- [x] **3.1 Query.** `searchListings` and `getLatestListings` require a category today, and `applyFilters` filters on it. Add the value `"all"`.
 	- With `"all"`, the query returns active listings of every category, ordered by `created_at` descending, with the same cursor pagination and `totalCount`.
 	- The price comes from a different child table per category. `getFavoriteListingsFn` and the profile page already build such mixed rows with left joins. Read them and reuse that shape. Do not write a second mixed query from nothing.
-	- `"all"` supports `q`, `region`, `price_min`, `price_max`, `condition`, `sort`, and `cursor`. It ignores the category-specific filters.
+	- `"all"` supports `q`, `region`, `city`, `price_min`, `price_max`, `condition`, `sort`, and `cursor`. It ignores the category-specific filters.
 	- Also return `size` and `gear_type` for gear rows and `part_category` for part rows, in every category. The card needs them.
 	- Add unit tests next to the existing search tests for: mixed results, price sort across categories, and the cursor.
-- [ ] **3.2 Card.** Rebuild `ListingCard` to match `.card` in the prototype.
+- [x] **3.2 Card.** Rebuild `ListingCard` to match `.card` in the prototype.
 	- Photo tile with a 4:5 ratio and a 10px radius. Use `srcSet` with the thumbnail (400w) and the main image (1600w), and `sizes` that match the grid.
 	- Under the photo, in this order: price (heading font, weight 700, about 17px; rentals show "95 € / vrk"), title (one line with an ellipsis, `listing-card-title`), facts line in muted text (`listing-card-facts`).
 	- Facts line: sale "2008 · 34 200 km · Turku". Rental "2008 · 599 cc · Turku". Gear "Koko M · Hyvä · Helsinki". Part "Jarrut · Hyvä · Lahti", with the Finnish label of the part category, not the raw value. Leave out a value that is missing.
@@ -215,15 +215,15 @@ The current theme is one `@theme` block in `packages/ui/src/theme.css`. Phase 1 
 	- Keep: the "Oma" badge, the status badge (`listing-card-status`), `data-testid="listing-card"`, `data-listing-id`, and the link target.
 	- Rentals show a small ink pill "Vuokra" at the bottom left of the photo.
 	- The heart is a sibling of the link, not a child. A tap on the heart must not navigate.
-- [ ] **3.3 Heart.** `FavoriteButton` default style: a 36px white circle at the top right of the photo, with a 44px hit area. Saved state: lime fill with an ink heart, `aria-pressed="true"`. Labels: "Tallenna suosikkeihin: {title}" and "Poista suosikeista: {title}". The glint animation comes in Phase 8.
-- [ ] **3.4 Grid.** One grid utility for all listing grids: 2 columns below 640px (gap 10px, row gap 22px), 3 from 640px, 4 from 900px, 5 from 1200px. Page content has a max width of 1240px.
-- [ ] **3.5 Home route.** Rewrite `routes/index.tsx`.
+- [x] **3.3 Heart.** `FavoriteButton` default style: a 36px white circle at the top right of the photo, with a 44px hit area. Saved state: lime fill with an ink heart, `aria-pressed="true"`. Labels: "Tallenna suosikkeihin: {title}" and "Poista suosikeista: {title}". The glint animation comes in Phase 8.
+- [x] **3.4 Grid.** One grid utility for all listing grids: 2 columns below 640px (gap 10px, row gap 22px), 3 from 640px, 4 from 900px, 5 from 1200px. Page content has a max width of 1240px.
+- [x] **3.5 Home route.** Rewrite `routes/index.tsx`.
 	- Loader: one call, `searchListings` with `category: "all"` and the validated search params (`browseSearchSchema`). Remove the four `getLatestListings` calls and `getHomepageStats` if nothing else uses it.
 	- Page: the chip row placeholder (Phase 4 builds the shared one; for now render the five category links as chips), `h1` "Uusimmat ilmoitukset" or "Hakutulokset" when `q` or a filter is set, the result count, the grid, the "load more" button, and then the "Ilmoita pyörä" call with `home-add-listing-cta` and its disabled state for unverified users.
 	- Remove the hero, the image `kawasaki-ninja-rider-sunset-*` usage, the statistics, the quick chips, the category showcase, and the tab bar inside the page. Delete the translation keys that become unused.
 	- Keep the canonical link.
-- [ ] **3.6 Search target.** Change `SiteSearch` so that a page that is not a browse page navigates to `/` with `q`. Add "Kaikki" as the first category chip in `MobileSearchOverlay`, and make it the default when the current page is `/`.
-- [ ] **3.7 Tests.**
+- [x] **3.6 Search target.** Change `SiteSearch` so that a page that is not a browse page navigates to `/` with `q`. Add "Kaikki" as the first category chip in `MobileSearchOverlay`, and make it the default when the current page is `/`. On Kaikki, selecting a city filters listings across all categories. Show the selected city with a control to clear it.
+- [x] **3.7 Tests.**
 	- `listing-card.test.tsx`: assert the new facts lines, the price format, the rental pill, and that the heart is outside the link. Remove the assertions for the removed elements.
 	- `home.spec.ts`: replace the hero test with "the feed heading and at least one card are visible". The search test expects `/?q=Honda`. Replace the quick-chip test with "the chip Varusteet navigates to `/varusteet`". Keep the CTA test.
 	- Update `home.page.ts` (remove `home-hero-heading`, `home-search-*`, `home-chip-*`).
@@ -233,6 +233,8 @@ The current theme is one `@theme` block in `packages/ui/src/theme.css`. Phase 1 
 - `/` shows sale, rental, gear, and part listings in one grid, newest first, and "load more" works.
 - A tap on a heart on `/` saves the listing and the URL does not change.
 - The a11y test passes on `/`.
+
+**Phase 3 verification (2026-11-24).** All six required commands passed. The unit suite passed 471 tests. Motori’s browser suite passed 146 tests and skipped 9. The production feed showed the same 19 listings in the same order as PostgreSQL across two pages. Selecting Helsinki or Espoo returned the matching listings across categories. Reload kept the city and clearing it restored the full feed. Production browser checks found no console errors or CSP violations on the pages tested at 390×844 and 1280×800.
 
 ---
 

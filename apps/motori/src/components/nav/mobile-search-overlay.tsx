@@ -47,7 +47,14 @@ export function MobileSearchOverlay({ onClose }: Props) {
 			return;
 		}
 		addRecentSearch(trimmed);
-		navigate({ to: category.to, search: { q: trimmed } });
+		navigate({
+			to: category.to,
+			search: (prev) => ({
+				...(pathname === "/" && category.value === "all" ? prev : {}),
+				q: trimmed,
+				cursor: undefined,
+			}),
+		});
 		onClose();
 	}
 
@@ -55,7 +62,14 @@ export function MobileSearchOverlay({ onClose }: Props) {
 		if (!city) {
 			return;
 		}
-		navigate({ to: category.to, search: { city } });
+		navigate({
+			to: category.to,
+			search: (prev) => ({
+				...(pathname === "/" && category.value === "all" ? prev : {}),
+				city,
+				cursor: undefined,
+			}),
+		});
 		onClose();
 	}
 

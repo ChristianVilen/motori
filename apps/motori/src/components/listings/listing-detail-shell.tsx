@@ -163,7 +163,8 @@ export function ListingDetailShell({
 									{!isOwner && (
 										<FavoriteButton
 											listingId={listing.id}
-											className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted transition-transform hover:scale-110"
+											title={listing.title}
+											className="relative"
 										/>
 									)}
 									{!!isOwner && (

@@ -2,35 +2,34 @@ import { Heart } from "lucide-react";
 import { useFavorites } from "~/lib/favorites-context";
 import { useTranslation } from "~/lib/i18n";
 
-interface FavoriteButtonProps {
+export function FavoriteButton({
+	listingId,
+	title,
+	className = "absolute top-0.5 right-0.5",
+}: {
 	listingId: string;
+	title: string;
 	className?: string;
-}
-
-export function FavoriteButton({ listingId, className }: FavoriteButtonProps) {
+}) {
 	const { t } = useTranslation("listings");
 	const { isFavorite, toggle } = useFavorites();
-	const favorited = isFavorite(listingId);
-
+	const saved = isFavorite(listingId);
 	return (
 		<button
 			type="button"
 			data-testid="favorite-button"
-			className={
-				className ??
-				"absolute top-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-muted transition-transform hover:scale-110"
-			}
-			onClick={(e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				toggle(listingId);
-			}}
-			aria-pressed={favorited}
-			aria-label={
-				favorited ? t("card.removeFromFavoritesAriaLabel") : t("card.addToFavoritesAriaLabel")
-			}
+			className={`${className} grid size-11 shrink-0 place-items-center rounded-full`}
+			onClick={() => toggle(listingId)}
+			aria-pressed={saved}
+			aria-label={t(saved ? "card.removeFromFavoritesAriaLabel" : "card.addToFavoritesAriaLabel", {
+				title,
+			})}
 		>
-			<Heart className={favorited ? "h-4 w-4 fill-accent text-accent" : "h-4 w-4"} />
+			<span
+				className={`grid size-9 place-items-center rounded-full text-foreground ${saved ? "bg-reflector" : "bg-card"}`}
+			>
+				<Heart aria-hidden="true" size={19} fill={saved ? "currentColor" : "none"} />
+			</span>
 		</button>
 	);
 }

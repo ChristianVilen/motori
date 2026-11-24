@@ -30,7 +30,7 @@ export function SiteSearch() {
 					const value = new FormData(event.currentTarget).get("q");
 					const query = typeof value === "string" ? value.trim() : "";
 					void navigate({
-						to: category?.to ?? "/pyorat/myynti",
+						to: category?.to ?? "/",
 						search: (prev) => ({
 							...(category ? prev : {}),
 							q: query || undefined,

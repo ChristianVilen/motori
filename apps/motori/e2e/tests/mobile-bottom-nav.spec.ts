@@ -9,7 +9,7 @@ test.describe("mobile bottom nav", () => {
 		await expect(input).toBeVisible();
 		await input.fill("honda");
 		await input.press("Enter");
-		await expect(page).toHaveURL(/\/pyorat\/myynti\?.*q=honda/);
+		await expect(page).toHaveURL(/\/\?q=honda$/);
 	});
 
 	test("search overlay traps focus and restores it on close", async ({ page }) => {

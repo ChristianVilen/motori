@@ -4,10 +4,10 @@ import { waitForHydration } from "../helpers";
 export class HomePage {
 	readonly page: Page;
 	readonly wordmark: Locator;
-	readonly heroHeading: Locator;
+	readonly feedHeading: Locator;
 	readonly searchInput: Locator;
-	readonly searchSubmit: Locator;
-	readonly browseAllLink: Locator;
+	readonly cards: Locator;
+	readonly clearCity: Locator;
 	readonly addListingCta: Locator;
 	readonly navLoginLink: Locator;
 	readonly navLoginMobile: Locator;
@@ -24,10 +24,10 @@ export class HomePage {
 	constructor(page: Page) {
 		this.page = page;
 		this.wordmark = page.getByRole("link", { name: "Motori", exact: true });
-		this.heroHeading = page.getByTestId("home-hero-heading");
-		this.searchInput = page.getByTestId("home-search-input");
-		this.searchSubmit = page.getByTestId("home-search-submit");
-		this.browseAllLink = page.getByTestId("home-browse-all");
+		this.feedHeading = page.getByTestId("home-feed-heading");
+		this.searchInput = page.getByTestId("site-search-input");
+		this.cards = page.getByTestId("listing-card");
+		this.clearCity = page.getByTestId("clear-city");
 		this.addListingCta = page.getByTestId("home-add-listing-cta");
 		this.navLoginLink = page.getByTestId("nav-login");
 		this.navLoginMobile = page.getByTestId("nav-login-mobile");
@@ -44,7 +44,7 @@ export class HomePage {
 
 	async goto() {
 		await this.page.goto("/");
-		await this.heroHeading.waitFor();
+		await this.feedHeading.waitFor();
 		await waitForHydration(this.page);
 	}
 
@@ -67,14 +67,14 @@ export class HomePage {
 
 	async search(query: string) {
 		await this.searchInput.fill(query);
-		await this.searchSubmit.click();
+		await this.searchInput.press("Enter");
 	}
 
-	regionChip(slug: string): Locator {
-		return this.page.getByTestId(`home-chip-${slug}`);
+	categoryChip(category: string) {
+		return this.page.getByTestId(`home-category-${category}`);
 	}
 
-	async clickRegionChip(slug: string) {
-		await this.regionChip(slug).click();
+	get cardFacts() {
+		return this.cards.getByTestId("listing-card-facts");
 	}
 }

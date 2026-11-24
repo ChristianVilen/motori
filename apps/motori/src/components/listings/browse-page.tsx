@@ -1,6 +1,6 @@
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Grid3x3, Map as MapIcon, SlidersHorizontal, X } from "lucide-react";
-import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import { ClientOnly } from "~/components/client-only";
 import { CollapsibleSidebar } from "~/components/listings/collapsible-sidebar";
 import { EmptyState, LowResultNudge } from "~/components/listings/empty-state";
@@ -15,6 +15,7 @@ import type { ListingCategory, MotorcycleMake } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
 import type { SearchResult } from "~/lib/listings-search";
 import { type BrowseSearchParams, countActiveFilters } from "~/lib/validators";
+import { useListingPages } from "./use-listing-pages";
 
 const ListingsMap = lazy(() =>
 	import("~/components/listings/listings-map").then((m) => ({ default: m.ListingsMap })),
@@ -27,37 +28,6 @@ export interface BrowsePageProps {
 	category: ListingCategory;
 	showMap?: boolean;
 	filterBlocks: React.ReactNode;
-}
-
-function useAccumulatedPages(initialData: SearchResult, search: BrowseSearchParams) {
-	const [pages, setPages] = useState<SearchResult[]>([initialData]);
-	const prevSearchKey = useRef(searchKeyWithoutCursor(search));
-
-	const currentKey = searchKeyWithoutCursor(search);
-	if (currentKey !== prevSearchKey.current) {
-		prevSearchKey.current = currentKey;
-		setPages([initialData]);
-	} else if (
-		pages.length > 0 &&
-		pages[pages.length - 1].nextCursor !== initialData.nextCursor &&
-		search.cursor
-	) {
-		if (!pages.some((p) => p.nextCursor === initialData.nextCursor)) {
-			setPages((prev) => [...prev, initialData]);
-		}
-	}
-
-	const allListings = pages.flatMap((p) => p.listings);
-	const totalCount = pages[0].totalCount;
-	const nextCursor = pages[pages.length - 1].nextCursor;
-	const remaining = totalCount - allListings.length;
-
-	return { allListings, totalCount, nextCursor, remaining };
-}
-
-function searchKeyWithoutCursor(search: BrowseSearchParams): string {
-	const { cursor, ...rest } = search;
-	return JSON.stringify(rest);
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: page component with conditional view rendering
@@ -73,10 +43,10 @@ export function BrowsePage({
 	const navigate = useNavigate();
 
 	const { currentUserId, makes } = initialData;
-	const { allListings, totalCount, nextCursor, remaining } = useAccumulatedPages(
-		initialData,
-		search,
-	);
+	const { allListings, totalCount, nextCursor, remaining } = useListingPages(initialData, {
+		...search,
+		city: undefined,
+	});
 
 	const hasQuery = !!search.q && search.q.trim().length > 0;
 	const regionLabel = search.region
@@ -232,7 +202,7 @@ export function BrowsePage({
 
 			{/* Main content */}
 			{!showMap || view === "list" ? (
-				<div className="mx-auto flex max-w-6xl gap-8 px-4 py-6">
+				<div className="mx-auto flex max-w-[1304px] gap-8 px-4 py-6 lg:px-8">
 					{/* Desktop sidebar */}
 					<div className="hidden lg:block">
 						<div className="sticky top-6">
@@ -254,10 +224,7 @@ export function BrowsePage({
 							<EmptyState search={search} browseTo={browseTo} />
 						) : (
 							<>
-								<div
-									data-testid="listings-grid"
-									className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
-								>
+								<div data-testid="listings-grid" className="listing-grid">
 									{allListings.map((listing) => (
 										<ListingCard
 											key={listing.id}
@@ -335,7 +302,7 @@ export function BrowsePage({
 									<X className="h-4 w-4" />
 								</button>
 							</div>
-							<div className="flex flex-col gap-3">
+							<div className="listing-grid [--listing-columns:2]">
 								{cityListings.map((listing) => (
 									<ListingCard
 										key={listing.id}
