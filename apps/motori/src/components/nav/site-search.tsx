@@ -10,7 +10,6 @@ function useSiteSearchLocation() {
 	return useRouterState({
 		select: ({ location }) => ({
 			category: BROWSE_CATEGORIES.find((c) => c.to === location.pathname),
-			home: location.pathname === "/",
 			q: typeof location.search.q === "string" ? location.search.q : "",
 		}),
 	});
@@ -57,8 +56,8 @@ export function SiteSearch() {
 
 export function MobileSearchTrigger({ onOpen }: { onOpen: () => void }) {
 	const { t } = useTranslation("common");
-	const { category, home, q } = useSiteSearchLocation();
-	return category || home ? (
+	const { category, q } = useSiteSearchLocation();
+	return category ? (
 		<button
 			type="button"
 			data-testid="site-search-trigger"

@@ -2,7 +2,7 @@
 // Public user profile — display name, location, license, and their active listings.
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { ArrowLeft, MapPin, Star } from "lucide-react";
 import { ListingCard } from "~/components/listings/listing-card";
 import { SellerAvatar } from "~/components/listings/seller-card";
 import { ReportButton } from "~/components/report-button";
@@ -135,9 +135,19 @@ function PublicProfilePage() {
 											})}
 										</span>
 									</div>
-									<div className="mt-1 text-foreground">
-										{"★".repeat(review.rating)}
-										<span className="text-border">{"★".repeat(5 - review.rating)}</span>
+									<div className="mt-1 flex gap-0.5">
+										{[1, 2, 3, 4, 5].map((star) => (
+											<Star
+												key={star}
+												size={16}
+												aria-hidden="true"
+												fill={star <= review.rating ? "currentColor" : "none"}
+												className={star <= review.rating ? "text-foreground" : "text-muted"}
+											/>
+										))}
+										<span className="sr-only">
+											{t("reviews.ratingValue", { rating: review.rating })}
+										</span>
 									</div>
 									{!!review.comment && (
 										<p className="mt-2 text-sm text-foreground">{review.comment}</p>

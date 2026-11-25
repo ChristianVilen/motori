@@ -145,7 +145,7 @@ function Choices<T extends string>({
 						type="button"
 						key={value}
 						aria-pressed={selected(value)}
-						className="min-h-10 rounded-full border border-border bg-card px-3.5 text-sm aria-pressed:border-foreground aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+						className="min-h-11 rounded-full border border-border bg-card px-3.5 text-sm aria-pressed:border-foreground aria-pressed:bg-primary aria-pressed:text-primary-foreground"
 						onClick={() => toggle(value)}
 					>
 						{labelFor(value)}

@@ -28,8 +28,8 @@ function buildCsp(
 	return [
 		"default-src 'self'",
 		`script-src ${scriptSrc}`,
-		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-		"font-src 'self' data: https://fonts.gstatic.com",
+		"style-src 'self' 'unsafe-inline'",
+		"font-src 'self' data:",
 		`img-src ${imgSrc}`,
 		`connect-src ${["'self'", ...connectSrc].join(" ")}`,
 		"frame-ancestors 'none'",

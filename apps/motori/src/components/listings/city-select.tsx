@@ -62,7 +62,7 @@ export function CitySelect({ value, onChange, onBlur, id, placeholder, ...aria }
 					placeholder={placeholder}
 					onBlur={onBlur}
 					{...aria}
-					className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 pr-8 text-base ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 md:text-sm"
+					className="flex h-11 w-full items-center rounded-md border border-input bg-background px-3 py-2 pr-8 text-base ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 md:text-sm"
 				/>
 				<ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 opacity-50" />
 			</div>

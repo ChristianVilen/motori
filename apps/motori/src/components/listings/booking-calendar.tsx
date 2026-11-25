@@ -104,7 +104,7 @@ export function BookingCalendar({
 					labelPrevious: () => t("booking.previousMonth"),
 					labelNav: () => t("booking.calendarTitle"),
 					labelDayButton: (day, mods) =>
-						`${new Intl.DateTimeFormat(i18n.language, { weekday: "long", day: "numeric", month: "long" }).format(day)}, ${t(mods.disabled ? "booking.legend.blocked" : "booking.legend.available").toLocaleLowerCase()}`,
+						`${new Intl.DateTimeFormat(i18n.language, { weekday: "long", day: "numeric", month: "long" }).format(day)}, ${t(mods.blocked ? "booking.legend.blocked" : mods.disabled ? "booking.notSelectable" : "booking.legend.available").toLocaleLowerCase()}`,
 				}}
 				onDayKeyDown={(_day, _mods, e) => {
 					if (e.key === "Escape") {

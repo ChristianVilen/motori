@@ -3,7 +3,8 @@ import { PART_CATEGORIES } from "~/lib/constants";
 export default {
 	browse: {
 		filter: "Suodata",
-		filterButtonAriaLabel: "Suodattimet",
+		filterButtonActive_one: "Suodata, {{count}} suodatin käytössä",
+		filterButtonActive_other: "Suodata, {{count}} suodatinta käytössä",
 		regionAll: "Koko Suomi",
 		loadMore: "Näytä lisää · {{remaining}} jäljellä",
 		mapToggle: "Kartta",
@@ -13,6 +14,8 @@ export default {
 		closeCityPanel: "Sulje",
 		saveSearch: "Tallenna haku",
 		saveSearchSaved: "Haku tallennettu",
+		rentalsExcluded: "Vuokrapyörät eivät ole mukana, kun hinta tai kunto rajaa hakua.",
+		showRentals: "Näytä vuokrapyörät",
 		categoryChips: {
 			all: "Kaikki",
 			sale: "Pyörät",
@@ -60,6 +63,8 @@ export default {
 		pricePerDay: "Hinta / päivä",
 		priceMinPlaceholder: "Min €",
 		priceMaxPlaceholder: "Max €",
+		priceMinChip: "Min {{price}} €",
+		priceMaxChip: "Max {{price}} €",
 		minAriaLabel: "vähintään",
 		maxAriaLabel: "enintään",
 		sort: "Järjestä",
@@ -197,6 +202,7 @@ export default {
 			blocked: "Varattu",
 			selected: "Valintasi",
 		},
+		notSelectable: "Ei valittavissa",
 		loginRequired: "Kirjaudu varataksesi",
 		messageLabel: "Viesti omistajalle",
 		messagePlaceholder: "Kerro kuka olet ja mihin tarvitset pyörää",

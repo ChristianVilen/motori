@@ -94,6 +94,7 @@ export function FilterDrawer({
 						</button>
 						<button
 							type="button"
+							data-page-primary
 							onClick={onClose}
 							className="min-h-12 flex-1 rounded-full bg-reflector px-3 text-sm font-semibold text-foreground hover:bg-reflector-press"
 						>

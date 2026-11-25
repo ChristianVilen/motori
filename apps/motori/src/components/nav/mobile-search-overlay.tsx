@@ -102,7 +102,7 @@ export function MobileSearchOverlay({ onClose }: Props) {
 				}}
 				className="border-b border-border px-4 py-3"
 			>
-				<div className="flex items-center gap-2 rounded-full border border-transparent bg-muted-light px-4 py-2 focus-within:ring-2 focus-within:ring-ring">
+				<div className="flex items-center gap-2 rounded-full border border-transparent bg-muted-light py-1 pr-1 pl-4 focus-within:ring-2 focus-within:ring-ring">
 					<SearchIcon size={18} className="text-muted" />
 					<input
 						ref={inputRef}
@@ -115,7 +115,7 @@ export function MobileSearchOverlay({ onClose }: Props) {
 					/>
 					<button
 						type="submit"
-						className="min-h-9 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground"
+						className="min-h-11 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground"
 					>
 						{t("nav.search.submit")}
 					</button>

@@ -18,7 +18,7 @@ import type { BrowseSearchParams } from "~/lib/validators";
 import { useDropdownMenu } from "../use-dropdown-menu";
 
 const toolChip =
-	"inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-sm font-medium hover:bg-muted-light";
+	"inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-sm font-medium hover:bg-muted-light";
 export function FeedBar({
 	category,
 	browseTo,
@@ -75,7 +75,9 @@ export function FeedBar({
 					type="button"
 					data-testid="listings-filter-drawer-toggle"
 					aria-haspopup="dialog"
-					aria-label={t("browse.filterButtonAriaLabel")}
+					aria-label={
+						filterCount > 0 ? t("browse.filterButtonActive", { count: filterCount }) : undefined
+					}
 					onClick={(event) => {
 						event.currentTarget.focus({ preventScroll: true });
 						onFilter();
@@ -144,7 +146,7 @@ export function FeedBar({
 					) : null}
 				</div>
 				{showMap ? (
-					<div className="inline-flex h-10 shrink-0 items-center rounded-full border border-border bg-card p-[3px]">
+					<div className="inline-flex h-11 shrink-0 items-center rounded-full border border-border bg-card p-[3px]">
 						{(["list", "map"] as const).map((view) => {
 							const active = (view === "map") === map;
 							const Icon = view === "list" ? List : MapIcon;

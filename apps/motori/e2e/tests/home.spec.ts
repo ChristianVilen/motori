@@ -29,6 +29,16 @@ test.describe("Home page", () => {
 		await expect(page).toHaveURL(/\/varusteet$/);
 	});
 
+	test("a price sort leaves rentals out and says so", async ({ page }) => {
+		const home = new HomePage(page);
+		await home.goto({ sort: "price_asc" });
+
+		await expect(home.rentalsExcludedNote).toBeVisible();
+		await expect(home.showRentalsLink).toHaveAttribute("href", "/pyorat/vuokraus");
+		await expect(home.cards.first()).toBeVisible();
+		await expect(home.rentalPills).toHaveCount(0);
+	});
+
 	test("add listing CTA links to new listing page", async ({ page }) => {
 		const home = new HomePage(page);
 		await home.goto();

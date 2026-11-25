@@ -115,7 +115,7 @@ export function ListingDetailShell({
 					{t("detail.expiredBanner")}
 				</p>
 			)}
-			<div className="flex min-w-0 flex-col min-[900px]:grid min-[900px]:grid-cols-[minmax(0,1fr)_360px] min-[900px]:items-start min-[900px]:gap-12">
+			<div className="flex min-w-0 flex-col min-[900px]:grid min-[900px]:grid-cols-[minmax(0,1fr)_360px] min-[900px]:items-start min-[900px]:gap-x-12 min-[900px]:gap-y-7">
 				<div className="contents min-[900px]:block min-[900px]:min-w-0">
 					<ListingHeading listing={listing} isOwner={isOwner} />
 					<div className="order-1 min-w-0">
@@ -133,11 +133,6 @@ export function ListingDetailShell({
 							{listing.description}
 						</p>
 					</section>
-					{!!session && (
-						<div className="order-9 mt-7">
-							<ReportButton targetType="listing" targetId={listing.id} />
-						</div>
-					)}
 				</div>
 				<aside
 					data-rental={listing.category === "rental" || undefined}
@@ -179,6 +174,11 @@ export function ListingDetailShell({
 						</Link>
 					)}
 				</aside>
+				{!!session && (
+					<div className="order-9 mt-7 min-[900px]:col-start-1 min-[900px]:mt-0">
+						<ReportButton targetType="listing" targetId={listing.id} />
+					</div>
+				)}
 			</div>
 		</div>
 	);

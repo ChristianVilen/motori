@@ -10,6 +10,28 @@ test.beforeEach(async ({ page }) => {
 	page.on("dialog", (d) => d.accept());
 });
 
+test.describe("Rental calendar keyboard", () => {
+	test("arrow keys move between days and Enter picks the range", async ({ page }) => {
+		const detail = new ListingDetailPage(page);
+		await detail.goto(SEEDED_LISTING_ID, SEEDED_LISTING_SLUG);
+		const today = toIso(new Date());
+		const from = addDaysToIso(today, 21);
+		const to = addDaysToIso(today, 23);
+
+		await detail.focusDate(addDaysToIso(today, 20));
+		await detail.pressCalendarKey("ArrowRight");
+		await detail.pressCalendarKey("Enter");
+		await expect(page).toHaveURL(new RegExp(`from=${from}`));
+		await detail.pressCalendarKey("ArrowRight");
+		await detail.pressCalendarKey("ArrowRight");
+		await detail.pressCalendarKey("Enter");
+
+		await expect(page).toHaveURL(new RegExp(`from=${from}`));
+		await expect(page).toHaveURL(new RegExp(`to=${to}`));
+		await expect(detail.summary).toContainText("Yhteensä");
+	});
+});
+
 test.describe("Booking flow", () => {
 	test("renter submits, owner confirms, contact revealed", async ({ page, request }) => {
 		// 1. Create a fresh renter account (no email verification in CI).

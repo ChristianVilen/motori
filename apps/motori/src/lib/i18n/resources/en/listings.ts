@@ -1,7 +1,8 @@
 export default {
 	browse: {
 		filter: "Filter",
-		filterButtonAriaLabel: "Filters",
+		filterButtonActive_one: "Filter, {{count}} filter active",
+		filterButtonActive_other: "Filter, {{count}} filters active",
 		regionAll: "All Finland",
 		loadMore: "Show more · {{remaining}} remaining",
 		mapToggle: "Map",
@@ -11,6 +12,8 @@ export default {
 		closeCityPanel: "Close",
 		saveSearch: "Save search",
 		saveSearchSaved: "Search saved",
+		rentalsExcluded: "Rental bikes are left out when price or condition narrows the search.",
+		showRentals: "Show rental bikes",
 		categoryChips: {
 			all: "All",
 			sale: "Bikes",
@@ -64,6 +67,8 @@ export default {
 		pricePerDay: "Price / day",
 		priceMinPlaceholder: "Min €",
 		priceMaxPlaceholder: "Max €",
+		priceMinChip: "Min €{{price}}",
+		priceMaxChip: "Max €{{price}}",
 		minAriaLabel: "minimum",
 		maxAriaLabel: "maximum",
 		sort: "Sort",
@@ -202,6 +207,7 @@ export default {
 			blocked: "Booked",
 			selected: "Your selection",
 		},
+		notSelectable: "Not selectable",
 		loginRequired: "Sign in to book",
 		messageLabel: "Message to the owner",
 		messagePlaceholder: "Tell us who you are and what you need the bike for",

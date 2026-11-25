@@ -71,7 +71,7 @@ function rollAmount(
 	}
 	preference.addEventListener("change", finish);
 	return () => {
-		cancelAnimationFrame(frame);
+		finish();
 		preference.removeEventListener("change", finish);
 	};
 }
@@ -101,6 +101,11 @@ export function useBookingMotion(
 		const start = shown.current;
 		if (!from || !to || picked?.from !== from || picked.to !== to || !motionAllowed()) {
 			shown.current = cents;
+			// A roll replaces the text node React renders, and its cleanup writes the previous total.
+			const amounts = panelRef.current?.querySelectorAll<HTMLElement>("[data-rolling-amount]");
+			for (const node of amounts ?? []) {
+				node.textContent = formatEur(cents, locale);
+			}
 			return;
 		}
 		const section = panelRef.current;

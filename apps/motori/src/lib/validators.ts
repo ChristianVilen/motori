@@ -272,6 +272,18 @@ export function countActiveFilters(search: BrowseSearchParams): number {
 	);
 }
 
+// A rental day price cannot be compared with a sale price, and rentals have no condition.
+export function excludesRentals(category: string, search: BrowseSearchParams): boolean {
+	return (
+		category === "all" &&
+		(search.sort === "price_asc" ||
+			search.sort === "price_desc" ||
+			search.price_min != null ||
+			search.price_max != null ||
+			!!search.condition)
+	);
+}
+
 const FINNISH_PHONE_RE = /^(\+358|0)\d{6,9}$/;
 
 export function validateFinnishPhone(raw: string, errorMsg?: string): string {

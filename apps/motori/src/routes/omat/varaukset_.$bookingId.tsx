@@ -3,6 +3,7 @@ import { Textarea } from "@motori/ui/textarea";
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { sql } from "kysely";
+import { Star } from "lucide-react";
 import { useState } from "react";
 import { BookingStatusPill } from "~/components/booking-status-pill";
 import {
@@ -341,10 +342,16 @@ function ReviewSection(props: {
 								key={star}
 								type="button"
 								onClick={() => setRating(star)}
-								className={`text-2xl ${star <= rating ? "text-foreground" : "text-border"}`}
-								aria-label={`${star} / 5`}
+								aria-pressed={star === rating}
+								aria-label={t("reviews.ratingValue", { rating: star })}
+								className="grid size-11 place-items-center rounded-full hover:bg-muted-light"
 							>
-								★
+								<Star
+									size={28}
+									aria-hidden="true"
+									fill={star <= rating ? "currentColor" : "none"}
+									className={star <= rating ? "text-foreground" : "text-muted"}
+								/>
 							</button>
 						))}
 					</div>
@@ -417,7 +424,7 @@ function BookingDetailPage() {
 							params={{ conversationId: booking.conversation_id }}
 							className="mt-1 inline-block text-sm text-foreground hover:underline"
 						>
-							{t("messages.openConversation", "Avaa keskustelu")}
+							{t("messages:openConversation")}
 						</Link>
 					) : booking.message ? (
 						<p className="mt-1 whitespace-pre-wrap text-sm">{booking.message}</p>

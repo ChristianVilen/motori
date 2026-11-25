@@ -51,7 +51,7 @@ export class ListingDetailPage {
 	get blockedNotice() {
 		return this.root.getByText("Valinnassa on varattu päivä. Valitse yhtenäinen vapaa jakso.");
 	}
-	async selectDate(iso: string) {
+	async showDate(iso: string) {
 		const calendar = this.page.locator("#rental-calendar");
 		const day = calendar.locator(`button[data-date="${iso}"]`);
 		while ((await day.count()) === 0) {
@@ -61,7 +61,16 @@ export class ListingDetailPage {
 			}
 			await next.click();
 		}
-		await day.click();
+		return day;
+	}
+	async selectDate(iso: string) {
+		await (await this.showDate(iso)).click();
+	}
+	async focusDate(iso: string) {
+		await (await this.showDate(iso)).focus();
+	}
+	async pressCalendarKey(key: "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp" | "Enter") {
+		await this.page.keyboard.press(key);
 	}
 	async selectFirstTwoDays() {
 		const days = this.page.locator("#rental-calendar button[data-date]:not([disabled])");

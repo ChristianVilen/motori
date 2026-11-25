@@ -20,6 +20,9 @@ export class HomePage {
 	readonly navUserMenu: Locator;
 	readonly navSignOutLink: Locator;
 	readonly loginModal: Locator;
+	readonly rentalsExcludedNote: Locator;
+	readonly showRentalsLink: Locator;
+	readonly rentalPills: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
@@ -40,6 +43,11 @@ export class HomePage {
 		this.navUserMenu = page.getByTestId("nav-user-menu");
 		this.navSignOutLink = page.getByTestId("nav-signout");
 		this.loginModal = page.getByTestId("login-modal");
+		this.rentalsExcludedNote = page.getByTestId("rentals-excluded-note");
+		this.showRentalsLink = this.rentalsExcludedNote.getByRole("link", {
+			name: "Näytä vuokrapyörät",
+		});
+		this.rentalPills = this.cards.getByText("Vuokra", { exact: true });
 	}
 
 	async gotoMissingPage() {
@@ -47,8 +55,9 @@ export class HomePage {
 		await waitForHydration(this.page);
 	}
 
-	async goto() {
-		await this.page.goto("/");
+	async goto(params?: Record<string, string>) {
+		const query = params ? `?${new URLSearchParams(params).toString()}` : "";
+		await this.page.goto(`/${query}`);
 		await this.feedHeading.waitFor();
 		await waitForHydration(this.page);
 	}

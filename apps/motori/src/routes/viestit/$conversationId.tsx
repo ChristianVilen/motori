@@ -65,7 +65,7 @@ function ThreadPage() {
 				<Link
 					to="/viestit"
 					className="md:hidden flex items-center justify-center size-11 rounded-full text-muted hover:text-foreground hover:bg-muted-light transition-colors shrink-0"
-					aria-label="Takaisin"
+					aria-label={t("thread.back")}
 				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
@@ -77,8 +77,7 @@ function ThreadPage() {
 						strokeWidth="2"
 						strokeLinecap="round"
 						strokeLinejoin="round"
-						role="img"
-						aria-label="Takaisin"
+						aria-hidden="true"
 					>
 						<path d="m15 18-6-6 6-6" />
 					</svg>

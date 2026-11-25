@@ -1,4 +1,4 @@
-import { useNavigate, useRouteContext, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouteContext, useRouterState } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import { lazy, Suspense, useCallback, useState } from "react";
 import { ClientOnly } from "~/components/client-only";
@@ -12,7 +12,7 @@ import { REGIONS } from "~/lib/constants";
 import type { MotorcycleMake } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
 import type { ListingWithImages, SearchCategory, SearchResult } from "~/lib/listings-search";
-import { type BrowseSearchParams, countActiveFilters } from "~/lib/validators";
+import { type BrowseSearchParams, countActiveFilters, excludesRentals } from "~/lib/validators";
 import { ActiveFilterChips } from "./active-filter-chips";
 
 const ListingsMap = lazy(() =>
@@ -133,6 +133,21 @@ export function BrowsePage({
 					browseTo={browseTo}
 					cityFilter={!showMap}
 				/>
+			)}
+			{excludesRentals(category, search) && (
+				<p
+					data-testid="rentals-excluded-note"
+					className="mx-auto w-full max-w-[1304px] px-4 pt-2 text-sm text-muted lg:px-8"
+				>
+					{t("browse.rentalsExcluded")}{" "}
+					<Link
+						to="/pyorat/vuokraus"
+						search={{ q: search.q, region: search.region }}
+						className="font-medium text-foreground underline"
+					>
+						{t("browse.showRentals")}
+					</Link>
+				</p>
 			)}
 			<div className="mx-auto w-full max-w-[1304px] px-4 lg:px-8">
 				<div className="mt-4 mb-3.5 grid grid-cols-[1fr_auto] items-center gap-x-3 md:flex md:flex-wrap">

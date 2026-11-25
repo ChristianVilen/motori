@@ -80,9 +80,11 @@ export function NonRentalSidebar({
 			data-testid="listing-contact-actions"
 			className="fixed inset-x-0 bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] z-30 grid min-h-(--action-height) grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2 border-t border-border bg-card px-4 py-2 min-[900px]:static min-[900px]:flex min-[900px]:min-h-0 min-[900px]:gap-2 min-[900px]:flex-col min-[900px]:items-stretch min-[900px]:border-0 min-[900px]:p-0"
 		>
-			<span className="col-start-1 row-start-1 font-heading text-lg font-extrabold tabular-nums min-[900px]:hidden">
-				{price != null ? formatEur(price, i18n.language) : null}
-			</span>
+			{!phone && (
+				<span className="col-start-1 row-start-1 font-heading text-lg font-extrabold tabular-nums min-[900px]:hidden">
+					{price != null ? formatEur(price, i18n.language) : null}
+				</span>
+			)}
 			{currentUserId ? (
 				<MessageSellerButton listingId={listing.id} className={primary} />
 			) : (
@@ -103,7 +105,7 @@ export function NonRentalSidebar({
 					onClick={reveal}
 					className="col-start-2 row-start-1 justify-self-end inline-flex size-11 shrink-0 items-center justify-center gap-2 rounded-full border border-border bg-card hover:bg-muted-light min-[900px]:w-full"
 				>
-					<Phone size={18} />
+					<Phone size={18} aria-hidden="true" />
 					<span className="hidden text-sm font-medium min-[900px]:inline">
 						{t("detail.revealPhone")}
 					</span>
@@ -113,9 +115,12 @@ export function NonRentalSidebar({
 				<a
 					ref={telRef}
 					href={`tel:${phone}`}
-					className="col-span-2 col-start-1 row-start-2 block break-all text-sm font-medium underline min-[900px]:text-center"
+					className="col-span-2 col-start-1 row-start-1 inline-flex min-h-11 items-center gap-2 whitespace-nowrap text-sm font-medium underline min-[900px]:block min-[900px]:min-h-0 min-[900px]:whitespace-normal min-[900px]:break-all min-[900px]:text-center"
 				>
 					{phone}
+					<span className="grid size-11 shrink-0 place-items-center rounded-full border border-border bg-card min-[900px]:hidden">
+						<Phone size={18} aria-hidden="true" />
+					</span>
 				</a>
 			)}
 			{!!error && (

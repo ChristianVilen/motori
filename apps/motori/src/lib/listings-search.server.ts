@@ -6,7 +6,7 @@ import type { Database, ListingImage } from "~/lib/db/schema";
 import { listingSummaryQuery } from "~/lib/listings-owner";
 import type { SearchCategory, SearchResult } from "~/lib/listings-search";
 import { toPrefixTsQuery } from "~/lib/search";
-import type { BrowseSearchParams } from "~/lib/validators";
+import { type BrowseSearchParams, excludesRentals } from "~/lib/validators";
 
 type SearchInput = BrowseSearchParams & { category: SearchCategory };
 
@@ -87,7 +87,7 @@ function filteredListings(db: Kysely<Database>, p: SearchInput) {
 		q = q.where("card.condition", "=", p.condition);
 	}
 	if (p.category === "all") {
-		return q;
+		return excludesRentals(p.category, p) ? q.where("card.category", "!=", "rental") : q;
 	}
 	return categoryFilters(q, p);
 }
