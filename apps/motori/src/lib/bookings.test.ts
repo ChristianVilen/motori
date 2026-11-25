@@ -29,67 +29,54 @@ describe("expandDateRange", () => {
 });
 
 describe("computeBookingCost", () => {
-	const DAY = 2500; // 25 €
-	const WEEK = 15000; // 150 €
-	const WEEKEND = 4000; // 40 €
-
-	it("uses day rate for a plain 3-day range", () => {
-		// 2026-05-04 (Mon) to 2026-05-06 (Wed)
-		expect(computeBookingCost("2026-05-04", "2026-05-06", DAY, null, null)).toEqual({
-			totalCents: 7500,
-			days: 3,
-			label: null,
-		});
-	});
-
-	it("uses weekend rate for Fri–Sun when set", () => {
-		// 2026-05-01 (Fri) to 2026-05-03 (Sun)
-		expect(computeBookingCost("2026-05-01", "2026-05-03", DAY, null, WEEKEND)).toEqual({
-			totalCents: 4000,
+	const day = 9500;
+	const week = 55000;
+	const weekend = 24000;
+	it("charges a Friday to Sunday weekend and shows the saving", () => {
+		expect(computeBookingCost("2026-12-04", "2026-12-06", day, week, weekend)).toEqual({
+			totalCents: 24000,
 			days: 3,
 			label: "weekend",
+			lines: [{ kind: "weekend", cents: 24000 }],
+			savingsCents: 4500,
 		});
 	});
-
-	it("uses day rate for Fri–Sun when no weekend price set", () => {
-		expect(computeBookingCost("2026-05-01", "2026-05-03", DAY, null, null)).toEqual({
-			totalCents: 7500,
-			days: 3,
-			label: null,
-		});
-	});
-
-	it("uses week rate for 7-day range", () => {
-		// 2026-05-04 (Mon) to 2026-05-10 (Sun) = 7 days
-		expect(computeBookingCost("2026-05-04", "2026-05-10", DAY, WEEK, null)).toEqual({
-			totalCents: 15000,
-			days: 7,
+	it("splits nine days into a week and two days", () => {
+		expect(computeBookingCost("2026-12-04", "2026-12-12", day, week, weekend)).toEqual({
+			totalCents: 74000,
+			days: 9,
 			label: "week",
+			lines: [
+				{ kind: "week", count: 1, cents: 55000 },
+				{ kind: "day", count: 2, unitCents: 9500, cents: 19000 },
+			],
+			savingsCents: 11500,
 		});
 	});
-
-	it("uses week rate for 14-day range (2 full weeks)", () => {
-		expect(computeBookingCost("2026-05-04", "2026-05-17", DAY, WEEK, null)).toEqual({
-			totalCents: 30000,
+	it.each([
+		["2026-12-04", "2026-12-12", null, weekend, 9, 85500],
+		["2026-12-04", "2026-12-04", week, weekend, 1, 9500],
+		["2026-12-05", "2026-12-07", week, weekend, 3, 28500],
+		["2026-12-04", "2026-12-06", week, null, 3, 28500],
+	] as const)(
+		"uses the day rate for %s through %s",
+		(from, to, weekly, special, days, totalCents) => {
+			expect(computeBookingCost(from, to, day, weekly, special)).toEqual({
+				days,
+				totalCents,
+				label: null,
+				lines: [{ kind: "day", count: days, unitCents: 9500, cents: totalCents }],
+				savingsCents: 0,
+			});
+		},
+	);
+	it("shows one line for two full weeks and never shows negative savings", () => {
+		expect(computeBookingCost("2026-12-01", "2026-12-14", 1000, 9000, null)).toEqual({
+			totalCents: 18000,
 			days: 14,
 			label: "week",
-		});
-	});
-
-	it("mixes week and day rates for 10-day range", () => {
-		// 1 week (15000) + 3 days (7500) = 22500
-		expect(computeBookingCost("2026-05-04", "2026-05-13", DAY, WEEK, null)).toEqual({
-			totalCents: 22500,
-			days: 10,
-			label: "week",
-		});
-	});
-
-	it("weekend rate takes priority over week rate for Fri–Sun", () => {
-		expect(computeBookingCost("2026-05-01", "2026-05-03", DAY, WEEK, WEEKEND)).toEqual({
-			totalCents: 4000,
-			days: 3,
-			label: "weekend",
+			lines: [{ kind: "week", count: 2, cents: 18000 }],
+			savingsCents: 0,
 		});
 	});
 });

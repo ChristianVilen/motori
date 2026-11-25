@@ -24,9 +24,16 @@ export interface ListingDetailShellProps {
 	session: { user: { id: string } } | null;
 	backTo: LinkProps["to"];
 	sidebar?: ReactNode;
+	rentalLadder?: ReactNode;
 }
 
-export function ListingDetailShell({ data, session, backTo, sidebar }: ListingDetailShellProps) {
+export function ListingDetailShell({
+	data,
+	session,
+	backTo,
+	sidebar,
+	rentalLadder,
+}: ListingDetailShellProps) {
 	const { t } = useTranslation("listings");
 	const router = useRouter();
 	const canGoBack = useCanGoBack();
@@ -34,7 +41,7 @@ export function ListingDetailShell({ data, session, backTo, sidebar }: ListingDe
 	const isOwner = session?.user.id === listing.owner_id;
 	const price =
 		data.sale?.price ?? data.gear?.price ?? data.part?.price ?? data.rental?.price_per_day;
-	const buyerContact = listing.category !== "rental" && listing.status === "active" && !isOwner;
+	const buyerContact = listing.status === "active" && !isOwner;
 	const path = categoryDetailPath(
 		listing.category,
 		listing.short_id,
@@ -127,8 +134,11 @@ export function ListingDetailShell({ data, session, backTo, sidebar }: ListingDe
 						</div>
 					)}
 				</div>
-				<aside className="contents min-[900px]:sticky min-[900px]:top-[calc(var(--header-height)+1rem)] min-[900px]:grid min-[900px]:gap-5 min-[900px]:rounded-lg min-[900px]:border min-[900px]:border-border min-[900px]:bg-card min-[900px]:p-[22px]">
-					{price != null && <ListingPrice data={data} price={price} />}
+				<aside
+					data-rental={listing.category === "rental" || undefined}
+					className="min-[900px]:data-[rental]:max-h-[calc(100dvh-var(--header-height)-2rem)] min-[900px]:data-[rental]:overflow-y-auto contents min-[900px]:sticky min-[900px]:top-[calc(var(--header-height)+1rem)] min-[900px]:grid min-[900px]:gap-5 min-[900px]:rounded-lg min-[900px]:border min-[900px]:border-border min-[900px]:bg-card min-[900px]:p-[22px]"
+				>
+					{rentalLadder ?? (price != null && <ListingPrice data={data} price={price} />)}
 					<div className="order-6">
 						{listing.category === "rental" ? (
 							sidebar
@@ -181,14 +191,14 @@ function ListingHeading({
 	const typeLabel = MOTORCYCLE_TYPES.find((v) => v.value === listing.motorcycle_type)?.label;
 	const chip = "inline-flex items-center rounded-full bg-muted-light px-[11px] py-1 text-[13px]";
 	return (
-		<div className="order-3 min-[900px]:mb-4">
+		<div className="contents min-[900px]:mb-4 min-[900px]:block">
 			<h1
 				data-testid="listing-detail-title"
-				className="mt-1.5 break-words font-heading text-[22px] leading-tight font-bold tracking-tight min-[900px]:mt-0 min-[900px]:text-[32px]"
+				className="order-3 mt-1.5 break-words font-heading text-[22px] leading-tight font-bold tracking-tight min-[900px]:mt-0 min-[900px]:text-[32px]"
 			>
 				{listing.title}
 			</h1>
-			<div className="mt-3.5 flex flex-wrap gap-1.5">
+			<div className="order-4 mt-3.5 flex flex-wrap gap-1.5">
 				{!!typeLabel && (
 					<span data-testid="listing-type" className={chip}>
 						{typeLabel}
@@ -222,35 +232,13 @@ function ListingPrice({ data, price }: { data: ListingForDisplay; price: number 
 	return (
 		<div className="order-2 mt-[18px] min-[900px]:mt-0" data-testid="price-info">
 			<span
-				data-testid={listing.category === "rental" ? "price-per-day" : `price-${listing.category}`}
+				data-testid={`price-${listing.category}`}
 				className="font-heading text-[30px] leading-[1.1] font-extrabold tracking-[-0.035em] tabular-nums"
 			>
 				{formatEur(price)}
 			</span>
 			{!!data.sale?.negotiable && (
 				<span className="ml-3 text-[13px] text-muted">{t("detail.negotiable")}</span>
-			)}
-			{!!data.rental && (
-				<>
-					<span className="ml-1 text-sm text-muted">{t("card.perDay")}</span>
-					{data.rental.price_per_week != null && (
-						<p data-testid="price-per-week" className="mt-1 text-sm text-muted tabular-nums">
-							{t("detail.pricing.perWeek", {
-								price: formatEur(data.rental.price_per_week),
-							})}
-						</p>
-					)}
-					{data.rental.price_per_weekend != null && (
-						<p data-testid="price-per-weekend" className="text-sm text-muted tabular-nums">
-							{t("detail.pricing.perWeekend", {
-								price: formatEur(data.rental.price_per_weekend),
-							})}
-						</p>
-					)}
-					{!!data.rental.price_description && (
-						<p className="mt-1 text-sm text-muted">{data.rental.price_description}</p>
-					)}
-				</>
 			)}
 		</div>
 	);

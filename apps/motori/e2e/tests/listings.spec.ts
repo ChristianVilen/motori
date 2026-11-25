@@ -165,11 +165,12 @@ test.describe("Listing detail", () => {
 		const detail = new ListingDetailPage(authenticatedViewerPage);
 		await detail.goto(SEEDED_LISTING_ID, SEEDED_LISTING_SLUG);
 
-		// On mobile, the booking form is inside a fullscreen modal triggered by a bottom bar button
+		await expect(detail.bookingSection).toBeVisible();
 		if (testInfo.project.name === "mobile") {
+			await detail.selectFirstTwoDays();
 			await detail.mobileBookButton.click();
 			await expect(detail.bookingDialog).toBeVisible();
-			await expect(detail.bookingDialog.getByTestId("booking-section")).toBeVisible();
+			await expect(detail.message).toBeVisible();
 		} else {
 			await expect(detail.bookingSection).toBeVisible();
 		}

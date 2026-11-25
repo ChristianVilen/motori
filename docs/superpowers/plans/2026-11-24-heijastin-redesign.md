@@ -339,17 +339,17 @@ The current theme is one `@theme` block in `packages/ui/src/theme.css`. Phase 1 
 
 **Steps.**
 
-- [ ] **6.1 Cost breakdown (new logic, unit tests first).** Extend `computeBookingCost` in `lib/bookings.ts`. Keep the current rules and the current fields. Add:
+- [x] **6.1 Cost breakdown (new logic, unit tests first).** Extend `computeBookingCost` in `lib/bookings.ts`. Keep the current rules and the current fields. Add:
 	- `lines`: the rows to show. Examples: `{ kind: "weekend", cents }`, `{ kind: "week", count: 1, cents }`, `{ kind: "day", count: 2, unitCents, cents }`.
 	- `savingsCents`: `days × day price − totalCents`, or 0 when that is not positive.
 	- The rules stay: days are inclusive. Exactly 3 days from Friday to Sunday with a weekend price set gives the weekend price. Otherwise 7 or more days with a week price set gives `floor(days / 7)` weeks plus the remaining days at the day price. Otherwise days times the day price.
 	- Tests: a Friday to Sunday range, 9 days with a week price (1 week plus 2 days), 9 days without a week price, 1 day, and a 3-day range that does not start on Friday.
-- [ ] **6.2 Range validation (new logic, unit tests first).** `computeNewRange` in `calendar-helpers.ts` clamps to `MAX_STAY` only. Add a check: if any day between the start and the end is blocked, return only the new start and a reason `"blocked"`. `BookingCalendar` already computes blocked days in `isBlocked`. Move that rule into a pure function in `calendar-helpers.ts` so that both use it.
-	- Messages: "Valinnassa on varattu päivä. Valitse yhtenäinen vapaa jakso." and, for the clamp, "Enintään 30 päivää kerrallaan."
+- [x] **6.2 Range validation (new logic, unit tests first).** `computeNewRange` in `calendar-helpers.ts` clamps to `MAX_STAY` only. Add a check: if any day between the start and the end is blocked, return only the new start and a reason `"blocked"`. `BookingCalendar` already computes blocked days in `isBlocked`. Move that rule into a pure function in `calendar-helpers.ts` so that both use it.
+	- Messages: "Valinnassa on varattu päivä. Valitse yhtenäinen vapaa jakso." and, for the clamp, "Enintään 30 päivää kerrallaan." Both dates count toward the limit: a May 1 pickup permits May 30 as the last return date.
 	- The server check in `bookings.server.ts` does not change.
-- [ ] **6.3 Dates in the URL.** Add `from`, `to` (ISO dates), and `step` (`"request"`) to the route's `validateSearch`. Ignore invalid, past, or blocked values. The selected range lives in the URL (navigate with `replace: true`), not in `useState`. A reload keeps the dates. Add `from`, `to`, and `step` to nothing else: the canonical link and `og:url` stay without them.
-- [ ] **6.4 Price ladder.** Under the title: one bordered row with up to three cells, "Päivä 95 €", "Viikonloppu pe–su 240 €", "Viikko 550 €". Show a cell only when that price is set. The cell whose rule applies to the current selection gets an ink ring. Keep `price-per-day`, `price-per-week`, and `price-per-weekend`. Show `price_description` under the row.
-- [ ] **6.5 Calendar.** Restyle `BookingCalendar` to match `.cal` in the prototype.
+- [x] **6.3 Dates in the URL.** Add `from`, `to` (ISO dates), and `step` (`"request"`) to the route's `validateSearch`. Ignore invalid, past, or blocked values. The selected range lives in the URL (navigate with `replace: true`), not in `useState`. A reload keeps the dates. Add `from`, `to`, and `step` to nothing else: the canonical link and `og:url` stay without them.
+- [x] **6.4 Price ladder.** Under the title: one bordered row with up to three cells, "Päivä 95 €", "Viikonloppu pe–su 240 €", "Viikko 550 €". Show a cell only when that price is set. The cell whose rule applies to the current selection gets an ink ring. Keep `price-per-day`, `price-per-week`, and `price-per-weekend`. Show `price_description` under the row.
+- [x] **6.5 Calendar.** Restyle `BookingCalendar` to match `.cal` in the prototype.
 	- Monday first. One month on mobile with previous and next buttons, two months on desktop.
 	- Selected range: a `bg-reflector-soft` band, with the two end days as full lime circles with ink text.
 	- Unavailable days: muted text with a diagonal strike, `aria-disabled="true"`.
@@ -357,9 +357,9 @@ The current theme is one `@theme` block in `packages/ui/src/theme.css`. Phase 1 
 	- Legend: "Vapaa", "Varattu", "Valintasi".
 	- Each day button has an `aria-label` such as "perjantai 4. joulukuuta, vapaa". Keep the existing keyboard support.
 	- The owner's `AvailabilityCalendar` on the edit page gets the same day styles.
-- [ ] **6.6 Summary.** Replace `CalendarHero`, `TicketCard`, and `CalendarFooter` in `booking-pricing.tsx` with one summary card: "Nouto pe 4.12." and "Palautus su 6.12.", the rows from `lines`, "Yhteensä" with the total in the heading font at weight 800, and a lime tag "Säästät 45 €" when `savingsCents` is above 0. Without a selection: "Valitse nouto- ja palautuspäivä nähdäksesi hinnan." The total is in an `aria-live="polite"` region.
+- [x] **6.6 Summary.** Replace `CalendarHero`, `TicketCard`, and `CalendarFooter` in `booking-pricing.tsx` with one summary card: "Nouto pe 4.12." and "Palautus su 6.12.", the rows from `lines`, "Yhteensä" with the total in the heading font at weight 800, and a lime tag "Säästät 45 €" when `savingsCents` is above 0. Without a selection: "Valitse nouto- ja palautuspäivä nähdäksesi hinnan." The total is in an `aria-live="polite"` region.
 	- `booking-pricing.test.tsx` selects by CSS classes today. Rewrite it to select by text and test ids.
-- [ ] **6.7 Request step.**
+- [x] **6.7 Request step.**
 	- Mobile: a sticky bar above the tab bar. Before a selection: "95 € / vrk" and the button "Valitse päivät", which scrolls to the calendar. After a selection: "Yhteensä 240 € · 3 päivää" and the lime button "Jatka pyyntöön" (`mobile-book-button`), which sets `step=request` with a push navigation. With `step=request`, `MobileFullscreenModal` shows the request form. Browser Back closes it and keeps the dates.
 	- The calendar is in the page on mobile now, not inside the modal.
 	- Desktop: the sticky right card holds the ladder, the calendar, the summary, the message field, and the submit button. `step` has no effect on desktop.
@@ -367,14 +367,16 @@ The current theme is one `@theme` block in `packages/ui/src/theme.css`. Phase 1 
 	- Logged out: show the calendar and the summary. The button is "Kirjaudu varataksesi" and links to `/kirjaudu?redirect=` with the current path and the `from` and `to` params.
 	- Success: "Pyyntö lähetetty", the status pill "Odottaa", and the links "Näytä varaukseni" (`/omat/varaukset`) and "Takaisin ilmoitukseen".
 	- A server error `dates_unavailable` shows the blocked-range message and clears the selection.
-- [ ] **6.8 Secondary actions.** "Lähetä viesti" as an outline pill under the booking card for logged-in non-owners. The report link stays.
-- [ ] **6.9 Tests.** `booking.spec.ts` must still prove the full flow: the renter submits, the owner confirms, the contact is revealed. Add: a reload keeps the selected dates, and a range across a booked day shows the message. Keep the selectors in `listing-detail.page.ts`.
+- [x] **6.8 Secondary actions.** "Lähetä viesti" as an outline pill under the booking card for logged-in non-owners. The report link stays.
+- [x] **6.9 Tests.** `booking.spec.ts` must still prove the full flow: the renter submits, the owner confirms, the contact is revealed. Add: a reload keeps the selected dates, and a range across a booked day shows the message. Keep the selectors in `listing-detail.page.ts`.
 
 **Acceptance.**
 
 - A Friday to Sunday selection on a listing with a weekend price shows the weekend row, the total, and the saving.
 - A range across an unavailable day cannot be selected in the browser.
 - The calendar and the request form work with the keyboard only.
+
+**Phase 6 verification (2026-11-25).** All six checks passed. The unit suite passed 447 tests and the Motori browser suite passed 148 with 9 skipped. Production checks on 3011 verified the €240 weekend and €45 saving, inclusive 30-day limit, stored dates on reload, mobile Back, keyboard selection, and recovery when a selected day became unavailable before submission. The captured views had no console or CSP errors.
 
 ---
 
