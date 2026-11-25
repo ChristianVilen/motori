@@ -10,18 +10,18 @@ export const Route = createFileRoute("/kayttoehdot")({
 
 function Kayttoehdot() {
 	return (
-		<main className="mx-auto max-w-3xl px-4 py-12">
+		<article className="mx-auto max-w-3xl px-4 py-10">
 			<h1 className="font-heading text-3xl font-bold text-foreground">Käyttöehdot</h1>
 			<p className="mt-2 text-sm text-muted">Päivitetty viimeksi: 19.4.2025</p>
 
-			<p className="mt-6 text-sm text-foreground/80">
+			<p className="mt-6 text-sm text-foreground">
 				Rekisteröitymällä Motori-palveluun tai julkaisemalla ilmoituksen hyväksyt nämä käyttöehdot.
 				Ehdot koskevat kaikkia palvelun käyttäjiä.
 			</p>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">1. Määritelmät</h2>
-				<ul className="mt-3 space-y-2 text-sm text-foreground/80">
+				<ul className="mt-3 space-y-2 text-sm text-foreground">
 					<li>
 						<strong>Palvelu</strong> – Motori-verkkosivusto (motori.fi), joka toimii moottoripyörien
 						vuokrausilmoitusten alustana.
@@ -48,9 +48,9 @@ function Kayttoehdot() {
 				</ul>
 			</section>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">2. Yleiset ehdot</h2>
-				<div className="mt-3 space-y-3 text-sm text-foreground/80">
+				<div className="mt-3 space-y-3 text-sm text-foreground">
 					<p>
 						Motori on ilmoitusalusta, joka mahdollistaa yksityishenkilöiden välisen moottoripyörien
 						vuokrauksen. Motori ei ole osapuolena käyttäjien välisissä sopimuksissa eikä vastaa
@@ -67,11 +67,11 @@ function Kayttoehdot() {
 				</div>
 			</section>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">
 					3. Käyttäjän velvollisuudet
 				</h2>
-				<div className="mt-3 space-y-3 text-sm text-foreground/80">
+				<div className="mt-3 space-y-3 text-sm text-foreground">
 					<p>Käyttäjä sitoutuu:</p>
 					<ul className="ml-4 list-disc space-y-2">
 						<li>
@@ -91,9 +91,9 @@ function Kayttoehdot() {
 				</div>
 			</section>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">4. Vastuunrajoitus</h2>
-				<div className="mt-3 space-y-3 text-sm text-foreground/80">
+				<div className="mt-3 space-y-3 text-sm text-foreground">
 					<p>
 						Motori ei vastaa käyttäjien välisistä sopimuksista, ajoneuvojen kunnosta,
 						vakuutusasioista eikä vuokrauksen aikana mahdollisesti aiheutuvista vahingoista.
@@ -107,31 +107,31 @@ function Kayttoehdot() {
 				</div>
 			</section>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">5. Tilin sulkeminen</h2>
-				<p className="mt-3 text-sm text-foreground/80">
+				<p className="mt-3 text-sm text-foreground">
 					Motori voi sulkea käyttäjän tilin ilman ennakkoilmoitusta, jos käyttäjä rikkoo näitä
 					ehtoja, julkaisee harhaanjohtavaa sisältöä tai käyttää palvelua lain vastaisesti. Käyttäjä
 					voi itse sulkea tilinsä ottamalla yhteyttä ylläpitoon.
 				</p>
 			</section>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">6. Sovellettava laki</h2>
-				<p className="mt-3 text-sm text-foreground/80">
+				<p className="mt-3 text-sm text-foreground">
 					Näihin ehtoihin sovelletaan Suomen lakia. Mahdolliset riidat ratkaistaan ensisijaisesti
 					Helsingin käräjäoikeudessa.
 				</p>
 			</section>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">7. Yhteystiedot</h2>
-				<p className="mt-3 text-sm text-foreground/80">
+				<p className="mt-3 text-sm text-foreground">
 					Christian Vilen
 					<br />
 					Sähköposti: support@motori.fi
 				</p>
 			</section>
-		</main>
+		</article>
 	);
 }

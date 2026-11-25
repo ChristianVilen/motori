@@ -31,7 +31,7 @@ function FavoritesPage() {
 
 	return (
 		<div className="min-h-screen bg-background">
-			<div className="mx-auto max-w-5xl px-4 py-8">
+			<div className="mx-auto max-w-[1304px] px-4 py-8 lg:px-8">
 				<Link
 					to="/omat"
 					className="mb-6 flex items-center gap-1 text-sm text-muted hover:text-foreground"
@@ -43,14 +43,11 @@ function FavoritesPage() {
 				<h1 className="mb-6 text-2xl font-bold text-primary">{t("favorites.title")}</h1>
 
 				{listings.length === 0 ? (
-					<div className="rounded-l border border-dashed border-border py-16 text-center">
+					<div className="rounded-lg border border-border bg-card px-4 py-16 text-center">
 						<p className="text-muted">{t("favorites.empty")}</p>
 					</div>
 				) : (
-					<div
-						data-testid="favorites-grid"
-						className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-					>
+					<div data-testid="favorites-grid" className="listing-grid">
 						{listings.map((listing) => (
 							<ListingCard
 								key={listing.id}

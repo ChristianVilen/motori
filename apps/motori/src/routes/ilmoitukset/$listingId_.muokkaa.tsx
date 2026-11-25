@@ -126,8 +126,8 @@ export const Route = createFileRoute("/ilmoitukset/$listingId_/muokkaa")({
 		const { t } = useTranslation("listings");
 		return (
 			<div className="flex min-h-screen flex-col items-center justify-center gap-4">
-				<p className="text-muted">{t("edit.notFound")}</p>
-				<Link to="/omat" className="text-sm text-accent underline">
+				<h1 className="font-heading text-2xl font-bold text-foreground">{t("edit.notFound")}</h1>
+				<Link to="/omat" className="text-sm text-foreground underline">
 					{t("edit.notFoundBack")}
 				</Link>
 			</div>
@@ -170,7 +170,7 @@ function AvailabilityEditor(props: {
 
 	return (
 		<section
-			className="mt-8 rounded-l border border-border bg-card p-4"
+			className="mt-8 rounded-lg border border-border bg-card p-4"
 			data-testid="availability-editor"
 		>
 			<h2 className="font-semibold">{t("availability.formTitle")}</h2>

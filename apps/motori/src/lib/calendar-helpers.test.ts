@@ -1,14 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-	addDaysToIso,
-	computeNewRange,
-	diffDays,
-	fromIso,
-	getDayButtonClass,
-	getHighlightPosition,
-	getKeyboardOffset,
-	toIso,
-} from "~/lib/calendar-helpers";
+import { addDaysToIso, computeNewRange, diffDays, fromIso, toIso } from "~/lib/calendar-helpers";
 
 describe("toIso", () => {
 	// Construct with local-time components: `new Date("2026-05-04")` would be UTC
@@ -78,120 +69,22 @@ describe("computeNewRange", () => {
 		});
 	});
 
+	it("starts again on the selected day when an unavailable day is inside the range", () => {
+		expect(computeNewRange("2026-05-05", "2026-05-01", (iso) => iso === "2026-05-03")).toEqual({
+			from: "2026-05-05",
+			to: null,
+			reason: "blocked",
+			clamped: false,
+		});
+	});
 	it("clamps to MAX_STAY (30 days)", () => {
 		const result = computeNewRange("2026-06-15", "2026-05-01");
-		expect(result).toEqual({ from: "2026-05-01", to: "2026-05-31", clamped: true });
+		expect(result).toEqual({ from: "2026-05-01", to: "2026-05-30", clamped: true });
 	});
 
 	it("does not clamp when exactly at max stay", () => {
-		// 2026-05-01 to 2026-05-31 = 30 days diff
-		const result = computeNewRange("2026-05-31", "2026-05-01");
-		expect(result).toEqual({ from: "2026-05-01", to: "2026-05-31", clamped: false });
-	});
-});
-
-describe("getKeyboardOffset", () => {
-	// fromIso matches the production call site (booking-calendar passes
-	// fromIso(focusedDate)) and parses as a local date in any timezone.
-	it("returns 1 for ArrowRight", () => {
-		expect(getKeyboardOffset("ArrowRight", fromIso("2026-05-04"))).toBe(1);
-	});
-
-	it("returns -1 for ArrowLeft", () => {
-		expect(getKeyboardOffset("ArrowLeft", fromIso("2026-05-04"))).toBe(-1);
-	});
-
-	it("returns 7 for ArrowDown", () => {
-		expect(getKeyboardOffset("ArrowDown", fromIso("2026-05-04"))).toBe(7);
-	});
-
-	it("returns -7 for ArrowUp", () => {
-		expect(getKeyboardOffset("ArrowUp", fromIso("2026-05-04"))).toBe(-7);
-	});
-
-	it("returns null for unrecognized key", () => {
-		expect(getKeyboardOffset("Enter", fromIso("2026-05-04"))).toBeNull();
-	});
-
-	it("Home on Monday returns 0", () => {
-		// 2026-05-04 is Monday (day 1)
-		expect(getKeyboardOffset("Home", fromIso("2026-05-04"))).toBe(0);
-	});
-
-	it("Home on Wednesday returns -2", () => {
-		// 2026-05-06 is Wednesday (day 3)
-		expect(getKeyboardOffset("Home", fromIso("2026-05-06"))).toBe(-2);
-	});
-
-	it("End on Monday returns 6", () => {
-		expect(getKeyboardOffset("End", fromIso("2026-05-04"))).toBe(6);
-	});
-
-	it("End on Sunday returns 0", () => {
-		// 2026-05-10 is Sunday (day 0)
-		expect(getKeyboardOffset("End", fromIso("2026-05-10"))).toBe(0);
-	});
-});
-
-describe("getHighlightPosition", () => {
-	it("returns null for a single-day selection", () => {
-		expect(getHighlightPosition("2026-05-04", "2026-05-04", "2026-05-04", false, false)).toBeNull();
-	});
-
-	it("returns left-half for the from date", () => {
-		expect(getHighlightPosition("2026-05-01", "2026-05-01", "2026-05-05", false, false)).toBe(
-			"left-1/2 right-0 inset-y-1",
-		);
-	});
-
-	it("returns right-half for the to date", () => {
-		expect(getHighlightPosition("2026-05-05", "2026-05-01", "2026-05-05", false, false)).toBe(
-			"left-0 right-1/2 inset-y-1",
-		);
-	});
-
-	it("returns full highlight for in-range day", () => {
-		expect(getHighlightPosition("2026-05-03", "2026-05-01", "2026-05-05", true, false)).toBe(
-			"inset-y-1 inset-x-0",
-		);
-	});
-
-	it("returns full highlight for hover-range day", () => {
-		expect(getHighlightPosition("2026-05-03", "2026-05-01", null, false, true)).toBe(
-			"inset-y-1 inset-x-0",
-		);
-	});
-
-	it("returns null for day outside range and hover", () => {
-		expect(getHighlightPosition("2026-05-10", "2026-05-01", "2026-05-05", false, false)).toBeNull();
-	});
-});
-
-describe("getDayButtonClass", () => {
-	it("includes accent class when selected", () => {
-		const cls = getDayButtonClass(true, false, false, false);
-		expect(cls).toContain("bg-accent");
-		expect(cls).toContain("text-white");
-	});
-
-	it("includes blocked class when blocked", () => {
-		const cls = getDayButtonClass(false, true, false, false);
-		expect(cls).toContain("cursor-not-allowed");
-		expect(cls).toContain("line-through");
-	});
-
-	it("includes in-range class when in range", () => {
-		const cls = getDayButtonClass(false, false, true, false);
-		expect(cls).toContain("hover:bg-accent/10");
-	});
-
-	it("includes today class when today and not selected", () => {
-		const cls = getDayButtonClass(false, false, false, true);
-		expect(cls).toContain("underline");
-	});
-
-	it("does not include today underline when selected", () => {
-		const cls = getDayButtonClass(true, false, false, true);
-		expect(cls).not.toContain("underline");
+		// The pickup and return dates each count as one day.
+		const result = computeNewRange("2026-05-30", "2026-05-01");
+		expect(result).toEqual({ from: "2026-05-01", to: "2026-05-30", clamped: false });
 	});
 });

@@ -1,9 +1,9 @@
-import { fi } from "date-fns/locale";
+import { enUS, fi } from "date-fns/locale";
 import { useMemo } from "react";
 import { DayPicker, type Matcher } from "react-day-picker";
-import "react-day-picker/dist/style.css";
-import { fromIso, toIso } from "~/lib/calendar-helpers";
+import { blockedDays, fromIso, toIso } from "~/lib/calendar-helpers";
 import { useTranslation } from "~/lib/i18n";
+import { CalendarLegend, useDesktopCalendar } from "./booking-calendar";
 
 export interface AvailabilityCalendarProps {
 	/** Confirmed-booking dates that are immutable. YYYY-MM-DD. */
@@ -21,7 +21,8 @@ export interface AvailabilityCalendarProps {
 }
 
 export function AvailabilityCalendar(props: AvailabilityCalendarProps) {
-	const { t } = useTranslation("listings");
+	const { i18n } = useTranslation("listings");
+	const desktop = useDesktopCalendar();
 	const {
 		bookedDates,
 		exceptionDates,
@@ -33,17 +34,17 @@ export function AvailabilityCalendar(props: AvailabilityCalendarProps) {
 	} = props;
 
 	const bookedSet = useMemo(() => new Set(bookedDates), [bookedDates]);
-	const exceptionSet = useMemo(() => new Set(exceptionDates), [exceptionDates]);
-
-	function isBlocked(date: Date): boolean {
-		const iso = toIso(date);
-		if (bookedSet.has(iso)) {
-			return true;
-		}
-		// availability_default = "open"  ⇒ exception means "blocked"
-		// availability_default = "closed" ⇒ exception means "open"
-		const inException = exceptionSet.has(iso);
-		return availabilityDefault === "open" ? inException : !inException;
+	const blocked = useMemo(
+		() =>
+			blockedDays({
+				availability_default: availabilityDefault,
+				booked_dates: bookedDates,
+				exception_dates: exceptionDates,
+			}),
+		[availabilityDefault, bookedDates, exceptionDates],
+	);
+	function isBlocked(date: Date) {
+		return blocked(toIso(date));
 	}
 
 	const modifiers: Record<string, Matcher> = {
@@ -87,7 +88,9 @@ export function AvailabilityCalendar(props: AvailabilityCalendarProps) {
 			<div>
 				<DayPicker
 					mode="range"
-					locale={fi}
+					className="booking-calendar"
+					weekStartsOn={1}
+					locale={i18n.language === "en" ? enUS : fi}
 					selected={
 						selectedRange
 							? { from: fromIso(selectedRange.from), to: fromIso(selectedRange.to) }
@@ -97,13 +100,9 @@ export function AvailabilityCalendar(props: AvailabilityCalendarProps) {
 					disabled={[{ before: today }, (d: Date) => isBlocked(d)]}
 					modifiers={modifiers}
 					modifiersClassNames={modifiersClassNames}
-					numberOfMonths={2}
+					numberOfMonths={desktop ? 2 : 1}
 				/>
-				<Legend
-					availableLabel={t("booking.legend.available")}
-					blockedLabel={t("booking.legend.blocked")}
-					selectedLabel={t("booking.legend.selected")}
-				/>
+				<CalendarLegend />
 			</div>
 		);
 	}
@@ -113,17 +112,16 @@ export function AvailabilityCalendar(props: AvailabilityCalendarProps) {
 			<div>
 				<DayPicker
 					mode="single"
-					locale={fi}
+					className="booking-calendar"
+					weekStartsOn={1}
+					locale={i18n.language === "en" ? enUS : fi}
 					onSelect={handleSingleSelect}
 					disabled={[{ before: today }, (d: Date) => bookedSet.has(toIso(d))]}
 					modifiers={modifiers}
 					modifiersClassNames={modifiersClassNames}
-					numberOfMonths={2}
+					numberOfMonths={desktop ? 2 : 1}
 				/>
-				<Legend
-					availableLabel={t("booking.legend.available")}
-					blockedLabel={t("booking.legend.blocked")}
-				/>
+				<CalendarLegend selection={false} />
 			</div>
 		);
 	}
@@ -132,37 +130,15 @@ export function AvailabilityCalendar(props: AvailabilityCalendarProps) {
 		<div>
 			<DayPicker
 				mode="single"
-				locale={fi}
+				className="booking-calendar"
+				weekStartsOn={1}
+				locale={i18n.language === "en" ? enUS : fi}
 				disabled
 				modifiers={modifiers}
 				modifiersClassNames={modifiersClassNames}
-				numberOfMonths={2}
+				numberOfMonths={desktop ? 2 : 1}
 			/>
-			<Legend
-				availableLabel={t("booking.legend.available")}
-				blockedLabel={t("booking.legend.blocked")}
-			/>
-		</div>
-	);
-}
-
-function Legend(props: { availableLabel: string; blockedLabel: string; selectedLabel?: string }) {
-	return (
-		<div className="mt-3 flex flex-wrap gap-4 text-xs text-muted">
-			<span className="flex items-center gap-1.5">
-				<span className="inline-block h-3 w-3 rounded-sm bg-success/30" />
-				{props.availableLabel}
-			</span>
-			<span className="flex items-center gap-1.5">
-				<span className="inline-block h-3 w-3 rounded-sm bg-destructive/30" />
-				{props.blockedLabel}
-			</span>
-			{props.selectedLabel ? (
-				<span className="flex items-center gap-1.5">
-					<span className="inline-block h-3 w-3 rounded-sm bg-accent" />
-					{props.selectedLabel}
-				</span>
-			) : null}
+			<CalendarLegend selection={false} />
 		</div>
 	);
 }

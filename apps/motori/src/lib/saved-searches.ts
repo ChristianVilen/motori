@@ -1,4 +1,4 @@
-import type { ListingCategory, SavedSearch } from "~/lib/db/schema";
+import type { SavedSearch } from "~/lib/db/schema";
 import { AppError } from "~/lib/errors";
 import type { SavedSearchParams } from "~/lib/validators";
 
@@ -18,7 +18,7 @@ const canonicalParams = (params: SavedSearchParams): string =>
 
 export async function saveSearch(
 	userId: string,
-	category: ListingCategory,
+	category: SavedSearch["category"],
 	params: SavedSearchParams,
 ): Promise<string> {
 	const db = await getDb();

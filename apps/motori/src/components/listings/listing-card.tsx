@@ -1,171 +1,152 @@
 import { Link } from "@tanstack/react-router";
+import type { TFunction } from "i18next";
+import { ImageIcon } from "lucide-react";
 import { FavoriteButton } from "~/components/listings/favorite-button";
 import { categoryDetailPath } from "~/lib/category-routes";
-import {
-	CONDITION_LABELS,
-	type Condition,
-	LISTING_STATUSES,
-	MOTORCYCLE_TYPES,
-	REGIONS,
-	TYPE_EMOJI,
-} from "~/lib/constants";
+import { LISTING_STATUSES } from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, formatNumber, useTranslation } from "~/lib/i18n";
+import { photoStyle } from "~/lib/listing-photo-transition";
+import type { ListingSummary } from "~/lib/listings-owner";
 import { computeListingSlug } from "~/lib/slug";
 
-// Summary rows (favorites, profile) left-join every child table, so each extra may be null or absent.
-type CardListing = Listing & {
-	price?: number | null;
-	km_driven?: number | null;
-	condition?: Condition | null;
-};
-
+type CardListing = Listing &
+	Partial<Pick<ListingSummary, "price" | "km_driven" | "condition" | "size" | "part_category">>;
 interface ListingCardProps {
 	listing: CardListing;
 	images: ListingImage[];
 	makeSlug: string | null;
 	modelName: string | null;
 	isOwn?: boolean;
+	sizes?: string;
 }
 
-function buildFacts(listing: CardListing): string[] {
-	return [
-		listing.year != null ? String(listing.year) : null,
-		listing.km_driven != null ? `${formatNumber(listing.km_driven)} km` : null,
-		listing.condition ? CONDITION_LABELS[listing.condition] : null,
-	].filter((f) => f != null);
+function facts(listing: CardListing, t: TFunction, locale: string) {
+	const condition = listing.condition ? t(`form.conditions.${listing.condition}`) : null;
+	switch (listing.category) {
+		case "sale":
+			return [
+				listing.year,
+				listing.km_driven != null ? `${formatNumber(listing.km_driven, locale)} km` : null,
+				listing.city,
+			];
+		case "rental":
+			return [
+				listing.year,
+				listing.engine_cc != null ? `${listing.engine_cc} cc` : null,
+				listing.city,
+			];
+		case "gear":
+			return [
+				listing.size ? t("card.size", { size: listing.size }) : null,
+				condition,
+				listing.city,
+			];
+		case "part":
+			return [
+				listing.part_category
+					? t(`card.partCategory.${listing.part_category}`, { defaultValue: "" })
+					: null,
+				condition,
+				listing.city,
+			];
+	}
 }
 
-export function ListingCard({ listing, images, makeSlug, modelName, isOwn }: ListingCardProps) {
-	const { t } = useTranslation("listings");
-	const firstImage = images[0];
-	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
-	const typeLabel =
-		MOTORCYCLE_TYPES.find((mt) => mt.value === listing.motorcycle_type)?.label ??
-		listing.motorcycle_type;
-	const typeEmoji = listing.motorcycle_type ? (TYPE_EMOJI[listing.motorcycle_type] ?? "") : "";
-	const facts = buildFacts(listing);
+const gridSizes =
+	"auto, (min-width: 1304px) 234px, (min-width: 1200px) calc((100vw - 136px) / 5), (min-width: 900px) calc((100vw - 118px) / 4), (min-width: 640px) calc((100vw - 60px) / 3), calc((100vw - 42px) / 2)";
 
-	const isNew = Date.now() - new Date(listing.created_at).getTime() < 48 * 60 * 60 * 1000;
-	const imageCount = images.length;
+export function ListingCard({
+	listing,
+	images,
+	makeSlug,
+	modelName,
+	isOwn,
+	sizes = gridSizes,
+}: ListingCardProps) {
+	const { t, i18n } = useTranslation("listings");
+	const image = images[0];
 	const slug = computeListingSlug(makeSlug, modelName, listing.city);
-	const detailRoute = categoryDetailPath(listing.category, "$listingId", "$slug");
-
 	return (
-		<Link
+		<article
 			data-testid="listing-card"
 			data-listing-id={listing.short_id}
-			to={detailRoute}
-			params={{ listingId: listing.short_id, slug }}
-			className="group block overflow-hidden rounded-xl border border-border bg-card card-hover hover:card-hover-active"
+			className="relative min-w-0"
 		>
-			{/* Image */}
-			<div className="relative aspect-video sm:aspect-[16/10] overflow-hidden bg-muted-light">
-				{firstImage ? (
-					<img
-						src={firstImage.thumbnail_url ?? firstImage.url}
-						alt={listing.title}
-						loading="lazy"
-						className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-					/>
-				) : (
-					<div className="flex h-full items-center justify-center">
-						<svg
-							className="h-12 w-12 text-border"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							aria-hidden="true"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={1.5}
-								d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 20.25h18A1.5 1.5 0 0022.5 18.75V6.75A1.5 1.5 0 0021 5.25H3A1.5 1.5 0 001.5 6.75v12A1.5 1.5 0 003 20.25z"
-							/>
-						</svg>
-					</div>
-				)}
-
-				{/* Badges overlay */}
-				<div className="absolute top-2.5 left-2.5 flex gap-1.5">
-					{isNew && (
-						<span className="rounded-md bg-accent px-2 py-0.5 text-xs font-semibold text-white">
-							{t("card.newBadge")}
-						</span>
+			<Link
+				to={categoryDetailPath(listing.category, "$listingId", "$slug")}
+				params={{ listingId: listing.short_id, slug }}
+				state={(prev) =>
+					image && prev.__TSR_key
+						? { listingPhoto: { id: listing.short_id, sourceKey: prev.__TSR_key } }
+						: {}
+				}
+				className="group block rounded-lg"
+			>
+				<div
+					style={image ? photoStyle(listing.short_id) : undefined}
+					className="relative aspect-[4/5] overflow-hidden rounded-lg bg-muted-light"
+				>
+					{image ? (
+						<img
+							src={image.thumbnail_url ?? image.url}
+							srcSet={
+								image.thumbnail_url ? `${image.thumbnail_url} 400w, ${image.url} 1600w` : undefined
+							}
+							sizes={sizes}
+							alt={listing.title}
+							loading="lazy"
+							className="h-full w-full object-cover"
+						/>
+					) : (
+						<div className="grid h-full place-items-center">
+							<ImageIcon aria-hidden="true" className="size-10 text-border" />
+						</div>
 					)}
-					{isOwn ? (
-						<span className="rounded-md bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
-							{t("card.ownBadge")}
-						</span>
-					) : null}
-					{listing.status !== "active" && (
-						<span
-							data-testid="listing-card-status"
-							className="rounded-md bg-muted-light px-2 py-0.5 text-xs font-semibold text-muted"
-						>
-							{LISTING_STATUSES[listing.status]}
-						</span>
-					)}
-				</div>
-
-				<FavoriteButton listingId={listing.id} />
-
-				{/* Frosted trust bar at bottom of image */}
-				<div className="absolute right-0 bottom-0 left-0 flex items-center gap-1.5 bg-gradient-to-t from-black/50 to-transparent px-3 pt-6 pb-2.5">
-					{imageCount > 1 && (
-						<span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm">
-							📷 {imageCount}
-						</span>
-					)}
-				</div>
-			</div>
-
-			{/* Content */}
-			<div className="p-3 sm:p-4">
-				<div className="mb-1 flex items-start justify-between gap-2">
-					<h3
-						data-testid="listing-card-title"
-						className="line-clamp-1 text-sm font-semibold text-foreground leading-tight"
-					>
-						{listing.title}
-					</h3>
-					{!!listing.required_license && (
-						<span className="shrink-0 rounded bg-primary px-1.5 py-0.5 text-xs font-medium text-primary-foreground">
-							{listing.required_license}
-						</span>
-					)}
-				</div>
-
-				{facts.length > 0 && (
-					<p data-testid="listing-card-facts" className="mt-1 text-xs text-foreground">
-						{facts.join(" · ")}
-					</p>
-				)}
-
-				<p className="mt-1 text-xs text-muted">
-					{typeEmoji} {typeLabel}
-					{listing.engine_cc ? ` · ${listing.engine_cc} cc` : ""}
-				</p>
-
-				{/* Footer with border-top */}
-				<div className="mt-2 flex items-center justify-between border-t border-border pt-2 sm:mt-3 sm:pt-3">
-					<span className="text-xs text-muted">
-						{listing.city}, {regionLabel}
-					</span>
-					<div className="text-right">
-						<span
-							data-testid="listing-card-price"
-							className="font-heading text-base sm:text-lg font-bold text-accent"
-						>
-							{formatEur(listing.price ?? 0)}
-						</span>
-						{listing.category === "rental" && (
-							<span className="text-xs text-muted">{t("card.perDay")}</span>
+					<div className="absolute top-2 left-2 flex gap-1">
+						{isOwn ? (
+							<span className="rounded-full bg-card px-2 py-0.5 text-xs font-semibold text-foreground">
+								{t("card.ownBadge")}
+							</span>
+						) : null}
+						{listing.status !== "active" && (
+							<span
+								data-testid="listing-card-status"
+								className="rounded-full bg-muted-light px-2 py-0.5 text-xs font-semibold text-muted"
+							>
+								{LISTING_STATUSES[listing.status]}
+							</span>
 						)}
 					</div>
+					{listing.category === "rental" && (
+						<span className="absolute bottom-2 left-2 rounded-full bg-primary px-[9px] py-[3px] text-xs font-semibold text-primary-foreground">
+							{t("card.rental")}
+						</span>
+					)}
 				</div>
-			</div>
-		</Link>
+				<p
+					data-testid="listing-card-price"
+					className="mt-[9px] font-heading text-[17px] leading-[1.2] font-bold tracking-[-0.02em] tabular-nums"
+				>
+					{formatEur(listing.price ?? 0, i18n.language)}
+					{listing.category === "rental" && ` ${t("card.perDay")}`}
+				</p>
+				<h3
+					data-testid="listing-card-title"
+					className="mt-0.5 truncate font-sans text-[15px] leading-[1.35] font-medium group-hover:underline"
+				>
+					{listing.title}
+				</h3>
+				<p
+					data-testid="listing-card-facts"
+					className="mt-px truncate text-[13px] leading-[1.4] text-muted"
+				>
+					{facts(listing, t, i18n.language)
+						.filter((v) => v != null && v !== "")
+						.join(" · ")}
+				</p>
+			</Link>
+			<FavoriteButton listingId={listing.id} title={listing.title} />
+		</article>
 	);
 }

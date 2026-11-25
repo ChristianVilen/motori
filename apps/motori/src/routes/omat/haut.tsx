@@ -1,7 +1,7 @@
 // src/routes/omat/haut.tsx
 // Saved searches — bookmarked filter sets, tap to re-run, delete to forget.
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, ChevronRight, X } from "lucide-react";
 import { categoryBrowsePath } from "~/lib/category-routes";
 import { SITE_NAME } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
@@ -44,31 +44,39 @@ function SavedSearchesPage() {
 				<h1 className="mb-6 text-2xl font-bold text-primary">{t("savedSearches.title")}</h1>
 
 				{savedSearches.length === 0 ? (
-					<div className="rounded-l border border-dashed border-border py-16 text-center">
+					<div className="rounded-lg border border-border bg-card py-16 text-center">
 						<p className="text-muted">{t("savedSearches.empty")}</p>
 					</div>
 				) : (
-					<div className="space-y-3">
+					<div className="divide-y divide-border border-y border-border">
 						{savedSearches.map((row) => {
-							const label = savedSearchLabel(row.category, row.params, makes);
+							const label = savedSearchLabel(
+								row.category,
+								row.params,
+								makes,
+								row.category === "all"
+									? t("listings:browse.categoryChips.all")
+									: t(`listings:form.categories.${row.category}`),
+							);
 							return (
 								<div
 									key={row.id}
 									data-testid="saved-search-row"
-									className="flex items-center gap-4 rounded-l border border-border bg-card p-4"
+									className="flex items-center gap-2 py-2"
 								>
 									<Link
 										to={categoryBrowsePath(row.category)}
 										search={row.params}
-										className="flex-1 text-sm font-medium text-foreground hover:text-accent"
+										className="flex min-h-11 min-w-0 flex-1 items-center justify-between gap-3 text-sm font-medium text-foreground hover:underline"
 									>
 										{label}
+										<ChevronRight size={16} className="shrink-0 text-muted" />
 									</Link>
 									<button
 										type="button"
 										onClick={() => handleDelete(row.id)}
 										aria-label={t("savedSearches.delete", { label })}
-										className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted hover:bg-muted-light hover:text-foreground"
+										className="flex size-11 shrink-0 items-center justify-center rounded-md text-muted hover:bg-muted-light hover:text-foreground"
 									>
 										<X className="h-4 w-4" />
 									</button>

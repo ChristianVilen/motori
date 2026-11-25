@@ -1,36 +1,58 @@
 import { Heart } from "lucide-react";
+import { useRef } from "react";
 import { useFavorites } from "~/lib/favorites-context";
 import { useTranslation } from "~/lib/i18n";
+import { animateMotion } from "~/lib/motion";
 
-interface FavoriteButtonProps {
+export function FavoriteButton({
+	listingId,
+	title,
+	className = "absolute top-0.5 right-0.5",
+}: {
 	listingId: string;
+	title: string;
 	className?: string;
-}
-
-export function FavoriteButton({ listingId, className }: FavoriteButtonProps) {
+}) {
 	const { t } = useTranslation("listings");
 	const { isFavorite, toggle } = useFavorites();
-	const favorited = isFavorite(listingId);
-
+	const glint = useRef<HTMLSpanElement>(null);
+	const saved = isFavorite(listingId);
 	return (
 		<button
 			type="button"
 			data-testid="favorite-button"
-			className={
-				className ??
-				"absolute top-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-muted transition-transform hover:scale-110"
-			}
-			onClick={(e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				toggle(listingId);
+			className={`${className} grid size-11 shrink-0 place-items-center rounded-full`}
+			onClick={() => {
+				const changed = toggle(listingId);
+				const node = glint.current;
+				if (!node) {
+					return;
+				}
+				for (const animation of node.getAnimations?.() ?? []) {
+					animation.cancel();
+				}
+				if (changed && !saved) {
+					animateMotion(
+						node,
+						[
+							{ opacity: 1, transform: "translateX(-62%)" },
+							{ opacity: 1, transform: "translateX(62%)" },
+						],
+						{ duration: 450, delay: 60, easing: "cubic-bezier(0.45,0,0.3,1)" },
+					);
+				}
 			}}
-			aria-pressed={favorited}
-			aria-label={
-				favorited ? t("card.removeFromFavoritesAriaLabel") : t("card.addToFavoritesAriaLabel")
-			}
+			aria-pressed={saved}
+			aria-label={t(saved ? "card.removeFromFavoritesAriaLabel" : "card.addToFavoritesAriaLabel", {
+				title,
+			})}
 		>
-			<Heart className={favorited ? "h-4 w-4 fill-accent text-accent" : "h-4 w-4"} />
+			<span
+				className={`heart-disc relative overflow-hidden grid size-9 place-items-center rounded-full text-foreground ${saved ? "bg-reflector" : "bg-card"}`}
+			>
+				<span ref={glint} className="reflector-glint" aria-hidden="true" />
+				<Heart aria-hidden="true" size={19} fill={saved ? "currentColor" : "none"} />
+			</span>
 		</button>
 	);
 }

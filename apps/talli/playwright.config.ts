@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import { MOTORI_URL, motoriPort, TALLI_URL, talliPort } from "./e2e/base-url";
+
 const motoriEnv = "DISABLE_EMAIL_VERIFICATION=true DISABLE_AUTH_RATE_LIMIT=true";
 
 export default defineConfig({
@@ -13,7 +15,7 @@ export default defineConfig({
 	globalSetup: "./e2e/global-setup.ts",
 	globalTeardown: "./e2e/global-teardown.ts",
 	use: {
-		baseURL: "http://localhost:3001",
+		baseURL: TALLI_URL,
 		trace: "on-first-retry",
 		locale: "fi-FI",
 	},
@@ -23,13 +25,15 @@ export default defineConfig({
 			command: process.env.CI
 				? `${motoriEnv} pnpm --filter motori start`
 				: `${motoriEnv} pnpm --filter motori build && ${motoriEnv} pnpm --filter motori start`,
-			url: "http://localhost:3000/api/health",
+			url: `${MOTORI_URL}/api/health`,
+			env: { PORT: motoriPort, BETTER_AUTH_URL: MOTORI_URL, APP_ORIGIN: MOTORI_URL },
 			reuseExistingServer: !process.env.CI,
 			timeout: 180_000,
 		},
 		{
 			command: process.env.CI ? "pnpm start" : "pnpm build && pnpm start",
-			url: "http://localhost:3001/api/health",
+			url: `${TALLI_URL}/api/health`,
+			env: { PORT: talliPort, BETTER_AUTH_URL: MOTORI_URL, APP_ORIGIN: TALLI_URL },
 			reuseExistingServer: !process.env.CI,
 			timeout: 180_000,
 		},

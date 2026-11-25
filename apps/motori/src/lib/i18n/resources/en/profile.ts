@@ -1,9 +1,9 @@
 export default {
 	dashboard: {
+		admin: "Administration",
 		fallbackName: "Profile",
 		favoritesLabel: "Favorites",
 		savedSearchesLabel: "Saved searches",
-		stats: "{{active}} active · {{paused}} paused · {{rented}} rented",
 		newListing: "New listing",
 		settingsAriaLabel: "Settings",
 		signOutAriaLabel: "Sign out",
@@ -34,7 +34,7 @@ export default {
 	favorites: {
 		title: "Favorites",
 		back: "Back",
-		empty: "No favorites yet. Tap the heart on a listing to add it here.",
+		empty: "Tap the heart on a listing to save it here.",
 	},
 	savedSearches: {
 		title: "Saved searches",
@@ -46,7 +46,6 @@ export default {
 		back: "Back",
 		notFound: "User not found.",
 		notFoundBack: "Home",
-		memberSince: "Member since {{date}}",
 		listingsHeading: "Listings ({{count}})",
 		noListings: "No active listings.",
 	},
@@ -87,6 +86,7 @@ export default {
 		heading: "Reviews",
 		submitHeading: "Leave a review",
 		ratingLabel: "Rating",
+		ratingValue: "{{rating}} / 5 stars",
 		commentLabel: "Comment (optional)",
 		commentPlaceholder: "Tell about your experience...",
 		submitButton: "Submit review",
@@ -97,8 +97,6 @@ export default {
 			"Your review is not visible yet — waiting for the other party's review or the 14-day deadline.",
 		summary: "{{rating}} ★ ({{count}} reviews)",
 		summaryOne: "{{rating}} ★ (1 review)",
-		reviewCount: " reviews",
-		reviewOne: " review",
 		submitError: "Failed to submit review. Please try again.",
 	},
 	settings: {

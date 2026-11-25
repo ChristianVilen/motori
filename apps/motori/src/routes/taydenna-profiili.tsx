@@ -71,7 +71,7 @@ function CompleteProfilePage() {
 					<p className="mt-1 text-sm text-muted">{t("completeProfile.tagline")}</p>
 				</div>
 
-				<form onSubmit={handleSubmit} className="space-y-4">
+				<form onSubmit={handleSubmit} className="space-y-4 border-t border-border pt-5">
 					<div className="space-y-2">
 						<label htmlFor="displayName" className="text-sm font-medium text-foreground">
 							{t("completeProfile.displayNameLabel")} <span className="text-destructive">*</span>
@@ -107,7 +107,9 @@ function CompleteProfilePage() {
 
 					<Button
 						type="submit"
-						className="w-full bg-accent text-white hover:bg-accent-hover"
+						data-page-primary
+						variant="reflector"
+						className="w-full"
 						disabled={loading || !displayName.trim()}
 					>
 						{loading ? t("completeProfile.submitLoading") : t("completeProfile.submitIdle")}

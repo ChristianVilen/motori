@@ -4,7 +4,11 @@ import { waitForHydration } from "../helpers";
 export class ListingsPage {
 	readonly page: Page;
 	readonly searchInput: Locator;
-	readonly searchSubmit: Locator;
+	readonly searchControl: Locator;
+	readonly mobileTrigger: Locator;
+	readonly dialogSearch: Locator;
+	readonly leafMap: Locator;
+	readonly drawer: Locator;
 	readonly resultCount: Locator;
 	readonly totalCount: Locator;
 	readonly regionLabel: Locator;
@@ -19,16 +23,14 @@ export class ListingsPage {
 
 	constructor(page: Page) {
 		this.page = page;
-		this.searchInput = page.getByTestId("listings-search-input");
-		this.searchSubmit = page.getByTestId("listings-search-submit");
-		this.resultCount = page
-			.getByTestId("listings-result-count")
-			.or(page.getByTestId("listings-result-count-mobile"))
-			.filter({ visible: true });
-		this.totalCount = page
-			.getByTestId("listings-total-count")
-			.or(page.getByTestId("listings-total-count-mobile"))
-			.filter({ visible: true });
+		this.searchInput = page.getByTestId("site-search-input");
+		this.mobileTrigger = page.getByTestId("site-search-trigger");
+		this.searchControl = this.searchInput.or(this.mobileTrigger).filter({ visible: true });
+		this.dialogSearch = page.getByRole("dialog").getByRole("searchbox");
+		this.leafMap = page.locator(".leaflet-container");
+		this.drawer = page.getByRole("dialog", { name: "Suodattimet" });
+		this.resultCount = page.getByTestId("listings-result-count");
+		this.totalCount = page.getByTestId("listings-total-count");
 		this.regionLabel = page.getByTestId("listings-region-label");
 		this.grid = page.getByTestId("listings-grid");
 		this.cards = page.getByTestId("listing-card");
@@ -48,8 +50,13 @@ export class ListingsPage {
 	}
 
 	async search(query: string) {
-		await this.searchInput.fill(query);
-		await this.searchSubmit.click();
+		const mobile = await this.mobileTrigger.isVisible();
+		if (mobile) {
+			await this.mobileTrigger.click();
+		}
+		const input = mobile ? this.dialogSearch : this.searchInput;
+		await input.fill(query);
+		await input.press("Enter");
 	}
 
 	async gotoGear(params?: Record<string, string>) {
@@ -70,53 +77,36 @@ export class ListingsPage {
 		await this.loadMoreButton.click();
 	}
 
-	// ── Filter helpers (desktop sidebar) ──
+	categoryChip(name: string) {
+		return this.page.getByTestId(`browse-category-chip-${name}`);
+	}
+	cityMarker(city: string) {
+		return this.leafMap.getByTitle(city, { exact: true });
+	}
 
-	sidebarMakeSelect(): Locator {
+	drawerMakeSelect(): Locator {
 		return this.page.getByTestId("filter-make");
 	}
 
-	sidebarCcMin(): Locator {
+	drawerCcMin(): Locator {
 		return this.page.getByTestId("filter-cc-min");
 	}
 
-	sidebarCcMax(): Locator {
+	drawerCcMax(): Locator {
 		return this.page.getByTestId("filter-cc-max");
 	}
 
-	sidebarYearMin(): Locator {
+	drawerYearMin(): Locator {
 		return this.page.getByTestId("filter-year-min");
 	}
 
-	sidebarYearMax(): Locator {
-		return this.page.getByTestId("filter-year-max");
-	}
-
-	// ── Filter helpers (mobile drawer) ──
-
-	drawerMakeSelect(): Locator {
-		return this.page.getByTestId("drawer-make");
-	}
-
-	drawerCcMin(): Locator {
-		return this.page.getByTestId("drawer-cc-min");
-	}
-
-	drawerCcMax(): Locator {
-		return this.page.getByTestId("drawer-cc-max");
-	}
-
-	drawerYearMin(): Locator {
-		return this.page.getByTestId("drawer-year-min");
-	}
-
 	drawerYearMax(): Locator {
-		return this.page.getByTestId("drawer-year-max");
+		return this.page.getByTestId("filter-year-max");
 	}
 
 	async openDrawer() {
 		await this.filterDrawerToggle.click();
-		await this.drawerMakeSelect().waitFor();
+		await this.drawer.waitFor();
 	}
 
 	async fillAndBlur(locator: Locator, value: string) {

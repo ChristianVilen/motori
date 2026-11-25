@@ -3,7 +3,9 @@ import { Textarea } from "@motori/ui/textarea";
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { sql } from "kysely";
+import { Star } from "lucide-react";
 import { useState } from "react";
+import { BookingStatusPill } from "~/components/booking-status-pill";
 import {
 	cancelBooking as cancelBookingAction,
 	confirmBooking as confirmBookingAction,
@@ -167,12 +169,12 @@ function ContactBlock(props: { label: string; name: string; email: string; phone
 			<p className="mt-1 text-sm">
 				{props.name}
 				<br />
-				<a className="text-accent" href={`mailto:${props.email}`}>
+				<a className="text-foreground" href={`mailto:${props.email}`}>
 					{props.email}
 				</a>
 				{props.phone ? <br /> : null}
 				{props.phone ? (
-					<a className="text-accent" href={`tel:${props.phone}`}>
+					<a className="text-foreground" href={`tel:${props.phone}`}>
 						{props.phone}
 					</a>
 				) : null}
@@ -224,7 +226,13 @@ function OwnerActions(props: {
 
 	return (
 		<div className="mt-6 flex flex-wrap gap-3">
-			<Button onClick={handleConfirm} disabled={props.busy} data-testid="booking-confirm">
+			<Button
+				data-page-primary
+				variant="reflector"
+				onClick={handleConfirm}
+				disabled={props.busy}
+				data-testid="booking-confirm"
+			>
 				{t("bookings.detail.confirmButton")}
 			</Button>
 			{rejectMode ? (
@@ -279,7 +287,7 @@ function ReviewSection(props: {
 
 	if (submitted && !props.reviewStatus.windowOpen) {
 		return (
-			<div className="mt-6 rounded-l border border-border bg-card p-4">
+			<div className="mt-6 rounded-lg border border-border bg-card p-4">
 				<p className="text-sm text-muted">{t("reviews.revealed")}</p>
 			</div>
 		);
@@ -287,7 +295,7 @@ function ReviewSection(props: {
 
 	if (!props.reviewStatus.windowOpen) {
 		return (
-			<div className="mt-6 rounded-l border border-border bg-card p-4">
+			<div className="mt-6 rounded-lg border border-border bg-card p-4">
 				<p className="text-sm text-muted">{t("reviews.windowClosed")}</p>
 			</div>
 		);
@@ -295,7 +303,7 @@ function ReviewSection(props: {
 
 	if (submitted) {
 		return (
-			<div className="mt-6 rounded-l border border-border bg-card p-4">
+			<div className="mt-6 rounded-lg border border-border bg-card p-4">
 				<p className="text-sm text-muted">{t("reviews.waitingReveal")}</p>
 			</div>
 		);
@@ -323,7 +331,7 @@ function ReviewSection(props: {
 	}
 
 	return (
-		<div data-testid="review-section" className="mt-6 rounded-l border border-border bg-card p-4">
+		<div data-testid="review-section" className="mt-6 rounded-lg border border-border bg-card p-4">
 			<h3 className="mb-3 font-semibold">{t("reviews.submitHeading")}</h3>
 			<form onSubmit={handleSubmit} data-testid="review-form">
 				<fieldset className="mb-3">
@@ -334,10 +342,16 @@ function ReviewSection(props: {
 								key={star}
 								type="button"
 								onClick={() => setRating(star)}
-								className={`text-2xl ${star <= rating ? "text-yellow-500" : "text-gray-300"}`}
-								aria-label={`${star} / 5`}
+								aria-pressed={star === rating}
+								aria-label={t("reviews.ratingValue", { rating: star })}
+								className="grid size-11 place-items-center rounded-full hover:bg-muted-light"
 							>
-								★
+								<Star
+									size={28}
+									aria-hidden="true"
+									fill={star <= rating ? "currentColor" : "none"}
+									className={star <= rating ? "text-foreground" : "text-muted"}
+								/>
 							</button>
 						))}
 					</div>
@@ -358,7 +372,7 @@ function ReviewSection(props: {
 				<Button type="submit" disabled={busy || rating === 0} data-testid="review-submit">
 					{busy ? t("reviews.submitting") : t("reviews.submitButton")}
 				</Button>
-				{!!error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+				{!!error && <p className="mt-2 text-sm text-destructive">{error}</p>}
 			</form>
 		</div>
 	);
@@ -388,18 +402,18 @@ function BookingDetailPage() {
 
 	return (
 		<div className="mx-auto max-w-2xl px-4 py-8">
-			<Link to="/omat/varaukset" className="text-sm text-muted hover:text-accent">
+			<Link to="/omat/varaukset" className="text-sm text-muted hover:text-foreground">
 				← {t("bookings.listTitle")}
 			</Link>
 			<h1 className="mt-2 text-2xl font-bold">{t("bookings.detail.heading")}</h1>
-			<div className="mt-4 rounded-l border border-border bg-card p-4">
+			<div className="mt-4 rounded-lg border border-border bg-card p-4">
 				<div className="font-medium">{booking.listing_title}</div>
 				<div className="mt-1 text-sm text-muted">
 					{booking.start_date} – {booking.end_date}
 				</div>
-				<span className="mt-2 inline-block rounded-full bg-muted-light px-2 py-0.5 text-xs">
-					{t(`bookings.status.${booking.status}`)}
-				</span>
+				<div className="mt-2">
+					<BookingStatusPill status={booking.status} />
+				</div>
 				<div className="mt-4">
 					<div className="text-xs font-semibold uppercase text-muted">
 						{t("bookings.detail.messageLabel")}
@@ -408,9 +422,9 @@ function BookingDetailPage() {
 						<Link
 							to="/viestit/$conversationId"
 							params={{ conversationId: booking.conversation_id }}
-							className="mt-1 inline-block text-sm text-accent hover:underline"
+							className="mt-1 inline-block text-sm text-foreground hover:underline"
 						>
-							{t("messages.openConversation", "Avaa keskustelu")}
+							{t("messages:openConversation")}
 						</Link>
 					) : booking.message ? (
 						<p className="mt-1 whitespace-pre-wrap text-sm">{booking.message}</p>

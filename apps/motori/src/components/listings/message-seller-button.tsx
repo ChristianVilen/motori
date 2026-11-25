@@ -33,7 +33,7 @@ export function MessageSellerButton({
 			disabled={startingConversation}
 			className={cn(className, "disabled:opacity-50")}
 		>
-			{t("detail.messageSeller", "Lähetä viesti")}
+			{t("detail.messageSeller")}
 		</button>
 	);
 }

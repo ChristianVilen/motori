@@ -4,6 +4,7 @@ export default {
 		empty: "Ei viestejä vielä.",
 	},
 	thread: {
+		back: "Takaisin",
 		send: "Lähetä",
 		placeholder: "Kirjoita viesti…",
 		composerLabel: "Viesti",

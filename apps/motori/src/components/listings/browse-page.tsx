@@ -1,63 +1,32 @@
-import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { Grid3x3, Map as MapIcon, SlidersHorizontal, X } from "lucide-react";
-import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useRouteContext, useRouterState } from "@tanstack/react-router";
+import { X } from "lucide-react";
+import { lazy, Suspense, useCallback, useState } from "react";
 import { ClientOnly } from "~/components/client-only";
-import { CollapsibleSidebar } from "~/components/listings/collapsible-sidebar";
 import { EmptyState, LowResultNudge } from "~/components/listings/empty-state";
+import { FeedBar } from "~/components/listings/feed-bar";
 import { FilterDrawer } from "~/components/listings/filter-drawer";
-import { FilterSidebar } from "~/components/listings/filter-sidebar";
 import { ListingCard } from "~/components/listings/listing-card";
 import { ListingCardSkeleton } from "~/components/listings/listing-card-skeleton";
-import { MobileBrowseControls } from "~/components/listings/mobile-browse-controls";
 import { SaveSearchButton } from "~/components/listings/save-search-button";
 import { REGIONS } from "~/lib/constants";
-import type { ListingCategory, MotorcycleMake } from "~/lib/db/schema";
+import type { MotorcycleMake } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
-import type { SearchResult } from "~/lib/listings-search";
-import { type BrowseSearchParams, countActiveFilters } from "~/lib/validators";
+import type { ListingWithImages, SearchCategory, SearchResult } from "~/lib/listings-search";
+import { type BrowseSearchParams, countActiveFilters, excludesRentals } from "~/lib/validators";
+import { ActiveFilterChips } from "./active-filter-chips";
 
 const ListingsMap = lazy(() =>
 	import("~/components/listings/listings-map").then((m) => ({ default: m.ListingsMap })),
 );
 
 export interface BrowsePageProps {
-	initialData: SearchResult & { currentUserId: string | null; makes: MotorcycleMake[] };
+	initialData: SearchResult & { makes?: MotorcycleMake[] };
 	search: BrowseSearchParams;
 	browseTo: string;
-	category: ListingCategory;
+	category: SearchCategory;
+	children?: React.ReactNode;
 	showMap?: boolean;
 	filterBlocks: React.ReactNode;
-}
-
-function useAccumulatedPages(initialData: SearchResult, search: BrowseSearchParams) {
-	const [pages, setPages] = useState<SearchResult[]>([initialData]);
-	const prevSearchKey = useRef(searchKeyWithoutCursor(search));
-
-	const currentKey = searchKeyWithoutCursor(search);
-	if (currentKey !== prevSearchKey.current) {
-		prevSearchKey.current = currentKey;
-		setPages([initialData]);
-	} else if (
-		pages.length > 0 &&
-		pages[pages.length - 1].nextCursor !== initialData.nextCursor &&
-		search.cursor
-	) {
-		if (!pages.some((p) => p.nextCursor === initialData.nextCursor)) {
-			setPages((prev) => [...prev, initialData]);
-		}
-	}
-
-	const allListings = pages.flatMap((p) => p.listings);
-	const totalCount = pages[0].totalCount;
-	const nextCursor = pages[pages.length - 1].nextCursor;
-	const remaining = totalCount - allListings.length;
-
-	return { allListings, totalCount, nextCursor, remaining };
-}
-
-function searchKeyWithoutCursor(search: BrowseSearchParams): string {
-	const { cursor, ...rest } = search;
-	return JSON.stringify(rest);
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: page component with conditional view rendering
@@ -68,15 +37,18 @@ export function BrowsePage({
 	category,
 	showMap = true,
 	filterBlocks,
+	children,
 }: BrowsePageProps) {
 	const { t } = useTranslation("listings");
 	const navigate = useNavigate();
 
-	const { currentUserId, makes } = initialData;
-	const { allListings, totalCount, nextCursor, remaining } = useAccumulatedPages(
-		initialData,
-		search,
-	);
+	const { session } = useRouteContext({ from: "__root__" });
+	const currentUserId = session?.user.id ?? null;
+	const makes = initialData.makes ?? [];
+	const { listings: allListings, nextCursor } = initialData;
+	const remaining = nextCursor ? initialData.totalCount - allListings.length : 0;
+	const totalCount =
+		initialData.mapCities?.reduce((sum, city) => sum + city.count, 0) ?? initialData.totalCount;
 
 	const hasQuery = !!search.q && search.q.trim().length > 0;
 	const regionLabel = search.region
@@ -84,25 +56,17 @@ export function BrowsePage({
 		: t("browse.regionAll");
 
 	const [drawerOpen, setDrawerOpen] = useState(false);
-	const [sidebarOpen, setSidebarOpen] = useState(true);
-	const view = search.view ?? "list";
+	const view = showMap ? (search.view ?? "list") : "list";
 	const selectedCity = search.city ?? null;
 	const isLoading = useRouterState({ select: (s) => s.isLoading });
 
-	const activeFilterCount = countActiveFilters(search);
-
-	const cityListings = useMemo(() => {
-		if (!selectedCity) {
-			return [];
-		}
-		return allListings.filter((l) => l.city === selectedCity);
-	}, [allListings, selectedCity]);
+	const activeFilterCount = countActiveFilters(search) + (!showMap && search.city ? 1 : 0);
 
 	const handleCityClick = useCallback(
-		(city: string, _listingIds: string[]) => {
+		(city: string) => {
 			navigate({
 				to: browseTo,
-				search: (prev) => ({ ...prev, view: "map" as const, city }),
+				search: (prev) => ({ ...prev, view: "map" as const, city, cursor: undefined }),
 			});
 		},
 		[navigate, browseTo],
@@ -111,163 +75,113 @@ export function BrowsePage({
 	const clearCitySelection = useCallback(() => {
 		navigate({
 			to: browseTo,
-			search: (prev) => ({ ...prev, city: undefined }),
+			search: (prev) => ({ ...prev, city: undefined, cursor: undefined }),
 		});
 	}, [navigate, browseTo]);
 
-	function loadMore() {
-		if (!nextCursor) {
-			return;
-		}
-		navigate({
-			to: browseTo,
-			search: (prev) => ({ ...prev, cursor: nextCursor }),
-			replace: true,
-		});
+	function renderCard(listing: ListingWithImages) {
+		return (
+			<ListingCard
+				key={listing.id}
+				listing={listing}
+				images={listing.images}
+				makeSlug={listing.makeSlug}
+				modelName={listing.modelName}
+				isOwn={listing.owner_id === currentUserId}
+			/>
+		);
 	}
 
-	function handleSearch(e: React.FormEvent<HTMLFormElement>) {
-		e.preventDefault();
-		const formData = new FormData(e.currentTarget);
-		const q = (formData.get("q") as string)?.trim() || undefined;
-		navigate({
-			to: browseTo,
-			search: (prev: BrowseSearchParams) => ({ ...prev, q, cursor: undefined }),
-			replace: true,
-		});
-	}
-
+	const moreButton = remaining > 0 && (
+		<div className="mt-8 text-center">
+			<button
+				data-testid="listings-load-more"
+				type="button"
+				onClick={() => {
+					if (!nextCursor) {
+						return;
+					}
+					void navigate({
+						to: browseTo,
+						search: (prev) => ({ ...prev, cursor: nextCursor }),
+						replace: true,
+						resetScroll: false,
+					});
+				}}
+				disabled={isLoading}
+				className="min-h-11 rounded-full border border-foreground bg-card px-6 py-2 text-sm font-semibold text-foreground hover:bg-muted-light disabled:opacity-50"
+			>
+				{t("browse.loadMore", { remaining })}
+			</button>
+		</div>
+	);
 	return (
-		<div className="min-h-screen bg-background">
-			{/* Search header */}
-			<div className={`bg-primary px-4 ${view === "map" ? "py-3" : "py-6"}`}>
-				<div className="mx-auto max-w-6xl">
-					<form onSubmit={handleSearch} data-testid="listings-search-form" className="flex gap-2">
-						<label htmlFor="listings-search" className="sr-only">
-							{t("browse.searchLabel")}
-						</label>
-						<input
-							id="listings-search"
-							data-testid="listings-search-input"
-							name="q"
-							type="text"
-							defaultValue={search.q ?? ""}
-							placeholder={t("browse.searchPlaceholder")}
-							className="h-11 flex-1 rounded-lg bg-white/10 px-4 text-base text-white placeholder:text-white/70 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent md:text-sm"
-						/>
-						<button
-							data-testid="listings-search-submit"
-							type="submit"
-							className="h-11 rounded-lg bg-accent px-6 text-sm font-semibold text-white hover:bg-accent-hover"
-						>
-							{t("browse.searchButton")}
-						</button>
-						{/* Filter button (mobile only) */}
-						<button
-							data-testid="listings-filter-drawer-toggle"
-							type="button"
-							onClick={() => setDrawerOpen(true)}
-							className="relative h-11 rounded-lg bg-white/10 px-3 text-white lg:hidden"
-							aria-label={t("browse.filterButtonAriaLabel")}
-						>
-							<SlidersHorizontal className="h-5 w-5" />
-							{activeFilterCount > 0 && (
-								<span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-white">
-									{activeFilterCount}
-								</span>
-							)}
-						</button>
-						{/* View toggle — only shown if showMap is true */}
-						{showMap ? (
-							<button
-								type="button"
-								onClick={() => {
-									navigate({
-										to: browseTo,
-										search: (prev: BrowseSearchParams) => ({
-											...prev,
-											view: view === "list" ? ("map" as const) : undefined,
-											city: undefined,
-										}),
-									});
-								}}
-								className="flex h-11 items-center gap-1.5 rounded-lg bg-white/10 px-3 text-sm text-white hover:bg-white/15"
-								aria-label={view === "list" ? t("browse.mapToggle") : t("browse.listToggle")}
-								data-testid="listings-view-toggle"
-							>
-								{view === "list" ? (
-									<MapIcon className="h-5 w-5" />
-								) : (
-									<Grid3x3 className="h-5 w-5" />
-								)}
-								<span className="hidden sm:inline">
-									{view === "list" ? t("browse.mapToggle") : t("browse.listToggle")}
-								</span>
-							</button>
-						) : null}
-						<SaveSearchButton category={category} search={search} />
-					</form>
-					<p
-						data-testid="listings-result-count"
-						aria-live="polite"
-						className="mt-2 hidden text-sm text-white/70 md:block"
-					>
-						<span data-testid="listings-total-count" className="font-semibold text-white">
-							{totalCount}
-						</span>{" "}
-						{t("browse.resultCountWord")}
-						{hasQuery ? <> {t("browse.resultCountQuery", { query: search.q ?? "" })}</> : null}
-						{" — "}
-						<span data-testid="listings-region-label">{regionLabel}</span>
-					</p>
-				</div>
-			</div>
-
-			<MobileBrowseControls
+		<div className={showMap && view === "map" ? "browse-map-page" : "min-h-[60vh]"}>
+			<FeedBar
 				category={category}
 				browseTo={browseTo}
-				totalCount={totalCount}
+				showMap={showMap}
+				filterCount={activeFilterCount}
+				onFilter={() => setDrawerOpen(true)}
 				search={search}
 			/>
 
-			{/* Main content */}
+			{activeFilterCount > 0 && (
+				<ActiveFilterChips
+					search={search}
+					makes={makes}
+					browseTo={browseTo}
+					cityFilter={!showMap}
+				/>
+			)}
+			{excludesRentals(category, search) && (
+				<p
+					data-testid="rentals-excluded-note"
+					className="mx-auto w-full max-w-[1304px] px-4 pt-2 text-sm text-muted lg:px-8"
+				>
+					{t("browse.rentalsExcluded")}{" "}
+					<Link
+						to="/pyorat/vuokraus"
+						search={{ q: search.q, region: search.region }}
+						className="font-medium text-foreground underline"
+					>
+						{t("browse.showRentals")}
+					</Link>
+				</p>
+			)}
+			<div className="mx-auto w-full max-w-[1304px] px-4 lg:px-8">
+				<div className="mt-4 mb-3.5 grid grid-cols-[1fr_auto] items-center gap-x-3 md:flex md:flex-wrap">
+					<h1
+						data-testid={category === "all" ? "home-feed-heading" : undefined}
+						className="col-span-2 font-heading text-[22px] font-bold leading-tight tracking-tight md:text-2xl"
+					>
+						{t(hasQuery || activeFilterCount ? "home:results" : "home:latest")}
+					</h1>
+					<p
+						data-testid="listings-result-count"
+						className="min-w-0 text-sm text-muted tabular-nums md:mr-auto"
+					>
+						<span data-testid="listings-total-count" aria-live="polite">
+							{t("home:count", { count: totalCount })}
+						</span>{" "}
+						· <span data-testid="listings-region-label">{regionLabel}</span>
+					</p>
+					<SaveSearchButton
+						category={category}
+						search={search}
+						enabled={hasQuery || activeFilterCount > 0}
+					/>
+				</div>
+			</div>
 			{!showMap || view === "list" ? (
-				<div className="mx-auto flex max-w-6xl gap-8 px-4 py-6">
-					{/* Desktop sidebar */}
-					<div className="hidden lg:block">
-						<div className="sticky top-6">
-							<div
-								className={`overflow-hidden transition-all duration-300 ${sidebarOpen ? "w-[280px]" : "w-10"}`}
-							>
-								<CollapsibleSidebar open={sidebarOpen} onToggle={setSidebarOpen}>
-									<FilterSidebar search={search} makes={makes} browseTo={browseTo}>
-										{filterBlocks}
-									</FilterSidebar>
-								</CollapsibleSidebar>
-							</div>
-						</div>
-					</div>
-
-					{/* Results grid */}
+				<div className="mx-auto w-full max-w-[1304px] px-4 pb-8 lg:px-8">
 					<div className="min-w-0 flex-1">
 						{allListings.length === 0 ? (
 							<EmptyState search={search} browseTo={browseTo} />
 						) : (
 							<>
-								<div
-									data-testid="listings-grid"
-									className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
-								>
-									{allListings.map((listing) => (
-										<ListingCard
-											key={listing.id}
-											listing={listing}
-											images={listing.images}
-											makeSlug={listing.makeSlug}
-											modelName={listing.modelName}
-											isOwn={currentUserId !== null && listing.owner_id === currentUserId}
-										/>
-									))}
+								<div data-feed-grid data-testid="listings-grid" className="listing-grid">
+									{allListings.map(renderCard)}
 									{isLoading
 										? ["skel-a", "skel-b", "skel-c"].map((key) => <ListingCardSkeleton key={key} />)
 										: null}
@@ -275,83 +189,14 @@ export function BrowsePage({
 
 								{totalCount > 0 && totalCount <= 5 && <LowResultNudge />}
 
-								{nextCursor && remaining > 0 && (
-									<div className="mt-8 text-center">
-										<button
-											data-testid="listings-load-more"
-											type="button"
-											onClick={loadMore}
-											disabled={isLoading}
-											className="rounded-lg border border-border px-6 py-3 text-sm font-medium text-foreground transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
-										>
-											{t("browse.loadMore", { remaining })}
-										</button>
-									</div>
-								)}
+								{moreButton}
 							</>
 						)}
 					</div>
 				</div>
 			) : (
-				/* Map view. Measured heights: 293 = top nav 56 + search header 68 + mobile
-				   chips/sort row 96 + bottom nav 73; 152 = top nav 56 + md search header 96
-				   (count row visible). Re-measure if any of those change. */
-				<div className="flex h-[calc(100dvh-293px)] md:h-[calc(100dvh-152px)] flex-col lg:flex-row">
-					{/* Collapsible filter sidebar — desktop only */}
-					<div className="hidden shrink-0 lg:flex lg:flex-col">
-						<div
-							className={`flex-1 overflow-y-auto border-r border-border bg-background transition-all duration-300 ${sidebarOpen ? "w-[280px] p-4" : "w-10 p-0"}`}
-						>
-							<CollapsibleSidebar
-								open={sidebarOpen}
-								onToggle={setSidebarOpen}
-								collapsedHeight="full"
-							>
-								<FilterSidebar search={search} makes={makes} browseTo={browseTo}>
-									{filterBlocks}
-								</FilterSidebar>
-							</CollapsibleSidebar>
-						</div>
-					</div>
-
-					{/* City listings panel — shows when a pin is clicked */}
-					{selectedCity && cityListings.length > 0 && (
-						<div
-							data-testid="map-city-panel"
-							className="relative z-[500] max-h-[40vh] w-full shrink-0 overflow-y-auto border-b border-border bg-background p-4 lg:max-h-none lg:w-[360px] lg:border-r lg:border-b-0"
-						>
-							<div className="mb-3 flex items-center justify-between">
-								<h3 className="text-sm font-semibold text-foreground">
-									{selectedCity}{" "}
-									<span className="font-normal text-muted">({cityListings.length})</span>
-								</h3>
-								<button
-									type="button"
-									onClick={clearCitySelection}
-									className="rounded-md p-1 text-muted hover:bg-muted-light hover:text-foreground"
-									aria-label={t("browse.closeCityPanel")}
-									data-testid="map-city-panel-close"
-								>
-									<X className="h-4 w-4" />
-								</button>
-							</div>
-							<div className="flex flex-col gap-3">
-								{cityListings.map((listing) => (
-									<ListingCard
-										key={listing.id}
-										listing={listing}
-										images={listing.images}
-										makeSlug={listing.makeSlug}
-										modelName={listing.modelName}
-										isOwn={currentUserId !== null && listing.owner_id === currentUserId}
-									/>
-								))}
-							</div>
-						</div>
-					)}
-
-					{/* Map */}
-					<div className="min-h-[50vh] flex-1">
+				<div className="mx-auto flex min-h-0 w-full max-w-[1304px] flex-1 flex-col gap-4 px-4 pb-4 md:flex-row lg:px-8">
+					<div className="relative isolate min-h-[clamp(18rem,50dvh,34rem)] flex-1 overflow-hidden rounded-lg md:min-h-0">
 						<ClientOnly
 							fallback={
 								<div className="flex h-full items-center justify-center bg-muted-light text-sm text-muted">
@@ -367,27 +212,54 @@ export function BrowsePage({
 								}
 							>
 								<ListingsMap
-									listings={allListings}
+									className="absolute inset-0"
+									cities={initialData.mapCities ?? []}
 									onCityClick={handleCityClick}
 									selectedCity={selectedCity}
 								/>
 							</Suspense>
 						</ClientOnly>
 					</div>
+					{!!selectedCity && (
+						<div
+							data-testid="map-city-panel"
+							className="min-w-0 shrink-0 md:order-first md:w-[360px] md:overflow-y-auto md:pr-1"
+						>
+							<div className="mb-3 flex items-center justify-between">
+								<h2 className="font-heading text-lg font-bold">
+									{selectedCity} · {t("home:count", { count: initialData.totalCount })}
+								</h2>
+								<button
+									type="button"
+									onClick={clearCitySelection}
+									className="grid size-11 place-items-center rounded-full border border-border bg-card text-muted hover:bg-muted-light hover:text-foreground"
+									aria-label={t("browse.closeCityPanel")}
+									data-testid="map-city-panel-close"
+								>
+									<X className="h-4 w-4" />
+								</button>
+							</div>
+							<div className="grid grid-cols-2 gap-x-2.5 gap-y-[22px]">
+								{allListings.map(renderCard)}
+							</div>
+							{moreButton}
+						</div>
+					)}
 				</div>
 			)}
 
-			{/* Mobile filter drawer */}
-			<FilterDrawer
-				search={search}
-				totalCount={totalCount}
-				open={drawerOpen}
-				onClose={() => setDrawerOpen(false)}
-				makes={makes}
-				browseTo={browseTo}
-			>
-				{filterBlocks}
-			</FilterDrawer>
+			{children}
+			{drawerOpen ? (
+				<FilterDrawer
+					search={search}
+					totalCount={totalCount}
+					onClose={() => setDrawerOpen(false)}
+					makes={makes}
+					browseTo={browseTo}
+				>
+					{filterBlocks}
+				</FilterDrawer>
+			) : null}
 		</div>
 	);
 }

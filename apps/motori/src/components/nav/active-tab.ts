@@ -1,6 +1,6 @@
 import { BROWSE_CATEGORIES, type BrowseCategory } from "~/lib/constants";
 
-export type ActiveTab = "browse" | "messages" | "account";
+export type ActiveTab = "browse" | "favorites" | "messages" | "account";
 
 export function getActiveTab(pathname: string): ActiveTab | null {
 	if (
@@ -8,6 +8,9 @@ export function getActiveTab(pathname: string): ActiveTab | null {
 		BROWSE_CATEGORIES.some((c) => pathname === c.to || pathname.startsWith(`${c.to}/`))
 	) {
 		return "browse";
+	}
+	if (pathname === "/omat/suosikit" || pathname === "/omat/suosikit/") {
+		return "favorites";
 	}
 	if (pathname === "/viestit" || pathname.startsWith("/viestit/")) {
 		return "messages";
@@ -25,5 +28,5 @@ export function getActiveTab(pathname: string): ActiveTab | null {
 
 export function getBrowseCategory(pathname: string): BrowseCategory {
 	const match = BROWSE_CATEGORIES.find((c) => pathname === c.to || pathname.startsWith(`${c.to}/`));
-	return match ?? BROWSE_CATEGORIES[0];
+	return match ?? BROWSE_CATEGORIES[1];
 }

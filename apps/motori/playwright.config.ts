@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import { BASE_URL, port } from "./e2e/base-url";
+
 export default defineConfig({
 	testDir: "./e2e/tests",
 	fullyParallel: true,
@@ -11,7 +13,7 @@ export default defineConfig({
 	globalSetup: "./e2e/global-setup.ts",
 	globalTeardown: "./e2e/global-teardown.ts",
 	use: {
-		baseURL: "http://localhost:3000",
+		baseURL: BASE_URL,
 		trace: "on-first-retry",
 		locale: "fi-FI",
 	},
@@ -28,10 +30,11 @@ export default defineConfig({
 		},
 	],
 	webServer: {
+		env: { PORT: port, BETTER_AUTH_URL: BASE_URL, APP_ORIGIN: BASE_URL },
 		command: process.env.CI
 			? "DISABLE_EMAIL_VERIFICATION=true DISABLE_AUTH_RATE_LIMIT=true pnpm start"
 			: "DISABLE_EMAIL_VERIFICATION=true DISABLE_AUTH_RATE_LIMIT=true pnpm build && DISABLE_EMAIL_VERIFICATION=true DISABLE_AUTH_RATE_LIMIT=true pnpm start",
-		url: "http://localhost:3000",
+		url: BASE_URL,
 		reuseExistingServer: !process.env.CI,
 		timeout: 180_000,
 	},

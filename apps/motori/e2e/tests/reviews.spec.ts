@@ -1,8 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { BASE_URL } from "../base-url";
 import { TEST_PASSWORD } from "../global-setup";
 import { loginAs, uniqueEmail, uniqueName, waitForHydration } from "../helpers";
-
-const BASE_URL = "http://localhost:3000";
 
 // Accept all confirm dialogs automatically.
 test.beforeEach(async ({ page }) => {
@@ -193,7 +192,7 @@ test.describe("Reviews", () => {
 		await waitForHydration(page);
 		const renterReviews = page.getByTestId("reviews-section");
 		await expect(renterReviews).toBeVisible();
-		await expect(renterReviews).toContainText("★★★★");
+		await expect(renterReviews).toContainText("4 / 5 tähteä");
 		await expect(page.getByText(/4 ★ \(1 arvostelu\)/)).toBeVisible();
 
 		// Owner profile: shows renter's 5★ review.
@@ -201,7 +200,7 @@ test.describe("Reviews", () => {
 		await waitForHydration(page);
 		const ownerReviews = page.getByTestId("reviews-section");
 		await expect(ownerReviews).toBeVisible();
-		await expect(ownerReviews).toContainText("★★★★★");
+		await expect(ownerReviews).toContainText("5 / 5 tähteä");
 		await expect(page.getByText(/5 ★ \(1 arvostelu\)/)).toBeVisible();
 	});
 

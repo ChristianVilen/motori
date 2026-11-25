@@ -49,7 +49,11 @@ test.describe("Auth flow", () => {
 		await register.emailInput.fill(email);
 		await register.passwordInput.pressSequentially(password, { delay: 30 });
 		await register.termsCheckbox.check();
+		const signup = page.waitForResponse("**/api/auth/sign-up/email");
 		await register.submitButton.click();
+		const { user } = await (await signup).json();
+		expect(user).toHaveProperty("id");
+		expect(user).not.toHaveProperty("role");
 		await expect(page).toHaveURL(/\/taydenna-profiili/, { timeout: 10000 });
 	});
 
@@ -60,7 +64,7 @@ test.describe("Auth flow", () => {
 		await home.navUserMenu.click();
 		await home.navSignOutLink.click();
 		await expect(home.navLoginLink).toBeVisible({ timeout: 5000 });
-		await expect(home.navDashboardLink).not.toBeVisible();
+		await expect(home.navUserMenu).not.toBeVisible();
 	});
 
 	test("wrong credentials show login error", async () => {
@@ -73,9 +77,13 @@ test.describe("Auth flow", () => {
 	test("correct credentials restore the session", async () => {
 		const login = new LoginPage(page);
 		await login.goto();
+		const signin = page.waitForResponse("**/api/auth/sign-in/email");
 		await login.login(email, password);
+		const { user } = await (await signin).json();
+		expect(user).toHaveProperty("id");
+		expect(user).not.toHaveProperty("role");
 		const home = new HomePage(page);
-		await expect(home.navDashboardLink).toBeVisible({ timeout: 10000 });
+		await expect(home.navUserMenu).toBeVisible({ timeout: 10000 });
 	});
 
 	test("login modal from nav works", async () => {
@@ -90,7 +98,7 @@ test.describe("Auth flow", () => {
 		const modalLogin = new LoginPage(page, home.loginModal);
 		await modalLogin.login(email, password);
 		await expect(home.loginModal).not.toBeVisible({ timeout: 10000 });
-		await expect(home.navDashboardLink).toBeVisible();
+		await expect(home.navUserMenu).toBeVisible();
 	});
 
 	// Delete account — continues the serial chain with the same user

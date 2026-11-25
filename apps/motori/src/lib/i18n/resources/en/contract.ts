@@ -1,4 +1,5 @@
 export default {
+	linkHint: "Prefills the vehicle details and price. Names and other details stay in your browser.",
 	title: "Motorcycle bill of sale",
 	seoTitle: "Motorcycle bill of sale – printable template | Motori",
 	description:

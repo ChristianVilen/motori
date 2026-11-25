@@ -9,8 +9,9 @@ try {
 	// .env may not exist in CI — rely on real env vars instead.
 }
 
-export const MOTORI_URL = "http://localhost:3000";
-export const TALLI_URL = "http://localhost:3001";
+import { MOTORI_URL } from "./base-url";
+
+export { MOTORI_URL, TALLI_URL } from "./base-url";
 export const TEST_EMAIL = "e2e-talli@test.example.com";
 export const TEST_PASSWORD = "E2eTestPass123!";
 export const AUTH_STATE_PATH = "e2e/.auth/user.json";

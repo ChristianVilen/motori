@@ -26,8 +26,9 @@ describe("getActiveTab", () => {
 		expect(getActiveTab("/varaosat/xyz/some-part")).toBe("browse");
 	});
 
-	it("returns 'account' for /omat and sub-paths", () => {
+	it("returns 'favorites' for /omat/suosikit and 'account' for other /omat paths", () => {
 		expect(getActiveTab("/omat")).toBe("account");
+		expect(getActiveTab("/omat/suosikit")).toBe("favorites");
 		expect(getActiveTab("/omat/varaukset")).toBe("account");
 	});
 
@@ -63,7 +64,7 @@ describe("getBrowseCategory", () => {
 	});
 
 	it("defaults to 'sale' for neutral pages", () => {
-		expect(getBrowseCategory("/").value).toBe("sale");
+		expect(getBrowseCategory("/").value).toBe("all");
 		expect(getBrowseCategory("/viestit").value).toBe("sale");
 		expect(getBrowseCategory("/omat/suosikit").value).toBe("sale");
 		expect(getBrowseCategory("/kirjaudu").value).toBe("sale");

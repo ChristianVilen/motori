@@ -203,21 +203,21 @@ function ListingsPage() {
 					<button
 						type="button"
 						onClick={() => bulkAction("removed")}
-						className="flex items-center gap-1 rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700"
+						className="flex items-center gap-1 rounded bg-destructive px-3 py-1 text-white hover:bg-destructive/90"
 					>
 						<Trash2 size={14} /> Remove
 					</button>
 					<button
 						type="button"
 						onClick={() => bulkAction("paused")}
-						className="flex items-center gap-1 rounded bg-yellow-600 px-3 py-1 text-white hover:bg-yellow-700"
+						className="flex items-center gap-1 rounded bg-primary px-3 py-1 text-white hover:bg-primary/90"
 					>
 						<Pause size={14} /> Pause
 					</button>
 					<button
 						type="button"
 						onClick={() => bulkAction("active")}
-						className="flex items-center gap-1 rounded bg-green-600 px-3 py-1 text-white hover:bg-green-700"
+						className="flex items-center gap-1 rounded bg-success px-3 py-1 text-white hover:bg-success/90"
 					>
 						<Play size={14} /> Activate
 					</button>
@@ -309,14 +309,14 @@ function ListingsPage() {
 
 function StatusBadge({ status }: { status: string }) {
 	const colors: Record<string, string> = {
-		active: "bg-green-100 text-green-800",
-		paused: "bg-yellow-100 text-yellow-800",
-		rented: "bg-blue-100 text-blue-800",
-		removed: "bg-red-100 text-red-800",
+		active: "bg-success/10 text-success",
+		paused: "bg-muted-light text-foreground",
+		rented: "bg-muted-light text-foreground",
+		removed: "bg-destructive/10 text-destructive",
 	};
 	return (
 		<span
-			className={`rounded-full px-2 py-0.5 text-xs font-medium ${colors[status] ?? "bg-gray-100 text-gray-800"}`}
+			className={`rounded-full px-2 py-0.5 text-xs font-medium ${colors[status] ?? "bg-muted-light text-foreground"}`}
 		>
 			{status}
 		</span>

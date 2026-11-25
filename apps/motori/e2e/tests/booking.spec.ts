@@ -1,12 +1,35 @@
 import { expect, test } from "@playwright/test";
+import { addDaysToIso, toIso } from "../../src/lib/calendar-helpers";
+import { BASE_URL } from "../base-url";
 import { SEEDED_LISTING_ID, SEEDED_LISTING_SLUG, TEST_EMAIL, TEST_PASSWORD } from "../global-setup";
 import { loginAs, uniqueEmail, uniqueName, waitForHydration } from "../helpers";
-
-const BASE_URL = "http://localhost:3000";
+import { ListingDetailPage } from "../pages/listing-detail.page";
 
 // Auto-accept all confirm() dialogs in this test file.
 test.beforeEach(async ({ page }) => {
 	page.on("dialog", (d) => d.accept());
+});
+
+test.describe("Rental calendar keyboard", () => {
+	test("arrow keys move between days and Enter picks the range", async ({ page }) => {
+		const detail = new ListingDetailPage(page);
+		await detail.goto(SEEDED_LISTING_ID, SEEDED_LISTING_SLUG);
+		const today = toIso(new Date());
+		const from = addDaysToIso(today, 21);
+		const to = addDaysToIso(today, 23);
+
+		await detail.focusDate(addDaysToIso(today, 20));
+		await detail.pressCalendarKey("ArrowRight");
+		await detail.pressCalendarKey("Enter");
+		await expect(page).toHaveURL(new RegExp(`from=${from}`));
+		await detail.pressCalendarKey("ArrowRight");
+		await detail.pressCalendarKey("ArrowRight");
+		await detail.pressCalendarKey("Enter");
+
+		await expect(page).toHaveURL(new RegExp(`from=${from}`));
+		await expect(page).toHaveURL(new RegExp(`to=${to}`));
+		await expect(detail.summary).toContainText("Yhteensä");
+	});
 });
 
 test.describe("Booking flow", () => {
@@ -41,24 +64,19 @@ test.describe("Booking flow", () => {
 
 		// 2. Log in as renter and open the seeded listing.
 		await loginAs(page, renterEmail);
-		await page.goto(`/pyorat/vuokraus/${SEEDED_LISTING_ID}/${SEEDED_LISTING_SLUG}`);
-		await waitForHydration(page);
-
-		// 3. Verify the booking form is visible.
-		await expect(page.getByTestId("booking-request-form")).toBeVisible();
-
-		// 4. Click the first two enabled days in the range calendar — picking by day
-		//    number is fragile because numberOfMonths={2} duplicates each number across
-		//    the two visible months.
-		const form = page.getByTestId("booking-request-form");
-		const enabledDays = form.locator("button[data-date]:not([disabled])");
-		await enabledDays.nth(0).click();
-		await enabledDays.nth(1).click();
-
-		// 5. Fill message and submit.
-		await page.getByPlaceholder(/Kerro kuka olet/).fill("E2E test kiinnostaa vuokrata");
-		await page.getByTestId("booking-submit").click();
-		await expect(page.getByTestId("booking-success")).toBeVisible({ timeout: 10000 });
+		const detail = new ListingDetailPage(page);
+		await detail.goto(SEEDED_LISTING_ID, SEEDED_LISTING_SLUG);
+		const today = toIso(new Date());
+		const from = addDaysToIso(today, 8),
+			to = addDaysToIso(today, 9);
+		await detail.selectDate(from);
+		await detail.selectDate(to);
+		await expect(page).toHaveURL(new RegExp(`to=${to}`));
+		await detail.reload();
+		await expect(detail.summary).toContainText("Yhteensä");
+		await detail.message.fill("E2E test kiinnostaa vuokrata");
+		await detail.submit.click();
+		await expect(detail.success).toBeVisible();
 
 		// 6. Sign out the renter.
 		await page.context().clearCookies();
@@ -82,5 +100,15 @@ test.describe("Booking flow", () => {
 
 		// 10. Status should update to confirmed.
 		await expect(page.getByText("Vahvistettu")).toBeVisible({ timeout: 10000 });
+		await expect(page.getByRole("link", { name: renterEmail, exact: true })).toHaveAttribute(
+			"href",
+			`mailto:${renterEmail}`,
+		);
+		await page.context().clearCookies();
+		await detail.goto(SEEDED_LISTING_ID, SEEDED_LISTING_SLUG);
+		await detail.selectDate(addDaysToIso(today, 7));
+		await detail.selectDate(addDaysToIso(today, 10));
+		await expect(detail.blockedNotice).toBeVisible();
+		await expect(page).toHaveURL(new RegExp(`from=${addDaysToIso(today, 10)}$`));
 	});
 });

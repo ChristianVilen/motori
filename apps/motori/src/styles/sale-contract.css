@@ -12,6 +12,11 @@
 	box-shadow: 0 2px 12px #00000018;
 }
 
+.contract-title,
+.sale-contract-document h3 {
+	font-family: inherit;
+}
+
 .contract-title {
 	margin: 0 0 5mm;
 	font-size: 19pt;

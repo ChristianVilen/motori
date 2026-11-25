@@ -24,7 +24,7 @@ function ViestitLayout() {
 	return (
 		/* Measured heights: 129 = top nav 56 + bottom nav 73; 56 = top nav only.
 		   Re-measure if nav sizing changes. */
-		<div className="flex h-[calc(100dvh-129px)] md:h-[calc(100dvh-56px)] max-w-5xl mx-auto md:border-x border-border">
+		<div className="flex h-[calc(100dvh-var(--header-height)-1px-var(--tabbar-height)-env(safe-area-inset-bottom))] max-w-5xl mx-auto md:border-x border-border">
 			<aside
 				className={`w-full md:w-72 md:shrink-0 h-full border-r border-border bg-card flex-col ${
 					inThread ? "hidden md:flex" : "flex"
@@ -43,7 +43,7 @@ function ViestitLayout() {
 									to="/viestit/$conversationId"
 									params={{ conversationId: c.id }}
 									className="flex items-start gap-3 px-4 py-3 border-b border-border hover:bg-muted-light transition-colors border-l-2 border-l-transparent"
-									activeProps={{ className: "bg-muted-light border-l-2 border-l-accent" }}
+									activeProps={{ className: "bg-muted-light border-l-2 border-l-foreground" }}
 								>
 									<div className="flex-1 min-w-0">
 										<div className="flex items-center justify-between gap-2">
@@ -51,7 +51,7 @@ function ViestitLayout() {
 												{c.otherPartyDisplayName}
 											</span>
 											{c.unreadCount > 0 ? (
-												<span className="shrink-0 rounded-full bg-accent text-white text-xs px-1.5 py-0.5 leading-none">
+												<span className="shrink-0 rounded-full bg-primary text-white text-xs px-1.5 py-0.5 leading-none">
 													{c.unreadCount}
 												</span>
 											) : null}

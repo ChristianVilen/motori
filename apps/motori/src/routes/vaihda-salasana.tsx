@@ -1,9 +1,9 @@
 import { passwordStrength } from "@motori/server/password-strength";
 import { Button } from "@motori/ui/button";
 import { Input } from "@motori/ui/input";
+import { Logo } from "@motori/ui/logo";
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Logo } from "~/components/logo";
 import { authClient } from "~/lib/auth-client";
 import { SITE_NAME } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
@@ -66,14 +66,14 @@ function ResetPasswordPage() {
 
 	if (success) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-background px-4">
-				<div className="w-full max-w-sm space-y-6 text-center">
-					<Logo variant="light" className="mx-auto h-10 w-auto" />
+			<div className="mx-auto flex min-h-[65dvh] max-w-xl items-center justify-center px-4 py-10">
+				<div className="w-full max-w-md space-y-6 rounded-sheet border border-border bg-card p-5 sm:p-8 text-center">
+					<Logo variant="light" className="mx-auto h-10" />
 					<p className="text-sm text-muted">{t("resetPassword.success")}</p>
 					<Link
 						to="/kirjaudu"
 						search={{ redirect: undefined }}
-						className="text-sm text-accent underline"
+						className="text-sm text-foreground underline"
 					>
 						{t("resetPassword.backToLogin")}
 					</Link>
@@ -83,10 +83,10 @@ function ResetPasswordPage() {
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-background px-4">
-			<div className="w-full max-w-sm space-y-6">
+		<div className="mx-auto flex min-h-[65dvh] max-w-xl items-center justify-center px-4 py-10">
+			<div className="w-full max-w-md space-y-6 rounded-sheet border border-border bg-card p-5 sm:p-8">
 				<div className="text-center">
-					<Logo variant="light" className="mx-auto h-10 w-auto" />
+					<Logo variant="light" className="mx-auto h-10" />
 					<p className="mt-1 text-sm text-muted">{t("resetPassword.heading")}</p>
 				</div>
 
@@ -147,7 +147,9 @@ function ResetPasswordPage() {
 					<Button
 						data-testid="reset-password-submit"
 						type="submit"
-						className="w-full bg-accent text-white hover:bg-accent-hover"
+						data-page-primary
+						variant="reflector"
+						className="w-full"
 						disabled={loading || !token || strength.score <= 1}
 					>
 						{loading ? t("resetPassword.submitLoading") : t("resetPassword.submitIdle")}

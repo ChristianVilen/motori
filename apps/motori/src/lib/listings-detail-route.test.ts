@@ -28,7 +28,6 @@ describe("defineCategoryDetailRoute", () => {
 		defineCategoryDetailRoute({
 			category: "sale",
 			backTo: "/pyorat/myynti",
-			Sidebar: () => null,
 			head: (loaderData) =>
 				loaderData ? { meta: [{ title: loaderData.listing.title }] } : { meta: [] },
 		});

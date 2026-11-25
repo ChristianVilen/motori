@@ -1,4 +1,6 @@
+import { rateLimitMiddleware } from "@motori/server/rate-limit";
 import { createServerFn } from "@tanstack/react-start";
+import { setResponseHeader } from "@tanstack/react-start/server";
 import type { Kysely } from "kysely";
 import { sql } from "kysely";
 import { expandDateRange } from "~/lib/bookings";
@@ -11,6 +13,7 @@ import type {
 	ListingRental,
 	ListingSale,
 } from "~/lib/db/schema";
+import { z } from "~/lib/zod";
 
 const getDb = async () => (await import("~/lib/db/index")).db;
 
@@ -32,7 +35,7 @@ export type ListingForDisplay = {
 	ownerName: string | null;
 	ownerCity: string | null;
 	ownerSince: Date | null;
-	ownerContact: { phone: string | null; showPhone: boolean };
+	ownerPhoneVisible: boolean;
 };
 
 type ListingChildren = {
@@ -145,8 +148,9 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 				"user.createdAt",
 				"profile.display_name",
 				"profile.city",
-				"profile.phone",
-				"profile.show_phone",
+				sql<boolean>`coalesce(profile.show_phone and nullif(trim(profile.phone), '') is not null, false)`.as(
+					"phoneVisible",
+				),
 			])
 			.where("user.id", "=", listing.owner_id)
 			.executeTakeFirst(),
@@ -161,12 +165,27 @@ export async function getListingForDisplay(shortId: string): Promise<ListingForD
 		ownerName: owner?.display_name ?? null,
 		ownerCity: owner?.city ?? null,
 		ownerSince: owner?.createdAt ?? null,
-		ownerContact: {
-			phone: owner?.phone ?? null,
-			showPhone: owner?.show_phone ?? false,
-		},
+		ownerPhoneVisible: owner?.phoneVisible ?? false,
 	};
 }
+
+export const revealListingPhone = createServerFn({ method: "GET" })
+	.middleware([rateLimitMiddleware(30, 60, "listing-phone")])
+	.validator(z.string().uuid())
+	.handler(async ({ data: id }) => {
+		setResponseHeader("Cache-Control", "no-store");
+		const db = await getDb();
+		const contact = await db
+			.selectFrom("listing")
+			.innerJoin("profile", "profile.user_id", "listing.owner_id")
+			.select("profile.phone")
+			.where("listing.id", "=", id)
+			.where("listing.status", "=", "active")
+			.where("listing.category", "!=", "rental")
+			.where("profile.show_phone", "=", true)
+			.executeTakeFirst();
+		return contact?.phone?.trim() || null;
+	});
 
 export type ListingForEdit = {
 	listing: Listing;

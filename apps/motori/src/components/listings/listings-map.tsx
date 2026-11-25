@@ -1,20 +1,21 @@
+import { motionAllowed } from "~/lib/motion";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useMemo } from "react";
 import { MapContainer, Marker, TileLayer, Tooltip, useMap } from "react-leaflet";
+import { useTranslation } from "~/lib/i18n";
 import { findMunicipality } from "~/lib/municipalities";
 
-export interface MapPin {
+interface MapPin {
 	city: string;
 	lat: number;
 	lng: number;
 	count: number;
-	listingIds: string[];
 }
 
 interface ListingsMapProps {
-	listings: { id: string; city: string; short_id: string }[];
-	onCityClick?: (city: string, listingIds: string[]) => void;
+	cities: { city: string; count: number }[];
+	onCityClick?: (city: string) => void;
 	selectedCity?: string | null;
 	className?: string;
 }
@@ -24,33 +25,7 @@ const FINLAND_BOUNDS: L.LatLngBoundsExpression = [
 	[70.1, 31.6],
 ];
 
-const TILE_URL = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
-const TILE_ATTR =
-	'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>';
-
-export function groupByCity(listings: ListingsMapProps["listings"]): MapPin[] {
-	const map = new Map<string, MapPin>();
-	for (const l of listings) {
-		const m = findMunicipality(l.city);
-		if (!m) {
-			continue;
-		}
-		const existing = map.get(m.name);
-		if (existing) {
-			existing.count++;
-			existing.listingIds.push(l.short_id);
-		} else {
-			map.set(m.name, {
-				city: m.name,
-				lat: m.lat,
-				lng: m.lng,
-				count: 1,
-				listingIds: [l.short_id],
-			});
-		}
-	}
-	return Array.from(map.values());
-}
+const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 function createCountIcon(count: number, active: boolean): L.DivIcon {
 	const cls = active ? "motori-map-badge motori-map-badge--active" : "motori-map-badge";
@@ -62,18 +37,43 @@ function createCountIcon(count: number, active: boolean): L.DivIcon {
 	});
 }
 
-/** Fits map bounds to pins when no city is selected. */
 function FitBounds({ pins, selectedCity }: { pins: MapPin[]; selectedCity?: string | null }) {
 	const map = useMap();
+	const selected = selectedCity ? findMunicipality(selectedCity) : undefined;
+	const bounds =
+		!selected && pins.length
+			? L.latLngBounds(pins.map((pin) => L.latLng(pin.lat, pin.lng)))
+			: undefined;
+	const south = bounds?.getSouth(),
+		west = bounds?.getWest();
+	const north = bounds?.getNorth(),
+		east = bounds?.getEast();
 
 	useEffect(() => {
-		if (selectedCity || pins.length === 0) {
-			return;
-		}
-		const bounds = L.latLngBounds(pins.map((p) => [p.lat, p.lng] as L.LatLngTuple));
-		map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
-	}, [selectedCity, map, pins]);
+		const observer = new ResizeObserver(() => map.invalidateSize({ pan: false }));
+		observer.observe(map.getContainer());
+		return () => observer.disconnect();
+	}, [map]);
 
+	useEffect(() => {
+		map.invalidateSize({ pan: false });
+		if (selected) {
+			map.setView([selected.lat, selected.lng], 9, { animate: false });
+		} else if (
+			south !== undefined &&
+			west !== undefined &&
+			north !== undefined &&
+			east !== undefined
+		) {
+			map.fitBounds(
+				[
+					[south, west],
+					[north, east],
+				],
+				{ padding: [40, 40], maxZoom: 10, animate: false },
+			);
+		}
+	}, [map, selected, south, west, north, east]);
 	return null;
 }
 
@@ -84,22 +84,21 @@ function CityMarker({
 }: {
 	pin: MapPin;
 	active: boolean;
-	onCityClick?: (city: string, listingIds: string[]) => void;
+	onCityClick?: (city: string) => void;
 }) {
-	const map = useMap();
 	const icon = useMemo(() => createCountIcon(pin.count, active), [pin.count, active]);
 
 	return (
 		<Marker
 			position={[pin.lat, pin.lng]}
+			title={pin.city}
 			icon={icon}
 			zIndexOffset={active ? 1000 : 0}
 			eventHandlers={
 				onCityClick
 					? {
 							click: () => {
-								onCityClick(pin.city, pin.listingIds);
-								map.setView([pin.lat, pin.lng], 9, { animate: true });
+								onCityClick(pin.city);
 							},
 						}
 					: undefined
@@ -112,12 +111,32 @@ function CityMarker({
 	);
 }
 
-export function ListingsMap({ listings, onCityClick, selectedCity, className }: ListingsMapProps) {
-	const pins = useMemo(() => groupByCity(listings), [listings]);
+export function ListingsMap({ cities, onCityClick, selectedCity, className }: ListingsMapProps) {
+	const { t } = useTranslation("listings");
+	const pins = useMemo(
+		() =>
+			cities.flatMap(({ city, count }) => {
+				const place = findMunicipality(city);
+				return place ? [{ city, count, lat: place.lat, lng: place.lng }] : [];
+			}),
+		[cities],
+	);
 
 	return (
-		<MapContainer bounds={FINLAND_BOUNDS} scrollWheelZoom className={className ?? "h-full w-full"}>
-			<TileLayer url={TILE_URL} attribution={TILE_ATTR} maxZoom={19} subdomains="abcd" />
+		<MapContainer
+			zoomAnimation={motionAllowed()}
+			fadeAnimation={motionAllowed()}
+			markerZoomAnimation={motionAllowed()}
+			inertia={motionAllowed()}
+			bounds={FINLAND_BOUNDS}
+			scrollWheelZoom
+			className={className ?? "h-full w-full"}
+		>
+			<TileLayer
+				url={TILE_URL}
+				attribution={`&copy; <a href="https://www.openstreetmap.org/copyright">${t("browse.mapContributors")}</a>`}
+				maxZoom={19}
+			/>
 			<FitBounds pins={pins} selectedCity={selectedCity} />
 			{pins.map((pin) => (
 				<CityMarker

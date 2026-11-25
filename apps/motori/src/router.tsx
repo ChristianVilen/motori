@@ -1,4 +1,6 @@
 import { createRouter } from "@tanstack/react-router";
+import { installFeedMotion } from "./lib/feed-motion";
+import { installPhotoTransitions } from "./lib/listing-photo-transition";
 import { routeTree } from "./routeTree.gen";
 
 export function getRouter() {
@@ -17,6 +19,10 @@ export function getRouter() {
 		ssr: { nonce },
 	});
 
+	if (typeof document !== "undefined") {
+		installPhotoTransitions(router);
+		installFeedMotion(router);
+	}
 	return router;
 }
 

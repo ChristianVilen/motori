@@ -75,7 +75,7 @@ function NewServiceRecordPage() {
 		<form onSubmit={handleSubmit} className="mx-auto max-w-lg" data-testid="service-form">
 			<h1 className="font-heading text-2xl font-bold">Lisää huolto</h1>
 			{completing ? (
-				<p data-testid="completing-reminder" className="mt-1 text-sm text-accent">
+				<p data-testid="completing-reminder" className="mt-1 text-sm text-foreground">
 					Merkitään tehdyksi: {completing.title}
 				</p>
 			) : null}

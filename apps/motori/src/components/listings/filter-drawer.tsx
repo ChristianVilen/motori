@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useEffect } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import { useTranslation } from "~/lib/i18n";
 import { useFocusTrap } from "~/lib/use-focus-trap";
 import type { BrowseSearchParams } from "~/lib/validators";
@@ -8,105 +8,101 @@ import { type FilterMake, FilterProvider, useFilterActions } from "./filter-cont
 interface FilterDrawerProps {
 	search: BrowseSearchParams;
 	totalCount: number;
-	open: boolean;
 	onClose: () => void;
 	makes: FilterMake[];
 	browseTo: string;
-	children: React.ReactNode;
+	children: ReactNode;
 }
 
 export function FilterDrawer({
 	search,
 	totalCount,
-	open,
 	onClose,
 	makes,
 	browseTo,
 	children,
 }: FilterDrawerProps) {
 	const { t } = useTranslation("listings");
-	const { clearAll, updateFilter, toggleArrayFilter } = useFilterActions(search, browseTo);
-	const trapRef = useFocusTrap(open);
-
+	const { clearAll, ...actions } = useFilterActions(browseTo);
+	const ref = useRef<HTMLDialogElement>(null);
 	useEffect(() => {
-		if (open) {
-			document.body.style.overflow = "hidden";
-			const onKey = (e: KeyboardEvent) => {
-				if (e.key === "Escape") {
-					onClose();
-				}
-			};
-			window.addEventListener("keydown", onKey);
-			return () => {
-				window.removeEventListener("keydown", onKey);
-				document.body.style.overflow = "";
-			};
+		const dialog = ref.current;
+		if (!dialog) {
+			return;
 		}
-		document.body.style.overflow = "";
-	}, [open, onClose]);
-
-	if (!open) {
-		return null;
-	}
-
+		const opener = document.activeElement;
+		const previous = document.body.style.overflow;
+		dialog.showModal();
+		document.body.style.overflow = "hidden";
+		return () => {
+			dialog.close();
+			document.body.style.overflow = previous;
+			if (opener instanceof HTMLElement && opener.isConnected) {
+				opener.focus({ preventScroll: true });
+			}
+		};
+	}, []);
+	const panelRef = useFocusTrap(true);
 	return (
-		<div className="fixed inset-0 z-[1000] flex flex-col justify-end">
-			<button
-				type="button"
-				className="absolute inset-0 bg-black/40"
-				onClick={onClose}
-				tabIndex={-1}
-				aria-label={t("filters.closeBackdropAriaLabel")}
-			/>
-
-			<div
-				ref={trapRef}
-				className="relative z-10 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-background px-5 pt-4 pb-6"
-			>
-				<div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
-
-				<div className="mb-4 flex items-center justify-between">
-					<h2 className="font-heading text-base font-semibold text-foreground">
-						{t("filters.heading")}
-					</h2>
-					<button
-						type="button"
-						onClick={onClose}
-						aria-label={t("filters.closeAriaLabel")}
-						className="-m-2 p-2"
-					>
-						<X className="h-5 w-5 text-muted" />
-					</button>
-				</div>
-
-				<FilterProvider
-					search={search}
-					makes={makes}
-					idPrefix="drawer"
-					inputHeight="h-10"
-					updateFilter={updateFilter}
-					toggleArrayFilter={toggleArrayFilter}
+		<dialog
+			ref={ref}
+			aria-labelledby="filter-heading"
+			onCancel={(event) => {
+				event.preventDefault();
+				onClose();
+			}}
+			className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none bg-transparent p-0 text-foreground backdrop:bg-black/40"
+		>
+			<div className="flex h-full items-end md:justify-end">
+				<button
+					type="button"
+					tabIndex={-1}
+					aria-label={t("filters.closeBackdropAriaLabel")}
+					onClick={onClose}
+					className="absolute inset-0"
+				/>
+				<div
+					ref={panelRef}
+					className="relative flex max-h-[85dvh] w-full flex-col rounded-t-sheet bg-card shadow-xl md:h-full md:max-h-none md:w-[380px] md:rounded-l-sheet md:rounded-tr-none"
 				>
-					<div className="space-y-5">{children}</div>
-				</FilterProvider>
-
-				<div className="mt-6 flex gap-3">
-					<button
-						type="button"
-						onClick={clearAll}
-						className="flex-1 rounded-lg border border-border py-3 text-sm font-medium text-foreground"
-					>
-						{t("filters.clearAll")}
-					</button>
-					<button
-						type="button"
-						onClick={onClose}
-						className="flex-1 rounded-lg bg-accent py-3 text-sm font-semibold text-white"
-					>
-						{t("filters.showResults", { total: totalCount })}
-					</button>
+					<div className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-border md:hidden" />
+					<div className="flex items-center justify-between border-b border-border py-2 pr-2 pl-5">
+						<h2 id="filter-heading" className="font-heading text-xl font-bold">
+							{t("filters.heading")}
+						</h2>
+						<button
+							type="button"
+							onClick={onClose}
+							aria-label={t("filters.closeAriaLabel")}
+							className="grid size-11 place-items-center rounded-full hover:bg-muted-light"
+						>
+							<X size={20} />
+						</button>
+					</div>
+					<FilterProvider search={search} makes={makes} {...actions}>
+						<div className="grid min-h-0 flex-1 gap-[22px] overflow-y-auto overscroll-contain px-5 pt-[18px] pb-6">
+							{children}
+						</div>
+					</FilterProvider>
+					<div className="flex items-center gap-2.5 border-t border-border px-5 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+						<button
+							type="button"
+							onClick={clearAll}
+							className="min-h-11 px-2 text-sm font-medium underline"
+						>
+							{t("filters.clearAll")}
+						</button>
+						<button
+							type="button"
+							data-page-primary
+							onClick={onClose}
+							className="min-h-12 flex-1 rounded-full bg-reflector px-3 text-sm font-semibold text-foreground hover:bg-reflector-press"
+						>
+							{t("filters.showResults", { count: totalCount })}
+						</button>
+					</div>
 				</div>
 			</div>
-		</div>
+		</dialog>
 	);
 }

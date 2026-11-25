@@ -21,18 +21,11 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 		if (!open) {
 			return;
 		}
-		function onKey(e: KeyboardEvent) {
-			if (e.key === "Escape") {
-				onClose();
-			}
-		}
-		window.addEventListener("keydown", onKey);
 		document.body.style.overflow = "hidden";
 		return () => {
-			window.removeEventListener("keydown", onKey);
 			document.body.style.overflow = "";
 		};
-	}, [open, onClose]);
+	}, [open]);
 
 	if (!open) {
 		return null;
@@ -46,7 +39,11 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 		<div
 			data-testid="login-modal"
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-			onClick={onClose}
+			onClick={(event) => {
+				if (event.target === event.currentTarget) {
+					onClose();
+				}
+			}}
 			onKeyDown={(e) => e.key === "Escape" && onClose()}
 			role="dialog"
 			aria-modal="true"
@@ -54,9 +51,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 		>
 			<div
 				ref={trapRef}
-				className="w-full max-w-sm rounded-l bg-card p-6 shadow-xl"
-				onClick={(e) => e.stopPropagation()}
-				onKeyDown={(e) => e.stopPropagation()}
+				className="w-full max-w-md rounded-sheet border border-border bg-card p-6 shadow-xl"
 				role="document"
 			>
 				<div className="mb-5 flex items-start justify-between">
@@ -67,7 +62,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 						type="button"
 						onClick={onClose}
 						aria-label={t("modal.closeLabel")}
-						className="rounded p-1 text-muted hover:bg-muted-light hover:text-foreground"
+						className="grid size-11 place-items-center rounded-full text-muted hover:bg-muted-light hover:text-foreground"
 					>
 						<X className="h-4 w-4" />
 					</button>
@@ -77,7 +72,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 
 				<p className="mt-4 text-center text-sm text-muted">
 					{t("modal.noAccount")}{" "}
-					<Link to="/rekisteroidy" onClick={onClose} className="text-accent underline">
+					<Link to="/rekisteroidy" onClick={onClose} className="text-foreground underline">
 						{t("modal.registerLink")}
 					</Link>
 				</p>

@@ -1,6 +1,13 @@
 /** Pure booking helpers — safe for client and server bundles. */
 
+export type BookingLine =
+	| { kind: "weekend"; cents: number }
+	| { kind: "week"; count: number; cents: number }
+	| { kind: "day"; count: number; unitCents: number; cents: number };
+
 export interface BookingCost {
+	lines: BookingLine[];
+	savingsCents: number;
 	totalCents: number;
 	days: number;
 	label: "weekend" | "week" | null;
@@ -32,22 +39,33 @@ export function computeBookingCost(
 	const end = new Date(`${to}T00:00:00Z`);
 	const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1;
 
-	// Use noon UTC so any calendar date maps to its correct weekday regardless of local offset
-	const startDay = new Date(`${from}T12:00:00Z`).getUTCDay();
-	const endDay = new Date(`${to}T12:00:00Z`).getUTCDay();
-	if (days === 3 && startDay === 5 && endDay === 0 && pricePerWeekendCents) {
-		return { totalCents: pricePerWeekendCents, days, label: "weekend" };
+	const lines: BookingLine[] = [];
+	let label: BookingCost["label"] = null;
+	let dayCount = days;
+	if (days === 3 && start.getUTCDay() === 5 && pricePerWeekendCents != null) {
+		label = "weekend";
+		lines.push({ kind: "weekend", cents: pricePerWeekendCents });
+		dayCount = 0;
+	} else if (days >= 7 && pricePerWeekCents != null) {
+		label = "week";
+		const count = Math.floor(days / 7);
+		lines.push({ kind: "week", count, cents: count * pricePerWeekCents });
+		dayCount = days % 7;
 	}
-
-	if (days >= 7 && pricePerWeekCents) {
-		const fullWeeks = Math.floor(days / 7);
-		const remainingDays = days % 7;
-		return {
-			totalCents: fullWeeks * pricePerWeekCents + remainingDays * pricePerDayCents,
-			days,
-			label: "week",
-		};
+	if (dayCount > 0) {
+		lines.push({
+			kind: "day",
+			count: dayCount,
+			unitCents: pricePerDayCents,
+			cents: dayCount * pricePerDayCents,
+		});
 	}
-
-	return { totalCents: days * pricePerDayCents, days, label: null };
+	const totalCents = lines.reduce((sum, line) => sum + line.cents, 0);
+	return {
+		days,
+		label,
+		lines,
+		totalCents,
+		savingsCents: Math.max(0, days * pricePerDayCents - totalCents),
+	};
 }

@@ -4,6 +4,7 @@ export default {
 		empty: "No messages yet.",
 	},
 	thread: {
+		back: "Back",
 		send: "Send",
 		placeholder: "Write a message…",
 		composerLabel: "Message",

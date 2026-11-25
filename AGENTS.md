@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Motori is a P2P motorcycle rental noticeboard for Finland. Lean MVP — prefer minimal, direct solutions over abstractions and premature generalisation. UI copy is Finnish.
+Motori is a Finnish marketplace for motorcycle sales, rentals, gear, and parts. Lean MVP — prefer minimal, direct solutions over abstractions and premature generalisation. UI copy is Finnish.
 
 ## Monorepo layout
 
@@ -19,7 +19,7 @@ pnpm workspace: `apps/*` are deployable apps, `packages/*` are shared libraries.
 - `apps/talli` — the motorcycle-owner companion app at talli.motori.fi (garage, maintenance log, reminders, digest). Runs on port 3001, owns the `talli` Postgres schema with its own migration table, mounts no auth routes (SSO via motori).
 - `packages/db` (`@motori/db`) — `createDb`/`createMigrator` + BetterAuth table types
 - `packages/server` (`@motori/server`) — server-only subpath exports: cron, csrf, rate-limit, security-headers, nonce, log (incl. OpenObserve stream), email, email-wrapper, image-storage, image-upload, image-url (the one export both apps re-export into a client-reachable `validators.ts`, so it stays import-free), uploads-route, document-storage, password-strength, the `createAuth` factory, session, require-verified-email, origins. **Cross-app server infra lives here, not copied between apps** — when a second app needs the same server logic (upload handler, verify middleware, origin derivation, …), parameterise it in `@motori/server` and have both apps call it; never copy motori's code into talli (or vice versa). The genuinely app-local exceptions are `session.ts` (must stay in-app for client-bundle pruning of the eager `auth` singleton) and `protectedMutation` (a 3-line composition of shared middleware).
-- `packages/ui` (`@motori/ui`) — `theme.css` design tokens + button/input/select/textarea + `cn`
+- `packages/ui` (`@motori/ui`) — shared theme, wordmark, button, input, select, textarea, and `cn`. Both apps bundle Instrument Sans for body text and Bricolage Grotesque for headings and prices. Use `reflector` for a lime fill with ink text.
 
 ## Commands
 
@@ -30,7 +30,7 @@ Always use `pnpm` (not npm/bun — lockfile is pnpm-lock.yaml).
 - `pnpm typecheck` — fans out to every workspace package via `pnpm -r typecheck`
 - `pnpm lint` / `pnpm lint:fix` — Biome, run repo-wide from the root (tabs, 100-col, strict rules incl. `noExplicitAny`, `noConsole` warn, `noNonNullAssertion`)
 - `pnpm test` — fans out to every workspace package via `pnpm -r test` (Vitest). Run a single file inside the app: `pnpm --filter motori test -- path/to/file.test.ts`
-- `pnpm test:e2e` / `pnpm test:e2e:ui` — dispatches to the `motori` app's Playwright config. Config auto-starts the dev server with `DISABLE_EMAIL_VERIFICATION=true`. `pnpm test:e2e:talli` runs talli's e2e suite.
+- `pnpm test:e2e` / `pnpm test:e2e:ui` — dispatches to the `motori` app's Playwright config. For a local run, Playwright builds and starts the production server with `DISABLE_EMAIL_VERIFICATION=true`, or reuses a running server. `pnpm test:e2e:talli` runs talli's e2e suite. Use `MOTORI_E2E_PORT=3011 pnpm test:e2e` for local Motori checks. Set `MOTORI_E2E_PORT=3011 TALLI_E2E_PORT=3012` when exercising both apps with `pnpm test:e2e:talli`. When serving an existing build, build it with `BETTER_AUTH_URL=http://localhost:3011` and serve it on port 3011.
 
 Per-app scripts run via `pnpm --filter talli <script>` (`dev`, `build`, `db:migrate`, `test`, `test:e2e`), same as `--filter motori`.
 
@@ -52,7 +52,11 @@ After schema changes: add a new migration file, run `db:migrate`, then `db:codeg
 
 ### Routing
 
-File-based under `apps/motori/src/routes/`. Both apps' `routeTree.gen.ts` files are generated. Do not edit them by hand; commit changes produced by the route generator. `__root.tsx` owns the HTML shell, nav, fonts, and 404 component. Dynamic segments use `$param` (e.g. `listings/$listingId.tsx`); the trailing-underscore variant `$listingId_.edit.tsx` is a sibling route, not nested.
+File-based under `apps/motori/src/routes/`. Both apps' `routeTree.gen.ts` files are generated. Do not edit them by hand; commit changes produced by the route generator. `__root.tsx` owns the HTML shell, fonts, and 404 component. Motori’s shared navigation is in `components/nav/`. The header, tab bar, and sticky action bar heights are defined in `styles/app.css`. Dynamic segments use `$param` (e.g. `listings/$listingId.tsx`); the trailing-underscore variant `$listingId_.edit.tsx` is a sibling route, not nested.
+
+On the account page, check admin access with the same predicate as `requireAdmin`. Public session, email sign-in, and email registration responses omit the role for regular members. Use `data-page-primary` on a page’s lime action so the header and tab bar show Myy as an outline.
+
+The home route `/` searches all listing categories. On `/`, `/varusteet`, and `/varaosat`, `city` filters the listing query. On the sale and rental maps, `city` selects the Leaflet panel. Map pins count all matching listings, and the selected city’s panel paginates its own results. Load more keeps the visible range in the URL cursor. Read that range and its counts from the same database snapshot so Back and reload preserve the feed. Earlier keyset links remain valid. Motori loads standard tiles directly from `tile.openstreetmap.org` and displays linked OpenStreetMap attribution on the map. Its image CSP allows that host.
 
 Hydration signal: `__root.tsx` sets `data-hydrated="true"` on `<html>` after mount — e2e tests must wait for this before interacting, otherwise clicks fire before React attaches handlers and forms do native submits.
 
@@ -70,7 +74,7 @@ TanStack Start ships `apps/motori/src/start.ts`, `apps/motori/src/router.tsx`, a
 
 **`build.rollupOptions.external` for `pg`.** `apps/motori/src/lib/auth.ts` imports `db` at module level (required by BetterAuth's Kysely adapter), and `session.ts` imports `auth` — so every route that checks the session transitively pulls `pg` into the client bundle trace. `apps/motori/vite.config.ts` marks `pg`, `pg-pool`, `pg-connection-string`, `pgpass`, and `split2` as external to suppress client-bundle warnings. This is safe because these packages are never valid client code. A future refactor of `auth.ts` to a lazy pattern (see GitHub issue) would eliminate the need for this config.
 
-**CSP and inline scripts.** CSP is set in `packages/server/src/security-headers.ts`. Prod uses `script-src 'self' 'nonce-XXX'`; dev keeps `'unsafe-inline' 'unsafe-eval'` for Vite HMR + Zod v4. The per-request nonce is generated by `nonceMiddleware` (`packages/server/src/nonce.ts`, must run before `securityHeadersMiddleware`) and injected into TanStack's emitted scripts via `createRouter({ ssr: { nonce } })`. Every additional inline `<script>` in `__root.tsx` must read the nonce from `router.options.ssr?.nonce`. Smoke-test changes with `pnpm build && node apps/motori/.output/server/index.mjs` and check DevTools for CSP violations — dev's `unsafe-inline` fallback hides prod-only breakage.
+**CSP and inline scripts.** CSP is set in `packages/server/src/security-headers.ts`. Prod uses `script-src 'self' 'nonce-XXX'`; dev keeps `'unsafe-inline' 'unsafe-eval'` for Vite HMR. Motori imports Zod from `~/lib/zod` so the browser skips its runtime compiler probe before creating a schema. The per-request nonce is generated by `nonceMiddleware` (`packages/server/src/nonce.ts`, must run before `securityHeadersMiddleware`) and injected into TanStack's emitted scripts via `createRouter({ ssr: { nonce } })`. Every additional inline `<script>` in `__root.tsx` must read the nonce from `router.options.ssr?.nonce`. Smoke-test changes with `pnpm build && node apps/motori/.output/server/index.mjs` and check DevTools for CSP violations — dev's `unsafe-inline` fallback hides prod-only breakage.
 
 **Route head metadata.** Entries in `head().meta[]` are already rendered as `<meta>` — don't pass `tagName: "meta"`, it leaks as a DOM attribute and triggers React's "unknown prop" warning. Use `tagName` only for non-meta tags that need to live in `<head>` (e.g. `link`).
 
@@ -105,6 +109,10 @@ Every POST `createServerFn` must include, in order:
 Validate enum and union inputs from the client with `createServerFn().validator()`. TypeScript types do not protect against crafted requests at runtime.
 
 Image URLs from the client must pass `isValidImageUrl()` before they are stored (`${STORAGE_PUBLIC_URL}/` prefix or `/api/uploads/`; see Storage).
+
+Public listing loaders return whether a phone number can be shown. Fetch the number only when a buyer selects “Näytä puhelinnumero”. The phone lookup checks that the listing is active, is a sale, gear, or part listing, and that the seller still shares the number. On these listings the buyer’s contact button uses reflector and the navigation’s Myy action uses an outline.
+
+Rental pickup and return dates are inclusive. The calendar allows at most 30 billable days, including both endpoints. The rental detail route keeps `from`, `to`, and the mobile request step in the URL. Keep them out of canonical and Open Graph URLs.
 
 ### Bill of sale (`/kauppakirja`)
 
@@ -160,6 +168,7 @@ Use the `gh` CLI for all GitHub interactions — never open the web UI for thing
 
 - Minimal comments. Only write a comment when the WHY is non-obvious (hidden constraint, subtle invariant, workaround). The existing `schema.ts` and `__root.tsx` show the style.
 - No premature abstraction; three similar lines beats a helper.
+- Use reflector lime as a fill with ink text. Use at most one lime action per screen. Motori’s card and booking animations respect `prefers-reduced-motion`. The prototype uses the public sample images through a symlink, including the old hero sizes. Keep text and borders on light surfaces in ink or muted colours.
 - Colour tokens in `packages/ui/src/theme.css` (`ring`, `destructive`, `success`, `warning`) are tuned to pass WCAG AA on the tinted surfaces they are used on (`bg-*/10`–`/20`), not just on white. Compute the contrast ratio before lightening any of them.
 - Production deploy runbook: `DEPLOY.md`. Design specs and implementation plans produced via the superpowers skills go under `docs/superpowers/` (specs in `docs/superpowers/specs/`, plans in `docs/superpowers/plans/`).
 - Commits: no `Co-Authored-By` lines.

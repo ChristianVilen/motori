@@ -1,6 +1,6 @@
+import { Logo } from "@motori/ui/logo";
 import { createFileRoute, Link, Outlet, useMatchRoute, useRouter } from "@tanstack/react-router";
 import { BarChart3, FileText, LogOut, Shield, Users, Wrench } from "lucide-react";
-import { Logo } from "~/components/logo";
 import { requireAdmin } from "~/lib/admin";
 import { signOut } from "~/lib/auth-client";
 import { getModerationCounts } from "~/lib/reports";
@@ -28,13 +28,15 @@ function NavTab({
 		<a
 			href={href}
 			className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
-				active ? "border-accent text-accent" : "border-transparent text-muted hover:text-foreground"
+				active
+					? "border-foreground text-foreground"
+					: "border-transparent text-muted hover:text-foreground"
 			}`}
 		>
 			<Icon size={16} />
 			{label}
 			{!!badge && badge > 0 && (
-				<span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+				<span className="rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
 					{badge}
 				</span>
 			)}
@@ -55,24 +57,24 @@ function AdminLayout() {
 
 	return (
 		<div className="min-h-screen bg-background">
-			<header className="border-b border-border bg-primary px-4 py-3">
+			<header className="border-b border-border bg-background px-4 py-3">
 				<div className="mx-auto flex max-w-6xl items-center justify-between">
 					<div className="flex items-center gap-3">
 						<a href="/admin" className="flex items-center">
-							<Logo variant="dark" className="h-7 w-auto" />
+							<Logo variant="light" className="h-7" />
 						</a>
-						<span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/80">
+						<span className="rounded bg-muted-light px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground">
 							Admin
 						</span>
 					</div>
 					<div className="flex items-center gap-4">
-						<Link to="/" className="text-sm text-white/70 hover:text-white">
+						<Link to="/" className="text-sm text-muted hover:text-foreground">
 							← Site
 						</Link>
 						<button
 							type="button"
 							onClick={handleSignOut}
-							className="flex items-center gap-1.5 text-sm text-white/70 hover:text-white"
+							className="flex items-center gap-1.5 text-sm text-muted hover:text-foreground"
 						>
 							<LogOut size={14} />
 							Sign out
@@ -81,7 +83,7 @@ function AdminLayout() {
 				</div>
 			</header>
 			<div className="mx-auto max-w-6xl px-4 py-6">
-				<nav className="mb-8 flex gap-1 border-b border-border">
+				<nav className="mb-8 flex gap-1 overflow-x-auto border-b border-border">
 					<NavTab
 						href="/admin"
 						label="Stats"

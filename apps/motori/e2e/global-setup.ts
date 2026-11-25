@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { chromium } from "@playwright/test";
+import { BASE_URL } from "./base-url";
 
 // Load DATABASE_URL etc. so seeding in this setup process can talk to Postgres.
 try {
@@ -9,7 +10,7 @@ try {
 	// .env may not exist in CI — rely on real env vars instead.
 }
 
-export const BASE_URL = "http://localhost:3000";
+export { BASE_URL } from "./base-url";
 export const TEST_EMAIL = "e2e-user@test.example.com";
 export const TEST_PASSWORD = "E2eTestPass123!";
 export const AUTH_STATE_PATH = "e2e/.auth/user.json";

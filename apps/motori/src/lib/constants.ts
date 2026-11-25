@@ -80,10 +80,13 @@ export type SortOption = (typeof SORT_OPTIONS)[number]["value"];
 // sort dropdown (MobileBrowseControls) so the two never drift apart. A sort
 // param outside the available options (stale ?sort=relevance without a query)
 // coerces to the default, so `current` is always a member of `options`.
-export function getSortState(search: { q?: string; sort?: SortOption }) {
+export function getSortState(
+	search: { q?: string; sort?: SortOption },
+	queryDefault: "newest" | "relevance" = "relevance",
+) {
 	const hasQuery = !!search.q && search.q.trim().length > 0;
 	const options = SORT_OPTIONS.filter((s) => s.value !== "relevance" || hasQuery);
-	const fallback = hasQuery ? "relevance" : "newest";
+	const fallback = hasQuery ? queryDefault : "newest";
 	const current =
 		options.find((o) => o.value === search.sort) ??
 		options.find((o) => o.value === fallback) ??
@@ -94,25 +97,18 @@ export function getSortState(search: { q?: string; sort?: SortOption }) {
 // The browse surfaces in nav order: category chips, bottom-nav highlight, and
 // (upcoming) the search-overlay category selector all derive from this list.
 export const BROWSE_CATEGORIES = [
+	{ value: "all", to: "/" },
 	{ value: "sale", to: "/pyorat/myynti" },
+	{ value: "rental", to: "/pyorat/vuokraus" },
 	{ value: "gear", to: "/varusteet" },
 	{ value: "part", to: "/varaosat" },
-	{ value: "rental", to: "/pyorat/vuokraus" },
 ] as const;
 
-export type BrowseCategory = (typeof BROWSE_CATEGORIES)[number];
+export function hasCategoryMap(category: string) {
+	return category === "sale" || category === "rental";
+}
 
-export const TYPE_EMOJI: Record<string, string> = {
-	naked: "\u26A1",
-	sport: "\uD83C\uDFCE",
-	touring: "\uD83E\uDDED",
-	adventure: "\uD83C\uDFD4",
-	cruiser: "\uD83D\uDEE3",
-	enduro: "\uD83C\uDF32",
-	motocross: "\uD83C\uDFC1",
-	scooter: "\uD83D\uDEF5",
-	custom: "\uD83D\uDD27",
-};
+export type BrowseCategory = (typeof BROWSE_CATEGORIES)[number];
 
 export const PART_CATEGORIES = [
 	{ value: "brakes", label: "Jarrut" },

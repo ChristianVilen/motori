@@ -1,6 +1,6 @@
 import { loggingMiddleware } from "@motori/server/log/middleware";
 import { nonceMiddleware } from "@motori/server/nonce";
-import { securityHeadersMiddleware } from "@motori/server/security-headers";
+import { createSecurityHeadersMiddleware } from "@motori/server/security-headers";
 import { createCsrfMiddleware, createStart } from "@tanstack/react-start";
 import { apexRedirectMiddleware } from "~/lib/apex-redirect";
 import { corsMiddleware } from "~/lib/cors";
@@ -17,7 +17,7 @@ export const startInstance = createStart(() => ({
 		apexRedirectMiddleware,
 		corsMiddleware,
 		nonceMiddleware,
-		securityHeadersMiddleware,
+		createSecurityHeadersMiddleware({ imgSrc: ["https://tile.openstreetmap.org"] }),
 		loggingMiddleware,
 		serverFnCsrfMiddleware,
 	],

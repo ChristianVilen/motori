@@ -1,16 +1,18 @@
-import { Link, type LinkProps } from "@tanstack/react-router";
-import { ArrowLeft, CalendarDays, MapPin, Star, Tag, User } from "lucide-react";
+import { Link, type LinkProps, useCanGoBack, useRouter } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import type { ReactNode } from "react";
 import { FavoriteButton } from "~/components/listings/favorite-button";
 import { ListingGallery } from "~/components/listings/listing-gallery";
 import { ShareButton } from "~/components/listings/share-button";
 import { ReportButton } from "~/components/report-button";
 import { categoryDetailPath } from "~/lib/category-routes";
-import { LICENSE_CLASSES, LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
-import type { Listing } from "~/lib/db/schema";
-import { formatDate, useTranslation } from "~/lib/i18n";
+import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS } from "~/lib/constants";
+import { formatDate, formatEur, useTranslation } from "~/lib/i18n";
 import type { ListingForDisplay } from "~/lib/listings-detail";
-import { computeListingSlug } from "~/lib/slug";
+import { computeCategorySlug } from "~/lib/slug";
+import { ListingFacts } from "./listing-facts";
+import { NonRentalSidebar } from "./non-rental-sidebar";
+import { SellerCard } from "./seller-card";
 
 interface ReviewSummary {
 	averageRating: number | null;
@@ -21,230 +23,228 @@ export interface ListingDetailShellProps {
 	data: ListingForDisplay & { ownerReviewSummary: ReviewSummary };
 	session: { user: { id: string } } | null;
 	backTo: LinkProps["to"];
-	backLabel: string;
-	sidebar: ReactNode;
-}
-
-function SellerCard({
-	listing,
-	data,
-	ownerReviewSummary,
-}: {
-	listing: Listing;
-	data: ListingForDisplay;
-	ownerReviewSummary: ReviewSummary;
-}) {
-	const { t } = useTranslation("listings");
-	const { t: tProfile } = useTranslation("profile");
-	return (
-		<div>
-			<h2 className="mb-2 text-sm font-semibold text-foreground">{t("detail.sellerLabel")}</h2>
-			<Link
-				data-testid="seller-profile-link"
-				to="/profiili/$userId"
-				params={{ userId: listing.owner_id }}
-				className="group flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition-all hover:border-accent/40 hover:shadow-sm"
-			>
-				<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-muted-light transition-colors group-hover:bg-accent/10">
-					<User className="h-6 w-6 text-muted transition-colors group-hover:text-accent" />
-				</div>
-				<div className="min-w-0 flex-1">
-					<div className="flex items-center justify-between gap-2">
-						<p className="truncate text-base font-medium text-foreground">{data.ownerName}</p>
-						<span className="text-xs font-medium text-accent opacity-0 transition-opacity group-hover:opacity-100">
-							{t("detail.viewProfile")} <span aria-hidden="true">&rarr;</span>
-						</span>
-					</div>
-					<div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
-						{ownerReviewSummary.averageRating !== null ? (
-							<div className="flex items-center gap-1 font-medium text-foreground">
-								<Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
-								{ownerReviewSummary.averageRating}
-								<span className="font-normal text-muted">
-									({ownerReviewSummary.reviewCount}
-									{ownerReviewSummary.reviewCount === 1
-										? tProfile("reviews.reviewOne")
-										: tProfile("reviews.reviewCount")}
-									)
-								</span>
-							</div>
-						) : (
-							<span>{t("detail.noReviews")}</span>
-						)}
-						{!!data.ownerCity && (
-							<>
-								<span className="text-border">&bull;</span>
-								<span className="truncate">{data.ownerCity}</span>
-							</>
-						)}
-						{!!data.ownerSince && (
-							<>
-								<span className="text-border">&bull;</span>
-								<span data-testid="seller-member-since">
-									{t("detail.memberSince", { year: new Date(data.ownerSince).getFullYear() })}
-								</span>
-							</>
-						)}
-					</div>
-				</div>
-			</Link>
-		</div>
-	);
+	sidebar?: ReactNode;
+	rentalLadder?: ReactNode;
 }
 
 export function ListingDetailShell({
 	data,
 	session,
 	backTo,
-	backLabel,
 	sidebar,
+	rentalLadder,
 }: ListingDetailShellProps) {
 	const { t } = useTranslation("listings");
+	const router = useRouter();
+	const canGoBack = useCanGoBack();
 	const { listing, images, ownerReviewSummary } = data;
-
 	const isOwner = session?.user.id === listing.owner_id;
-	const canonicalPath = categoryDetailPath(
+	const price =
+		data.sale?.price ?? data.gear?.price ?? data.part?.price ?? data.rental?.price_per_day;
+	const buyerContact = listing.status === "active" && !isOwner;
+	const path = categoryDetailPath(
 		listing.category,
 		listing.short_id,
-		computeListingSlug(data.makeSlug, data.modelName, listing.city),
+		computeCategorySlug(
+			listing.category,
+			listing.title,
+			data.makeSlug,
+			data.modelName,
+			listing.city,
+		),
 	);
-	const regionLabel = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
-	const typeLabel =
-		MOTORCYCLE_TYPES.find((mt) => mt.value === listing.motorcycle_type)?.label ??
-		listing.motorcycle_type;
-	const licenseLabel =
-		LICENSE_CLASSES.find((l) => l.value === listing.required_license)?.label ?? null;
-	const statusLabel = LISTING_STATUSES[listing.status];
-
+	const backContent = (
+		<>
+			<ChevronLeft size={20} aria-hidden="true" />
+			{t("detail.back")}
+		</>
+	);
+	const backClass =
+		"-ml-1.5 inline-flex min-h-11 items-center rounded-full pr-3 text-sm font-medium hover:underline";
 	return (
-		<div data-testid="listing-detail" className="min-h-screen bg-background">
-			<div className="mx-auto max-w-4xl px-4 py-4 md:py-8">
+		<div
+			data-testid="listing-detail"
+			data-contact-primary={buyerContact || undefined}
+			className="mx-auto max-w-[1304px] px-4 pb-6 data-[contact-primary]:pb-[calc(var(--action-height)+1.5rem)] min-[900px]:px-8 min-[900px]:data-[contact-primary]:pb-6"
+		>
+			<div className="flex items-center justify-between gap-3 pt-1 pb-2">
 				<Link
 					data-testid="listing-detail-back"
 					to={backTo}
-					className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground"
+					className={backClass}
+					onClick={(event) => {
+						if (
+							canGoBack &&
+							event.button === 0 &&
+							!event.metaKey &&
+							!event.ctrlKey &&
+							!event.shiftKey &&
+							!event.altKey
+						) {
+							event.preventDefault();
+							router.history.back();
+						}
+					}}
 				>
-					<ArrowLeft className="h-4 w-4" />
-					{backLabel}
+					{backContent}
 				</Link>
-
-				{listing.status === "sold" && (
-					<div
-						data-testid="listing-sold-banner"
-						className="mb-4 rounded-lg bg-primary/10 px-4 py-3 text-sm font-medium text-primary"
-					>
-						{t("detail.soldBanner")}
-					</div>
-				)}
-
-				{listing.status === "expired" && (
-					<div
-						data-testid="listing-expired-banner"
-						className="mb-4 rounded-lg bg-muted-light px-4 py-3 text-sm font-medium text-muted"
-					>
-						{t("detail.expiredBanner")}
-					</div>
-				)}
-
-				<div className="grid gap-6 lg:grid-cols-[1fr_320px] lg:gap-8">
-					<div className="space-y-4">
-						<ListingGallery images={images} title={listing.title} />
-
-						<div>
-							<div className="flex items-start justify-between gap-3">
-								<h1
-									data-testid="listing-detail-title"
-									className="text-xl font-bold text-primary md:text-2xl"
-								>
-									{listing.title}
-								</h1>
-								<div className="flex shrink-0 items-center gap-2">
-									<ShareButton title={listing.title} path={canonicalPath} />
-									{!isOwner && (
-										<FavoriteButton
-											listingId={listing.id}
-											className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted transition-transform hover:scale-110"
-										/>
-									)}
-									{!!isOwner && (
-										<span className="rounded bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">
-											{t("card.ownBadge")}
-										</span>
-									)}
-									{listing.status !== "active" && (
-										<span
-											data-testid="listing-status-badge"
-											className="rounded bg-warning/20 px-2 py-1 text-xs font-medium text-warning"
-										>
-											{statusLabel}
-										</span>
-									)}
-								</div>
-							</div>
-							<div className="mt-1.5 flex flex-wrap gap-1.5">
-								{!!typeLabel && (
-									<span
-										data-testid="listing-type"
-										className="flex items-center gap-1 rounded-full bg-muted-light px-2.5 py-0.5 text-xs text-muted"
-									>
-										<Tag className="h-3 w-3" />
-										{typeLabel}
-									</span>
-								)}
-								<span
-									data-testid="location-info"
-									className="flex items-center gap-1 rounded-full bg-muted-light px-2.5 py-0.5 text-xs text-muted"
-								>
-									<MapPin className="h-3 w-3" />
-									{listing.city}, {regionLabel}
-								</span>
-								<span
-									data-testid="listing-posted-date"
-									className="flex items-center gap-1 rounded-full bg-muted-light px-2.5 py-0.5 text-xs text-muted"
-								>
-									<CalendarDays className="h-3 w-3" />
-									{t("detail.postedOn", { date: formatDate(new Date(listing.created_at)) })}
-								</span>
-								{!!licenseLabel && (
-									<span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
-										{t("detail.licenseBadge", { license: licenseLabel })}
-									</span>
-								)}
-							</div>
-						</div>
-
-						{!isOwner && (
-							<div className="block lg:hidden">
-								<SellerCard listing={listing} data={data} ownerReviewSummary={ownerReviewSummary} />
-							</div>
-						)}
-
-						<div>
-							<h2 className="mb-1.5 text-sm font-semibold text-foreground">
-								{t("detail.description")}
-							</h2>
-							<p className="whitespace-pre-line text-sm leading-relaxed text-foreground">
-								{listing.description}
-							</p>
-						</div>
-
-						{!!session && (
-							<div className="text-center">
-								<ReportButton targetType="listing" targetId={listing.id} />
-							</div>
-						)}
-					</div>
-
-					<div className="flex flex-col gap-4 lg:self-start">
-						{sidebar}
-						{!isOwner && (
-							<div className="hidden lg:block">
-								<SellerCard listing={listing} data={data} ownerReviewSummary={ownerReviewSummary} />
-							</div>
-						)}
-					</div>
+				<div className="flex items-center gap-2">
+					<ShareButton title={listing.title} path={path} />
+					{!isOwner && (
+						<FavoriteButton
+							listingId={listing.id}
+							title={listing.title}
+							className="border border-border bg-card aria-pressed:bg-reflector"
+						/>
+					)}
 				</div>
 			</div>
+			{listing.status === "sold" && (
+				<p
+					data-testid="listing-sold-banner"
+					className="mb-4 rounded-lg bg-muted-light px-4 py-3 text-sm"
+				>
+					{t("detail.soldBanner")}
+				</p>
+			)}
+			{listing.status === "expired" && (
+				<p
+					data-testid="listing-expired-banner"
+					className="mb-4 rounded-lg bg-muted-light px-4 py-3 text-sm"
+				>
+					{t("detail.expiredBanner")}
+				</p>
+			)}
+			<div className="flex min-w-0 flex-col min-[900px]:grid min-[900px]:grid-cols-[minmax(0,1fr)_360px] min-[900px]:items-start min-[900px]:gap-x-12 min-[900px]:gap-y-7">
+				<div className="contents min-[900px]:block min-[900px]:min-w-0">
+					<ListingHeading listing={listing} isOwner={isOwner} />
+					<div className="order-1 min-w-0">
+						<ListingGallery
+							shortId={listing.short_id}
+							key={listing.id}
+							images={images}
+							title={listing.title}
+						/>
+					</div>
+					<ListingFacts data={data} />
+					<section className="order-5 mt-7">
+						<h2 className="mb-2 text-lg font-bold">{t("detail.description")}</h2>
+						<p className="max-w-[62ch] whitespace-pre-line break-words leading-relaxed">
+							{listing.description}
+						</p>
+					</section>
+				</div>
+				<aside
+					data-rental={listing.category === "rental" || undefined}
+					className="min-[900px]:data-[rental]:max-h-[calc(100dvh-var(--header-height)-2rem)] min-[900px]:data-[rental]:overflow-y-auto contents min-[900px]:sticky min-[900px]:top-[calc(var(--header-height)+1rem)] min-[900px]:grid min-[900px]:gap-5 min-[900px]:rounded-lg min-[900px]:border min-[900px]:border-border min-[900px]:bg-card min-[900px]:p-[22px]"
+				>
+					{rentalLadder ?? (price != null && <ListingPrice data={data} price={price} />)}
+					<div className="order-6">
+						{listing.category === "rental" ? (
+							sidebar
+						) : (
+							<NonRentalSidebar
+								key={listing.id}
+								listing={listing}
+								isOwner={isOwner}
+								currentUserId={session?.user.id}
+								ownerPhoneVisible={data.ownerPhoneVisible}
+								price={price}
+							/>
+						)}
+					</div>
+					{!isOwner && (
+						<div className="order-7 mt-7 min-[900px]:mt-0">
+							<SellerCard data={data} summary={ownerReviewSummary} />
+						</div>
+					)}
+					{listing.category === "sale" && (
+						<Link
+							to="/kauppakirja"
+							search={{ ilmoitus: listing.short_id }}
+							aria-label={t("contract:link")}
+							className="order-8 mt-4 flex items-center gap-3 rounded-lg border border-border bg-card p-4 hover:border-foreground min-[900px]:mt-0"
+						>
+							<FileText size={22} aria-hidden="true" className="shrink-0" />
+							<div className="min-w-0 flex-1">
+								<span className="font-semibold">{t("contract:link")}</span>
+								<p className="mt-1 text-[13px] text-muted">{t("contract:linkHint")}</p>
+							</div>
+							<ChevronRight size={18} aria-hidden="true" className="shrink-0 text-muted" />
+						</Link>
+					)}
+				</aside>
+				{!!session && (
+					<div className="order-9 mt-7 min-[900px]:col-start-1 min-[900px]:mt-0">
+						<ReportButton targetType="listing" targetId={listing.id} />
+					</div>
+				)}
+			</div>
+		</div>
+	);
+}
+
+function ListingHeading({
+	listing,
+	isOwner,
+}: {
+	listing: ListingForDisplay["listing"];
+	isOwner: boolean;
+}) {
+	const { t, i18n } = useTranslation("listings");
+	const region = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
+	const typeLabel = MOTORCYCLE_TYPES.find((v) => v.value === listing.motorcycle_type)?.label;
+	const chip = "inline-flex items-center rounded-full bg-muted-light px-[11px] py-1 text-[13px]";
+	return (
+		<div className="contents min-[900px]:mb-4 min-[900px]:block">
+			<h1
+				data-testid="listing-detail-title"
+				className="order-3 mt-1.5 break-words font-heading text-[22px] leading-tight font-bold tracking-tight min-[900px]:mt-0 min-[900px]:text-[32px]"
+			>
+				{listing.title}
+			</h1>
+			<div className="order-4 mt-3.5 flex flex-wrap gap-1.5">
+				{!!typeLabel && (
+					<span data-testid="listing-type" className={chip}>
+						{typeLabel}
+					</span>
+				)}
+				<span data-testid="location-info" className={chip}>
+					{listing.city}, {region}
+				</span>
+				<span data-testid="listing-posted-date" className={chip}>
+					{t("detail.postedOn", { date: formatDate(new Date(listing.created_at), i18n.language) })}
+				</span>
+				{!!listing.required_license && (
+					<span className={chip}>
+						{t("detail.licenseBadge", { license: listing.required_license })}
+					</span>
+				)}
+				{isOwner ? <span className={chip}>{t("card.ownBadge")}</span> : null}
+				{listing.status !== "active" && (
+					<span data-testid="listing-status-badge" className={chip}>
+						{LISTING_STATUSES[listing.status]}
+					</span>
+				)}
+			</div>
+		</div>
+	);
+}
+
+function ListingPrice({ data, price }: { data: ListingForDisplay; price: number }) {
+	const { listing } = data;
+	const { t, i18n } = useTranslation("listings");
+	return (
+		<div className="order-2 mt-[18px] min-[900px]:mt-0" data-testid="price-info">
+			<span
+				data-testid={`price-${listing.category}`}
+				className="font-heading text-[30px] leading-[1.1] font-extrabold tracking-[-0.035em] tabular-nums"
+			>
+				{formatEur(price, i18n.language)}
+			</span>
+			{!!data.sale?.negotiable && (
+				<span className="ml-3 text-[13px] text-muted">{t("detail.negotiable")}</span>
+			)}
 		</div>
 	);
 }

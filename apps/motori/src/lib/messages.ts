@@ -2,7 +2,6 @@
 
 import { csrfMiddleware } from "@motori/server/csrf";
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
 import { AppError } from "~/lib/errors";
 import {
 	blockUserServer,
@@ -15,6 +14,7 @@ import {
 	unblockUserServer,
 } from "~/lib/messages.server";
 import { getSession, requireUserId } from "~/lib/session";
+import { z } from "~/lib/zod";
 
 export const MESSAGE_MAX_LENGTH = 4000;
 

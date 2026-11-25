@@ -45,6 +45,7 @@ test.describe("Gear listing lifecycle", () => {
 
 		const detail = new ListingDetailPage(page);
 		await expect(detail.title).toHaveText(ITEM_TITLE);
+		await expect(detail.facts).toContainText("Takki");
 	});
 
 	test("gear listing appears in /varusteet browse", async () => {

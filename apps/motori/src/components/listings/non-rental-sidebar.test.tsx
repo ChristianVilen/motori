@@ -7,8 +7,13 @@ import { NonRentalSidebar } from "./non-rental-sidebar";
 
 vi.mock("~/lib/i18n", () => ({
 	formatEur: (cents: number) => `${(cents / 100).toFixed(0)} €`,
-	useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key }),
+	useTranslation: () => ({
+		i18n: { language: "fi" },
+		t: (key: string) => key,
+	}),
 }));
+
+vi.mock("~/lib/listings-detail", () => ({ revealListingPhone: vi.fn() }));
 
 vi.mock("~/lib/messages", () => ({
 	startConversation: vi.fn(async () => ({ conversationId: "conv-1" })),
@@ -56,12 +61,9 @@ function renderSidebar(overrides: Partial<Parameters<typeof NonRentalSidebar>[0]
 	return render(
 		<NonRentalSidebar
 			price={10000}
-			priceTestId="price-sale"
-			statRows={[]}
 			listing={baseListing}
 			isOwner={false}
 			ownerPhoneVisible={false}
-			ownerPhone={null}
 			{...overrides}
 		/>,
 	);
@@ -72,13 +74,13 @@ describe("NonRentalSidebar seller CTA", () => {
 		renderSidebar();
 
 		expect(screen.getByTestId("login-to-contact")).toBeInTheDocument();
-		expect(screen.queryByRole("button", { name: /lähetä viesti/i })).not.toBeInTheDocument();
+		expect(screen.queryByRole("button", { name: "detail.messageSeller" })).not.toBeInTheDocument();
 	});
 
 	it("shows the message button when logged in, listing active, not owner", () => {
 		renderSidebar({ currentUserId: "user-1" });
 
-		expect(screen.getByRole("button", { name: /lähetä viesti/i })).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "detail.messageSeller" })).toBeInTheDocument();
 		expect(screen.queryByTestId("login-to-contact")).not.toBeInTheDocument();
 	});
 
@@ -86,7 +88,7 @@ describe("NonRentalSidebar seller CTA", () => {
 		renderSidebar({ isOwner: true, currentUserId: "owner-1", listing: baseListing });
 
 		expect(screen.queryByTestId("login-to-contact")).not.toBeInTheDocument();
-		expect(screen.queryByRole("button", { name: /lähetä viesti/i })).not.toBeInTheDocument();
+		expect(screen.queryByRole("button", { name: "detail.messageSeller" })).not.toBeInTheDocument();
 	});
 
 	it("shows no login link when logged out and the listing is not active", () => {

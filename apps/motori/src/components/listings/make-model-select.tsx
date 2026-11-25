@@ -222,7 +222,7 @@ export function MakeModelSelect({
 	}
 
 	const triggerClass =
-		"flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent";
+		"flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
 
 	const dropdownClass =
 		"absolute bottom-[calc(100%+var(--menu-shift))] z-50 mb-1 flex max-h-[var(--menu-max-height)] w-max min-w-full max-w-[calc(100vw-2rem)] flex-col rounded-md border border-border bg-card shadow-lg md:top-full md:bottom-auto md:mt-1 md:mb-0 md:max-h-none";
@@ -232,10 +232,10 @@ export function MakeModelSelect({
 	} as CSSProperties;
 
 	const filterInputClass =
-		"w-full rounded border border-input bg-background px-2 py-1 text-base outline-none focus:ring-1 focus:ring-accent md:text-sm";
+		"w-full rounded border border-input bg-background px-2 py-1 text-base outline-none focus:ring-1 focus:ring-ring md:text-sm";
 
 	const addInputClass =
-		"flex-1 rounded border border-input bg-background px-2 py-1 text-base outline-none focus:ring-1 focus:ring-accent md:text-sm";
+		"flex-1 rounded border border-input bg-background px-2 py-1 text-base outline-none focus:ring-1 focus:ring-ring md:text-sm";
 
 	return (
 		<div className="grid grid-cols-2 gap-4">
@@ -338,7 +338,7 @@ export function MakeModelSelect({
 											type="button"
 											onClick={handleAddMake}
 											disabled={makeLoading || !newMakeName.trim()}
-											className="rounded bg-accent px-3 py-1 text-sm text-white disabled:opacity-50"
+											className="rounded bg-primary px-3 py-1 text-sm text-white disabled:opacity-50"
 										>
 											Lisää
 										</button>
@@ -360,7 +360,7 @@ export function MakeModelSelect({
 								<button
 									type="button"
 									onClick={() => setMakeAddingNew(true)}
-									className="flex items-center gap-1 text-sm text-accent hover:underline"
+									className="flex items-center gap-1 text-sm text-foreground hover:underline"
 								>
 									<Plus className="h-3 w-3" />
 									Ei löydy listalta — lisää uusi
@@ -478,7 +478,7 @@ export function MakeModelSelect({
 											type="button"
 											onClick={handleAddModel}
 											disabled={modelLoading || !newModelName.trim()}
-											className="rounded bg-accent px-3 py-1 text-sm text-white disabled:opacity-50"
+											className="rounded bg-primary px-3 py-1 text-sm text-white disabled:opacity-50"
 										>
 											Lisää
 										</button>
@@ -500,7 +500,7 @@ export function MakeModelSelect({
 								<button
 									type="button"
 									onClick={() => setModelAddingNew(true)}
-									className="flex items-center gap-1 text-sm text-accent hover:underline"
+									className="flex items-center gap-1 text-sm text-foreground hover:underline"
 								>
 									<Plus className="h-3 w-3" />
 									Ei löydy listalta — lisää uusi

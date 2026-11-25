@@ -1,9 +1,9 @@
 export default {
 	dashboard: {
+		admin: "Ylläpito",
 		fallbackName: "Profiili",
 		favoritesLabel: "Suosikit",
 		savedSearchesLabel: "Tallennetut haut",
-		stats: "{{active}} aktiivista · {{paused}} tauolla · {{rented}} vuokrattu",
 		newListing: "Uusi ilmoitus",
 		settingsAriaLabel: "Asetukset",
 		signOutAriaLabel: "Kirjaudu ulos",
@@ -34,7 +34,7 @@ export default {
 	favorites: {
 		title: "Suosikit",
 		back: "Takaisin",
-		empty: "Ei suosikkeja vielä. Napauta ilmoituksen sydäntä lisätäksesi sen tähän.",
+		empty: "Tallenna ilmoitus suosikkeihin painamalla sydäntä.",
 	},
 	savedSearches: {
 		title: "Tallennetut haut",
@@ -46,7 +46,6 @@ export default {
 		back: "Takaisin",
 		notFound: "Käyttäjää ei löydy.",
 		notFoundBack: "Etusivulle",
-		memberSince: "Jäsen {{date}} alkaen",
 		listingsHeading: "Ilmoitukset ({{count}})",
 		noListings: "Ei aktiivisia ilmoituksia.",
 	},
@@ -87,6 +86,7 @@ export default {
 		heading: "Arvostelut",
 		submitHeading: "Jätä arvostelu",
 		ratingLabel: "Arvosana",
+		ratingValue: "{{rating}} / 5 tähteä",
 		commentLabel: "Kommentti (vapaaehtoinen)",
 		commentPlaceholder: "Kerro kokemuksestasi...",
 		submitButton: "Lähetä arvostelu",
@@ -97,8 +97,6 @@ export default {
 			"Arvosteluasi ei näytetä vielä — odottaa toisen osapuolen arvostelua tai 14 päivän määräaikaa.",
 		summary: "{{rating}} ★ ({{count}} arvostelua)",
 		summaryOne: "{{rating}} ★ (1 arvostelu)",
-		reviewCount: " arvostelua",
-		reviewOne: " arvostelu",
 		submitError: "Arvostelun lähetys epäonnistui. Yritä uudelleen.",
 	},
 	settings: {

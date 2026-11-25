@@ -3,10 +3,12 @@ import { waitForHydration } from "../helpers";
 
 export class DashboardPage {
 	readonly page: Page;
+	readonly adminLink: Locator;
 	readonly newListingButton: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
+		this.adminLink = page.getByTestId("dashboard-admin-link");
 		this.newListingButton = page.getByTestId("dashboard-new-listing");
 	}
 

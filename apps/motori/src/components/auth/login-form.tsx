@@ -83,7 +83,7 @@ export function LoginForm({ onSuccess, redirect }: LoginFormProps) {
 					onChange={(e) => setPassword(e.target.value)}
 				/>
 				<div className="text-right">
-					<Link to="/unohdin-salasanan" className="text-xs text-accent underline">
+					<Link to="/unohdin-salasanan" className="text-xs text-foreground underline">
 						{t("login.forgotPassword")}
 					</Link>
 				</div>
@@ -98,7 +98,9 @@ export function LoginForm({ onSuccess, redirect }: LoginFormProps) {
 			<Button
 				data-testid="login-submit"
 				type="submit"
-				className="w-full bg-accent text-white hover:bg-accent-hover"
+				data-page-primary
+				variant="reflector"
+				className="w-full"
 				disabled={loading}
 			>
 				{loading ? t("login.submitLoading") : t("login.submitIdle")}

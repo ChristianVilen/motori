@@ -1,45 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { NonRentalSidebar } from "~/components/listings/non-rental-sidebar";
-import { CONDITION_LABELS, SITE_NAME, SITE_URL } from "~/lib/constants";
+import { createFileRoute } from "@tanstack/react-router";
+import { SITE_NAME, SITE_URL } from "~/lib/constants";
 import { centsToEuros } from "~/lib/currency";
-import { formatNumber, useTranslation } from "~/lib/i18n";
 import { defineCategoryDetailRoute } from "~/lib/listings-detail-route";
-import { formatPower } from "~/lib/power";
 import { computeListingSlug } from "~/lib/slug";
 
 const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute({
 	category: "sale",
 	backTo: "/pyorat/myynti",
-	Sidebar: ({ data, isOwner }) => {
-		const s = data.sale as NonNullable<typeof data.sale>;
-		return (
-			<div className="space-y-4">
-				<NonRentalSidebar
-					price={s.price}
-					priceTestId="price-sale"
-					negotiable={s.negotiable}
-					statRows={[
-						{ label: "Kunto", value: CONDITION_LABELS[s.condition] ?? s.condition },
-						...(s.km_driven != null
-							? [{ label: "Kilometrit", value: `${formatNumber(s.km_driven)} km` as const }]
-							: []),
-						...(s.power_kw != null ? [{ label: "Teho", value: formatPower(s.power_kw) }] : []),
-						...(s.color ? [{ label: "Väri", value: s.color }] : []),
-						...(s.owner_count != null
-							? [{ label: "Omistajia", value: String(s.owner_count) }]
-							: []),
-						...(s.trade_possible ? [{ label: "Vaihto", value: "Mahdollinen" }] : []),
-					]}
-					listing={data.listing}
-					isOwner={isOwner}
-					ownerPhoneVisible={data.ownerContact.showPhone}
-					ownerPhone={data.ownerContact.phone}
-					currentUserId={data.session?.user.id}
-				/>
-				<SaleContractLink shortId={data.listing.short_id} />
-			</div>
-		);
-	},
 	head: (loaderData) => {
 		const l = loaderData?.listing;
 		if (!l) {
@@ -64,19 +31,6 @@ const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute
 		};
 	},
 });
-
-function SaleContractLink({ shortId }: { shortId: string }) {
-	const { t } = useTranslation("contract");
-	return (
-		<Link
-			to="/kauppakirja"
-			search={{ ilmoitus: shortId }}
-			className="block rounded-lg border border-border px-4 py-3 text-center text-sm font-medium hover:border-accent hover:text-accent"
-		>
-			{t("link")}
-		</Link>
-	);
-}
 
 export const Route = createFileRoute("/pyorat/myynti/$listingId_/$slug")({
 	loader,

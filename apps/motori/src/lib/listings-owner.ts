@@ -2,15 +2,11 @@ const getDb = async () => (await import("~/lib/db/index")).db;
 
 import { type Kysely, sql } from "kysely";
 import type { Condition } from "~/lib/constants";
-import type { Database, Listing, ListingImage } from "~/lib/db/schema";
+import type { Database, ListingImage } from "~/lib/db/schema";
 
-export type ListingSummary = Listing & {
-	makeSlug: string | null;
-	modelName: string | null;
-	price: number | null;
-	km_driven: number | null;
-	condition: Condition | null;
-};
+export type ListingSummary = Awaited<
+	ReturnType<ReturnType<typeof listingSummaryQuery>["execute"]>
+>[number];
 
 export type OwnerListingsResult = {
 	listings: ListingSummary[];
@@ -37,6 +33,9 @@ export function listingSummaryQuery(db: Kysely<Database>) {
 				"price",
 			),
 			"listing_sale.km_driven",
+			"listing_gear.size",
+			"listing_gear.gear_type",
+			"listing_part.part_category",
 			sql<Condition | null>`coalesce(listing_sale.condition, listing_gear.condition, listing_part.condition)`.as(
 				"condition",
 			),

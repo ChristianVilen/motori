@@ -176,7 +176,7 @@ export function MotorcycleFields({
 											}
 											className={`flex-1 rounded-md border py-2 text-sm font-medium transition-colors ${
 												field.state.value === cls.value
-													? "border-accent bg-accent text-white"
+													? "border-foreground bg-primary text-primary-foreground"
 													: "border-border bg-background text-foreground hover:bg-muted-light"
 											}`}
 										>

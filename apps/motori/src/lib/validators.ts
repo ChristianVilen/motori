@@ -1,5 +1,5 @@
 // src/lib/validators.ts
-import { z } from "zod";
+
 import {
 	CONDITIONS,
 	CURRENT_YEAR,
@@ -11,6 +11,7 @@ import {
 } from "~/lib/constants";
 import fiCommon from "~/lib/i18n/resources/fi/common";
 import { MUNICIPALITY_NAME_SET } from "~/lib/municipalities";
+import { z } from "~/lib/zod";
 
 export { isValidImageUrl } from "@motori/server/image-url";
 export type { Condition, GearTypeValue } from "~/lib/constants";
@@ -228,17 +229,28 @@ export const browseSearchSchema = z.object({
 	city: z.string().trim().max(100).optional(),
 });
 
-export type BrowseSearchParams = z.infer<typeof browseSearchSchema>;
-
-// Persisted shape for saved searches: cursor is pagination state, view/city are
-// client-only map UI state — none of these should survive a save.
-export const savedSearchParamsSchema = browseSearchSchema.omit({
-	cursor: true,
-	view: true,
+export const allBrowseSearchSchema = browseSearchSchema.pick({
+	q: true,
+	region: true,
 	city: true,
+	price_min: true,
+	price_max: true,
+	condition: true,
+	sort: true,
+	cursor: true,
 });
 
-export type SavedSearchParams = z.infer<typeof savedSearchParamsSchema>;
+export type BrowseSearchParams = z.infer<typeof browseSearchSchema>;
+
+// A city on a sale or rental map selects a panel. The other feeds use it as a search filter.
+export const savedListSearchParamsSchema = browseSearchSchema.omit({
+	cursor: true,
+	view: true,
+});
+export const savedSearchParamsSchema = savedListSearchParamsSchema.omit({ city: true });
+
+export const savedAllSearchParamsSchema = allBrowseSearchSchema.omit({ cursor: true });
+export type SavedSearchParams = z.infer<typeof savedListSearchParamsSchema>;
 
 export function countActiveFilters(search: BrowseSearchParams): number {
 	return (
@@ -257,6 +269,18 @@ export function countActiveFilters(search: BrowseSearchParams): number {
 		(search.part_category ? 1 : 0) +
 		(search.size ? 1 : 0) +
 		(search.km_max != null ? 1 : 0)
+	);
+}
+
+// A rental day price cannot be compared with a sale price, and rentals have no condition.
+export function excludesRentals(category: string, search: BrowseSearchParams): boolean {
+	return (
+		category === "all" &&
+		(search.sort === "price_asc" ||
+			search.sort === "price_desc" ||
+			search.price_min != null ||
+			search.price_max != null ||
+			!!search.condition)
 	);
 }
 

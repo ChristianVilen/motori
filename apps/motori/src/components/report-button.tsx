@@ -1,3 +1,5 @@
+import { Button } from "@motori/ui/button";
+import { Textarea } from "@motori/ui/textarea";
 import { Flag } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -70,16 +72,14 @@ export function ReportButton({ targetType, targetId }: ReportButtonProps) {
 						role="dialog"
 						aria-modal="true"
 						aria-label={t("report.modalTitle")}
-						className="w-full max-w-md rounded-l bg-white p-6 shadow-lg"
+						className="w-full max-w-md rounded-sheet border border-border bg-card p-6 shadow-xl"
 					>
 						<form onSubmit={handleSubmit}>
-							<h2 className="mb-4 text-lg font-semibold text-foreground">
-								{t("report.modalTitle")}
-							</h2>
+							<h2 className="mb-4 text-lg font-bold text-foreground">{t("report.modalTitle")}</h2>
 							<label htmlFor="report-reason" className="sr-only">
 								{t("report.reasonLabel")}
 							</label>
-							<textarea
+							<Textarea
 								id="report-reason"
 								value={reason}
 								onChange={(e) => setReason(e.target.value)}
@@ -87,26 +87,21 @@ export function ReportButton({ targetType, targetId }: ReportButtonProps) {
 								maxLength={1000}
 								rows={4}
 								required
-								className="w-full rounded-md border border-border bg-white px-3 py-2 text-base focus:border-accent focus:outline-none md:text-sm"
 							/>
 							{status === "error" && (
 								<p className="mt-2 text-xs text-destructive">{t("errors.generic")}</p>
 							)}
 							<div className="mt-4 flex justify-end gap-2">
-								<button
-									type="button"
-									onClick={handleClose}
-									className="rounded-md border border-border px-4 py-2 text-sm hover:bg-muted-light"
-								>
+								<Button type="button" variant="outline" onClick={handleClose}>
 									{t("actions.cancel")}
-								</button>
-								<button
+								</Button>
+								<Button
 									type="submit"
+									variant="destructive"
 									disabled={status === "submitting" || !reason.trim()}
-									className="rounded-md bg-destructive px-4 py-2 text-sm text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
 								>
 									{status === "submitting" ? t("report.submitting") : t("report.submit")}
-								</button>
+								</Button>
 							</div>
 						</form>
 					</div>

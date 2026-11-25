@@ -62,7 +62,7 @@ function GaragePage() {
 							params={{ vehicleId: v.id }}
 							data-testid="vehicle-card"
 							data-vehicle-id={v.id}
-							className="block rounded-lg border border-border p-4 hover:border-accent"
+							className="block rounded-lg border border-border p-4 hover:border-foreground"
 						>
 							{v.thumbnail_url ? (
 								<img
