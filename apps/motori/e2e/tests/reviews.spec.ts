@@ -1,8 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { BASE_URL } from "../base-url";
 import { TEST_PASSWORD } from "../global-setup";
 import { loginAs, uniqueEmail, uniqueName, waitForHydration } from "../helpers";
-
-const BASE_URL = "http://localhost:3000";
 
 // Accept all confirm dialogs automatically.
 test.beforeEach(async ({ page }) => {

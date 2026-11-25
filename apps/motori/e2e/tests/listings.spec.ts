@@ -7,8 +7,7 @@ test.describe("Listings browse", () => {
 	test("renders search bar and result count", async ({ page }) => {
 		const listings = new ListingsPage(page);
 		await listings.goto();
-		await expect(listings.searchInput).toBeVisible();
-		await expect(listings.searchSubmit).toBeVisible();
+		await expect(listings.searchControl).toBeVisible();
 		await expect(listings.resultCount).toBeVisible();
 	});
 
@@ -24,6 +23,13 @@ test.describe("Listings browse", () => {
 		const listings = new ListingsPage(page);
 		await listings.goto({ region: "uusimaa" });
 		await expect(listings.regionLabel).toHaveText("Uusimaa");
+	});
+
+	test("category chip keeps the query when switching from gear to rentals", async ({ page }) => {
+		const listings = new ListingsPage(page);
+		await listings.gotoGear({ q: "x" });
+		await listings.categoryChip("rental").click();
+		await expect(page).toHaveURL("/pyorat/vuokraus?q=x");
 	});
 
 	test("empty search shows empty state", async ({ page }) => {
@@ -54,8 +60,7 @@ test.describe("Listings browse", () => {
 	});
 });
 
-// Desktop sidebar filter tests — skipped on mobile where sidebar is hidden
-test.describe("Desktop sidebar filters", () => {
+test.describe("Desktop filter panel", () => {
 	test.beforeEach(({ page: _page }, testInfo) => {
 		test.skip(testInfo.project.name === "mobile", "desktop only");
 	});
@@ -63,7 +68,8 @@ test.describe("Desktop sidebar filters", () => {
 	test("make filter updates URL and filters results", async ({ page }) => {
 		const listings = new ListingsPage(page);
 		await listings.goto();
-		await listings.sidebarMakeSelect().selectOption("honda-e2e");
+		await listings.openDrawer();
+		await listings.drawerMakeSelect().selectOption("honda-e2e");
 		await expect(page).toHaveURL(/make=honda-e2e/);
 		await expect(listings.resultCount).toBeVisible();
 	});
@@ -71,18 +77,20 @@ test.describe("Desktop sidebar filters", () => {
 	test("cc range filter updates URL", async ({ page }) => {
 		const listings = new ListingsPage(page);
 		await listings.goto();
-		await listings.fillAndBlur(listings.sidebarCcMin(), "400");
+		await listings.openDrawer();
+		await listings.fillAndBlur(listings.drawerCcMin(), "400");
 		await expect(page).toHaveURL(/cc_min=400/);
-		await listings.fillAndBlur(listings.sidebarCcMax(), "600");
+		await listings.fillAndBlur(listings.drawerCcMax(), "600");
 		await expect(page).toHaveURL(/cc_max=600/);
 	});
 
 	test("year range filter updates URL", async ({ page }) => {
 		const listings = new ListingsPage(page);
 		await listings.goto();
-		await listings.fillAndBlur(listings.sidebarYearMin(), "2020");
+		await listings.openDrawer();
+		await listings.fillAndBlur(listings.drawerYearMin(), "2020");
 		await expect(page).toHaveURL(/year_min=2020/);
-		await listings.fillAndBlur(listings.sidebarYearMax(), "2024");
+		await listings.fillAndBlur(listings.drawerYearMax(), "2024");
 		await expect(page).toHaveURL(/year_max=2024/);
 	});
 
@@ -188,21 +196,23 @@ test.describe("Map view", () => {
 		await listings.viewToggle.click();
 		await expect(page).toHaveURL(/view=map/);
 		// Map container should be visible (leaflet creates .leaflet-container)
-		await expect(page.locator(".leaflet-container")).toBeVisible();
+		await expect(listings.leafMap).toBeVisible();
 	});
 
 	test("view toggle switches back to list view", async ({ page }) => {
 		const listings = new ListingsPage(page);
 		await listings.goto({ view: "map" });
-		await expect(page.locator(".leaflet-container")).toBeVisible();
+		await expect(listings.leafMap).toBeVisible();
 		await listings.viewToggle.click();
 		await expect(page).not.toHaveURL(/view=map/);
 		await expect(listings.grid).toBeVisible();
 	});
 
-	test("city param shows city panel in map view", async ({ page }) => {
+	test("selecting a city pin opens the city panel", async ({ page }) => {
 		const listings = new ListingsPage(page);
-		await listings.goto({ view: "map", city: "Helsinki" });
+		await listings.goto({ view: "map" });
+		await listings.cityMarker("Helsinki").click();
+		await expect(page).toHaveURL(/city=Helsinki/);
 		await expect(listings.mapCityPanel).toBeVisible();
 		await expect(listings.mapCityPanel).toContainText("Helsinki");
 		// City panel should contain listing cards

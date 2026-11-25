@@ -80,10 +80,13 @@ export type SortOption = (typeof SORT_OPTIONS)[number]["value"];
 // sort dropdown (MobileBrowseControls) so the two never drift apart. A sort
 // param outside the available options (stale ?sort=relevance without a query)
 // coerces to the default, so `current` is always a member of `options`.
-export function getSortState(search: { q?: string; sort?: SortOption }) {
+export function getSortState(
+	search: { q?: string; sort?: SortOption },
+	queryDefault: "newest" | "relevance" = "relevance",
+) {
 	const hasQuery = !!search.q && search.q.trim().length > 0;
 	const options = SORT_OPTIONS.filter((s) => s.value !== "relevance" || hasQuery);
-	const fallback = hasQuery ? "relevance" : "newest";
+	const fallback = hasQuery ? queryDefault : "newest";
 	const current =
 		options.find((o) => o.value === search.sort) ??
 		options.find((o) => o.value === fallback) ??

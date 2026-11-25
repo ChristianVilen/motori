@@ -1,77 +1,34 @@
 import { X } from "lucide-react";
-import {
-	CONDITION_LABELS,
-	GEAR_TYPE_LABELS,
-	MOTORCYCLE_TYPES,
-	PART_CATEGORIES,
-	REGIONS,
-} from "~/lib/constants";
+import { REGIONS } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
-import { type BrowseSearchParams, countActiveFilters } from "~/lib/validators";
-import { type FilterMake, FilterProvider, useFilterActions } from "./filter-controls";
-
-interface FilterSidebarProps {
-	search: BrowseSearchParams;
-	makes: FilterMake[];
-	browseTo: string;
-	children: React.ReactNode;
-}
-
-export function FilterSidebar({ search, makes, browseTo, children }: FilterSidebarProps) {
-	const { t } = useTranslation("listings");
-	const activeFilterCount = countActiveFilters(search);
-	const { updateFilter, toggleArrayFilter, clearAll } = useFilterActions(search, browseTo);
-
-	return (
-		<aside className="w-full shrink-0 space-y-6">
-			<div className="flex items-center justify-between">
-				<h2 className="font-heading text-sm font-semibold text-foreground">
-					{t("filters.heading")}
-				</h2>
-				{activeFilterCount > 0 && (
-					<button type="button" onClick={clearAll} className="text-xs text-accent hover:underline">
-						{t("filters.clear")}
-					</button>
-				)}
-			</div>
-
-			<FilterProvider
-				search={search}
-				makes={makes}
-				idPrefix="filter"
-				inputHeight="h-9"
-				updateFilter={updateFilter}
-				toggleArrayFilter={toggleArrayFilter}
-			>
-				<div className="space-y-6">{children}</div>
-			</FilterProvider>
-
-			{activeFilterCount > 0 && (
-				<ActiveFilterChips
-					search={search}
-					makes={makes}
-					onUpdateFilter={updateFilter}
-					onToggleArrayFilter={toggleArrayFilter}
-				/>
-			)}
-		</aside>
-	);
-}
+import type { BrowseSearchParams } from "~/lib/validators";
+import { type FilterMake, useFilterActions } from "./filter-controls";
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: chip list grows with supported filter fields
-function ActiveFilterChips({
+export function ActiveFilterChips({
 	search,
 	makes,
-	onUpdateFilter,
-	onToggleArrayFilter,
+	browseTo,
 }: {
 	search: BrowseSearchParams;
 	makes: FilterMake[];
-	onUpdateFilter: (updates: Partial<BrowseSearchParams>) => void;
-	onToggleArrayFilter: (key: "type" | "license", value: string) => void;
+	browseTo: string;
 }) {
+	const { t } = useTranslation("listings");
+	const {
+		updateFilter: onUpdateFilter,
+		toggleArrayFilter: onToggleArrayFilter,
+		clearAll,
+	} = useFilterActions(browseTo);
 	return (
-		<div className="flex flex-wrap gap-1.5 border-t border-border pt-4">
+		<div className="mx-auto flex w-full max-w-[1304px] flex-wrap items-center gap-2 px-4 pt-3 lg:px-8">
+			{browseTo === "/" && !!search.city && (
+				<FilterChip
+					id="clear-city"
+					label={search.city}
+					onRemove={() => onUpdateFilter({ city: undefined })}
+				/>
+			)}
 			{!!search.region && (
 				<FilterChip
 					label={REGIONS.find((r) => r.value === search.region)?.label ?? search.region}
@@ -81,7 +38,7 @@ function ActiveFilterChips({
 			{search.type?.map((typeVal) => (
 				<FilterChip
 					key={typeVal}
-					label={MOTORCYCLE_TYPES.find((mt) => mt.value === typeVal)?.label ?? typeVal}
+					label={t(`filters.bikeTypes.${typeVal}`, { defaultValue: typeVal })}
 					onRemove={() => onToggleArrayFilter("type", typeVal)}
 				/>
 			))}
@@ -132,13 +89,13 @@ function ActiveFilterChips({
 			)}
 			{!!search.condition && (
 				<FilterChip
-					label={CONDITION_LABELS[search.condition]}
+					label={t(`form.conditions.${search.condition}`)}
 					onRemove={() => onUpdateFilter({ condition: undefined })}
 				/>
 			)}
 			{!!search.gear_type && (
 				<FilterChip
-					label={GEAR_TYPE_LABELS[search.gear_type]}
+					label={t(`filters.gearTypes.${search.gear_type}`)}
 					onRemove={() => onUpdateFilter({ gear_type: undefined })}
 				/>
 			)}
@@ -147,10 +104,7 @@ function ActiveFilterChips({
 			)}
 			{!!search.part_category && (
 				<FilterChip
-					label={
-						PART_CATEGORIES.find((c) => c.value === search.part_category)?.label ??
-						search.part_category
-					}
+					label={t(`card.partCategory.${search.part_category}`)}
 					onRemove={() => onUpdateFilter({ part_category: undefined })}
 				/>
 			)}
@@ -160,23 +114,29 @@ function ActiveFilterChips({
 					onRemove={() => onUpdateFilter({ km_max: undefined })}
 				/>
 			)}
+			<button
+				type="button"
+				className="min-h-9 rounded-full px-2 text-sm underline"
+				onClick={clearAll}
+			>
+				{t("filters.clearAll")}
+			</button>
 		</div>
 	);
 }
 
-function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+function FilterChip({ label, onRemove, id }: { label: string; onRemove: () => void; id?: string }) {
 	const { t } = useTranslation("listings");
 	return (
-		<span className="inline-flex items-center gap-1 rounded-full bg-muted-light px-2.5 py-1 text-xs text-foreground">
+		<button
+			type="button"
+			data-testid={id}
+			className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-muted-light px-3 text-sm"
+			aria-label={t("filters.removeChipAriaLabel", { label })}
+			onClick={onRemove}
+		>
 			{label}
-			<button
-				type="button"
-				onClick={onRemove}
-				className="-m-1.5 p-1.5 text-muted hover:text-foreground"
-				aria-label={t("filters.removeChipAriaLabel", { label })}
-			>
-				<X className="h-3 w-3" />
-			</button>
-		</span>
+			<X size={14} />
+		</button>
 	);
 }

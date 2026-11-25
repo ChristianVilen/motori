@@ -3,8 +3,6 @@ import { BrowsePage } from "~/components/listings/browse-page";
 import { GearFilters } from "~/components/listings/filter-compositions";
 import { SITE_NAME, SITE_URL } from "~/lib/constants";
 import { searchListings } from "~/lib/listings-search";
-import { getMakes } from "~/lib/makes";
-import { getSession } from "~/lib/session";
 import { browseSearchSchema } from "~/lib/validators";
 
 export const Route = createFileRoute("/varusteet/")({
@@ -13,14 +11,7 @@ export const Route = createFileRoute("/varusteet/")({
 		const { view, city, ...deps } = search;
 		return deps;
 	},
-	loader: async ({ deps }) => {
-		const [result, session, makes] = await Promise.all([
-			searchListings({ data: { ...deps, category: "gear" } }),
-			getSession(),
-			getMakes(),
-		]);
-		return { ...result, currentUserId: session?.user.id ?? null, makes };
-	},
+	loader: ({ deps }) => searchListings({ data: { ...deps, category: "gear" } }),
 	head: () => ({
 		meta: [
 			{ title: `Moottoripyörävarusteet — ${SITE_NAME}` },

@@ -2,16 +2,18 @@ import { createServerFn } from "@tanstack/react-start";
 import { protectedMutation } from "~/lib/middleware";
 import { deleteSavedSearch, getSavedSearches, saveSearch } from "~/lib/saved-searches";
 import { requireUserId } from "~/lib/session";
-import { savedSearchParamsSchema } from "~/lib/validators";
+import { savedAllSearchParamsSchema, savedSearchParamsSchema } from "~/lib/validators";
 import { z } from "~/lib/zod";
 
-const categorySchema = z.enum(["sale", "rental", "gear", "part"]);
+const categorySchema = z.enum(["all", "sale", "rental", "gear", "part"]);
 
 export const saveSearchFn = createServerFn({ method: "POST" })
 	.middleware(protectedMutation("save-search", 20, 60))
 	.inputValidator((data: { category: string; params: unknown }) => ({
 		category: categorySchema.parse(data.category),
-		params: savedSearchParamsSchema.parse(data.params),
+		params: (data.category === "all" ? savedAllSearchParamsSchema : savedSearchParamsSchema).parse(
+			data.params,
+		),
 	}))
 	.handler(async ({ data }) => saveSearch(await requireUserId(), data.category, data.params));
 

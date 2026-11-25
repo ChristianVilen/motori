@@ -1,8 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { BASE_URL } from "../base-url";
 import { SEEDED_LISTING_ID, SEEDED_LISTING_SLUG, TEST_EMAIL, TEST_PASSWORD } from "../global-setup";
 import { loginAs, uniqueEmail, uniqueName, waitForHydration } from "../helpers";
-
-const BASE_URL = "http://localhost:3000";
 
 // Auto-accept all confirm() dialogs in this test file.
 test.beforeEach(async ({ page }) => {

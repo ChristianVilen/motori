@@ -9,8 +9,8 @@ export const CATEGORY_BROWSE_PATH: Record<ListingCategory, string> = {
 	part: "/varaosat",
 };
 
-export function categoryBrowsePath(category: ListingCategory): string {
-	return CATEGORY_BROWSE_PATH[category];
+export function categoryBrowsePath(category: ListingCategory | "all"): string {
+	return category === "all" ? "/" : CATEGORY_BROWSE_PATH[category];
 }
 
 export function categoryDetailPath(

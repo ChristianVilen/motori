@@ -62,16 +62,27 @@ function createCountIcon(count: number, active: boolean): L.DivIcon {
 	});
 }
 
-/** Fits map bounds to pins when no city is selected. */
 function FitBounds({ pins, selectedCity }: { pins: MapPin[]; selectedCity?: string | null }) {
 	const map = useMap();
 
 	useEffect(() => {
-		if (selectedCity || pins.length === 0) {
-			return;
+		function framePins() {
+			map.invalidateSize({ pan: false });
+			const selected = pins.find((pin) => pin.city === selectedCity);
+			if (selected) {
+				map.setView([selected.lat, selected.lng], 9, { animate: false });
+			} else if (pins.length) {
+				map.fitBounds(L.latLngBounds(pins.map((p) => L.latLng(p.lat, p.lng))), {
+					padding: [40, 40],
+					maxZoom: 10,
+					animate: false,
+				});
+			}
 		}
-		const bounds = L.latLngBounds(pins.map((p) => [p.lat, p.lng] as L.LatLngTuple));
-		map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
+		framePins();
+		const observer = new ResizeObserver(framePins);
+		observer.observe(map.getContainer());
+		return () => observer.disconnect();
 	}, [selectedCity, map, pins]);
 
 	return null;
@@ -86,12 +97,12 @@ function CityMarker({
 	active: boolean;
 	onCityClick?: (city: string, listingIds: string[]) => void;
 }) {
-	const map = useMap();
 	const icon = useMemo(() => createCountIcon(pin.count, active), [pin.count, active]);
 
 	return (
 		<Marker
 			position={[pin.lat, pin.lng]}
+			title={pin.city}
 			icon={icon}
 			zIndexOffset={active ? 1000 : 0}
 			eventHandlers={
@@ -99,7 +110,6 @@ function CityMarker({
 					? {
 							click: () => {
 								onCityClick(pin.city, pin.listingIds);
-								map.setView([pin.lat, pin.lng], 9, { animate: true });
 							},
 						}
 					: undefined

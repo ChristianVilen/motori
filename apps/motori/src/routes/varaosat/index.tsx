@@ -4,7 +4,6 @@ import { PartsFilters } from "~/components/listings/filter-compositions";
 import { SITE_NAME, SITE_URL } from "~/lib/constants";
 import { searchListings } from "~/lib/listings-search";
 import { getMakes } from "~/lib/makes";
-import { getSession } from "~/lib/session";
 import { browseSearchSchema } from "~/lib/validators";
 
 export const Route = createFileRoute("/varaosat/")({
@@ -14,12 +13,11 @@ export const Route = createFileRoute("/varaosat/")({
 		return deps;
 	},
 	loader: async ({ deps }) => {
-		const [result, session, makes] = await Promise.all([
+		const [result, makes] = await Promise.all([
 			searchListings({ data: { ...deps, category: "part" } }),
-			getSession(),
 			getMakes(),
 		]);
-		return { ...result, currentUserId: session?.user.id ?? null, makes };
+		return { ...result, makes };
 	},
 	head: () => ({
 		meta: [

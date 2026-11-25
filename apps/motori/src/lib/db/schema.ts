@@ -172,7 +172,7 @@ export type Favorite = Selectable<FavoriteTable>;
 export interface SavedSearchTable {
 	id: string;
 	user_id: string;
-	category: ListingCategory;
+	category: ListingCategory | "all";
 	params: JSONColumnType<SavedSearchParams, SavedSearchParams, SavedSearchParams>;
 	created_at: ColumnType<Date, Date | undefined, never>;
 }

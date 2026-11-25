@@ -71,7 +71,7 @@ export class HomePage {
 	}
 
 	categoryChip(category: string) {
-		return this.page.getByTestId(`home-category-${category}`);
+		return this.page.getByTestId(`browse-category-chip-${category}`);
 	}
 
 	get cardFacts() {

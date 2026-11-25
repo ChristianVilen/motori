@@ -5,12 +5,11 @@ import {
 	PART_CATEGORIES,
 	REGIONS,
 } from "~/lib/constants";
-import type { ListingCategory } from "~/lib/db/schema";
+import type { SavedSearch } from "~/lib/db/schema";
 import type { SavedSearchParams } from "~/lib/validators";
 
-// Not the mobile-search-overlay category map (components/nav/mobile-search-overlay.tsx:10-15) —
-// that one is keyed "parts", this domain type is keyed "part".
-const CATEGORY_LABELS: Record<ListingCategory, string> = {
+const CATEGORY_LABELS: Record<SavedSearch["category"], string> = {
+	all: "Kaikki",
 	sale: "Myynti",
 	rental: "Vuokraus",
 	gear: "Varusteet",
@@ -22,19 +21,20 @@ interface MakeLookup {
 	name: string;
 }
 
-// Mirrors the human-readable renderings in ActiveFilterChips
-// (components/listings/filter-sidebar.tsx:64-167) — same lookups, same number
-// formatting — so a saved search reads like the filter chips it was saved from.
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: parts list grows with supported filter fields, same shape as ActiveFilterChips
 export function savedSearchLabel(
-	category: ListingCategory,
+	category: SavedSearch["category"],
 	params: SavedSearchParams,
 	makes: MakeLookup[],
+	categoryLabel = CATEGORY_LABELS[category],
 ): string {
-	const parts: string[] = [CATEGORY_LABELS[category]];
+	const parts: string[] = [categoryLabel];
 
 	if (params.q) {
 		parts.push(params.q);
+	}
+	if (params.city) {
+		parts.push(params.city);
 	}
 	if (params.make) {
 		parts.push(makes.find((m) => m.slug === params.make)?.name ?? params.make);

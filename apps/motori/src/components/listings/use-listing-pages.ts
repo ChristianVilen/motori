@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { SearchResult } from "~/lib/listings-search";
 import type { BrowseSearchParams } from "~/lib/validators";
 
@@ -14,7 +14,7 @@ export function useListingPages(data: SearchResult, search: BrowseSearchParams) 
 		pages = [...pages.slice(0, previous + 1), { cursor, data }];
 		setState({ key, pages });
 	}
-	const allListings = pages.flatMap((p) => p.data.listings);
+	const allListings = useMemo(() => pages.flatMap((p) => p.data.listings), [pages]);
 	return {
 		allListings,
 		totalCount: data.totalCount,

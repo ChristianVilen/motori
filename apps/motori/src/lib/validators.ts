@@ -229,17 +229,29 @@ export const browseSearchSchema = z.object({
 	city: z.string().trim().max(100).optional(),
 });
 
+export const allBrowseSearchSchema = browseSearchSchema.pick({
+	q: true,
+	region: true,
+	city: true,
+	price_min: true,
+	price_max: true,
+	condition: true,
+	sort: true,
+	cursor: true,
+});
+
 export type BrowseSearchParams = z.infer<typeof browseSearchSchema>;
 
-// Persisted shape for saved searches: cursor is pagination state, view/city are
-// client-only map UI state — none of these should survive a save.
+// Category maps use city to open a panel. On the mixed feed city filters the search.
 export const savedSearchParamsSchema = browseSearchSchema.omit({
 	cursor: true,
 	view: true,
 	city: true,
 });
 
-export type SavedSearchParams = z.infer<typeof savedSearchParamsSchema>;
+export const savedAllSearchParamsSchema = allBrowseSearchSchema.omit({ cursor: true });
+export type SavedSearchParams = z.infer<typeof savedSearchParamsSchema> &
+	Pick<BrowseSearchParams, "city">;
 
 export function countActiveFilters(search: BrowseSearchParams): number {
 	return (

@@ -50,7 +50,14 @@ function SavedSearchesPage() {
 				) : (
 					<div className="space-y-3">
 						{savedSearches.map((row) => {
-							const label = savedSearchLabel(row.category, row.params, makes);
+							const label = savedSearchLabel(
+								row.category,
+								row.params,
+								makes,
+								row.category === "all"
+									? t("listings:browse.categoryChips.all")
+									: t(`listings:form.categories.${row.category}`),
+							);
 							return (
 								<div
 									key={row.id}

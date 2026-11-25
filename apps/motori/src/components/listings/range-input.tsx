@@ -22,7 +22,12 @@ export function RangeInput({
 			aria-label={label}
 			placeholder={placeholder}
 			defaultValue={value ?? ""}
-			onBlur={(e) => onChange(e.target.value ? Number(e.target.value) : undefined)}
+			onBlur={(e) => {
+				const next = e.target.value ? Number(e.target.value) : undefined;
+				if (next !== value) {
+					onChange(next);
+				}
+			}}
 			onKeyDown={(e) => {
 				if (e.key === "Enter") {
 					e.currentTarget.blur();

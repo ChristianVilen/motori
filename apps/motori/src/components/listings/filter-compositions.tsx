@@ -14,6 +14,17 @@ import {
 	YearFilter,
 } from "./filter-controls";
 
+export function AllFilters() {
+	return (
+		<>
+			<RegionFilter />
+			<ConditionFilter />
+			<PriceFilter labelKey="filters.price" />
+			<SortFilter queryDefault="newest" />
+		</>
+	);
+}
+
 export function RentalFilters() {
 	return (
 		<>

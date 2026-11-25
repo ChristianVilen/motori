@@ -2,6 +2,7 @@ import { PART_CATEGORIES } from "~/lib/constants";
 
 export default {
 	browse: {
+		filter: "Suodata",
 		searchPlaceholder: "Hae merkkiä, mallia, kaupunkia...",
 		searchLabel: "Hae ilmoituksia",
 		searchButton: "Hae",
@@ -27,9 +28,36 @@ export default {
 		},
 	},
 	filters: {
+		otherSize: "Muu",
+		bikeTypes: {
+			naked: "Naked",
+			sport: "Sport",
+			touring: "Touring",
+			adventure: "Adventure",
+			cruiser: "Cruiser",
+			enduro: "Enduro",
+			motocross: "Motocross",
+			scooter: "Skootteri",
+			custom: "Custom",
+		},
+		gearTypes: {
+			helmet: "Kypärä",
+			jacket: "Takki",
+			pants: "Housut",
+			boots: "Saappaat",
+			gloves: "Käsineet",
+			other: "Muu",
+		},
+
+		sortOptions: {
+			newest: "Uusimmat ensin",
+			price_asc: "Halvin ensin",
+			price_desc: "Kallein ensin",
+			relevance: "Osuvimmat",
+		},
 		heading: "Suodattimet",
 		clear: "Tyhjennä",
-		clearAll: "Tyhjennä",
+		clearAll: "Tyhjennä kaikki",
 		closeAriaLabel: "Sulje",
 		closeBackdropAriaLabel: "Sulje suodattimet",
 		region: "Alue",
@@ -42,7 +70,8 @@ export default {
 		minAriaLabel: "vähintään",
 		maxAriaLabel: "enintään",
 		sort: "Järjestä",
-		showResults: "Näytä {{total}} tulosta",
+		showResults_one: "Näytä {{count}} ilmoitus",
+		showResults_other: "Näytä {{count}} ilmoitusta",
 		removeChipAriaLabel: "Poista {{label}}",
 		make: "Merkki",
 		makeAll: "Kaikki merkit",
@@ -54,13 +83,13 @@ export default {
 		yearMaxPlaceholder: "esim. 2024",
 		price: "Hinta",
 		condition: "Kunto",
-		conditionAll: "Kaikki kunnot",
+
 		gearType: "Varustetyyppi",
-		gearTypeAll: "Kaikki tyypit",
+
 		size: "Koko",
-		sizeAll: "Kaikki koot",
+
 		partCategory: "Osatyyppi",
-		partCategoryAll: "Kaikki osatyypit",
+
 		kmMax: "Kilometrit (max)",
 		kmMaxPlaceholder: "esim. 50000",
 	},

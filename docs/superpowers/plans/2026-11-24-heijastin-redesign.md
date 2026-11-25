@@ -36,7 +36,7 @@ The product owner made these decisions on 2026-11-24. Do not reopen them.
 
 ## Rules for every phase
 
-- Use `pnpm`. Run one shell command at a time.
+- Use `pnpm`. Run one shell command at a time. Use port 3011 for local Motori servers and browser tests. Port 4173 serves the prototype.
 - UI copy is Finnish. Add every new string to both `apps/motori/src/lib/i18n/resources/fi/*.ts` and `apps/motori/src/lib/i18n/resources/en/*.ts`. No test compares the two languages, so compare the keys yourself.
 - Keep every `data-testid` that this plan does not tell you to change. When you change one, change the page object in `apps/motori/e2e/pages/` in the same commit. Selectors stay in page objects.
 - Do not put lime text on a light surface. `e2e/tests/a11y.spec.ts` runs axe on `/`, `/pyorat/vuokraus`, and the auth pages, and a contrast failure fails CI.
@@ -251,31 +251,33 @@ The current theme is one `@theme` block in `packages/ui/src/theme.css`. Phase 1 
 
 **Steps.**
 
-- [ ] **4.1 One page component.** `/` renders `BrowsePage` with `category="all"`, `browseTo="/"`, `showMap={false}`, and a new `AllFilters` composition (`RegionFilter`, `ConditionFilter`, `PriceFilter`, `SortFilter`). Remove the temporary chip row from Phase 3.
-- [ ] **4.2 Remove the dark search band** from `BrowsePage`, with its form. `SiteSearch` replaces it. Remove `listings-search-input` and `listings-search-submit` from the page object and use the `site-search-*` ids.
-- [ ] **4.3 Feed bar.** Under the header:
+- [x] **4.1 One page component.** `/` renders `BrowsePage` with `category="all"`, `browseTo="/"`, `showMap={false}`, and a new `AllFilters` composition (`RegionFilter`, `ConditionFilter`, `PriceFilter`, `SortFilter`). Remove the temporary chip row from Phase 3.
+- [x] **4.2 Remove the dark search band** from `BrowsePage`, with its form. `SiteSearch` replaces it. Remove `listings-search-input` and `listings-search-submit` from the page object and use the `site-search-*` ids.
+- [x] **4.3 Feed bar.** Under the header:
 	- Row 1: category chips as links: Kaikki (`/`), Pyörät (`/pyorat/myynti`), Vuokraus (`/pyorat/vuokraus`), Varusteet (`/varusteet`), Varaosat (`/varaosat`). The active chip is an ink fill with white text and `aria-current="page"`. A chip link carries `q` and `region` to the next page and drops all other params. On mobile this row scrolls sideways alone.
 	- Row 2 on mobile, same row on desktop: **Suodata** with the active filter count in a lime badge (`listings-filter-drawer-toggle`), the sort control, and, where `showMap` is true, the **Lista / Kartta** toggle (`listings-view-toggle`).
 	- On mobile the header search row and the feed bar stick to the top together.
-- [ ] **4.4 Heading row.** `h1`: "Uusimmat ilmoitukset", or "Hakutulokset" when `q` or a filter is set. Then the result count (`listings-total-count`, `aria-live="polite"`, one element for all screen sizes; remove the `-mobile` duplicates and update the page object), the region label, and `SaveSearchButton` on the right. `SaveSearchButton` keeps its rules: disabled without `q` or a filter, login modal when logged out.
-- [ ] **4.5 Active filter chips.** Move the removable filter chips from the sidebar to a row under the feed bar. Show the row only when a filter is active. It ends with "Tyhjennä kaikki".
-- [ ] **4.6 One filter panel.** Delete the desktop sidebar. `FilterDrawer` becomes the only filter UI: a bottom sheet on mobile (max height 85vh) and a right-side panel 380px wide on desktop. Keep the focus trap, Escape, and focus return. The footer has "Tyhjennä kaikki" and the lime button "Näytä N ilmoitusta".
+- [x] **4.4 Heading row.** `h1`: "Uusimmat ilmoitukset", or "Hakutulokset" when `q` or a filter is set. Then the result count (`listings-total-count`, `aria-live="polite"`, one element for all screen sizes; remove the `-mobile` duplicates and update the page object), the region label, and `SaveSearchButton` on the right. `SaveSearchButton` keeps its rules: disabled without `q` or a filter, login modal when logged out.
+- [x] **4.5 Active filter chips.** Move the removable filter chips from the sidebar to a row under the feed bar. Show the row only when a filter is active. It ends with "Tyhjennä kaikki".
+- [x] **4.6 One filter panel.** Delete the desktop sidebar. `FilterDrawer` becomes the only filter UI: a bottom sheet on mobile (max height 85vh) and a right-side panel 380px wide on desktop. Keep the focus trap, Escape, and focus return. The footer has "Tyhjennä kaikki" and the lime button "Näytä N ilmoitusta".
 	- The sidebar and the drawer use two test id prefixes today (`filter-` and `drawer-`). Keep `filter-` only, and update `listings.page.ts`.
 	- Restyle the controls in `filter-controls.tsx`: pill toggles for type, licence, size, condition, gear type, and part category. A selected pill is an ink fill. Remove the emoji from the type toggles.
 	- URL behaviour does not change: each change navigates with `replace: true` and clears `cursor`.
-- [ ] **4.7 Grid and loading.** Use the grid from Phase 3. Restyle `ListingCardSkeleton` to the 4:5 tile. Restyle "load more" as an outline pill.
-- [ ] **4.8 Empty state.** Restyle `EmptyState` and `LowResultNudge`. Keep their logic and the `listings-empty-state` id.
-- [ ] **4.9 Map.** Keep Leaflet and the URL behaviour (`view`, `city`, push on pin click, push on panel close, push on toggle).
+- [x] **4.7 Grid and loading.** Use the grid from Phase 3. Restyle `ListingCardSkeleton` to the 4:5 tile. Restyle "load more" as an outline pill.
+- [x] **4.8 Empty state.** Restyle `EmptyState` and `LowResultNudge`. Keep their logic and the `listings-empty-state` id.
+- [x] **4.9 Map.** Keep Leaflet and the URL behaviour (`view`, `city`, push on pin click, push on panel close, push on toggle).
 	- Pins: an ink circle with the count in white. The selected pin is lime with an ink count and an ink ring. Change the badge styles in `app.css`.
 	- Layout: replace the hard-coded heights `calc(100dvh-293px)` and `calc(100dvh-152px)` with a layout that uses the variables from step 2.10.
 	- City panel (`map-city-panel`): under the map on mobile, a left column 360px wide on desktop, with the heading "Turku · 2 ilmoitusta", the close button (`map-city-panel-close`), and the same cards.
-- [ ] **4.10 Tests.** `listings.spec.ts` must still prove: the toggle sets and removes `view=map`; `city` opens the panel; closing removes `city`; browser Back from a listing returns to the map with the same city; browser Back from the map returns to the list. Add a test for the chip links (the chip Vuokraus on `/varusteet?q=x` lands on `/pyorat/vuokraus?q=x`).
+- [x] **4.10 Tests.** `listings.spec.ts` must still prove: the toggle sets and removes `view=map`; `city` opens the panel; closing removes `city`; browser Back from a listing returns to the map with the same city; browser Back from the map returns to the list. Add a test for the chip links (the chip Vuokraus on `/varusteet?q=x` lands on `/pyorat/vuokraus?q=x`).
 
 **Acceptance.**
 
 - The five browse pages differ only in data, filter blocks, and the map toggle.
 - At 1280px the grid has 5 columns and no sidebar.
 - The filter panel is usable with the keyboard only.
+
+**Phase 4 verification (2026-11-25).** All six required commands passed on the local setup. The unit suite passed 471 tests. Motori’s browser suite passed 148 tests and skipped 9. On port 3011 the production build passed the keyboard, saved-search and map-history checks. Captures at 390×844 and 1280×800 showed no horizontal overflow, browser console errors or CSP violations. The existing CARTO tile endpoint returns images marked “API KEY REQUIRED” in both the baseline and the redesigned app. The city pins and panel work, but the geographic background is unavailable with the current configuration.
 
 ---
 
