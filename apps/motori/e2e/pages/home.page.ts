@@ -42,6 +42,11 @@ export class HomePage {
 		this.loginModal = page.getByTestId("login-modal");
 	}
 
+	async gotoMissingPage() {
+		await this.page.goto("/missing-e2e-page");
+		await waitForHydration(this.page);
+	}
+
 	async goto() {
 		await this.page.goto("/");
 		await this.feedHeading.waitFor();

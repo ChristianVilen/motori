@@ -104,6 +104,10 @@ export const BROWSE_CATEGORIES = [
 	{ value: "part", to: "/varaosat" },
 ] as const;
 
+export function hasCategoryMap(category: string) {
+	return category === "sale" || category === "rental";
+}
+
 export type BrowseCategory = (typeof BROWSE_CATEGORIES)[number];
 
 export const PART_CATEGORIES = [

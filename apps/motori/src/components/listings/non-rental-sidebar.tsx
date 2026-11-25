@@ -45,7 +45,7 @@ export function NonRentalSidebar({
 	price,
 	currentUserId,
 }: NonRentalSidebarProps) {
-	const { t } = useTranslation("listings");
+	const { t, i18n } = useTranslation("listings");
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const [phone, setPhone] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
@@ -81,7 +81,7 @@ export function NonRentalSidebar({
 			className="fixed inset-x-0 bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] z-30 grid min-h-(--action-height) grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2 border-t border-border bg-card px-4 py-2 min-[900px]:static min-[900px]:flex min-[900px]:min-h-0 min-[900px]:gap-2 min-[900px]:flex-col min-[900px]:items-stretch min-[900px]:border-0 min-[900px]:p-0"
 		>
 			<span className="col-start-1 row-start-1 font-heading text-lg font-extrabold tabular-nums min-[900px]:hidden">
-				{price != null ? formatEur(price) : null}
+				{price != null ? formatEur(price, i18n.language) : null}
 			</span>
 			{currentUserId ? (
 				<MessageSellerButton listingId={listing.id} className={primary} />

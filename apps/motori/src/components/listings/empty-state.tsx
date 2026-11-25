@@ -35,7 +35,7 @@ export function EmptyState({ search, browseTo }: EmptyStateProps) {
 	function clearAll() {
 		navigate({
 			to: browseTo,
-			search: (prev) => ({ view: prev.view, city: browseTo === "/" ? undefined : prev.city }),
+			search: (prev) => ({ view: prev.view, city: prev.view === "map" ? prev.city : undefined }),
 			replace: true,
 		});
 	}

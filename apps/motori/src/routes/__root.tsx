@@ -85,7 +85,7 @@ export const Route = createRootRoute({
 	}),
 	component: RootComponent,
 	errorComponent: RootError,
-	notFoundComponent: NotFound,
+	notFoundComponent: NotFoundContent,
 });
 
 function useRootI18n(locale: SupportedLocale = "fi") {
@@ -151,18 +151,6 @@ function NotFoundContent() {
 				{t("notFound.back")}
 			</Link>
 		</div>
-	);
-}
-
-function NotFound() {
-	// Renders INSIDE RootComponent's shell (the root component wraps notFoundComponent),
-	// so no RootDocument here — nesting it duplicates <html>/<nav> on every 404. Keep a
-	// local i18n instance so t() works even when the root loader never ran.
-	const i18nInstance = useRootI18n();
-	return (
-		<I18nextProvider i18n={i18nInstance}>
-			<NotFoundContent />
-		</I18nextProvider>
 	);
 }
 

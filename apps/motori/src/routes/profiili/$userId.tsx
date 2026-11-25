@@ -62,7 +62,7 @@ function PublicProfilePage() {
 		imagesByListing.set(img.listing_id, arr);
 	}
 
-	const memberSince = formatDate(new Date(profile.member_since), {
+	const memberSince = formatDate(new Date(profile.member_since), i18n.language, {
 		year: "numeric",
 	});
 
@@ -128,7 +128,7 @@ function PublicProfilePage() {
 									<div className="flex items-center justify-between">
 										<span className="text-sm font-medium">{review.reviewer_display_name}</span>
 										<span className="text-xs text-muted">
-											{formatDate(new Date(review.created_at), {
+											{formatDate(new Date(review.created_at), i18n.language, {
 												year: "numeric",
 												month: "short",
 												day: "numeric",

@@ -12,6 +12,7 @@ export interface SearchResult {
 	listings: ListingWithImages[];
 	nextCursor: string | null;
 	totalCount: number;
+	mapCities?: { city: string; count: number }[];
 }
 
 export const searchListings = createServerFn({ method: "GET" })

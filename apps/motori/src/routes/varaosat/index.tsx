@@ -8,10 +8,7 @@ import { browseSearchSchema } from "~/lib/validators";
 
 export const Route = createFileRoute("/varaosat/")({
 	validateSearch: (search) => browseSearchSchema.parse(search),
-	loaderDeps: ({ search }) => {
-		const { view, city, ...deps } = search;
-		return deps;
-	},
+	loaderDeps: ({ search }) => search,
 	loader: async ({ deps }) => {
 		const [result, makes] = await Promise.all([
 			searchListings({ data: { ...deps, category: "part" } }),

@@ -21,13 +21,13 @@ interface ListingCardProps {
 	sizes?: string;
 }
 
-function facts(listing: CardListing, t: TFunction) {
+function facts(listing: CardListing, t: TFunction, locale: string) {
 	const condition = listing.condition ? t(`form.conditions.${listing.condition}`) : null;
 	switch (listing.category) {
 		case "sale":
 			return [
 				listing.year,
-				listing.km_driven != null ? `${formatNumber(listing.km_driven)} km` : null,
+				listing.km_driven != null ? `${formatNumber(listing.km_driven, locale)} km` : null,
 				listing.city,
 			];
 		case "rental":
@@ -64,7 +64,7 @@ export function ListingCard({
 	isOwn,
 	sizes = gridSizes,
 }: ListingCardProps) {
-	const { t } = useTranslation("listings");
+	const { t, i18n } = useTranslation("listings");
 	const image = images[0];
 	const slug = computeListingSlug(makeSlug, modelName, listing.city);
 	return (
@@ -128,7 +128,7 @@ export function ListingCard({
 					data-testid="listing-card-price"
 					className="mt-[9px] font-heading text-[17px] leading-[1.2] font-bold tracking-[-0.02em] tabular-nums"
 				>
-					{formatEur(listing.price ?? 0)}
+					{formatEur(listing.price ?? 0, i18n.language)}
 					{listing.category === "rental" && ` ${t("card.perDay")}`}
 				</p>
 				<h3
@@ -141,7 +141,7 @@ export function ListingCard({
 					data-testid="listing-card-facts"
 					className="mt-px truncate text-[13px] leading-[1.4] text-muted"
 				>
-					{facts(listing, t)
+					{facts(listing, t, i18n.language)
 						.filter((v) => v != null && v !== "")
 						.join(" · ")}
 				</p>

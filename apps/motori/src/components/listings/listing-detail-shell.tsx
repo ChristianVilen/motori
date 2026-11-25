@@ -191,7 +191,7 @@ function ListingHeading({
 	listing: ListingForDisplay["listing"];
 	isOwner: boolean;
 }) {
-	const { t } = useTranslation("listings");
+	const { t, i18n } = useTranslation("listings");
 	const region = REGIONS.find((r) => r.value === listing.region)?.label ?? listing.region;
 	const typeLabel = MOTORCYCLE_TYPES.find((v) => v.value === listing.motorcycle_type)?.label;
 	const chip = "inline-flex items-center rounded-full bg-muted-light px-[11px] py-1 text-[13px]";
@@ -213,7 +213,7 @@ function ListingHeading({
 					{listing.city}, {region}
 				</span>
 				<span data-testid="listing-posted-date" className={chip}>
-					{t("detail.postedOn", { date: formatDate(new Date(listing.created_at)) })}
+					{t("detail.postedOn", { date: formatDate(new Date(listing.created_at), i18n.language) })}
 				</span>
 				{!!listing.required_license && (
 					<span className={chip}>
@@ -233,14 +233,14 @@ function ListingHeading({
 
 function ListingPrice({ data, price }: { data: ListingForDisplay; price: number }) {
 	const { listing } = data;
-	const { t } = useTranslation("listings");
+	const { t, i18n } = useTranslation("listings");
 	return (
 		<div className="order-2 mt-[18px] min-[900px]:mt-0" data-testid="price-info">
 			<span
 				data-testid={`price-${listing.category}`}
 				className="font-heading text-[30px] leading-[1.1] font-extrabold tracking-[-0.035em] tabular-nums"
 			>
-				{formatEur(price)}
+				{formatEur(price, i18n.language)}
 			</span>
 			{!!data.sale?.negotiable && (
 				<span className="ml-3 text-[13px] text-muted">{t("detail.negotiable")}</span>

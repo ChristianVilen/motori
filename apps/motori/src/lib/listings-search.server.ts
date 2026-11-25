@@ -1,4 +1,5 @@
 import { type Kysely, type RawBuilder, type SqlBool, sql } from "kysely";
+import { hasCategoryMap } from "~/lib/constants";
 import { eurosToCents } from "~/lib/currency";
 import type { Database, ListingImage } from "~/lib/db/schema";
 import { listingSummaryQuery } from "~/lib/listings-owner";
@@ -60,7 +61,7 @@ function filteredListings(db: Kysely<Database>, p: SearchInput) {
 		q = q.where("card.condition", "=", p.condition);
 	}
 	if (p.category === "all") {
-		return p.city ? q.where("card.city", "=", p.city) : q;
+		return q;
 	}
 	return categoryFilters(q, p);
 }
@@ -158,6 +159,38 @@ function validCursor(parts: string[], priceSort: boolean, ranked: boolean) {
 	return priceSort || Number.isFinite(Date.parse(parts.at(-2) ?? ""));
 }
 
+async function getCoverImages(db: Kysely<Database>, ids: string[]) {
+	const images = new Map<string, ListingImage[]>();
+	if (ids.length) {
+		const rows = await db
+			.selectFrom("listing_image")
+			.selectAll()
+			.where("listing_id", "in", ids)
+			.where("order", "=", 0)
+			.execute();
+		for (const row of rows) {
+			images.set(row.listing_id, [row]);
+		}
+	}
+	return images;
+}
+
+async function countResults(base: CardsQuery, map: boolean, city?: string) {
+	if (map) {
+		const mapCities = await base
+			.select("card.city")
+			.select(sql<number>`count(*)::int`.as("count"))
+			.groupBy("card.city")
+			.execute();
+		const totalCount = city
+			? (mapCities.find((row) => row.city === city)?.count ?? 0)
+			: mapCities.reduce((sum, row) => sum + row.count, 0);
+		return { totalCount, mapCities };
+	}
+	const count = await base.select((eb) => eb.fn.countAll().as("count")).executeTakeFirstOrThrow();
+	return { totalCount: Number(count.count) };
+}
+
 export async function searchListingPage(
 	db: Kysely<Database>,
 	p: SearchInput,
@@ -168,37 +201,34 @@ export async function searchListingPage(
 	if (search) {
 		base = base.where(search.match);
 	}
+	const map = p.view === "map" && hasCategoryMap(p.category);
+	const filtered =
+		p.city && (map || !hasCategoryMap(p.category)) ? base.where("card.city", "=", p.city) : base;
 	const sort = p.sort ?? (search && p.category !== "all" ? "relevance" : "newest");
-	const page = sortedPage(base, sort, sort === "relevance" ? search?.rank : undefined, p.cursor);
+	const page = sortedPage(
+		filtered,
+		sort,
+		sort === "relevance" ? search?.rank : undefined,
+		p.cursor,
+	);
 	const [rows, count] = await Promise.all([
-		page.limit(pageSize + 1).execute(),
-		base.select((eb) => eb.fn.countAll().as("count")).executeTakeFirstOrThrow(),
+		map && !p.city ? [] : page.limit(pageSize + 1).execute(),
+		countResults(map ? base : filtered, map, p.city),
 	]);
 	const hasMore = rows.length > pageSize;
 	const listings = rows.slice(0, pageSize);
 	const last = listings.at(-1);
 	const nextCursor = hasMore ? (last?.nextKey ?? null) : null;
-	const images = new Map<string, ListingImage[]>();
-	if (listings.length) {
-		for (const img of await db
-			.selectFrom("listing_image")
-			.selectAll()
-			.where(
-				"listing_id",
-				"in",
-				listings.map((l) => l.id),
-			)
-			.where("order", "=", 0)
-			.execute()) {
-			images.set(img.listing_id, [img]);
-		}
-	}
+	const images = await getCoverImages(
+		db,
+		listings.map((l) => l.id),
+	);
 	return {
 		listings: listings.map(({ nextKey, ...listing }) => ({
 			...listing,
 			images: images.get(listing.id) ?? [],
 		})),
 		nextCursor,
-		totalCount: Number(count.count),
+		...count,
 	};
 }

@@ -1,7 +1,8 @@
-import { formatEur } from "~/lib/i18n";
+import { formatEur, useTranslation } from "~/lib/i18n";
 
 export function BookingAmount({ cents }: { cents: number }) {
-	const final = formatEur(cents);
+	const { i18n } = useTranslation();
+	const final = formatEur(cents, i18n.language);
 	return (
 		<>
 			<span data-rolling-amount aria-hidden="true">

@@ -6,17 +6,16 @@ import { MapContainer, Marker, TileLayer, Tooltip, useMap } from "react-leaflet"
 import { useTranslation } from "~/lib/i18n";
 import { findMunicipality } from "~/lib/municipalities";
 
-export interface MapPin {
+interface MapPin {
 	city: string;
 	lat: number;
 	lng: number;
 	count: number;
-	listingIds: string[];
 }
 
 interface ListingsMapProps {
-	listings: { id: string; city: string; short_id: string }[];
-	onCityClick?: (city: string, listingIds: string[]) => void;
+	cities: { city: string; count: number }[];
+	onCityClick?: (city: string) => void;
 	selectedCity?: string | null;
 	className?: string;
 }
@@ -27,30 +26,6 @@ const FINLAND_BOUNDS: L.LatLngBoundsExpression = [
 ];
 
 const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-
-export function groupByCity(listings: ListingsMapProps["listings"]): MapPin[] {
-	const map = new Map<string, MapPin>();
-	for (const l of listings) {
-		const m = findMunicipality(l.city);
-		if (!m) {
-			continue;
-		}
-		const existing = map.get(m.name);
-		if (existing) {
-			existing.count++;
-			existing.listingIds.push(l.short_id);
-		} else {
-			map.set(m.name, {
-				city: m.name,
-				lat: m.lat,
-				lng: m.lng,
-				count: 1,
-				listingIds: [l.short_id],
-			});
-		}
-	}
-	return Array.from(map.values());
-}
 
 function createCountIcon(count: number, active: boolean): L.DivIcon {
 	const cls = active ? "motori-map-badge motori-map-badge--active" : "motori-map-badge";
@@ -68,7 +43,7 @@ function FitBounds({ pins, selectedCity }: { pins: MapPin[]; selectedCity?: stri
 	useEffect(() => {
 		function framePins() {
 			map.invalidateSize({ pan: false });
-			const selected = pins.find((pin) => pin.city === selectedCity);
+			const selected = selectedCity ? findMunicipality(selectedCity) : undefined;
 			if (selected) {
 				map.setView([selected.lat, selected.lng], 9, { animate: false });
 			} else if (pins.length) {
@@ -95,7 +70,7 @@ function CityMarker({
 }: {
 	pin: MapPin;
 	active: boolean;
-	onCityClick?: (city: string, listingIds: string[]) => void;
+	onCityClick?: (city: string) => void;
 }) {
 	const icon = useMemo(() => createCountIcon(pin.count, active), [pin.count, active]);
 
@@ -109,7 +84,7 @@ function CityMarker({
 				onCityClick
 					? {
 							click: () => {
-								onCityClick(pin.city, pin.listingIds);
+								onCityClick(pin.city);
 							},
 						}
 					: undefined
@@ -122,9 +97,16 @@ function CityMarker({
 	);
 }
 
-export function ListingsMap({ listings, onCityClick, selectedCity, className }: ListingsMapProps) {
+export function ListingsMap({ cities, onCityClick, selectedCity, className }: ListingsMapProps) {
 	const { t } = useTranslation("listings");
-	const pins = useMemo(() => groupByCity(listings), [listings]);
+	const pins = useMemo(
+		() =>
+			cities.flatMap(({ city, count }) => {
+				const place = findMunicipality(city);
+				return place ? [{ city, count, lat: place.lat, lng: place.lng }] : [];
+			}),
+		[cities],
+	);
 
 	return (
 		<MapContainer

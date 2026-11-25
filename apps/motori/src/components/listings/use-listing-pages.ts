@@ -1,24 +1,56 @@
-import { useMemo, useState } from "react";
-import type { SearchResult } from "~/lib/listings-search";
-import type { BrowseSearchParams } from "~/lib/validators";
+import { useLocation, useNavigate } from "@tanstack/react-router";
+import { useMemo } from "react";
+import type { ListingWithImages, SearchResult } from "~/lib/listings-search";
 
-export function useListingPages(data: SearchResult, search: BrowseSearchParams) {
-	const { cursor, view, ...filters } = search;
-	const key = JSON.stringify(filters);
-	const [state, setState] = useState(() => ({ key, pages: [{ cursor, data }] }));
-	let pages = state.pages;
-	const last = pages[pages.length - 1];
-	if (state.key !== key || last.cursor !== cursor || last.data !== data) {
-		const previous =
-			state.key === key && cursor ? pages.findIndex((p) => p.data.nextCursor === cursor) : -1;
-		pages = [...pages.slice(0, previous + 1), { cursor, data }];
-		setState({ key, pages });
+declare module "@tanstack/react-router" {
+	interface HistoryState {
+		listingFeed?: string;
 	}
-	const allListings = useMemo(() => pages.flatMap((p) => p.data.listings), [pages]);
+}
+
+interface LoadedPage {
+	nextCursor: string;
+	listings: ListingWithImages[];
+}
+
+// Load more replaces the same history slot. Keep the earlier cards there while visiting a listing.
+const feeds = new Map<number, { id: string; pages: LoadedPage[] }>();
+
+export function useListingPages(data: SearchResult, cursor: string | undefined, browseTo: string) {
+	const navigate = useNavigate();
+	const history = useLocation({ select: (location) => location.state });
+	const saved = feeds.get(history.__TSR_index);
+	const pages = saved && saved.id === history.listingFeed ? saved.pages : undefined;
+	const last = pages?.findIndex((page) => page.nextCursor === cursor) ?? -1;
+	const allListings = useMemo(() => {
+		if (!pages || last < 0) {
+			return data.listings;
+		}
+		return [...pages.slice(0, last + 1).flatMap((page) => page.listings), ...data.listings];
+	}, [data.listings, pages, last]);
+
+	function loadMore() {
+		const nextCursor = data.nextCursor;
+		if (!nextCursor) {
+			return;
+		}
+		const id = history.listingFeed ?? history.__TSR_key ?? crypto.randomUUID();
+		feeds.set(history.__TSR_index, {
+			id,
+			pages: [...(pages?.slice(0, last + 1) ?? []), { nextCursor, listings: data.listings }],
+		});
+		void navigate({
+			to: browseTo,
+			search: (prev) => ({ ...prev, cursor: nextCursor }),
+			state: (prev) => ({ ...prev, listingFeed: id }),
+			replace: true,
+			resetScroll: false,
+		});
+	}
+
 	return {
 		allListings,
-		totalCount: data.totalCount,
-		nextCursor: data.nextCursor,
-		remaining: data.totalCount - allListings.length,
+		loadMore,
+		remaining: data.nextCursor ? data.totalCount - allListings.length : 0,
 	};
 }

@@ -9,10 +9,12 @@ export function ActiveFilterChips({
 	search,
 	makes,
 	browseTo,
+	cityFilter,
 }: {
 	search: BrowseSearchParams;
 	makes: FilterMake[];
 	browseTo: string;
+	cityFilter: boolean;
 }) {
 	const { t } = useTranslation("listings");
 	const {
@@ -22,7 +24,7 @@ export function ActiveFilterChips({
 	} = useFilterActions(browseTo);
 	return (
 		<div className="mx-auto flex w-full max-w-[1304px] flex-wrap items-center gap-2 px-4 pt-3 lg:px-8">
-			{browseTo === "/" && !!search.city && (
+			{cityFilter && !!search.city && (
 				<FilterChip
 					id="clear-city"
 					label={search.city}

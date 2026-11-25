@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { categoryChipClass } from "~/components/category-chip-class";
 import { CitySelect } from "~/components/listings/city-select";
-import { BROWSE_CATEGORIES } from "~/lib/constants";
+import { BROWSE_CATEGORIES, hasCategoryMap } from "~/lib/constants";
 import { addRecentSearch, getRecentSearches } from "~/lib/recent-searches";
 import { useFocusTrap } from "~/lib/use-focus-trap";
 import { getBrowseCategory } from "./active-tab";
@@ -15,10 +15,11 @@ export function MobileSearchOverlay({ onClose }: Props) {
 	const { t } = useTranslation();
 	const { t: tListings } = useTranslation("listings");
 	const navigate = useNavigate();
-	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const location = useRouterState({ select: (s) => s.location });
+	const currentCategory = getBrowseCategory(location.pathname);
 	const inputRef = useRef<HTMLInputElement>(null);
-	const [q, setQ] = useState("");
-	const [category, setCategory] = useState(() => getBrowseCategory(pathname));
+	const [q, setQ] = useState(typeof location.search.q === "string" ? location.search.q : "");
+	const [category, setCategory] = useState(currentCategory);
 	const [recent] = useState(getRecentSearches);
 	const trapRef = useFocusTrap(true, inputRef);
 
@@ -43,29 +44,29 @@ export function MobileSearchOverlay({ onClose }: Props) {
 
 	function runQuery(query: string) {
 		const trimmed = query.trim();
-		if (!trimmed) {
-			return;
+		if (trimmed) {
+			addRecentSearch(trimmed);
 		}
-		addRecentSearch(trimmed);
 		navigate({
 			to: category.to,
 			search: (prev) => ({
-				...(pathname === "/" && category.value === "all" ? prev : {}),
-				q: trimmed,
+				...(category.value === currentCategory.value ? prev : {}),
+				q: trimmed || undefined,
 				cursor: undefined,
 			}),
 		});
 		onClose();
 	}
 
-	function goCity(city: string, _region: string) {
+	function goCity(city: string) {
 		if (!city) {
 			return;
 		}
 		navigate({
 			to: category.to,
 			search: (prev) => ({
-				...(pathname === "/" && category.value === "all" ? prev : {}),
+				...(category.value === currentCategory.value ? prev : {}),
+				view: hasCategoryMap(category.value) ? "map" : undefined,
 				city,
 				cursor: undefined,
 			}),

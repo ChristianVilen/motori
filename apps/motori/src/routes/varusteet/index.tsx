@@ -7,10 +7,7 @@ import { browseSearchSchema } from "~/lib/validators";
 
 export const Route = createFileRoute("/varusteet/")({
 	validateSearch: (search) => browseSearchSchema.parse(search),
-	loaderDeps: ({ search }) => {
-		const { view, city, ...deps } = search;
-		return deps;
-	},
+	loaderDeps: ({ search }) => search,
 	loader: ({ deps }) => searchListings({ data: { ...deps, category: "gear" } }),
 	head: () => ({
 		meta: [

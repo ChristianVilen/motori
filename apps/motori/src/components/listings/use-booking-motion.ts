@@ -1,7 +1,7 @@
 import { type RefObject, useLayoutEffect, useRef } from "react";
 import type { BookingCost } from "~/lib/bookings";
 import { diffDays, type RentalSearch } from "~/lib/calendar-helpers";
-import { formatEur } from "~/lib/i18n";
+import { formatEur, useTranslation } from "~/lib/i18n";
 import { animateMotion, motionAllowed, motionEase, reducedMotionQuery } from "~/lib/motion";
 
 function sweepRange(section: Element, from: string, to: string) {
@@ -35,14 +35,20 @@ function sweepRange(section: Element, from: string, to: string) {
 	};
 }
 
-function rollAmount(section: Element, shown: { current: number }, start: number, cents: number) {
+function rollAmount(
+	section: Element,
+	shown: { current: number },
+	start: number,
+	cents: number,
+	locale: string,
+) {
 	const amounts = section.querySelectorAll<HTMLElement>("[data-rolling-amount]");
 	const preference = window.matchMedia(reducedMotionQuery);
 	const started = performance.now();
 	let frame = 0;
 	function render(value: number) {
 		shown.current = value;
-		const text = formatEur(value);
+		const text = formatEur(value, locale);
 		for (const node of amounts) {
 			node.textContent = text;
 		}
@@ -76,6 +82,8 @@ export function useBookingMotion(
 	dayPrice: number,
 	panelRef: RefObject<HTMLDivElement | null>,
 ) {
+	const { i18n } = useTranslation();
+	const locale = i18n.language;
 	const pending = useRef<RentalSearch | null>(null);
 	const shown = useRef(cost?.totalCents ?? dayPrice);
 	const lastSaving = useRef(cost?.savingsCents ?? 0);
@@ -111,12 +119,12 @@ export function useBookingMotion(
 				{ duration: 200, easing: motionEase },
 			);
 		}
-		const stopRoll = rollAmount(section, shown, start, cents);
+		const stopRoll = rollAmount(section, shown, start, cents, locale);
 		return () => {
 			clearSweep();
 			stopRoll();
 		};
-	}, [from, to, cents, saving, panelRef]);
+	}, [from, to, cents, saving, panelRef, locale]);
 	return (range: RentalSearch) => {
 		pending.current = range;
 	};

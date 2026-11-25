@@ -1,6 +1,6 @@
 import { useNavigate, useRouteContext, useRouterState } from "@tanstack/react-router";
 import { X } from "lucide-react";
-import { lazy, Suspense, useCallback, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useState } from "react";
 import { ClientOnly } from "~/components/client-only";
 import { EmptyState, LowResultNudge } from "~/components/listings/empty-state";
 import { FeedBar } from "~/components/listings/feed-bar";
@@ -46,10 +46,13 @@ export function BrowsePage({
 	const { session } = useRouteContext({ from: "__root__" });
 	const currentUserId = session?.user.id ?? null;
 	const makes = initialData.makes ?? [];
-	const { allListings, totalCount, nextCursor, remaining } = useListingPages(initialData, {
-		...search,
-		city: category === "all" ? search.city : undefined,
-	});
+	const { allListings, loadMore, remaining } = useListingPages(
+		initialData,
+		search.cursor,
+		browseTo,
+	);
+	const totalCount =
+		initialData.mapCities?.reduce((sum, city) => sum + city.count, 0) ?? initialData.totalCount;
 
 	const hasQuery = !!search.q && search.q.trim().length > 0;
 	const regionLabel = search.region
@@ -61,21 +64,13 @@ export function BrowsePage({
 	const selectedCity = search.city ?? null;
 	const isLoading = useRouterState({ select: (s) => s.isLoading });
 
-	const activeFilterCount =
-		countActiveFilters(search) + (category === "all" && search.city ? 1 : 0);
-
-	const cityListings = useMemo(() => {
-		if (!selectedCity) {
-			return [];
-		}
-		return allListings.filter((l) => l.city === selectedCity);
-	}, [allListings, selectedCity]);
+	const activeFilterCount = countActiveFilters(search) + (!showMap && search.city ? 1 : 0);
 
 	const handleCityClick = useCallback(
-		(city: string, _listingIds: string[]) => {
+		(city: string) => {
 			navigate({
 				to: browseTo,
-				search: (prev) => ({ ...prev, view: "map" as const, city }),
+				search: (prev) => ({ ...prev, view: "map" as const, city, cursor: undefined }),
 			});
 		},
 		[navigate, browseTo],
@@ -84,7 +79,7 @@ export function BrowsePage({
 	const clearCitySelection = useCallback(() => {
 		navigate({
 			to: browseTo,
-			search: (prev) => ({ ...prev, city: undefined }),
+			search: (prev) => ({ ...prev, city: undefined, cursor: undefined }),
 		});
 	}, [navigate, browseTo]);
 
@@ -100,18 +95,20 @@ export function BrowsePage({
 			/>
 		);
 	}
-	function loadMore() {
-		if (!nextCursor) {
-			return;
-		}
-		navigate({
-			to: browseTo,
-			search: (prev) => ({ ...prev, cursor: nextCursor }),
-			replace: true,
-			resetScroll: false,
-		});
-	}
 
+	const moreButton = remaining > 0 && (
+		<div className="mt-8 text-center">
+			<button
+				data-testid="listings-load-more"
+				type="button"
+				onClick={loadMore}
+				disabled={isLoading}
+				className="min-h-11 rounded-full border border-foreground bg-card px-6 py-2 text-sm font-semibold text-foreground hover:bg-muted-light disabled:opacity-50"
+			>
+				{t("browse.loadMore", { remaining })}
+			</button>
+		</div>
+	);
 	return (
 		<div className={showMap && view === "map" ? "browse-map-page" : "min-h-[60vh]"}>
 			<FeedBar
@@ -124,7 +121,12 @@ export function BrowsePage({
 			/>
 
 			{activeFilterCount > 0 && (
-				<ActiveFilterChips search={search} makes={makes} browseTo={browseTo} />
+				<ActiveFilterChips
+					search={search}
+					makes={makes}
+					browseTo={browseTo}
+					cityFilter={!showMap}
+				/>
 			)}
 			<div className="mx-auto w-full max-w-[1304px] px-4 lg:px-8">
 				<div className="mt-4 mb-3.5 grid grid-cols-[1fr_auto] items-center gap-x-3 md:flex md:flex-wrap">
@@ -166,19 +168,7 @@ export function BrowsePage({
 
 								{totalCount > 0 && totalCount <= 5 && <LowResultNudge />}
 
-								{nextCursor && remaining > 0 && (
-									<div className="mt-8 text-center">
-										<button
-											data-testid="listings-load-more"
-											type="button"
-											onClick={loadMore}
-											disabled={isLoading}
-											className="min-h-11 rounded-full border border-foreground bg-card px-6 py-2 text-sm font-semibold text-foreground hover:bg-muted-light disabled:opacity-50"
-										>
-											{t("browse.loadMore", { remaining })}
-										</button>
-									</div>
-								)}
+								{moreButton}
 							</>
 						)}
 					</div>
@@ -202,21 +192,21 @@ export function BrowsePage({
 							>
 								<ListingsMap
 									className="absolute inset-0"
-									listings={allListings}
+									cities={initialData.mapCities ?? []}
 									onCityClick={handleCityClick}
 									selectedCity={selectedCity}
 								/>
 							</Suspense>
 						</ClientOnly>
 					</div>
-					{selectedCity && cityListings.length > 0 && (
+					{!!selectedCity && (
 						<div
 							data-testid="map-city-panel"
 							className="min-w-0 shrink-0 md:order-first md:w-[360px] md:overflow-y-auto md:pr-1"
 						>
 							<div className="mb-3 flex items-center justify-between">
 								<h2 className="font-heading text-lg font-bold">
-									{selectedCity} · {t("home:count", { count: cityListings.length })}
+									{selectedCity} · {t("home:count", { count: initialData.totalCount })}
 								</h2>
 								<button
 									type="button"
@@ -229,8 +219,9 @@ export function BrowsePage({
 								</button>
 							</div>
 							<div className="grid grid-cols-2 gap-x-2.5 gap-y-[22px]">
-								{cityListings.map(renderCard)}
+								{allListings.map(renderCard)}
 							</div>
+							{moreButton}
 						</div>
 					)}
 				</div>

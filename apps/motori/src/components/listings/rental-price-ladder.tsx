@@ -9,7 +9,7 @@ export function RentalPriceLadder({
 	rental: ListingRental;
 	cost: BookingCost | null;
 }) {
-	const { t } = useTranslation("listings");
+	const { t, i18n } = useTranslation("listings");
 	const applied = cost ? (cost.label ?? "day") : null;
 	const rates = [
 		{ kind: "day", price: rental.price_per_day, id: "price-per-day" },
@@ -32,7 +32,7 @@ export function RentalPriceLadder({
 									{t(`booking.rates.${rate.kind}`)}
 								</dt>
 								<dd className="mt-1 font-heading text-lg font-bold tabular-nums">
-									{formatEur(rate.price)}
+									{formatEur(rate.price, i18n.language)}
 								</dd>
 							</div>
 						),

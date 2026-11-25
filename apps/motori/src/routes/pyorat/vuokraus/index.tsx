@@ -8,10 +8,10 @@ import { browseSearchSchema } from "~/lib/validators";
 
 export const Route = createFileRoute("/pyorat/vuokraus/")({
 	validateSearch: (search) => browseSearchSchema.parse(search),
-	loaderDeps: ({ search }) => {
-		const { view, city, ...deps } = search;
-		return deps;
-	},
+	loaderDeps: ({ search }) => ({
+		...search,
+		city: search.view === "map" ? search.city : undefined,
+	}),
 	loader: async ({ deps }) => {
 		const [result, makes] = await Promise.all([
 			searchListings({ data: { ...deps, category: "rental" } }),

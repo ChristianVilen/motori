@@ -1,13 +1,8 @@
-import i18n from "i18next";
 import { centsToEuros } from "~/lib/currency";
 
-function activeLocale(): string {
-	return i18n.language || "fi";
-}
-
-export function formatEur(cents: number): string {
+export function formatEur(cents: number, locale: string): string {
 	const fractionDigits = cents % 100 === 0 ? 0 : 2;
-	return new Intl.NumberFormat(activeLocale(), {
+	return new Intl.NumberFormat(locale, {
 		style: "currency",
 		currency: "EUR",
 		minimumFractionDigits: fractionDigits,
@@ -15,10 +10,10 @@ export function formatEur(cents: number): string {
 	}).format(centsToEuros(cents));
 }
 
-export function formatNumber(n: number): string {
-	return new Intl.NumberFormat(activeLocale()).format(n);
+export function formatNumber(n: number, locale: string): string {
+	return new Intl.NumberFormat(locale).format(n);
 }
 
-export function formatDate(d: Date, opts?: Intl.DateTimeFormatOptions): string {
-	return new Intl.DateTimeFormat(activeLocale(), opts).format(d);
+export function formatDate(d: Date, locale: string, opts?: Intl.DateTimeFormatOptions): string {
+	return new Intl.DateTimeFormat(locale, { timeZone: "Europe/Helsinki", ...opts }).format(d);
 }

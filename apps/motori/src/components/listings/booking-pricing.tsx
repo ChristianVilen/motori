@@ -4,14 +4,14 @@ import { fromIso, type RentalSearch } from "~/lib/calendar-helpers";
 import { formatEur, useTranslation } from "~/lib/i18n";
 import { BookingAmount } from "./booking-amount";
 
-function label(line: BookingLine, t: TFunction) {
+function label(line: BookingLine, t: TFunction, locale: string) {
 	if (line.kind === "weekend") {
 		return t("booking.rates.weekend");
 	}
 	if (line.kind === "week") {
 		return t("booking.weeks", { count: line.count });
 	}
-	return t("booking.dayLine", { count: line.count, unit: formatEur(line.unitCents) });
+	return t("booking.dayLine", { count: line.count, unit: formatEur(line.unitCents, locale) });
 }
 
 export function BookingPricing({ range, cost }: { range: RentalSearch; cost: BookingCost | null }) {
@@ -40,8 +40,8 @@ export function BookingPricing({ range, cost }: { range: RentalSearch; cost: Boo
 					<ul className="border-t border-border pt-2 text-sm">
 						{cost.lines.map((line) => (
 							<li key={line.kind} className="flex justify-between gap-2 py-1">
-								<span>{label(line, t)}</span>
-								<span className="tabular-nums">{formatEur(line.cents)}</span>
+								<span>{label(line, t, i18n.language)}</span>
+								<span className="tabular-nums">{formatEur(line.cents, i18n.language)}</span>
 							</li>
 						))}
 					</ul>
@@ -60,7 +60,7 @@ export function BookingPricing({ range, cost }: { range: RentalSearch; cost: Boo
 							data-booking-saving
 							className="mt-2 inline-flex rounded-full bg-reflector px-2 py-1 text-xs font-semibold text-foreground"
 						>
-							{t("booking.saving", { amount: formatEur(cost.savingsCents) })}
+							{t("booking.saving", { amount: formatEur(cost.savingsCents, i18n.language) })}
 						</p>
 					)}
 				</>

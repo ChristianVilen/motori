@@ -52,7 +52,7 @@ export function useFilterActions(browseTo: string) {
 			to: browseTo,
 			search: (prev: BrowseSearchParams) => ({
 				view: prev.view,
-				city: browseTo === "/" ? undefined : prev.city,
+				city: prev.view === "map" ? prev.city : undefined,
 			}),
 			replace: true,
 			resetScroll: false,

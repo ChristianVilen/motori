@@ -49,7 +49,11 @@ test.describe("Auth flow", () => {
 		await register.emailInput.fill(email);
 		await register.passwordInput.pressSequentially(password, { delay: 30 });
 		await register.termsCheckbox.check();
+		const signup = page.waitForResponse("**/api/auth/sign-up/email");
 		await register.submitButton.click();
+		const { user } = await (await signup).json();
+		expect(user).toHaveProperty("id");
+		expect(user).not.toHaveProperty("role");
 		await expect(page).toHaveURL(/\/taydenna-profiili/, { timeout: 10000 });
 	});
 
@@ -73,7 +77,11 @@ test.describe("Auth flow", () => {
 	test("correct credentials restore the session", async () => {
 		const login = new LoginPage(page);
 		await login.goto();
+		const signin = page.waitForResponse("**/api/auth/sign-in/email");
 		await login.login(email, password);
+		const { user } = await (await signin).json();
+		expect(user).toHaveProperty("id");
+		expect(user).not.toHaveProperty("role");
 		const home = new HomePage(page);
 		await expect(home.navUserMenu).toBeVisible({ timeout: 10000 });
 	});

@@ -162,6 +162,7 @@ export function FeedBar({
 													...prev,
 													view: view === "map" ? "map" : undefined,
 													city: undefined,
+													cursor: undefined,
 												}),
 											});
 										}

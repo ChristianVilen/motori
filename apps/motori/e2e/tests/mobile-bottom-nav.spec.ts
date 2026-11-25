@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { HomePage } from "../pages/home.page";
+import { ListingsPage } from "../pages/listings.page";
 
 test.describe("mobile bottom nav", () => {
 	test("search overlay submits query", async ({ page }) => {
@@ -10,6 +11,19 @@ test.describe("mobile bottom nav", () => {
 		await input.fill("honda");
 		await input.press("Enter");
 		await expect(page).toHaveURL(/\/\?q=honda$/);
+		const rentals = new ListingsPage(page);
+		await rentals.goto({ q: "Honda", region: "uusimaa" });
+		await rentals.mobileTrigger.click();
+		await expect(input).toHaveValue("Honda");
+		await input.fill("Yamaha");
+		await input.press("Enter");
+		await expect(page).toHaveURL(
+			(u) => u.searchParams.get("q") === "Yamaha" && u.searchParams.get("region") === "uusimaa",
+		);
+		await rentals.search("");
+		await expect(page).toHaveURL(
+			(u) => !u.searchParams.has("q") && u.searchParams.get("region") === "uusimaa",
+		);
 	});
 
 	test("search overlay traps focus and restores it on close", async ({ page }) => {

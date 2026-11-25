@@ -242,16 +242,15 @@ export const allBrowseSearchSchema = browseSearchSchema.pick({
 
 export type BrowseSearchParams = z.infer<typeof browseSearchSchema>;
 
-// Category maps use city to open a panel. On the mixed feed city filters the search.
-export const savedSearchParamsSchema = browseSearchSchema.omit({
+// A city on a sale or rental map selects a panel. The other feeds use it as a search filter.
+export const savedListSearchParamsSchema = browseSearchSchema.omit({
 	cursor: true,
 	view: true,
-	city: true,
 });
+export const savedSearchParamsSchema = savedListSearchParamsSchema.omit({ city: true });
 
 export const savedAllSearchParamsSchema = allBrowseSearchSchema.omit({ cursor: true });
-export type SavedSearchParams = z.infer<typeof savedSearchParamsSchema> &
-	Pick<BrowseSearchParams, "city">;
+export type SavedSearchParams = z.infer<typeof savedListSearchParamsSchema>;
 
 export function countActiveFilters(search: BrowseSearchParams): number {
 	return (

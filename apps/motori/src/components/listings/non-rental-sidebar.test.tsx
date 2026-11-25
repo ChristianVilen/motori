@@ -7,7 +7,10 @@ import { NonRentalSidebar } from "./non-rental-sidebar";
 
 vi.mock("~/lib/i18n", () => ({
 	formatEur: (cents: number) => `${(cents / 100).toFixed(0)} €`,
-	useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key }),
+	useTranslation: () => ({
+		i18n: { language: "fi" },
+		t: (key: string, fallback?: string) => fallback ?? key,
+	}),
 }));
 
 vi.mock("~/lib/listings-detail", () => ({ revealListingPhone: vi.fn() }));

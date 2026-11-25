@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { HomePage } from "../pages/home.page";
+import { ListingsPage } from "../pages/listings.page";
 
 // Keyboard walkthrough for the CitySelect combobox (APG pattern, #189).
 // Driven through the mobile search overlay because it needs no auth state.
@@ -36,12 +37,17 @@ test.describe("city combobox", () => {
 
 	test("commit-on-type: a fully typed city name commits without Enter", async ({ page }) => {
 		const home = new HomePage(page);
-		await home.openSearch();
+		const rentals = new ListingsPage(page);
+		await rentals.goto();
+		await rentals.mobileTrigger.click();
 
 		const input = home.overlayCity;
 		await input.click();
 		await input.pressSequentially("espoo");
 
-		await expect(page).toHaveURL(/\/\?city=Espoo$/);
+		await expect(page).toHaveURL(
+			(url) => url.searchParams.get("city") === "Espoo" && url.searchParams.get("view") === "map",
+		);
+		await expect(rentals.mapCityPanel).toContainText("Espoo");
 	});
 });
