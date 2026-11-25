@@ -84,19 +84,39 @@ export const Route = createRootRoute({
 		],
 	}),
 	component: RootComponent,
-	errorComponent: ({ error }) => {
-		// Set in beforeLoad and serialized into context, so it renders identically on
-		// SSR and hydration. Surfaced so bug reports can be correlated to logs.
-		const { requestId } = Route.useRouteContext();
-		return (
-			<RootDocument locale="fi">
+	errorComponent: RootError,
+	notFoundComponent: NotFound,
+});
+
+function useRootI18n(locale: SupportedLocale = "fi") {
+	const [instance] = useState(() => {
+		if (typeof window === "undefined") {
+			return createI18nSync(locale);
+		}
+		ensureClientI18n(locale);
+		return clientI18n;
+	});
+	return instance;
+}
+
+function RootError({ error }: { error: unknown }) {
+	// Set in beforeLoad and serialized into context, so it renders identically on
+	// SSR and hydration. Surfaced so bug reports can be correlated to logs.
+	const { requestId, locale = "fi" } = Route.useRouteContext();
+	const instance = useRootI18n(locale);
+	const t = instance.getFixedT(null, "common");
+	return (
+		<I18nextProvider i18n={instance}>
+			<RootDocument locale={locale}>
 				<div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
-					<p className="font-heading text-5xl font-bold text-destructive">Virhe</p>
-					<p className="mt-4 max-w-md text-sm text-muted">
-						Jotain meni pieleen. Yritä ladata sivu uudelleen.
-					</p>
+					<h1 className="font-heading text-4xl font-bold text-foreground">
+						{t("serverError.heading")}
+					</h1>
+					<p className="mt-4 max-w-md text-sm text-muted">{t("serverError.body")}</p>
 					{requestId ? (
-						<p className="mt-2 font-mono text-xs text-muted">Pyynnön tunniste: {requestId}</p>
+						<p className="mt-2 font-mono text-xs text-muted">
+							{t("serverError.requestId", { id: requestId })}
+						</p>
 					) : null}
 					{process.env.NODE_ENV !== "production" && (
 						<pre className="mt-4 max-w-lg overflow-auto rounded bg-muted-light p-3 text-left text-xs">
@@ -105,29 +125,28 @@ export const Route = createRootRoute({
 					)}
 					<a
 						href="/"
-						className="mt-8 rounded-lg bg-accent px-6 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
+						className="mt-8 inline-flex min-h-11 items-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
 					>
-						Etusivulle
+						{t("notFound.back")}
 					</a>
 				</div>
 			</RootDocument>
-		);
-	},
-	notFoundComponent: NotFound,
-});
+		</I18nextProvider>
+	);
+}
 
 function NotFoundContent() {
 	const { t } = useTranslation("common");
 	return (
 		<div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
-			<p className="font-heading text-7xl font-bold text-accent">404</p>
+			<p className="font-heading text-7xl font-bold text-foreground">404</p>
 			<h1 className="mt-4 font-heading text-2xl font-bold text-foreground">
 				{t("notFound.heading")}
 			</h1>
 			<p className="mt-2 max-w-md text-sm text-muted">{t("notFound.body")}</p>
 			<Link
 				to="/"
-				className="mt-8 rounded-lg bg-accent px-6 py-3 font-heading text-sm font-semibold text-white hover:bg-accent-hover"
+				className="mt-8 inline-flex min-h-11 items-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
 			>
 				{t("notFound.back")}
 			</Link>
@@ -139,13 +158,7 @@ function NotFound() {
 	// Renders INSIDE RootComponent's shell (the root component wraps notFoundComponent),
 	// so no RootDocument here — nesting it duplicates <html>/<nav> on every 404. Keep a
 	// local i18n instance so t() works even when the root loader never ran.
-	const [i18nInstance] = useState(() => {
-		if (typeof window === "undefined") {
-			return createI18nSync("fi");
-		}
-		ensureClientI18n();
-		return clientI18n;
-	});
+	const i18nInstance = useRootI18n();
 	return (
 		<I18nextProvider i18n={i18nInstance}>
 			<NotFoundContent />
@@ -162,13 +175,7 @@ function RootComponent() {
 
 	const { locale, session, unreadMessages } = Route.useRouteContext();
 
-	const [i18nInstance] = useState(() => {
-		if (typeof window === "undefined") {
-			return createI18nSync(locale);
-		}
-		ensureClientI18n(locale);
-		return clientI18n;
-	});
+	const i18nInstance = useRootI18n(locale);
 
 	return (
 		<I18nextProvider i18n={i18nInstance}>
@@ -239,7 +246,7 @@ function RootDocument({
 					<LoginPromptProvider loggedIn={!!session} onRequireLogin={() => setLoginOpen(true)}>
 						<a
 							href="#main-content"
-							className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-white"
+							className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-white"
 						>
 							{t("nav.skipToContent")}
 						</a>
@@ -357,15 +364,15 @@ function VerifyBanner({
 }) {
 	const { t } = useTranslation("auth");
 	return (
-		<div className="bg-warning/10 border-b border-warning/30 px-4 py-2 text-center text-sm">
+		<div className="bg-muted-light border-b border-border px-4 py-2 text-center text-sm">
 			<span className="text-foreground">{t("verifyBanner.text")}</span>{" "}
 			{resent ? (
-				<span className="font-medium text-accent">{t("verifyBanner.sent")}</span>
+				<span className="font-semibold text-foreground">{t("verifyBanner.sent")}</span>
 			) : checkedSpam ? (
 				<button
 					type="button"
 					onClick={onResend}
-					className="font-medium text-accent hover:underline"
+					className="font-semibold text-foreground hover:underline"
 				>
 					{t("verifyBanner.resend")}
 				</button>
@@ -373,7 +380,7 @@ function VerifyBanner({
 				<button
 					type="button"
 					onClick={onCheckSpam}
-					className="font-medium text-accent hover:underline"
+					className="font-semibold text-foreground hover:underline"
 				>
 					{t("verifyBanner.checkSpam")}
 				</button>

@@ -96,10 +96,7 @@ function SettingsPage() {
 					<p className="mt-1 text-sm text-muted">{session.user.email}</p>
 				</div>
 
-				<form
-					onSubmit={handleSubmit}
-					className="space-y-5 rounded-lg border border-border bg-card p-5"
-				>
+				<form onSubmit={handleSubmit} className="space-y-5 border-y border-border py-6">
 					<div className="space-y-2">
 						<label htmlFor="displayName" className="text-sm font-medium text-foreground">
 							{t("settings.displayNameLabel")} <span className="text-destructive">*</span>
@@ -150,7 +147,8 @@ function SettingsPage() {
 					<div className="flex items-center gap-3 pt-2">
 						<Button
 							type="submit"
-							className="bg-accent text-white hover:bg-accent-hover"
+							data-page-primary
+							variant="reflector"
 							disabled={loading || !displayName.trim()}
 						>
 							{loading ? t("settings.saving") : t("settings.save")}
@@ -216,7 +214,7 @@ function ChangePasswordSection() {
 	}
 
 	return (
-		<div className="mt-6 rounded-lg border border-border bg-card p-5">
+		<div className="mt-6 border-b border-border pb-6">
 			<h2 className="text-lg font-bold text-primary">{t("settings.changePasswordHeading")}</h2>
 			<form onSubmit={handleSubmit} className="mt-4 space-y-4">
 				<div className="space-y-2">
@@ -281,7 +279,7 @@ function ChangePasswordSection() {
 				<div className="flex items-center gap-3">
 					<Button
 						type="submit"
-						className="bg-accent text-white hover:bg-accent-hover"
+						variant="outline"
 						disabled={
 							loading || !currentPassword || !newPassword || !confirm || strength.score <= 1
 						}
@@ -316,7 +314,7 @@ function DataExportSection() {
 	}
 
 	return (
-		<div className="mt-8 rounded-xl border border-border bg-card p-5">
+		<div className="mt-6 border-b border-border pb-6">
 			<h2 className="text-lg font-bold text-foreground">{t("settings.exportData")}</h2>
 			<p className="mt-1 text-sm text-muted">{t("settings.exportDataDescription")}</p>
 			<Button
@@ -352,10 +350,7 @@ function DeleteAccountSection() {
 	}
 
 	return (
-		<div
-			data-testid="delete-account-section"
-			className="mt-8 rounded-lg border border-destructive/30 bg-card p-5"
-		>
+		<div data-testid="delete-account-section" className="mt-8 border-t border-border pt-6">
 			<h2 className="text-lg font-bold text-destructive">{t("settings.deleteAccount")}</h2>
 			<p className="mt-1 text-sm text-muted">{t("settings.deleteAccountDescription")}</p>
 

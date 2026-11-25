@@ -78,7 +78,7 @@ export function CitySelect({ value, onChange, onBlur, id, placeholder, ...aria }
 								<Combobox.Item
 									key={m.name}
 									value={m}
-									className="cursor-default select-none rounded-sm px-3 py-1.5 text-sm data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[selected]:bg-accent data-[selected]:text-accent-foreground"
+									className="cursor-default select-none rounded-sm px-3 py-1.5 text-sm data-[highlighted]:bg-primary data-[highlighted]:text-primary-foreground data-[selected]:bg-primary data-[selected]:text-primary-foreground"
 								>
 									{m.name}
 								</Combobox.Item>

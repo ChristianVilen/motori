@@ -1,12 +1,24 @@
 // src/routes/omat/index.tsx
 // User dashboard — my listings with quick actions
 
-import { Button } from "@motori/ui/button";
+import { Button, buttonVariants } from "@motori/ui/button";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { Bookmark, Heart, LogOut, MapPin, Pencil, Settings } from "lucide-react";
+import {
+	Bookmark,
+	CalendarDays,
+	ChevronRight,
+	Heart,
+	LogOut,
+	MapPin,
+	MessageSquare,
+	Pencil,
+	Settings,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { SellerAvatar } from "~/components/listings/seller-card";
+import { isAdmin } from "~/lib/admin";
 import { signOut } from "~/lib/auth-client";
 import { LISTING_STATUSES, MOTORCYCLE_TYPES, REGIONS, SITE_NAME } from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";
@@ -15,18 +27,19 @@ import { type ListingStatusChange, setListingStatus } from "~/lib/listings-comma
 import { getOwnerListings } from "~/lib/listings-owner";
 import { protectedMutation } from "~/lib/middleware";
 import { getProfileForEdit } from "~/lib/profile.server";
-import { requireSessionOrRedirect, requireUserId } from "~/lib/session";
+import { requireSession, requireSessionOrRedirect, requireUserId } from "~/lib/session";
 import { computeListingSlug } from "~/lib/slug";
 import { useEmailVerified } from "~/lib/use-email-verified";
 
 const getMyListings = createServerFn({ method: "GET" }).handler(async () => {
-	const userId = await requireUserId();
+	const { user } = await requireSession();
+	const userId = user.id;
 	const [{ listings, images }, profile] = await Promise.all([
 		getOwnerListings(userId),
 		getProfileForEdit(userId),
 	]);
 
-	return { listings, images, profile };
+	return { listings, images, profile, canManage: isAdmin(user) };
 });
 
 const setListingStatusFn = createServerFn({ method: "POST" })
@@ -113,7 +126,7 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 
 	return (
 		<div
-			className="flex gap-4 rounded-lg border border-border bg-card p-4"
+			className="flex gap-3 border-b border-border py-4"
 			data-testid="dashboard-listing-row"
 			data-listing-id={listing.short_id}
 		>
@@ -151,7 +164,7 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 					<Link
 						to="/ilmoitukset/$listingId/$slug"
 						params={{ listingId: listing.short_id, slug }}
-						className="text-sm font-semibold text-foreground hover:text-accent"
+						className="text-sm font-semibold text-foreground hover:underline"
 					>
 						{listing.title}
 					</Link>
@@ -186,10 +199,16 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 				{/* Actions */}
 				<div className="mt-3 flex flex-wrap gap-2">
 					{listing.category === "sale" && (
-						<Link to="/kauppakirja" search={{ ilmoitus: listing.short_id }}>
-							<Button variant="outline" size="sm" className="h-7 px-2 text-xs">
-								{t("contract:link")}
-							</Button>
+						<Link
+							to="/kauppakirja"
+							search={{ ilmoitus: listing.short_id }}
+							className={buttonVariants({
+								variant: "outline",
+								size: "sm",
+								className: "px-3 text-xs",
+							})}
+						>
+							{t("contract:link")}
 						</Link>
 					)}
 					{verified ? (
@@ -197,11 +216,14 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 							to="/ilmoitukset/$listingId/muokkaa"
 							params={{ listingId: listing.short_id }}
 							data-testid="dashboard-listing-edit"
+							className={buttonVariants({
+								variant: "outline",
+								size: "sm",
+								className: "gap-1 px-3 text-xs",
+							})}
 						>
-							<Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs">
-								<Pencil className="h-3 w-3" />
-								{t("dashboard.row.edit")}
-							</Button>
+							<Pencil className="h-3 w-3" />
+							{t("dashboard.row.edit")}
 						</Link>
 					) : (
 						<Button
@@ -272,7 +294,7 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 type FilterTab = "all" | "pyorat" | "tori";
 
 function ProfilePage() {
-	const { listings, images, profile } = Route.useLoaderData();
+	const { listings, images, profile, canManage } = Route.useLoaderData();
 	const router = useRouter();
 
 	async function handleSignOut() {
@@ -323,71 +345,76 @@ function ProfilePage() {
 	return (
 		<div className="min-h-screen bg-background">
 			<div className="mx-auto max-w-3xl px-4 py-8">
-				{/* Header card */}
-				<div className="mb-6 overflow-hidden rounded-xl border border-border bg-card">
-					{/* Name + avatar row */}
-					<div className="flex items-center gap-3 px-4 pt-4 pb-3">
-						<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-base font-bold text-white">
-							{(profile?.display_name ?? t("dashboard.fallbackName"))
-								.split(" ")
-								.slice(0, 2)
-								.map((w: string) => w[0])
-								.join("")
-								.toUpperCase()}
-						</div>
-						<div>
-							<h1 className="text-lg font-bold text-primary leading-tight">
-								{profile?.display_name ?? t("dashboard.fallbackName")}
-							</h1>
-							<p className="text-xs text-muted">
-								{t("dashboard.statsCombined", { active: totalActive, paused: totalPaused })}
-							</p>
-						</div>
+				<header className="mb-5 flex items-center gap-4">
+					<SellerAvatar large name={profile?.display_name ?? t("dashboard.fallbackName")} />
+					<div className="min-w-0">
+						<h1 className="break-words font-heading text-2xl font-bold">
+							{profile?.display_name ?? t("dashboard.fallbackName")}
+						</h1>
+						<p className="mt-1 text-sm text-muted">
+							{t("dashboard.statsCombined", { active: totalActive, paused: totalPaused })}
+						</p>
 					</div>
-
-					{/* Action strip */}
-					<div className="flex border-t border-border">
+				</header>
+				<nav
+					aria-label={t("common:nav.bottom.account")}
+					className="mb-8 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card"
+				>
+					{(
+						[
+							{
+								to: "/omat/suosikit",
+								icon: Heart,
+								label: t("dashboard.favoritesLabel"),
+								testId: "dashboard-favorites-link",
+							},
+							{
+								to: "/omat/haut",
+								icon: Bookmark,
+								label: t("dashboard.savedSearchesLabel"),
+								testId: "dashboard-saved-searches-link",
+							},
+							{ to: "/omat/varaukset", icon: CalendarDays, label: t("common:nav.bookings") },
+							{ to: "/viestit", icon: MessageSquare, label: t("common:nav.messages") },
+							{
+								to: "/profiili/asetukset",
+								icon: Settings,
+								label: t("dashboard.settingsAriaLabel"),
+							},
+						] as const
+					).map((item) => (
 						<Link
-							to="/omat/suosikit"
-							data-testid="dashboard-favorites-link"
-							className="flex flex-1 flex-col items-center gap-1 py-3 text-xs text-muted transition-colors hover:bg-muted-light hover:text-foreground"
-							aria-label={t("dashboard.favoritesLabel")}
+							key={item.to}
+							to={item.to}
+							data-testid={"testId" in item ? item.testId : undefined}
+							className="flex min-h-12 items-center gap-3 px-4 text-sm font-medium hover:bg-muted-light"
 						>
-							<Heart className="h-4 w-4" />
-							{t("dashboard.favoritesLabel")}
+							<item.icon size={18} />
+							{item.label}
+							<ChevronRight className="ml-auto text-muted" size={16} />
 						</Link>
-						<div className="w-px bg-border" />
+					))}
+					{canManage ? (
 						<Link
-							to="/omat/haut"
-							data-testid="dashboard-saved-searches-link"
-							className="flex flex-1 flex-col items-center gap-1 py-3 text-xs text-muted transition-colors hover:bg-muted-light hover:text-foreground"
-							aria-label={t("dashboard.savedSearchesLabel")}
+							to="/admin"
+							data-testid="dashboard-admin-link"
+							className="flex min-h-12 items-center gap-3 px-4 text-sm font-medium hover:bg-muted-light"
 						>
-							<Bookmark className="h-4 w-4" />
-							{t("dashboard.savedSearchesLabel")}
+							<Settings size={18} />
+							{t("dashboard.admin")}
+							<ChevronRight size={16} className="ml-auto text-muted" />
 						</Link>
-						<div className="w-px bg-border" />
-						<Link
-							to="/profiili/asetukset"
-							className="flex flex-1 flex-col items-center gap-1 py-3 text-xs text-muted transition-colors hover:bg-muted-light hover:text-foreground"
-							aria-label={t("dashboard.settingsAriaLabel")}
-						>
-							<Settings className="h-4 w-4" />
-							{t("dashboard.settingsAriaLabel")}
-						</Link>
-						<div className="w-px bg-border" />
-						<button
-							type="button"
-							onClick={handleSignOut}
-							className="flex flex-1 flex-col items-center gap-1 py-3 text-xs text-accent transition-colors hover:bg-accent/5"
-							aria-label={t("dashboard.signOutAriaLabel")}
-						>
-							<LogOut className="h-4 w-4" />
-							{t("dashboard.signOutAriaLabel")}
-						</button>
-					</div>
-				</div>
-
+					) : null}
+					<button
+						type="button"
+						onClick={handleSignOut}
+						className="flex min-h-12 w-full items-center gap-3 px-4 text-sm font-medium hover:bg-muted-light"
+					>
+						<LogOut size={18} />
+						{t("dashboard.signOutAriaLabel")}
+					</button>
+				</nav>
+				<h2 className="mb-3 font-heading text-xl font-bold">{t("common:nav.myListings")}</h2>
 				{/* Filter chips */}
 				{allItems.length > 0 && (
 					<div className="mb-4 flex gap-2">
@@ -399,7 +426,7 @@ function ProfilePage() {
 								className={[
 									"rounded-full px-3 py-1 text-sm font-medium transition-colors",
 									filter === key
-										? "bg-accent text-white"
+										? "bg-primary text-primary-foreground"
 										: "bg-muted-light text-muted hover:text-foreground",
 								].join(" ")}
 							>
@@ -414,10 +441,8 @@ function ProfilePage() {
 					<div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-border py-16 text-center">
 						<p className="text-muted">{t("dashboard.emptyState")}</p>
 						{verified ? (
-							<Link to="/ilmoitukset/uusi">
-								<Button className="bg-accent text-white hover:bg-accent-hover">
-									{t("dashboard.createFirst")}
-								</Button>
+							<Link to="/ilmoitukset/uusi" className={buttonVariants()}>
+								{t("dashboard.createFirst")}
 							</Link>
 						) : (
 							<Button disabled title={tAuth("unverifiedTooltip")}>
@@ -428,18 +453,18 @@ function ProfilePage() {
 				) : (
 					<div className="space-y-3">
 						<div className="flex justify-end">
-							<Link
-								to="/ilmoitukset/uusi"
-								className={verified ? undefined : "pointer-events-none opacity-50"}
-							>
-								<Button
-									className="bg-accent text-white hover:bg-accent-hover"
-									size="sm"
-									disabled={!verified}
+							{verified ? (
+								<Link
+									to="/ilmoitukset/uusi"
+									className={buttonVariants({ variant: "outline", size: "sm" })}
 								>
 									{t("dashboard.newListing")}
+								</Link>
+							) : (
+								<Button variant="outline" size="sm" disabled title={tAuth("unverifiedTooltip")}>
+									{t("dashboard.newListing")}
 								</Button>
-							</Link>
+							)}
 						</div>
 						{filtered.map((item) => (
 							<ListingRow

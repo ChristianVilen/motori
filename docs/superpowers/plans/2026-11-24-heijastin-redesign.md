@@ -386,24 +386,26 @@ The current theme is one `@theme` block in `packages/ui/src/theme.css`. Phase 1 
 
 Restyle these pages with the tokens, the shared button variants, the grid, and the layout variables. Do not change behaviour except where a step says so.
 
-- [ ] **7.1 Account page `/omat`.** Header with avatar, name, and "N aktiivista / M tauolla". Under it, a list of rows that link to Suosikit, Tallennetut haut, Varaukset, Viestit, Asetukset, and Kirjaudu ulos. Then the listing management list with its tabs, statuses, and row actions unchanged (Tee kauppakirja, Muokkaa, Aseta tauolle or Aktivoi, Myyty, Jatka voimassaoloa, Poista), and the disabled states for unverified users. Row actions are outline pills. "Poista" uses the destructive colour.
-- [ ] **7.2 Admin link.** On `/omat`, show a row "Ylläpito" that links to `/admin` only when the session user is an admin. Use the same check that `requireAdmin` uses. Do not send the role to users who are not admins. Add an e2e test in `admin.spec.ts`: the admin sees the row, a normal user does not.
-- [ ] **7.3 Favourites `/omat/suosikit` and saved searches `/omat/haut`.** Shared grid for favourites, with an empty state that names the heart. Saved searches are rows with the label, a chevron, and a delete button.
-- [ ] **7.4 Bookings `/omat/varaukset` and the booking detail.** Tabs as an ink segmented control. Status as a pill: "Odottaa" on tint, "Vahvistettu" lime, "Hylätty" and "Peruttu" outlined, "Vanhentunut" muted. On the detail page, "Vahvista varaus" is the lime button and "Hylkää" is an outline button. The review form and its states keep their logic.
-- [ ] **7.5 Messages `/viestit` and the thread.** Two panes on desktop, one on mobile. Own messages are an ink fill with white text. Other messages are white with a hairline. Booking request messages stay centred pills on tint. The send button is the lime primary action. Keep the SSE updates, the mobile back link to `/viestit`, and the hidden footer. `mobile-chat-back.spec.ts` must pass.
-- [ ] **7.6 Settings `/profiili/asetukset` and `/taydenna-profiili`.** Sections with hairlines. "Tallenna" is the lime button of the form. "Poista tili" uses the destructive colour.
-- [ ] **7.7 Auth pages and the login modal.** `/kirjaudu`, `/rekisteroidy`, `/unohdin-salasanan`, `/vaihda-salasana`, `/vahvista-sahkoposti`, `LoginModal`, and the unverified banner. The submit button of each form is the lime button. The banner is a tint strip with ink text.
-- [ ] **7.8 Listing form `/ilmoitukset/uusi` and `/ilmoitukset/$listingId/muokkaa`.** Category tiles with an ink ring on the selected one. Remove emoji. The image uploader gets the 10px radius and an ink "Kansikuva" pill. The submit button is lime. The form logic and validation do not change. `listing-form-validation.spec.ts` and the lifecycle specs must pass.
-- [ ] **7.9 Bill of sale `/kauppakirja`.** Restyle only the screen UI (Tailwind classes with `print:hidden`). Do not change `styles/sale-contract.css`, the A4 document, the print rules, or the storage logic.
-- [ ] **7.10 Static and error pages.** `/kayttoehdot`, `/tietosuoja`, the 404 component, the 500 component, and the per-route "not found" components.
-- [ ] **7.11 Admin.** No layout work. Confirm that each admin page is legible with the new tokens.
-- [ ] **7.12 Emails.** Confirm that the email wrapper from step 1.8 renders the new wordmark and colours. `email.spec.ts` must pass.
+- [x] **7.1 Account page `/omat`.** Header with avatar, name, and "N aktiivista / M tauolla". Under it, a list of rows that link to Suosikit, Tallennetut haut, Varaukset, Viestit, Asetukset, and Kirjaudu ulos. Then the listing management list with its tabs, statuses, and row actions unchanged (Tee kauppakirja, Muokkaa, Aseta tauolle or Aktivoi, Myyty, Jatka voimassaoloa, Poista), and the disabled states for unverified users. Row actions are outline pills. "Poista" uses the destructive colour.
+- [x] **7.2 Admin link.** On `/omat`, show a row "Ylläpito" that links to `/admin` only when the session user is an admin. Use the same check that `requireAdmin` uses. Do not send the role to users who are not admins. Add an e2e test in `admin.spec.ts`: the admin sees the row, a normal user does not.
+- [x] **7.3 Favourites `/omat/suosikit` and saved searches `/omat/haut`.** Shared grid for favourites, with an empty state that names the heart. Saved searches are rows with the label, a chevron, and a delete button.
+- [x] **7.4 Bookings `/omat/varaukset` and the booking detail.** Tabs as an ink segmented control. Status as a pill: "Odottaa" on tint, "Vahvistettu" lime, "Hylätty" and "Peruttu" outlined, "Vanhentunut" muted. On the detail page, "Vahvista varaus" is the lime button and "Hylkää" is an outline button. The review form and its states keep their logic.
+- [x] **7.5 Messages `/viestit` and the thread.** Two panes on desktop, one on mobile. Own messages are an ink fill with white text. Other messages are white with a hairline. Booking request messages stay centred pills on tint. The send button is the lime primary action. Keep the SSE updates, the mobile back link to `/viestit`, and the hidden footer. `mobile-chat-back.spec.ts` must pass.
+- [x] **7.6 Settings `/profiili/asetukset` and `/taydenna-profiili`.** Sections with hairlines. "Tallenna" is the lime button of the form. "Poista tili" uses the destructive colour.
+- [x] **7.7 Auth pages and the login modal.** `/kirjaudu`, `/rekisteroidy`, `/unohdin-salasanan`, `/vaihda-salasana`, `/vahvista-sahkoposti`, `LoginModal`, and the unverified banner. The submit button of each form is the lime button. The banner is a tint strip with ink text.
+- [x] **7.8 Listing form `/ilmoitukset/uusi` and `/ilmoitukset/$listingId/muokkaa`.** Category tiles with an ink ring on the selected one. Remove emoji. The image uploader gets the 10px radius and an ink "Kansikuva" pill. The submit button is lime. The form logic and validation do not change. `listing-form-validation.spec.ts` and the lifecycle specs must pass.
+- [x] **7.9 Bill of sale `/kauppakirja`.** Restyle only the screen UI (Tailwind classes with `print:hidden`). Do not change `styles/sale-contract.css`, the A4 document, the print rules, or the storage logic.
+- [x] **7.10 Static and error pages.** `/kayttoehdot`, `/tietosuoja`, the 404 component, the 500 component, and the per-route "not found" components.
+- [x] **7.11 Admin.** No layout work. Confirm that each admin page is legible with the new tokens.
+- [x] **7.12 Emails.** Confirm that the email wrapper from step 1.8 renders the new wordmark and colours. `email.spec.ts` must pass.
 
 **Acceptance.**
 
 - `grep -rnE "(bg|text|border|ring)-accent" apps/motori/src` returns nothing. Every usage is replaced by the rule under "Token mapping".
 - Every form has at most one lime button.
 - The full e2e suite passes.
+
+**Phase 7 verification (2026-11-25).** All six required commands passed. The unit suite passed 447 tests. The Motori browser suite passed 149 tests and skipped 9. The admin link was present only for an admin, and the regular member’s session response omitted the role. The five admin pages passed automated contrast checks at 390×844 and 1280×800. The email wrapper rendered the wordmark, the print preview and auth flows worked, and a deliberate database outage returned a localized HTTP 500 page. The normal captured pages had no console errors, CSP violations or horizontal overflow. The missing-page and outage checks returned their expected HTTP statuses.
 
 ---
 

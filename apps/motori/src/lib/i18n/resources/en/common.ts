@@ -41,6 +41,11 @@ export default {
 			recent: "Recent searches",
 		},
 	},
+	serverError: {
+		heading: "Something went wrong",
+		body: "Please reload the page and try again.",
+		requestId: "Request ID: {{id}}",
+	},
 	notFound: {
 		heading: "Page not found",
 		body: "The page you're looking for doesn't exist or has been removed.",

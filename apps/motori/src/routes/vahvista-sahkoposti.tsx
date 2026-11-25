@@ -36,10 +36,10 @@ function VerifyEmailPage() {
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-background px-4">
-			<div className="w-full max-w-sm space-y-6 text-center">
+		<div className="mx-auto flex min-h-[65dvh] max-w-xl items-center justify-center px-4 py-10">
+			<div className="w-full max-w-md space-y-6 rounded-sheet border border-border bg-card p-5 sm:p-8 text-center">
 				<div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted-light">
-					<Mail className="h-8 w-8 text-accent" />
+					<Mail className="h-8 w-8 text-foreground" />
 				</div>
 
 				<div className="space-y-2">
@@ -72,7 +72,9 @@ function VerifyEmailPage() {
 						<Button
 							data-testid="resend-verification-submit"
 							type="submit"
-							className="w-full bg-accent text-white hover:bg-accent-hover"
+							data-page-primary
+							variant="reflector"
+							className="w-full"
 							disabled={loading}
 						>
 							{loading ? t("verifyEmail.resendLoading") : t("verifyEmail.resendSubmit")}
@@ -81,7 +83,11 @@ function VerifyEmailPage() {
 				)}
 
 				<p className="text-sm text-muted">
-					<Link to="/kirjaudu" search={{ redirect: undefined }} className="text-accent underline">
+					<Link
+						to="/kirjaudu"
+						search={{ redirect: undefined }}
+						className="text-foreground underline"
+					>
 						{t("verifyEmail.backToLogin")}
 					</Link>
 				</p>

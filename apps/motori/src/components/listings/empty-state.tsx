@@ -88,7 +88,7 @@ export function LowResultNudge() {
 		<div className="mt-6 border-t border-border px-4 py-4 text-center text-sm text-muted">
 			{t("empty.lowResults")}{" "}
 			{verified ? (
-				<Link to="/ilmoitukset/uusi" className="font-medium text-accent hover:underline">
+				<Link to="/ilmoitukset/uusi" className="font-medium text-foreground hover:underline">
 					{t("empty.lowResultsLink")}
 				</Link>
 			) : (

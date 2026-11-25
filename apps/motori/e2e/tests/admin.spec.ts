@@ -13,9 +13,21 @@ import { loginAs } from "../helpers";
 import { AdminListingsPage } from "../pages/admin-listings.page";
 import { AdminStatsPage } from "../pages/admin-stats.page";
 import { AdminUsersPage } from "../pages/admin-users.page";
+import { DashboardPage } from "../pages/dashboard.page";
 import { LoginPage } from "../pages/login.page";
 
 test.describe("Admin auth guard", () => {
+	test("account links to administration only for an admin", async ({
+		adminPage,
+		authenticatedViewerPage,
+	}) => {
+		const admin = new DashboardPage(adminPage);
+		await admin.goto();
+		await expect(admin.adminLink).toHaveAttribute("href", "/admin");
+		const viewer = new DashboardPage(authenticatedViewerPage);
+		await viewer.goto();
+		await expect(viewer.adminLink).toHaveCount(0);
+	});
 	test("unauthenticated user is redirected away from /admin", async ({ page }) => {
 		await page.goto("/admin");
 		await expect(page).toHaveURL("/");

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { sql } from "kysely";
 import { useState } from "react";
+import { BookingStatusPill } from "~/components/booking-status-pill";
 import { SITE_NAME } from "~/lib/constants";
 import { useTranslation } from "~/lib/i18n";
 import { requireSessionOrRedirect, requireUserId } from "~/lib/session";
@@ -64,17 +65,14 @@ function BookingsListPage() {
 	return (
 		<div className="mx-auto max-w-3xl px-4 py-8">
 			<h1 className="text-2xl font-bold">{t("bookings.listTitle")}</h1>
-			<div className="mt-4 flex gap-2 border-b border-border">
+			<div className="mt-4 inline-flex rounded-full border border-border bg-card p-1">
 				{(["incoming", "outgoing"] as const).map((key) => (
 					<button
 						type="button"
 						key={key}
 						onClick={() => setTab(key)}
-						className={`-mb-px border-b-2 px-3 py-2 text-sm ${
-							tab === key
-								? "border-accent text-accent"
-								: "border-transparent text-muted hover:text-foreground"
-						}`}
+						aria-pressed={tab === key}
+						className="min-h-10 rounded-full px-4 text-sm font-medium aria-pressed:bg-primary aria-pressed:text-primary-foreground"
 						data-testid={`bookings-tab-${key}`}
 					>
 						{t(`bookings.tabs.${key}`)}
@@ -93,7 +91,7 @@ function BookingsListPage() {
 							<Link
 								to="/omat/varaukset/$bookingId"
 								params={{ bookingId: b.short_id }}
-								className="block rounded-lg border border-border bg-card p-4 hover:border-accent"
+								className="block rounded-lg border border-border bg-card p-4 hover:border-foreground"
 								data-testid="booking-row"
 							>
 								<div className="flex items-center justify-between gap-3">
@@ -104,9 +102,7 @@ function BookingsListPage() {
 											{"renter_name" in b ? ` · ${b.renter_name}` : null}
 										</div>
 									</div>
-									<span className="rounded-full bg-muted-light px-2 py-0.5 text-xs">
-										{t(`bookings.status.${b.status}`)}
-									</span>
+									<BookingStatusPill status={b.status} />
 								</div>
 							</Link>
 						</li>

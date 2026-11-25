@@ -41,6 +41,11 @@ export default {
 			recent: "Viimeisimmät haut",
 		},
 	},
+	serverError: {
+		heading: "Virhe",
+		body: "Jotain meni pieleen. Yritä ladata sivu uudelleen.",
+		requestId: "Pyynnön tunniste: {{id}}",
+	},
 	notFound: {
 		heading: "Sivua ei löytynyt",
 		body: "Etsimääsi sivua ei ole olemassa tai se on poistettu.",

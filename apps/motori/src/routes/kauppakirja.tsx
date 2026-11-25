@@ -97,9 +97,22 @@ function ContractEditor({
 
 	return (
 		<>
-			<ol className="mt-6 mb-8 flex gap-6 text-sm print:hidden" aria-label={t("title")}>
-				<li aria-current={step === "edit" ? "step" : undefined}>1. {t("fill")}</li>
-				<li aria-current={step === "preview" ? "step" : undefined}>2. {t("preview")}</li>
+			<ol
+				className="mt-6 mb-8 inline-flex gap-1 rounded-full border border-border bg-card p-1 text-sm print:hidden"
+				aria-label={t("title")}
+			>
+				<li
+					className="rounded-full px-4 py-2 aria-[current=step]:bg-primary aria-[current=step]:font-semibold aria-[current=step]:text-primary-foreground"
+					aria-current={step === "edit" ? "step" : undefined}
+				>
+					1. {t("fill")}
+				</li>
+				<li
+					className="rounded-full px-4 py-2 aria-[current=step]:bg-primary aria-[current=step]:font-semibold aria-[current=step]:text-primary-foreground"
+					aria-current={step === "preview" ? "step" : undefined}
+				>
+					2. {t("preview")}
+				</li>
 			</ol>
 
 			{step === "edit" && <ContractForm draft={draft} onChange={setDraft} />}
@@ -115,12 +128,22 @@ function ContractEditor({
 
 			<div className="mt-6 flex flex-wrap gap-3 print:hidden">
 				{step === "edit" ? (
-					<Button type="button" onClick={() => setStep("preview")}>
+					<Button
+						data-page-primary
+						variant="reflector"
+						type="button"
+						onClick={() => setStep("preview")}
+					>
 						{t("preview")}
 					</Button>
 				) : (
 					<>
-						<Button type="button" onClick={() => window.print()}>
+						<Button
+							data-page-primary
+							variant="reflector"
+							type="button"
+							onClick={() => window.print()}
+						>
 							{t("print")}
 						</Button>
 						<Button type="button" variant="outline" onClick={() => setStep("edit")}>

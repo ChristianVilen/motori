@@ -3,11 +3,18 @@ import { redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { auth } from "~/lib/auth";
 import { AppError } from "~/lib/errors";
+import { publicSessionUser } from "~/lib/public-session-user";
 
 // `auth` and createGetSession are referenced only inside the handler arrow so
 // TanStack's compiler prunes them (and their node-only deps) from the client
 // bundle. See the note in @motori/server/session.
-export const getSession = createServerFn().handler(async () => createGetSession(auth)());
+export const getSession = createServerFn().handler(async () => {
+	const session = await createGetSession(auth)();
+	if (!session || !("role" in session.user) || session.user.role === "admin") {
+		return session;
+	}
+	return { ...session, user: publicSessionUser(session.user) };
+});
 
 export type Session = NonNullable<Awaited<ReturnType<typeof getSession>>>;
 

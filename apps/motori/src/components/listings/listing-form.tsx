@@ -271,10 +271,11 @@ export function ListingForm(props: ListingFormProps) {
 									type="button"
 									onClick={() => handleCategoryChange(cat)}
 									data-testid={`category-tile-${cat}`}
-									className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 text-sm font-medium transition-colors ${
+									aria-pressed={category === cat}
+									className={`flex flex-col items-center gap-2 rounded-lg border p-4 text-sm font-medium transition-colors ${
 										category === cat
-											? "border-accent bg-accent/5 text-accent"
-											: "border-border bg-background text-foreground hover:border-accent/50"
+											? "border-foreground bg-card text-foreground ring-1 ring-foreground"
+											: "border-border bg-card text-foreground hover:border-foreground"
 									}`}
 								>
 									{icons[cat]}
@@ -452,11 +453,11 @@ export function ListingForm(props: ListingFormProps) {
 							return (
 								<div
 									key={item.key}
-									className={`relative aspect-square overflow-hidden rounded-md bg-muted-light ${isCover ? "ring-2 ring-accent" : ""}`}
+									className={`relative aspect-square overflow-hidden rounded-lg bg-muted-light ${isCover ? "ring-2 ring-foreground" : ""}`}
 								>
 									<img src={src} alt="" className="h-full w-full object-cover" />
 									{isCover && (
-										<span className="absolute left-1 top-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+										<span className="absolute left-1 top-1 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
 											{t("form.images.coverBadge")}
 										</span>
 									)}
@@ -508,7 +509,7 @@ export function ListingForm(props: ListingFormProps) {
 					<label
 						onDragOver={(e) => e.preventDefault()}
 						onDrop={images.handleFileDrop}
-						className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 text-center transition-colors hover:border-accent hover:bg-muted-light/50"
+						className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 text-center transition-colors hover:border-foreground hover:bg-muted-light/50"
 					>
 						<svg
 							className="h-8 w-8 text-muted"
@@ -526,7 +527,7 @@ export function ListingForm(props: ListingFormProps) {
 						</svg>
 						<span className="text-sm text-muted">
 							{t("form.images.addImages")}{" "}
-							<span className="text-accent">{t("form.images.dragHere")}</span>
+							<span className="text-foreground">{t("form.images.dragHere")}</span>
 						</span>
 						<span className="text-xs text-muted">{t("form.images.fileConstraints")}</span>
 						<input
@@ -565,7 +566,9 @@ export function ListingForm(props: ListingFormProps) {
 					<Button
 						type="submit"
 						disabled={isSubmitting}
-						className="w-full bg-accent text-white hover:bg-accent-hover"
+						data-page-primary
+						variant="reflector"
+						className="w-full"
 						size="lg"
 						data-testid="listing-form-submit"
 					>

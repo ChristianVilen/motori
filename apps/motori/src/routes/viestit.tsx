@@ -43,7 +43,7 @@ function ViestitLayout() {
 									to="/viestit/$conversationId"
 									params={{ conversationId: c.id }}
 									className="flex items-start gap-3 px-4 py-3 border-b border-border hover:bg-muted-light transition-colors border-l-2 border-l-transparent"
-									activeProps={{ className: "bg-muted-light border-l-2 border-l-accent" }}
+									activeProps={{ className: "bg-muted-light border-l-2 border-l-foreground" }}
 								>
 									<div className="flex-1 min-w-0">
 										<div className="flex items-center justify-between gap-2">
@@ -51,7 +51,7 @@ function ViestitLayout() {
 												{c.otherPartyDisplayName}
 											</span>
 											{c.unreadCount > 0 ? (
-												<span className="shrink-0 rounded-full bg-accent text-white text-xs px-1.5 py-0.5 leading-none">
+												<span className="shrink-0 rounded-full bg-primary text-white text-xs px-1.5 py-0.5 leading-none">
 													{c.unreadCount}
 												</span>
 											) : null}

@@ -74,7 +74,7 @@ function RenameCell({
 					setValue(name);
 					setEditing(true);
 				}}
-				className="group/rename flex items-center gap-1.5 text-left hover:text-accent"
+				className="group/rename flex items-center gap-1.5 text-left hover:text-foreground"
 				title="Click to rename"
 			>
 				{name}
@@ -106,7 +106,7 @@ function RenameCell({
 						save();
 					}
 				}}
-				className="rounded border border-input bg-background px-2 py-0.5 text-base focus:outline-none focus:ring-1 focus:ring-accent md:text-sm"
+				className="rounded border border-input bg-background px-2 py-0.5 text-base focus:outline-none focus:ring-1 focus:ring-ring md:text-sm"
 			/>
 			{error ? <span className="text-xs text-destructive">{error}</span> : null}
 		</span>
@@ -169,7 +169,7 @@ function MergeCell({
 				<select
 					value={targetId}
 					onChange={(e) => setTargetId(e.target.value)}
-					className="rounded border border-input bg-background px-2 py-0.5 text-base focus:outline-none focus:ring-1 focus:ring-accent md:text-xs"
+					className="rounded border border-input bg-background px-2 py-0.5 text-base focus:outline-none focus:ring-1 focus:ring-ring md:text-xs"
 				>
 					{others.map((o) => (
 						<option key={o.id} value={o.id}>
@@ -180,7 +180,7 @@ function MergeCell({
 				<button
 					type="button"
 					onClick={confirm}
-					className="rounded bg-accent px-2 py-0.5 text-xs text-white hover:bg-accent/90"
+					className="rounded bg-primary px-2 py-0.5 text-xs text-white hover:bg-primary/90"
 				>
 					Confirm
 				</button>
@@ -228,7 +228,7 @@ function DeleteButton({
 				onClick={handle}
 				disabled={disabled}
 				title={disabled ? disabledReason : "Delete"}
-				className="flex items-center gap-1 text-xs text-red-600 hover:text-red-800 disabled:cursor-not-allowed disabled:opacity-30"
+				className="flex items-center gap-1 text-xs text-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-30"
 			>
 				<Trash2 size={13} /> Delete
 			</button>
@@ -275,13 +275,13 @@ function MakesTable({ makes }: { makes: AdminMake[] }) {
 						{makes.map((make) => (
 							<tr
 								key={make.id}
-								className={`group border-b border-border last:border-0 hover:bg-muted-light/20 ${isNew(make.createdAt) ? "bg-yellow-50" : ""}`}
+								className={`group border-b border-border last:border-0 hover:bg-muted-light/20 ${isNew(make.createdAt) ? "bg-muted-light" : ""}`}
 							>
 								<td className="px-4 py-3">
 									<span className="flex items-center gap-2">
 										<RenameCell id={make.id} name={make.name} onSave={handleRename} />
 										{isNew(make.createdAt) && (
-											<Sparkles size={13} className="shrink-0 text-yellow-500" />
+											<Sparkles size={13} className="shrink-0 text-foreground" />
 										)}
 									</span>
 								</td>
@@ -373,13 +373,13 @@ function ModelsTable({ models, makes }: { models: AdminModel[]; makes: AdminMake
 						{filtered.map((model) => (
 							<tr
 								key={model.id}
-								className={`group border-b border-border last:border-0 hover:bg-muted-light/20 ${isNew(model.createdAt) ? "bg-yellow-50" : ""}`}
+								className={`group border-b border-border last:border-0 hover:bg-muted-light/20 ${isNew(model.createdAt) ? "bg-muted-light" : ""}`}
 							>
 								<td className="px-4 py-3">
 									<span className="flex items-center gap-2">
 										<RenameCell id={model.id} name={model.name} onSave={handleRename} />
 										{isNew(model.createdAt) && (
-											<Sparkles size={13} className="shrink-0 text-yellow-500" />
+											<Sparkles size={13} className="shrink-0 text-foreground" />
 										)}
 									</span>
 								</td>

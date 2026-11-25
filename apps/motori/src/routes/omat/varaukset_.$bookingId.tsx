@@ -4,6 +4,7 @@ import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-rout
 import { createServerFn } from "@tanstack/react-start";
 import { sql } from "kysely";
 import { useState } from "react";
+import { BookingStatusPill } from "~/components/booking-status-pill";
 import {
 	cancelBooking as cancelBookingAction,
 	confirmBooking as confirmBookingAction,
@@ -167,12 +168,12 @@ function ContactBlock(props: { label: string; name: string; email: string; phone
 			<p className="mt-1 text-sm">
 				{props.name}
 				<br />
-				<a className="text-accent" href={`mailto:${props.email}`}>
+				<a className="text-foreground" href={`mailto:${props.email}`}>
 					{props.email}
 				</a>
 				{props.phone ? <br /> : null}
 				{props.phone ? (
-					<a className="text-accent" href={`tel:${props.phone}`}>
+					<a className="text-foreground" href={`tel:${props.phone}`}>
 						{props.phone}
 					</a>
 				) : null}
@@ -224,7 +225,13 @@ function OwnerActions(props: {
 
 	return (
 		<div className="mt-6 flex flex-wrap gap-3">
-			<Button onClick={handleConfirm} disabled={props.busy} data-testid="booking-confirm">
+			<Button
+				data-page-primary
+				variant="reflector"
+				onClick={handleConfirm}
+				disabled={props.busy}
+				data-testid="booking-confirm"
+			>
 				{t("bookings.detail.confirmButton")}
 			</Button>
 			{rejectMode ? (
@@ -334,7 +341,7 @@ function ReviewSection(props: {
 								key={star}
 								type="button"
 								onClick={() => setRating(star)}
-								className={`text-2xl ${star <= rating ? "text-yellow-500" : "text-gray-300"}`}
+								className={`text-2xl ${star <= rating ? "text-foreground" : "text-border"}`}
 								aria-label={`${star} / 5`}
 							>
 								★
@@ -358,7 +365,7 @@ function ReviewSection(props: {
 				<Button type="submit" disabled={busy || rating === 0} data-testid="review-submit">
 					{busy ? t("reviews.submitting") : t("reviews.submitButton")}
 				</Button>
-				{!!error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+				{!!error && <p className="mt-2 text-sm text-destructive">{error}</p>}
 			</form>
 		</div>
 	);
@@ -388,7 +395,7 @@ function BookingDetailPage() {
 
 	return (
 		<div className="mx-auto max-w-2xl px-4 py-8">
-			<Link to="/omat/varaukset" className="text-sm text-muted hover:text-accent">
+			<Link to="/omat/varaukset" className="text-sm text-muted hover:text-foreground">
 				← {t("bookings.listTitle")}
 			</Link>
 			<h1 className="mt-2 text-2xl font-bold">{t("bookings.detail.heading")}</h1>
@@ -397,9 +404,9 @@ function BookingDetailPage() {
 				<div className="mt-1 text-sm text-muted">
 					{booking.start_date} – {booking.end_date}
 				</div>
-				<span className="mt-2 inline-block rounded-full bg-muted-light px-2 py-0.5 text-xs">
-					{t(`bookings.status.${booking.status}`)}
-				</span>
+				<div className="mt-2">
+					<BookingStatusPill status={booking.status} />
+				</div>
 				<div className="mt-4">
 					<div className="text-xs font-semibold uppercase text-muted">
 						{t("bookings.detail.messageLabel")}
@@ -408,7 +415,7 @@ function BookingDetailPage() {
 						<Link
 							to="/viestit/$conversationId"
 							params={{ conversationId: booking.conversation_id }}
-							className="mt-1 inline-block text-sm text-accent hover:underline"
+							className="mt-1 inline-block text-sm text-foreground hover:underline"
 						>
 							{t("messages.openConversation", "Avaa keskustelu")}
 						</Link>

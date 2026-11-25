@@ -51,7 +51,7 @@ const getStats = createServerFn({ method: "GET" })
 	});
 
 export const Route = createFileRoute("/admin/")({
-	validateSearch: (search: Record<string, unknown>) => ({
+	validateSearch: (search: Record<string, unknown>): { period?: Period } => ({
 		period: (search.period as Period) || undefined,
 	}),
 	loaderDeps: ({ search }) => search,

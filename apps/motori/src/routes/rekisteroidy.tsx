@@ -3,7 +3,6 @@
 import { passwordStrength } from "@motori/server/password-strength";
 import { Button } from "@motori/ui/button";
 import { Input } from "@motori/ui/input";
-import { Logo } from "@motori/ui/logo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { signUp } from "~/lib/auth-client";
@@ -58,11 +57,10 @@ function RegisterPage() {
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-background px-4">
-			<div className="w-full max-w-sm space-y-6">
+		<div className="mx-auto flex min-h-[65dvh] max-w-xl items-center justify-center px-4 py-10">
+			<div className="w-full max-w-md space-y-6 rounded-sheet border border-border bg-card p-5 sm:p-8">
 				<div className="text-center">
-					<Logo variant="light" className="mx-auto h-10" />
-					<p className="mt-1 text-sm text-muted">{t("register.tagline")}</p>
+					<h1 className="font-heading text-2xl font-bold">{t("register.tagline")}</h1>
 				</div>
 
 				<form onSubmit={handleSubmit} data-testid="register-form" className="space-y-4">
@@ -166,11 +164,11 @@ function RegisterPage() {
 						/>
 						<span>
 							{t("register.termsCheckboxPrefix")}{" "}
-							<Link to="/kayttoehdot" className="text-accent underline" target="_blank">
+							<Link to="/kayttoehdot" className="text-foreground underline" target="_blank">
 								{t("register.termsLink")}
 							</Link>{" "}
 							{t("register.termsCheckboxAnd")}{" "}
-							<Link to="/tietosuoja" className="text-accent underline" target="_blank">
+							<Link to="/tietosuoja" className="text-foreground underline" target="_blank">
 								{t("register.privacyLink")}
 							</Link>
 						</span>
@@ -179,7 +177,9 @@ function RegisterPage() {
 					<Button
 						data-testid="register-submit"
 						type="submit"
-						className="w-full bg-accent text-white hover:bg-accent-hover"
+						data-page-primary
+						variant="reflector"
+						className="w-full"
 						disabled={loading || !termsAccepted}
 					>
 						{loading ? t("register.submitLoading") : t("register.submitIdle")}
@@ -192,7 +192,7 @@ function RegisterPage() {
 						data-testid="register-login-link"
 						to="/kirjaudu"
 						search={{ redirect: undefined }}
-						className="text-accent underline"
+						className="text-foreground underline"
 					>
 						{t("register.loginLink")}
 					</Link>

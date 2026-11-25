@@ -66,7 +66,7 @@ export function MobileFullscreenModal({
 				<button
 					type="button"
 					onClick={onClose}
-					className="rounded-lg p-1.5 text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent"
+					className="rounded-lg p-1.5 text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
 					aria-label={t("detail.back")}
 				>
 					<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">

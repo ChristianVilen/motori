@@ -51,7 +51,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 		>
 			<div
 				ref={trapRef}
-				className="w-full max-w-sm rounded-lg bg-card p-6 shadow-xl"
+				className="w-full max-w-md rounded-sheet border border-border bg-card p-6 shadow-xl"
 				role="document"
 			>
 				<div className="mb-5 flex items-start justify-between">
@@ -62,7 +62,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 						type="button"
 						onClick={onClose}
 						aria-label={t("modal.closeLabel")}
-						className="rounded p-1 text-muted hover:bg-muted-light hover:text-foreground"
+						className="grid size-11 place-items-center rounded-full text-muted hover:bg-muted-light hover:text-foreground"
 					>
 						<X className="h-4 w-4" />
 					</button>
@@ -72,7 +72,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 
 				<p className="mt-4 text-center text-sm text-muted">
 					{t("modal.noAccount")}{" "}
-					<Link to="/rekisteroidy" onClick={onClose} className="text-accent underline">
+					<Link to="/rekisteroidy" onClick={onClose} className="text-foreground underline">
 						{t("modal.registerLink")}
 					</Link>
 				</p>

@@ -43,7 +43,7 @@ function FavoritesPage() {
 				<h1 className="mb-6 text-2xl font-bold text-primary">{t("favorites.title")}</h1>
 
 				{listings.length === 0 ? (
-					<div className="rounded-lg border border-dashed border-border py-16 text-center">
+					<div className="rounded-lg border border-border bg-card px-4 py-16 text-center">
 						<p className="text-muted">{t("favorites.empty")}</p>
 					</div>
 				) : (

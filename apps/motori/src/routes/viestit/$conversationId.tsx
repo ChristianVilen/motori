@@ -63,7 +63,7 @@ function ThreadPage() {
 				{/* Back button — mobile only */}
 				<Link
 					to="/viestit"
-					className="md:hidden flex items-center justify-center h-8 w-8 rounded-lg text-muted hover:text-foreground hover:bg-muted-light transition-colors shrink-0"
+					className="md:hidden flex items-center justify-center size-11 rounded-full text-muted hover:text-foreground hover:bg-muted-light transition-colors shrink-0"
 					aria-label="Takaisin"
 				>
 					<svg
@@ -129,14 +129,15 @@ function ThreadPage() {
 						maxLength={4000}
 						rows={2}
 						aria-label={t("thread.composerLabel")}
-						className="flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-base placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors md:text-sm"
+						className="flex-1 resize-none rounded-xl border border-border bg-card px-3 py-2 text-base placeholder:text-muted transition-colors md:text-sm"
 						placeholder={t("thread.placeholder")}
 					/>
 					<button
 						type="button"
+						data-page-primary
 						onClick={onSend}
 						disabled={sending}
-						className="rounded-xl bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50 transition-colors shrink-0"
+						className="min-h-11 rounded-full bg-reflector px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-reflector-press disabled:opacity-50 transition-colors shrink-0"
 					>
 						{t("thread.send")}
 					</button>
@@ -175,8 +176,8 @@ function MessageBubble({
 			<div
 				className={`max-w-[75%] sm:max-w-[65%] px-4 py-2.5 text-sm leading-relaxed ${
 					mine
-						? "bg-accent text-white rounded-2xl rounded-br-sm"
-						: "bg-muted-light text-foreground rounded-2xl rounded-bl-sm"
+						? "bg-primary text-primary-foreground rounded-2xl rounded-br-sm"
+						: "border border-border bg-card text-foreground rounded-2xl rounded-bl-sm"
 				}`}
 			>
 				<p className="whitespace-pre-wrap break-words">{message.body}</p>

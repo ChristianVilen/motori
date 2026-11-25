@@ -51,13 +51,13 @@ function ModerationPage() {
 					onClick={() => setTab("listings")}
 					className={`border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
 						tab === "listings"
-							? "border-accent text-accent"
+							? "border-foreground text-foreground"
 							: "border-transparent text-muted hover:text-foreground"
 					}`}
 				>
 					New Listings
 					{counts.unreviewedListings > 0 && (
-						<span className="ml-2 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
+						<span className="ml-2 rounded-full bg-muted-light px-2 py-0.5 text-xs font-medium text-foreground">
 							{counts.unreviewedListings}
 						</span>
 					)}
@@ -67,13 +67,13 @@ function ModerationPage() {
 					onClick={() => setTab("reports")}
 					className={`border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
 						tab === "reports"
-							? "border-accent text-accent"
+							? "border-foreground text-foreground"
 							: "border-transparent text-muted hover:text-foreground"
 					}`}
 				>
 					Reports
 					{counts.pendingReports > 0 && (
-						<span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+						<span className="ml-2 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
 							{counts.pendingReports}
 						</span>
 					)}
@@ -141,7 +141,7 @@ function NewListingsTab({
 										href={`/ilmoitukset/${listing.short_id}/${computeListingSlug(listing.makeSlug ?? null, listing.modelName ?? null, listing.city)}`}
 										target="_blank"
 										rel="noreferrer"
-										className="font-medium text-accent hover:underline"
+										className="font-medium text-foreground hover:underline"
 									>
 										{listing.title}
 										<ExternalLink size={12} className="ml-1 inline" />
@@ -157,14 +157,14 @@ function NewListingsTab({
 										<button
 											type="button"
 											onClick={() => handleReview(listing.id, "approve")}
-											className="flex items-center gap-1 rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
+											className="flex items-center gap-1 rounded bg-success px-2 py-1 text-xs text-white hover:bg-success/90"
 										>
 											<CheckCircle size={12} /> Approve
 										</button>
 										<button
 											type="button"
 											onClick={() => handleReview(listing.id, "remove")}
-											className="flex items-center gap-1 rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
+											className="flex items-center gap-1 rounded bg-destructive px-2 py-1 text-xs text-white hover:bg-destructive/90"
 										>
 											<Trash2 size={12} /> Remove
 										</button>
@@ -252,8 +252,8 @@ function ReportsTab({
 									<span
 										className={`rounded-full px-2 py-0.5 text-xs font-medium ${
 											report.target_type === "listing"
-												? "bg-blue-100 text-blue-800"
-												: "bg-purple-100 text-purple-800"
+												? "bg-muted-light text-foreground"
+												: "bg-muted-light text-foreground"
 										}`}
 									>
 										{report.target_type}
@@ -268,7 +268,7 @@ function ReportsTab({
 										}
 										target="_blank"
 										rel="noreferrer"
-										className="text-accent hover:underline"
+										className="text-foreground hover:underline"
 									>
 										{report.targetName ?? report.target_id.slice(0, 8)}
 										<ExternalLink size={12} className="ml-1 inline" />
@@ -299,14 +299,14 @@ function ReportsTab({
 													<button
 														type="button"
 														onClick={() => handleResolve(report.id, "resolved")}
-														className="flex items-center gap-1 rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
+														className="flex items-center gap-1 rounded bg-success px-2 py-1 text-xs text-white hover:bg-success/90"
 													>
 														<CheckCircle size={12} /> Resolve
 													</button>
 													<button
 														type="button"
 														onClick={() => handleResolve(report.id, "dismissed")}
-														className="flex items-center gap-1 rounded bg-gray-600 px-2 py-1 text-xs text-white hover:bg-gray-700"
+														className="flex items-center gap-1 rounded bg-primary px-2 py-1 text-xs text-white hover:bg-primary/90"
 													>
 														<XCircle size={12} /> Dismiss
 													</button>
@@ -359,13 +359,13 @@ function ReportsTab({
 
 function ReportStatusBadge({ status }: { status: string }) {
 	const colors: Record<string, string> = {
-		pending: "bg-yellow-100 text-yellow-800",
-		resolved: "bg-green-100 text-green-800",
-		dismissed: "bg-gray-100 text-gray-800",
+		pending: "bg-muted-light text-foreground",
+		resolved: "bg-success/10 text-success",
+		dismissed: "bg-muted-light text-foreground",
 	};
 	return (
 		<span
-			className={`rounded-full px-2 py-0.5 text-xs font-medium ${colors[status] ?? "bg-gray-100 text-gray-800"}`}
+			className={`rounded-full px-2 py-0.5 text-xs font-medium ${colors[status] ?? "bg-muted-light text-foreground"}`}
 		>
 			{status}
 		</span>

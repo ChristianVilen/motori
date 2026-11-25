@@ -154,8 +154,8 @@ function UsersPage() {
 									<span
 										className={`rounded-full px-2 py-0.5 text-xs font-medium ${
 											user.role === "admin"
-												? "bg-purple-100 text-purple-800"
-												: "bg-gray-100 text-gray-800"
+												? "bg-muted-light text-foreground"
+												: "bg-muted-light text-foreground"
 										}`}
 									>
 										{user.role}
@@ -163,11 +163,11 @@ function UsersPage() {
 								</td>
 								<td className="px-4 py-3">
 									{user.banned ? (
-										<span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+										<span className="rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
 											Banned
 										</span>
 									) : (
-										<span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+										<span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
 											Active
 										</span>
 									)}
@@ -181,7 +181,7 @@ function UsersPage() {
 											<button
 												type="button"
 												onClick={() => handleUnban(user.id)}
-												className="flex items-center gap-1 rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
+												className="flex items-center gap-1 rounded bg-success px-2 py-1 text-xs text-white hover:bg-success/90"
 											>
 												<ShieldCheck size={12} /> Unban
 											</button>
@@ -189,7 +189,7 @@ function UsersPage() {
 											<button
 												type="button"
 												onClick={() => handleBan(user.id)}
-												className="flex items-center gap-1 rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
+												className="flex items-center gap-1 rounded bg-destructive px-2 py-1 text-xs text-white hover:bg-destructive/90"
 											>
 												<ShieldBan size={12} /> Ban
 											</button>

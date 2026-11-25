@@ -10,29 +10,29 @@ export const Route = createFileRoute("/tietosuoja")({
 
 function Tietosuoja() {
 	return (
-		<main className="mx-auto max-w-3xl px-4 py-12">
+		<article className="mx-auto max-w-3xl px-4 py-10">
 			<h1 className="font-heading text-3xl font-bold text-foreground">Tietosuojaseloste</h1>
 			<p className="mt-2 text-sm text-muted">Päivitetty viimeksi: 21.9.2026</p>
 
-			<p className="mt-6 text-sm text-foreground/80">
+			<p className="mt-6 text-sm text-foreground">
 				Tämä tietosuojaseloste kuvaa, miten Motori kerää ja käsittelee henkilötietojasi EU:n yleisen
 				tietosuoja-asetuksen (GDPR, 2016/679) mukaisesti.
 			</p>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">1. Rekisterinpitäjä</h2>
-				<p className="mt-3 text-sm text-foreground/80">
+				<p className="mt-3 text-sm text-foreground">
 					Christian Vilen
 					<br />
 					Sähköposti: support@motori.fi
 				</p>
 			</section>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">
 					2. Kerättävät henkilötiedot
 				</h2>
-				<div className="mt-3 space-y-3 text-sm text-foreground/80">
+				<div className="mt-3 space-y-3 text-sm text-foreground">
 					<p>Keräämme seuraavia henkilötietoja:</p>
 					<ul className="ml-4 list-disc space-y-2">
 						<li>
@@ -51,11 +51,11 @@ function Tietosuoja() {
 				</div>
 			</section>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">
 					3. Käyttötarkoitukset ja oikeusperusta
 				</h2>
-				<div className="mt-3 space-y-3 text-sm text-foreground/80">
+				<div className="mt-3 space-y-3 text-sm text-foreground">
 					<p>Käsittelemme henkilötietojasi seuraaviin tarkoituksiin:</p>
 					<ul className="ml-4 list-disc space-y-2">
 						<li>
@@ -78,11 +78,11 @@ function Tietosuoja() {
 				</div>
 			</section>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">
 					4. Tietojen luovuttaminen
 				</h2>
-				<div className="mt-3 space-y-3 text-sm text-foreground/80">
+				<div className="mt-3 space-y-3 text-sm text-foreground">
 					<p>
 						Emme myy tai luovuta henkilötietojasi kolmansille osapuolille markkinointitarkoituksiin.
 					</p>
@@ -94,11 +94,11 @@ function Tietosuoja() {
 				</div>
 			</section>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">
 					5. Alihankkijat ja tietojen siirrot
 				</h2>
-				<div className="mt-3 space-y-3 text-sm text-foreground/80">
+				<div className="mt-3 space-y-3 text-sm text-foreground">
 					<p>Käytämme seuraavia alihankkijoita henkilötietojen käsittelyssä:</p>
 					<ul className="ml-4 list-disc space-y-2">
 						<li>
@@ -118,9 +118,9 @@ function Tietosuoja() {
 				</div>
 			</section>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">6. Säilytysaika</h2>
-				<div className="mt-3 space-y-3 text-sm text-foreground/80">
+				<div className="mt-3 space-y-3 text-sm text-foreground">
 					<p>
 						Säilytämme henkilötietojasi niin kauan kuin tilisi on aktiivinen. Kun poistat tilisi,
 						kaikki henkilötietosi (mukaan lukien ilmoitukset, kuvat ja profiilitiedot) poistetaan
@@ -133,11 +133,11 @@ function Tietosuoja() {
 				</div>
 			</section>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">
 					7. Rekisteröidyn oikeudet
 				</h2>
-				<div className="mt-3 space-y-3 text-sm text-foreground/80">
+				<div className="mt-3 space-y-3 text-sm text-foreground">
 					<p>Sinulla on oikeus:</p>
 					<ul className="ml-4 list-disc space-y-2">
 						<li>tarkastaa, mitä tietoja sinusta on tallennettu</li>
@@ -152,7 +152,7 @@ function Tietosuoja() {
 						tietosuojavaltuutetun toimistoon:{" "}
 						<a
 							href="https://tietosuoja.fi"
-							className="text-accent underline underline-offset-2 hover:text-accent-hover"
+							className="text-foreground underline underline-offset-2 hover:text-foreground"
 							target="_blank"
 							rel="noreferrer"
 						>
@@ -162,23 +162,23 @@ function Tietosuoja() {
 				</div>
 			</section>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">8. Evästeet</h2>
-				<p className="mt-3 text-sm text-foreground/80">
+				<p className="mt-3 text-sm text-foreground">
 					Käytämme ainoastaan teknisesti välttämättömiä evästeitä kirjautumisen ylläpitoon. Emme
 					käytä mainos- tai seurantaevästeitä.
 				</p>
 			</section>
 
-			<section className="mt-8">
+			<section className="mt-8 border-t border-border pt-5">
 				<h2 className="font-heading text-xl font-semibold text-foreground">
 					9. Muutokset tietosuojaselosteeseen
 				</h2>
-				<p className="mt-3 text-sm text-foreground/80">
+				<p className="mt-3 text-sm text-foreground">
 					Voimme päivittää tätä tietosuojaselostetta. Merkittävistä muutoksista ilmoitetaan
 					sähköpostitse rekisteröityneille käyttäjille.
 				</p>
 			</section>
-		</main>
+		</article>
 	);
 }
