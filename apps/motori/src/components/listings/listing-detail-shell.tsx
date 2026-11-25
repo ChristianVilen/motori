@@ -119,7 +119,12 @@ export function ListingDetailShell({
 				<div className="contents min-[900px]:block min-[900px]:min-w-0">
 					<ListingHeading listing={listing} isOwner={isOwner} />
 					<div className="order-1 min-w-0">
-						<ListingGallery key={listing.id} images={images} title={listing.title} />
+						<ListingGallery
+							shortId={listing.short_id}
+							key={listing.id}
+							images={images}
+							title={listing.title}
+						/>
 					</div>
 					<ListingFacts data={data} />
 					<section className="order-5 mt-7">

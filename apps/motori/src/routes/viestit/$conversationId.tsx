@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Message } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
 import { getConversation, listMessages, markRead, sendMessage } from "~/lib/messages";
+import { motionAllowed } from "~/lib/motion";
 
 export const Route = createFileRoute("/viestit/$conversationId")({
 	loader: async ({ params }) => {
@@ -38,7 +39,7 @@ function ThreadPage() {
 	useEffect(() => {
 		if (messages.length !== prevLengthRef.current) {
 			prevLengthRef.current = messages.length;
-			bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+			bottomRef.current?.scrollIntoView({ behavior: motionAllowed() ? "smooth" : "instant" });
 		}
 	}, [messages]);
 

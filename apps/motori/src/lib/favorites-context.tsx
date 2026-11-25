@@ -4,7 +4,7 @@ import { getFavoriteIdsFn, toggleFavoriteFn } from "~/lib/favorites-fns";
 interface FavoritesContextValue {
 	count: number;
 	isFavorite: (listingId: string) => boolean;
-	toggle: (listingId: string) => void;
+	toggle: (listingId: string) => boolean;
 }
 
 const FavoritesContext = createContext<FavoritesContextValue | null>(null);
@@ -48,7 +48,7 @@ export function FavoritesProvider({ loggedIn, onRequireLogin, children }: Favori
 		(listingId: string) => {
 			if (!loggedIn) {
 				onRequireLogin();
-				return;
+				return false;
 			}
 			// Optimistic flip; revert if the server disagrees or fails.
 			setIds((prev) => {
@@ -87,6 +87,7 @@ export function FavoritesProvider({ loggedIn, onRequireLogin, children }: Favori
 					});
 				},
 			);
+			return true;
 		},
 		[loggedIn, onRequireLogin],
 	);

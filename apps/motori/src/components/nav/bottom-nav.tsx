@@ -19,7 +19,7 @@ export function BottomNav({ session, verified, unread, onSignInClick }: Props) {
 	return (
 		<nav
 			aria-label={t("nav.bottom.ariaLabel")}
-			className="fixed inset-x-0 bottom-0 z-40 grid h-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] grid-cols-5 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden print:hidden"
+			className="mobile-tabs fixed inset-x-0 bottom-0 z-40 grid h-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] grid-cols-5 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden print:hidden"
 		>
 			<Tab
 				to="/"

@@ -106,18 +106,6 @@ export const BROWSE_CATEGORIES = [
 
 export type BrowseCategory = (typeof BROWSE_CATEGORIES)[number];
 
-export const TYPE_EMOJI: Record<string, string> = {
-	naked: "\u26A1",
-	sport: "\uD83C\uDFCE",
-	touring: "\uD83E\uDDED",
-	adventure: "\uD83C\uDFD4",
-	cruiser: "\uD83D\uDEE3",
-	enduro: "\uD83C\uDF32",
-	motocross: "\uD83C\uDFC1",
-	scooter: "\uD83D\uDEF5",
-	custom: "\uD83D\uDD27",
-};
-
 export const PART_CATEGORIES = [
 	{ value: "brakes", label: "Jarrut" },
 	{ value: "tires", label: "Renkaat" },

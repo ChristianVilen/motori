@@ -105,7 +105,7 @@ function VehicleDetailPage() {
 						to="/pyorat/$vehicleId/muistutukset"
 						params={{ vehicleId: vehicle.id }}
 						data-testid="manage-reminders"
-						className="text-sm text-accent hover:underline"
+						className="text-sm text-foreground hover:underline"
 					>
 						Hallitse
 					</Link>

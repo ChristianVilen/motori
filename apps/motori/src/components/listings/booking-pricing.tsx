@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 import type { BookingCost, BookingLine } from "~/lib/bookings";
 import { fromIso, type RentalSearch } from "~/lib/calendar-helpers";
 import { formatEur, useTranslation } from "~/lib/i18n";
+import { BookingAmount } from "./booking-amount";
 
 function label(line: BookingLine, t: TFunction) {
 	if (line.kind === "weekend") {
@@ -51,11 +52,14 @@ export function BookingPricing({ range, cost }: { range: RentalSearch; cost: Boo
 					>
 						<span>{t("booking.total")}</span>
 						<strong className="font-heading text-2xl font-extrabold tabular-nums">
-							{formatEur(cost.totalCents)}
+							<BookingAmount cents={cost.totalCents} />
 						</strong>
 					</p>
 					{cost.savingsCents > 0 && (
-						<p className="mt-2 inline-flex rounded-full bg-reflector px-2 py-1 text-xs font-semibold text-foreground">
+						<p
+							data-booking-saving
+							className="mt-2 inline-flex rounded-full bg-reflector px-2 py-1 text-xs font-semibold text-foreground"
+						>
 							{t("booking.saving", { amount: formatEur(cost.savingsCents) })}
 						</p>
 					)}

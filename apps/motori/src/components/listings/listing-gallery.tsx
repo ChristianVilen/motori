@@ -3,20 +3,26 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import type { ListingImage } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
+import { photoStyle } from "~/lib/listing-photo-transition";
+import { reducedMotionQuery } from "~/lib/motion";
 import { useFocusTrap } from "~/lib/use-focus-trap";
 
+const breakpoints = { [reducedMotionQuery]: { duration: 0 } };
+
 interface ListingGalleryProps {
+	shortId: string;
 	images: ListingImage[];
 	title: string;
 }
 
-export function ListingGallery({ images, title }: ListingGalleryProps) {
+export function ListingGallery({ images, title, shortId }: ListingGalleryProps) {
 	const { t } = useTranslation("listings");
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [lightboxOpen, setLightboxOpen] = useState(false);
 
-	const [mainRef, mainApi] = useEmblaCarousel({ loop: true, skipSnaps: false });
+	const [mainRef, mainApi] = useEmblaCarousel({ breakpoints, loop: true, skipSnaps: false });
 	const [thumbRef, thumbApi] = useEmblaCarousel({
+		breakpoints,
 		containScroll: "keepSnaps",
 		dragFree: true,
 	});
@@ -105,6 +111,7 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 								>
 									<img
 										src={img.url}
+										style={i === 0 ? photoStyle(shortId) : undefined}
 										alt={i === 0 ? title : t("gallery.imageAlt", { title, index: i + 1 })}
 										className="h-full w-full object-cover"
 										draggable={false}
@@ -220,6 +227,7 @@ function Lightbox({
 }) {
 	const [initialIndex] = useState(startIndex);
 	const [emblaRef, emblaApi] = useEmblaCarousel({
+		breakpoints,
 		loop: true,
 		startIndex: initialIndex,
 		skipSnaps: false,

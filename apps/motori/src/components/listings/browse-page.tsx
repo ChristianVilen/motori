@@ -157,7 +157,7 @@ export function BrowsePage({
 							<EmptyState search={search} browseTo={browseTo} />
 						) : (
 							<>
-								<div data-testid="listings-grid" className="listing-grid">
+								<div data-feed-grid data-testid="listings-grid" className="listing-grid">
 									{allListings.map(renderCard)}
 									{isLoading
 										? ["skel-a", "skel-b", "skel-c"].map((key) => <ListingCardSkeleton key={key} />)

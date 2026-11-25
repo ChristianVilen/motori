@@ -22,12 +22,3 @@ export const searchListings = createServerFn({ method: "GET" })
 		const { searchListingPage } = await import("~/lib/listings-search.server");
 		return searchListingPage(db, data);
 	});
-
-export const getLatestListings = createServerFn({ method: "GET" })
-	.middleware([rateLimitMiddleware(60, 60, "latest")])
-	.validator(categorySchema)
-	.handler(async ({ data: category }) => {
-		const { db } = await import("~/lib/db/index");
-		const { searchListingPage } = await import("~/lib/listings-search.server");
-		return (await searchListingPage(db, { category }, 6)).listings;
-	});

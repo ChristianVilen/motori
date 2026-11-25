@@ -1,11 +1,5 @@
 export default {
 	nav: {
-		bikes: "Bikes",
-		sale: "For sale",
-		rental: "Rental",
-		gear: "Gear",
-		parts: "Parts",
-		listMotorcycle: "List a bike",
 		myListings: "My listings",
 		bookings: "Bookings",
 		mainMenu: "Main navigation",
@@ -24,7 +18,6 @@ export default {
 		switchLanguage: "Switch language: {{lang}}",
 		bottom: {
 			browse: "Browse",
-			search: "Search",
 			add: "Sell",
 			messages: "Messages",
 			account: "Account",

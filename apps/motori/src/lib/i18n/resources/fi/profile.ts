@@ -47,7 +47,6 @@ export default {
 		back: "Takaisin",
 		notFound: "Käyttäjää ei löydy.",
 		notFoundBack: "Etusivulle",
-		memberSince: "Jäsen {{date}} alkaen",
 		listingsHeading: "Ilmoitukset ({{count}})",
 		noListings: "Ei aktiivisia ilmoituksia.",
 	},
@@ -98,8 +97,6 @@ export default {
 			"Arvosteluasi ei näytetä vielä — odottaa toisen osapuolen arvostelua tai 14 päivän määräaikaa.",
 		summary: "{{rating}} ★ ({{count}} arvostelua)",
 		summaryOne: "{{rating}} ★ (1 arvostelu)",
-		reviewCount: " arvostelua",
-		reviewOne: " arvostelu",
 		submitError: "Arvostelun lähetys epäonnistui. Yritä uudelleen.",
 	},
 	settings: {

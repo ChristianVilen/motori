@@ -1,11 +1,5 @@
 export default {
 	nav: {
-		bikes: "Pyörät",
-		sale: "Myynti",
-		rental: "Vuokraus",
-		gear: "Varusteet",
-		parts: "Varaosat",
-		listMotorcycle: "Ilmoita pyörä",
 		myListings: "Omat ilmoitukset",
 		bookings: "Varaukset",
 		mainMenu: "Päävalikko",
@@ -24,7 +18,6 @@ export default {
 		switchLanguage: "Vaihda kieli: {{lang}}",
 		bottom: {
 			browse: "Selaa",
-			search: "Haku",
 			add: "Myy",
 			messages: "Viestit",
 			account: "Oma",

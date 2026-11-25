@@ -14,7 +14,7 @@ vi.mock("~/lib/favorites-context", () => ({
 
 // Mock TanStack Router's Link as a plain <a> tag
 vi.mock("@tanstack/react-router", () => ({
-	Link: ({ children, to, params, ...props }: Record<string, unknown>) => (
+	Link: ({ children, to, params, state, ...props }: Record<string, unknown>) => (
 		<a href={String(to || "/")} {...props}>
 			{children as React.ReactNode}
 		</a>

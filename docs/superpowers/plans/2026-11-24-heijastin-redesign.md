@@ -415,21 +415,29 @@ Restyle these pages with the tokens, the shared button variants, the grid, and t
 
 All motion is 150 to 300ms with an ease-out curve, uses `transform` and `opacity` where possible, and is off under `prefers-reduced-motion: reduce`. With reduced motion the final state shows at once. Copy the keyframes and timings from the prototype `styles.css`.
 
-- [ ] **8.1 Reflector glint.** When a heart changes to saved, one diagonal light sweep crosses the lime circle (about 450ms, once). It does not play on page load for hearts that are already saved.
-- [ ] **8.2 Photo opens into the page.** A click on a card navigates with a view transition in which the card photo and the gallery's first image share a `view-transition-name`. Browser Back plays it in reverse. Read the TanStack Router documentation for the installed version on `viewTransition` before you write code. Only the clicked card may carry the name at the moment of navigation, because two elements with the same name cancel the transition. Browsers without the API navigate as before.
-- [ ] **8.3 Rolling total.** On the rental page, the total counts from the old value to the new value in about 350ms, in the summary and in the sticky bar. The `aria-live` region receives only the final value. The "Säästät" tag scales in once when it appears or changes.
-- [ ] **8.4 Range sweep.** When the user picks the return day, the range band grows from the pickup day to the return day in at most 300ms. It does not replay on re-render, month change, or reload.
-- [ ] **8.5 Feed rearrange.** When a filter, the sort, or the category changes, cards that stay move to their new places, cards that leave fade out, and new cards fade in (about 250ms). It must not delay input, and it must not queue: a new change cuts the running animation short.
-- [ ] **8.6 Press feedback.** Cards, chips, pill buttons, tab bar items, and the heart scale to about 0.97 while pressed.
-- [ ] **8.7 Cleanup.**
+- [x] **8.1 Reflector glint.** When a heart changes to saved, one diagonal light sweep crosses the lime circle (about 450ms, once). It does not play on page load for hearts that are already saved.
+- [x] **8.2 Photo opens into the page.** A click on a card navigates with a view transition in which the card photo and the gallery's first image share a `view-transition-name`. Browser Back plays it in reverse. Read the TanStack Router documentation for the installed version on `viewTransition` before you write code. Only the clicked card may carry the name at the moment of navigation, because two elements with the same name cancel the transition. Browsers without the API navigate as before.
+- [x] **8.3 Rolling total.** On the rental page, the total counts from the old value to the new value in about 350ms, in the summary and in the sticky bar. The `aria-live` region receives only the final value. The "Säästät" tag scales in once when it appears or changes.
+- [x] **8.4 Range sweep.** When the user picks the return day, the range band grows from the pickup day to the return day in at most 300ms. It does not replay on re-render, month change, or reload.
+- [x] **8.5 Feed rearrange.** When a filter, the sort, or the category changes, cards that stay move to their new places, cards that leave fade out, and new cards fade in (about 250ms). It must not delay input, and it must not queue: a new change cuts the running animation short.
+- [x] **8.6 Press feedback.** Cards, chips, pill buttons, tab bar items, and the heart scale to about 0.97 while pressed.
+- [x] **8.7 Cleanup.**
 	- Delete the `accent` tokens from `theme.css`. Run the grep from Phase 7 across `apps` and `packages` and replace what remains, including in Talli.
 	- Delete components, translation keys, images, and CSS that nothing uses now. Check `apps/motori/public/images/` for the old hero image sizes. Keep the images that the seed script uses.
 	- Update `AGENTS.md` and `CLAUDE.md` (they have the same content): the "Project" line (Motori is a marketplace for motorcycle sales, rentals, gear, and parts), the "Conventions" line about colour tokens (name `reflector` and the rule that lime is never a text colour on a light surface), the fonts, and the map height note in the code if it still exists.
 	- Delete `docs/prototypes/claude-redesign/` only if the product owner asks for it.
-- [ ] **8.8 Full verification.** Run every check from "Rules for every phase", including `pnpm test:e2e:talli`. Then, in the production build, do this by hand at 390×844 and at 1280×800: browse, search, filter, save a search, open the map and go back, open a sale listing, send a message, open the bill of sale, book a rental as one user and confirm it as the owner, switch the language, and sign out. Record the result in the pull request.
+- [x] **8.8 Full verification.** Run every check from "Rules for every phase", including `pnpm test:e2e:talli`. Then, in the production build, do this by hand at 390×844 and at 1280×800: browse, search, filter, save a search, open the map and go back, open a sale listing, send a message, open the bill of sale, book a rental as one user and confirm it as the owner, switch the language, and sign out. Record the result in the pull request.
 
 **Acceptance.**
 
 - With "reduce motion" on, no element animates.
 - No console errors and no CSP violations in the production build.
 - `pnpm lint`, `pnpm format`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm test:e2e`, and `pnpm test:e2e:talli` pass.
+
+**Phase 8 verification (2026-11-25).** All seven required checks passed. The unit suite passed 447 tests. Motori Playwright passed 149 tests and skipped 9. Talli Playwright passed 2. Both apps built. Lint reported 28 warnings and format reported 2 warnings.
+
+On the production build at 390×844 and 1280×800, the buyer browsed, searched, filtered, saved and reopened a search, returned from the map, opened a sale listing, sent a message and opened the bill of sale. The renter requested a booking and the owner confirmed it. Contact details appeared, the language choice survived reload and sign-out worked. The Motori walkthrough had no console errors or CSP violations. The test servers used ports 3011 and 3012.
+
+At both sizes, one photo animated into the listing and back. Navigation also worked with the View Transition API disabled. An existing favourite stayed still on reload. Saving it from the unsaved state played the glint once. The rental total changed from €95 to €240 with €45 saved. The range sweep did not replay on month change or reload. Rapid feed changes cancelled the previous animation. Reduced motion showed the final state immediately.
+
+The prototype still loads the former hero image sizes, so those assets stay. The local screenshot gallery includes the before and after views, prototype references and two motion recordings. This local record replaces the planned pull request report at the owner's request.

@@ -8,10 +8,6 @@
 	/* Core palette */
 	--color-primary: #15181a;
 	--color-primary-foreground: #ffffff;
-	--color-accent: #15181a;
-	--color-accent-hover: #2a2f32;
-	--color-accent-light: #d6f83c;
-	--color-accent-foreground: #ffffff;
 	--color-reflector: #d6f83c;
 	--color-reflector-press: #c2e622;
 	--color-reflector-soft: #ecfba6;
@@ -44,11 +40,6 @@
 	--radius-md: 0.5rem;
 	--radius-lg: 0.625rem;
 	--radius-sheet: 1rem;
-
-	/* Rounded corners */
-	--rounded-sm: var(--radius-sm);
-	--rounded-md: var(--radius-md);
-	--rounded-lg: var(--radius-lg);
 }
 
 @layer base {
@@ -84,4 +75,17 @@
 	background: var(--color-reflector);
 	box-shadow: 0 0 0 0.04em var(--color-foreground);
 	transform: translateX(-50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		/* biome-ignore lint/complexity/noImportantStyles: reduce motion including inline library styles */
+		animation: none !important;
+		/* biome-ignore lint/complexity/noImportantStyles: reduce motion including inline library styles */
+		transition: none !important;
+		/* biome-ignore lint/complexity/noImportantStyles: override smooth scrolling on individual surfaces */
+		scroll-behavior: auto !important;
+	}
 }

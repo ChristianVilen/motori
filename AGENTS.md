@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Motori is a P2P motorcycle rental noticeboard for Finland. Lean MVP — prefer minimal, direct solutions over abstractions and premature generalisation. UI copy is Finnish.
+Motori is a Finnish marketplace for motorcycle sales, rentals, gear, and parts. Lean MVP — prefer minimal, direct solutions over abstractions and premature generalisation. UI copy is Finnish.
 
 ## Monorepo layout
 
@@ -30,7 +30,7 @@ Always use `pnpm` (not npm/bun — lockfile is pnpm-lock.yaml).
 - `pnpm typecheck` — fans out to every workspace package via `pnpm -r typecheck`
 - `pnpm lint` / `pnpm lint:fix` — Biome, run repo-wide from the root (tabs, 100-col, strict rules incl. `noExplicitAny`, `noConsole` warn, `noNonNullAssertion`)
 - `pnpm test` — fans out to every workspace package via `pnpm -r test` (Vitest). Run a single file inside the app: `pnpm --filter motori test -- path/to/file.test.ts`
-- `pnpm test:e2e` / `pnpm test:e2e:ui` — dispatches to the `motori` app's Playwright config. For a local run, Playwright builds and starts the production server with `DISABLE_EMAIL_VERIFICATION=true`, or reuses a running server. `pnpm test:e2e:talli` runs talli's e2e suite. Use `MOTORI_E2E_PORT=3011 pnpm test:e2e` for local redesign checks. When serving an existing build, build it with `BETTER_AUTH_URL=http://localhost:3011` and serve it on port 3011.
+- `pnpm test:e2e` / `pnpm test:e2e:ui` — dispatches to the `motori` app's Playwright config. For a local run, Playwright builds and starts the production server with `DISABLE_EMAIL_VERIFICATION=true`, or reuses a running server. `pnpm test:e2e:talli` runs talli's e2e suite. Use `MOTORI_E2E_PORT=3011 pnpm test:e2e` for local Motori checks. Set `MOTORI_E2E_PORT=3011 TALLI_E2E_PORT=3012` when exercising both apps with `pnpm test:e2e:talli`. When serving an existing build, build it with `BETTER_AUTH_URL=http://localhost:3011` and serve it on port 3011.
 
 Per-app scripts run via `pnpm --filter talli <script>` (`dev`, `build`, `db:migrate`, `test`, `test:e2e`), same as `--filter motori`.
 
@@ -168,6 +168,7 @@ Use the `gh` CLI for all GitHub interactions — never open the web UI for thing
 
 - Minimal comments. Only write a comment when the WHY is non-obvious (hidden constraint, subtle invariant, workaround). The existing `schema.ts` and `__root.tsx` show the style.
 - No premature abstraction; three similar lines beats a helper.
+- Use reflector lime as a fill with ink text. Use at most one lime action per screen. Motori’s card and booking animations respect `prefers-reduced-motion`. The prototype uses the public sample images through a symlink, including the old hero sizes. Keep text and borders on light surfaces in ink or muted colours.
 - Colour tokens in `packages/ui/src/theme.css` (`ring`, `destructive`, `success`, `warning`) are tuned to pass WCAG AA on the tinted surfaces they are used on (`bg-*/10`–`/20`), not just on white. Compute the contrast ratio before lightening any of them.
 - Production deploy runbook: `DEPLOY.md`. Design specs and implementation plans produced via the superpowers skills go under `docs/superpowers/` (specs in `docs/superpowers/specs/`, plans in `docs/superpowers/plans/`).
 - Commits: no `Co-Authored-By` lines.

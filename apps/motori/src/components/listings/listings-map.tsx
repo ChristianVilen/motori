@@ -1,3 +1,4 @@
+import { motionAllowed } from "~/lib/motion";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useMemo } from "react";
@@ -126,7 +127,15 @@ export function ListingsMap({ listings, onCityClick, selectedCity, className }: 
 	const pins = useMemo(() => groupByCity(listings), [listings]);
 
 	return (
-		<MapContainer bounds={FINLAND_BOUNDS} scrollWheelZoom className={className ?? "h-full w-full"}>
+		<MapContainer
+			zoomAnimation={motionAllowed()}
+			fadeAnimation={motionAllowed()}
+			markerZoomAnimation={motionAllowed()}
+			inertia={motionAllowed()}
+			bounds={FINLAND_BOUNDS}
+			scrollWheelZoom
+			className={className ?? "h-full w-full"}
+		>
 			<TileLayer url={TILE_URL} attribution={TILE_ATTR} maxZoom={19} subdomains="abcd" />
 			<FitBounds pins={pins} selectedCity={selectedCity} />
 			{pins.map((pin) => (

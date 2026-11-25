@@ -5,6 +5,7 @@ import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-rout
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { BookingAmount } from "~/components/listings/booking-amount";
 import { BookingCalendar, useDesktopCalendar } from "~/components/listings/booking-calendar";
 import { BookingPricing } from "~/components/listings/booking-pricing";
 import { BookingRequestForm } from "~/components/listings/booking-request-form";
@@ -12,6 +13,7 @@ import { ListingDetailShell } from "~/components/listings/listing-detail-shell";
 import { MessageSellerButton } from "~/components/listings/message-seller-button";
 import { OwnerActions } from "~/components/listings/non-rental-sidebar";
 import { RentalPriceLadder } from "~/components/listings/rental-price-ladder";
+import { useBookingMotion } from "~/components/listings/use-booking-motion";
 import { MobileFullscreenModal } from "~/components/ui/mobile-fullscreen-modal";
 import { computeBookingCost } from "~/lib/bookings";
 import { createBookingRequest } from "~/lib/bookings.server";
@@ -161,7 +163,7 @@ function RentalPage({
 	const { t } = useTranslation("listings");
 	const router = useRouter();
 	const navigate = Route.useNavigate();
-	const { selection, isBlocked, cost, notice, setNotice, writeRange, choose } =
+	const { selection, isBlocked, cost, notice, setNotice, writeRange, choose, panelRef } =
 		useBookingDates(data);
 	const { from, to } = selection;
 	const desktop = useDesktopCalendar();
@@ -187,7 +189,7 @@ function RentalPage({
 		} catch (err) {
 			if (parseAppError(err)?.code === "booking.dates_unavailable") {
 				setNotice("blocked");
-				await navigate({ search: {}, replace: true, resetScroll: false });
+				await navigate({ search: {}, replace: true, state: true, resetScroll: false });
 				await router.invalidate();
 				return;
 			}
@@ -230,7 +232,7 @@ function RentalPage({
 			return;
 		}
 		pushed.current = true;
-		void navigate({ search: { from, to, step: "request" }, resetScroll: false });
+		void navigate({ search: { from, to, step: "request" }, state: true, resetScroll: false });
 	}
 	const sidebar = success ? (
 		<div
@@ -252,7 +254,7 @@ function RentalPage({
 			</button>
 		</div>
 	) : (
-		<div data-testid="booking-section" className="mt-7 grid gap-4 min-[900px]:mt-0">
+		<div ref={panelRef} data-testid="booking-section" className="mt-7 grid gap-4 min-[900px]:mt-0">
 			<BookingCalendar
 				today={today}
 				range={selection}
@@ -326,12 +328,15 @@ function useBookingDates({ availability, today, rental }: ReturnType<typeof Rout
 			void navigate({
 				search: { from, to, step: selection.step },
 				replace: true,
+				state: true,
 				resetScroll: false,
 			});
 		}
 	}, [search.from, search.to, search.step, from, to, selection.step, navigate]);
+	const panelRef = useRef<HTMLDivElement>(null);
+	const markMotion = useBookingMotion(selection, cost, rental?.price_per_day ?? 0, panelRef);
 	function writeRange(next: RentalSearch) {
-		void navigate({ search: next, replace: true, resetScroll: false });
+		void navigate({ search: next, replace: true, state: true, resetScroll: false });
 	}
 	function choose(iso: string) {
 		if (isBlocked(iso)) {
@@ -345,9 +350,11 @@ function useBookingDates({ availability, today, rental }: ReturnType<typeof Rout
 		}
 		const range = computeNewRange(iso, current.from, isBlocked);
 		setNotice(range.to === null ? "blocked" : range.clamped ? "clamped" : null);
-		writeRange({ from: range.from, to: range.to ?? undefined });
+		const next = { from: range.from, to: range.to ?? undefined };
+		markMotion(next);
+		writeRange(next);
 	}
-	return { selection, isBlocked, cost, notice, setNotice, writeRange, choose };
+	return { selection, isBlocked, cost, notice, setNotice, writeRange, choose, panelRef };
 }
 function MobileBookingBar({
 	cost,
@@ -368,7 +375,7 @@ function MobileBookingBar({
 			<div className="font-heading font-extrabold tabular-nums">
 				{cost ? (
 					<>
-						{t("booking.total")} {formatEur(cost.totalCents)}{" "}
+						{t("booking.total")} <BookingAmount cents={cost.totalCents} />{" "}
 						<span className="block text-xs font-medium">
 							{t("booking.days", { count: cost.days })}
 						</span>

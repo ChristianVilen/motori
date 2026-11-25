@@ -6,6 +6,7 @@ import { categoryDetailPath } from "~/lib/category-routes";
 import { LISTING_STATUSES } from "~/lib/constants";
 import type { Listing, ListingImage } from "~/lib/db/schema";
 import { formatEur, formatNumber, useTranslation } from "~/lib/i18n";
+import { photoStyle } from "~/lib/listing-photo-transition";
 import type { ListingSummary } from "~/lib/listings-owner";
 import { computeListingSlug } from "~/lib/slug";
 
@@ -75,9 +76,17 @@ export function ListingCard({
 			<Link
 				to={categoryDetailPath(listing.category, "$listingId", "$slug")}
 				params={{ listingId: listing.short_id, slug }}
+				state={(prev) =>
+					image && prev.__TSR_key
+						? { listingPhoto: { id: listing.short_id, sourceKey: prev.__TSR_key } }
+						: {}
+				}
 				className="group block rounded-lg"
 			>
-				<div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-muted-light">
+				<div
+					style={image ? photoStyle(listing.short_id) : undefined}
+					className="relative aspect-[4/5] overflow-hidden rounded-lg bg-muted-light"
+				>
 					{image ? (
 						<img
 							src={image.thumbnail_url ?? image.url}
