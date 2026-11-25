@@ -7,6 +7,7 @@ export default {
 		mapToggle: "Map",
 		listToggle: "List",
 		mapLoading: "Loading map...",
+		mapContributors: "OpenStreetMap contributors",
 		closeCityPanel: "Close",
 		saveSearch: "Save search",
 		saveSearchSaved: "Search saved",

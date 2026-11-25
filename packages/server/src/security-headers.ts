@@ -4,18 +4,20 @@ import { getNonce } from "./nonce";
 const storagePublicUrl = process.env.STORAGE_PUBLIC_URL ?? "";
 const isProd = process.env.NODE_ENV === "production";
 
-const imgSrc = storagePublicUrl
-	? `'self' blob: data: ${storagePublicUrl} https://*.basemaps.cartocdn.com`
-	: "'self' blob: data: https://*.basemaps.cartocdn.com";
-
 export interface SecurityHeadersOptions {
 	/** Adds 'wasm-unsafe-eval' to script-src — needed by talli's scanner (OpenCV.js WASM). */
 	allowWasm?: boolean;
 	/** Extra origins for connect-src — talli's sign-out fetch goes cross-origin to motori. */
 	connectSrc?: string[];
+	imgSrc?: string[];
 }
 
-function buildCsp(nonce: string | undefined, allowWasm: boolean, connectSrc: string[]): string {
+function buildCsp(
+	nonce: string | undefined,
+	allowWasm: boolean,
+	connectSrc: string[],
+	imgSrc: string,
+): string {
 	// In dev, Vite injects HMR/refresh inline scripts without nonces, so we fall
 	// back to 'unsafe-inline' + 'unsafe-eval' (Zod v4 uses new Function at runtime;
 	// 'unsafe-eval' also permits WASM). In prod, every inline <script> must carry
@@ -37,7 +39,11 @@ function buildCsp(nonce: string | undefined, allowWasm: boolean, connectSrc: str
 export function createSecurityHeadersMiddleware({
 	allowWasm = false,
 	connectSrc = [],
+	imgSrc = [],
 }: SecurityHeadersOptions = {}) {
+	const imageSources = ["'self'", "blob:", "data:", storagePublicUrl, ...imgSrc]
+		.filter(Boolean)
+		.join(" ");
 	return createMiddleware({ type: "request" }).server(async ({ next }) => {
 		const result = await next();
 		const nonce = getNonce();
@@ -51,12 +57,10 @@ export function createSecurityHeadersMiddleware({
 		h.set("X-Frame-Options", "DENY");
 		h.set("Referrer-Policy", "strict-origin-when-cross-origin");
 		h.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-		h.set("Content-Security-Policy", buildCsp(nonce, allowWasm, connectSrc));
+		h.set("Content-Security-Policy", buildCsp(nonce, allowWasm, connectSrc, imageSources));
 		if (isProd) {
 			h.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
 		}
 		return result;
 	});
 }
-
-export const securityHeadersMiddleware = createSecurityHeadersMiddleware();

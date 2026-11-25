@@ -3,6 +3,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useMemo } from "react";
 import { MapContainer, Marker, TileLayer, Tooltip, useMap } from "react-leaflet";
+import { useTranslation } from "~/lib/i18n";
 import { findMunicipality } from "~/lib/municipalities";
 
 export interface MapPin {
@@ -25,9 +26,7 @@ const FINLAND_BOUNDS: L.LatLngBoundsExpression = [
 	[70.1, 31.6],
 ];
 
-const TILE_URL = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
-const TILE_ATTR =
-	'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>';
+const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 export function groupByCity(listings: ListingsMapProps["listings"]): MapPin[] {
 	const map = new Map<string, MapPin>();
@@ -124,6 +123,7 @@ function CityMarker({
 }
 
 export function ListingsMap({ listings, onCityClick, selectedCity, className }: ListingsMapProps) {
+	const { t } = useTranslation("listings");
 	const pins = useMemo(() => groupByCity(listings), [listings]);
 
 	return (
@@ -136,7 +136,11 @@ export function ListingsMap({ listings, onCityClick, selectedCity, className }: 
 			scrollWheelZoom
 			className={className ?? "h-full w-full"}
 		>
-			<TileLayer url={TILE_URL} attribution={TILE_ATTR} maxZoom={19} subdomains="abcd" />
+			<TileLayer
+				url={TILE_URL}
+				attribution={`&copy; <a href="https://www.openstreetmap.org/copyright">${t("browse.mapContributors")}</a>`}
+				maxZoom={19}
+			/>
 			<FitBounds pins={pins} selectedCity={selectedCity} />
 			{pins.map((pin) => (
 				<CityMarker

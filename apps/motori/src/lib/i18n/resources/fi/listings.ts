@@ -9,6 +9,7 @@ export default {
 		mapToggle: "Kartta",
 		listToggle: "Lista",
 		mapLoading: "Ladataan karttaa...",
+		mapContributors: "OpenStreetMapin tekijät",
 		closeCityPanel: "Sulje",
 		saveSearch: "Tallenna haku",
 		saveSearchSaved: "Haku tallennettu",

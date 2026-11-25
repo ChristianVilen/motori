@@ -56,7 +56,7 @@ File-based under `apps/motori/src/routes/`. Both apps' `routeTree.gen.ts` files 
 
 On the account page, check admin access with the same predicate as `requireAdmin`. Public session responses omit the role for regular members. Use `data-page-primary` on a page’s lime action so the header and tab bar show Myy as an outline.
 
-The home route `/` searches all listing categories. On `/`, `city` filters the listing query. On the category maps, `city` selects the Leaflet panel. Keep map selection separate from search pagination.
+The home route `/` searches all listing categories. On `/`, `city` filters the listing query. On the category maps, `city` selects the Leaflet panel. Keep map selection separate from search pagination. Motori loads standard tiles directly from `tile.openstreetmap.org` and displays linked OpenStreetMap attribution on the map. Its image CSP allows that host.
 
 Hydration signal: `__root.tsx` sets `data-hydrated="true"` on `<html>` after mount — e2e tests must wait for this before interacting, otherwise clicks fire before React attaches handlers and forms do native submits.
 
