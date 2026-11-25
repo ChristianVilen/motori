@@ -38,15 +38,20 @@ test.describe("city combobox", () => {
 	test("commit-on-type: a fully typed city name commits without Enter", async ({ page }) => {
 		const home = new HomePage(page);
 		const rentals = new ListingsPage(page);
-		await rentals.goto();
+		await rentals.goto({ q: "Honda", region: "uusimaa" });
 		await rentals.mobileTrigger.click();
 
+		await home.overlayInput.fill("Yamaha");
 		const input = home.overlayCity;
 		await input.click();
 		await input.pressSequentially("espoo");
 
 		await expect(page).toHaveURL(
-			(url) => url.searchParams.get("city") === "Espoo" && url.searchParams.get("view") === "map",
+			(url) =>
+				url.searchParams.get("city") === "Espoo" &&
+				url.searchParams.get("view") === "map" &&
+				url.searchParams.get("q") === "Yamaha" &&
+				url.searchParams.get("region") === "uusimaa",
 		);
 		await expect(rentals.mapCityPanel).toContainText("Espoo");
 	});

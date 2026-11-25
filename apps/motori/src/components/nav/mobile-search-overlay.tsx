@@ -66,6 +66,7 @@ export function MobileSearchOverlay({ onClose }: Props) {
 			to: category.to,
 			search: (prev) => ({
 				...(category.value === currentCategory.value ? prev : {}),
+				q: q.trim() || undefined,
 				view: hasCategoryMap(category.value) ? "map" : undefined,
 				city,
 				cursor: undefined,

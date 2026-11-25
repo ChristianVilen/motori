@@ -14,7 +14,6 @@ import { useTranslation } from "~/lib/i18n";
 import type { ListingWithImages, SearchCategory, SearchResult } from "~/lib/listings-search";
 import { type BrowseSearchParams, countActiveFilters } from "~/lib/validators";
 import { ActiveFilterChips } from "./active-filter-chips";
-import { useListingPages } from "./use-listing-pages";
 
 const ListingsMap = lazy(() =>
 	import("~/components/listings/listings-map").then((m) => ({ default: m.ListingsMap })),
@@ -46,11 +45,8 @@ export function BrowsePage({
 	const { session } = useRouteContext({ from: "__root__" });
 	const currentUserId = session?.user.id ?? null;
 	const makes = initialData.makes ?? [];
-	const { allListings, loadMore, remaining } = useListingPages(
-		initialData,
-		search.cursor,
-		browseTo,
-	);
+	const { listings: allListings, nextCursor } = initialData;
+	const remaining = nextCursor ? initialData.totalCount - allListings.length : 0;
 	const totalCount =
 		initialData.mapCities?.reduce((sum, city) => sum + city.count, 0) ?? initialData.totalCount;
 
@@ -101,7 +97,17 @@ export function BrowsePage({
 			<button
 				data-testid="listings-load-more"
 				type="button"
-				onClick={loadMore}
+				onClick={() => {
+					if (!nextCursor) {
+						return;
+					}
+					void navigate({
+						to: browseTo,
+						search: (prev) => ({ ...prev, cursor: nextCursor }),
+						replace: true,
+						resetScroll: false,
+					});
+				}}
 				disabled={isLoading}
 				className="min-h-11 rounded-full border border-foreground bg-card px-6 py-2 text-sm font-semibold text-foreground hover:bg-muted-light disabled:opacity-50"
 			>

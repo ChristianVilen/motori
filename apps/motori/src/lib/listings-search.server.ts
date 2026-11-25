@@ -1,3 +1,4 @@
+import { createHmac, randomBytes } from "node:crypto";
 import { type Kysely, type RawBuilder, type SqlBool, sql } from "kysely";
 import { hasCategoryMap } from "~/lib/constants";
 import { eurosToCents } from "~/lib/currency";
@@ -8,6 +9,31 @@ import { toPrefixTsQuery } from "~/lib/search";
 import type { BrowseSearchParams } from "~/lib/validators";
 
 type SearchInput = BrowseSearchParams & { category: SearchCategory };
+
+// Only a successful page read can issue a larger window. Legacy keyset URLs still start at their cursor.
+const cursorKey = process.env.BETTER_AUTH_SECRET || randomBytes(32);
+
+function windowCursor(limit: number, after: string) {
+	const signature = createHmac("sha256", cursorKey)
+		.update(`listing-window/v1:${limit}:${after}`)
+		.digest("base64url");
+	return `w1:${limit}:${signature}:${after}`;
+}
+
+function visibleWindow(cursor: string | undefined, pageSize: number) {
+	if (!cursor?.startsWith("w1:")) {
+		return { limit: pageSize, after: cursor ?? "" };
+	}
+	const match = /^w1:(\d+):[\w-]+:(.*)$/.exec(cursor);
+	if (match) {
+		const limit = Number(match[1]);
+		const after = match[2];
+		if (Number.isSafeInteger(limit) && limit > 0 && windowCursor(limit, after) === cursor) {
+			return { limit, after };
+		}
+	}
+	return { limit: pageSize, after: "" };
+}
 
 function activeListings(db: Kysely<Database>) {
 	return db
@@ -123,21 +149,17 @@ function sortedPage(
 	base: CardsQuery,
 	sort: BrowseSearchParams["sort"],
 	rank: RawBuilder<number> | undefined,
-	cursor?: string,
+	cursor: string,
 ) {
 	const priceSort = sort === "price_asc" || sort === "price_desc";
 	const direction = sort === "price_asc" ? "asc" : "desc";
 	const time = sql`card.created_at`;
 	const keys = priceSort ? [sql`card.price`] : rank ? [rank, time] : [time];
 	keys.push(sql`card.id`);
-	// Keep PostgreSQL's timestamp precision in the cursor, including ties within a millisecond.
-	const cursorColumn = sql.join(
-		keys.map((key) => sql`cast(${key} as text)`),
-		sql` || '__' || `,
-	);
-	let page = base.selectAll("card").select(sql<string>`${cursorColumn}`.as("nextKey"));
-	const values = cursor?.split("__");
-	if (values?.length === keys.length && validCursor(values, priceSort, !!rank)) {
+	let page = base.selectAll("card");
+	const values = cursor.split("__");
+	const valid = values.length === keys.length && validCursor(values, priceSort, !!rank);
+	if (valid) {
 		const params = values.map((v, i) => (i === 0 && (priceSort || rank) ? Number(v) : v));
 		const op = direction === "asc" ? sql`>` : sql`<`;
 		page = page.where(sql<SqlBool>`(${sql.join(keys)}) ${op} (${sql.join(params)})`);
@@ -145,7 +167,7 @@ function sortedPage(
 	for (const key of keys) {
 		page = page.orderBy(key, direction);
 	}
-	return page;
+	return { page, start: valid ? cursor : "" };
 }
 
 function validCursor(parts: string[], priceSort: boolean, ranked: boolean) {
@@ -161,11 +183,13 @@ function validCursor(parts: string[], priceSort: boolean, ranked: boolean) {
 
 async function getCoverImages(db: Kysely<Database>, ids: string[]) {
 	const images = new Map<string, ListingImage[]>();
-	if (ids.length) {
+	// Bound the number of SQL parameters even on a deeply expanded feed.
+	const batchSize = 1000;
+	for (let start = 0; start < ids.length; start += batchSize) {
 		const rows = await db
 			.selectFrom("listing_image")
 			.selectAll()
-			.where("listing_id", "in", ids)
+			.where("listing_id", "in", ids.slice(start, start + batchSize))
 			.where("order", "=", 0)
 			.execute();
 		for (const row of rows) {
@@ -191,12 +215,21 @@ async function countResults(base: CardsQuery, map: boolean, city?: string) {
 	return { totalCount: Number(count.count) };
 }
 
+export async function searchListingFeed(db: Kysely<Database>, p: SearchInput) {
+	// A rejected tsquery must finish before the snapshot begins so the trigram fallback can run.
+	const search = p.q ? await searchExpression(db, p.q) : null;
+	return db
+		.transaction()
+		.setIsolationLevel("repeatable read")
+		.execute((trx) => searchListingPage(trx, p, 12, search));
+}
+
 export async function searchListingPage(
 	db: Kysely<Database>,
 	p: SearchInput,
-	pageSize = 12,
+	pageSize: number,
+	search: Awaited<ReturnType<typeof searchExpression>> = null,
 ): Promise<SearchResult> {
-	const search = p.q ? await searchExpression(db, p.q) : null;
 	let base = filteredListings(db, p);
 	if (search) {
 		base = base.where(search.match);
@@ -205,26 +238,23 @@ export async function searchListingPage(
 	const filtered =
 		p.city && (map || !hasCategoryMap(p.category)) ? base.where("card.city", "=", p.city) : base;
 	const sort = p.sort ?? (search && p.category !== "all" ? "relevance" : "newest");
-	const page = sortedPage(
+	const { limit, after } = visibleWindow(p.cursor, pageSize);
+	const { page, start } = sortedPage(
 		filtered,
 		sort,
 		sort === "relevance" ? search?.rank : undefined,
-		p.cursor,
+		after,
 	);
-	const [rows, count] = await Promise.all([
-		map && !p.city ? [] : page.limit(pageSize + 1).execute(),
-		countResults(map ? base : filtered, map, p.city),
-	]);
-	const hasMore = rows.length > pageSize;
-	const listings = rows.slice(0, pageSize);
-	const last = listings.at(-1);
-	const nextCursor = hasMore ? (last?.nextKey ?? null) : null;
+	const rows = map && !p.city ? [] : await page.limit(limit + 1).execute();
+	const count = await countResults(map ? base : filtered, map, p.city);
+	const listings = rows.slice(0, limit);
+	const nextCursor = rows.length > limit ? windowCursor(limit + pageSize, start) : null;
 	const images = await getCoverImages(
 		db,
 		listings.map((l) => l.id),
 	);
 	return {
-		listings: listings.map(({ nextKey, ...listing }) => ({
+		listings: listings.map((listing) => ({
 			...listing,
 			images: images.get(listing.id) ?? [],
 		})),

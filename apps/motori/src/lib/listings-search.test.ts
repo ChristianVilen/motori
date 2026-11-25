@@ -58,7 +58,7 @@ afterAll(() => db.destroy());
 
 describe("all-category search", () => {
 	it("includes active listings with their category facts and ignores a category-specific filter", async () => {
-		const result = await searchListingPage(db, { category: "all", make: "Honda" });
+		const result = await searchListingPage(db, { category: "all", make: "Honda" }, 12);
 		expect(result.totalCount).toBe(4);
 		expect(result.listings.map((l) => [l.category, l.size, l.part_category])).toEqual([
 			["part", null, "brakes"],
@@ -68,7 +68,7 @@ describe("all-category search", () => {
 		]);
 	});
 	it("sorts sale prices and daily rental rates together", async () => {
-		const result = await searchListingPage(db, { category: "all", sort: "price_asc" });
+		const result = await searchListingPage(db, { category: "all", sort: "price_asc" }, 12);
 		expect(result.listings.map((l) => [l.category, l.price])).toEqual([
 			["part", 4000],
 			["rental", 9500],
@@ -77,7 +77,7 @@ describe("all-category search", () => {
 		]);
 	});
 	it.each(["price_asc", "newest"] as const)(
-		"continues past tied values with %s and keeps the full result count",
+		"restores the full window past tied values with %s",
 		async (sort) => {
 			const first = await searchListingPage(db, { category: "all", sort }, 2);
 			expect(first.nextCursor).toBeTruthy();
@@ -86,7 +86,7 @@ describe("all-category search", () => {
 				{ category: "all", sort, cursor: first.nextCursor ?? undefined },
 				2,
 			);
-			expect([...first.listings, ...next.listings].map((l) => l.category)).toEqual(
+			expect(next.listings.map((l) => l.category)).toEqual(
 				sort === "price_asc"
 					? ["part", "rental", "gear", "sale"]
 					: ["part", "gear", "rental", "sale"],
@@ -95,4 +95,40 @@ describe("all-category search", () => {
 			expect(next.nextCursor).toBeNull();
 		},
 	);
+	it("keeps a legacy keyset link as the start of an expanded window", async () => {
+		const filters = { category: "all", sort: "price_asc" } as const;
+		const first = await searchListingPage(
+			db,
+			{ ...filters, cursor: "4000__00000000-0000-4000-8000-000000000003" },
+			2,
+		);
+		expect(first.listings.map((row) => row.category)).toEqual(["rental", "gear"]);
+		const more = await searchListingPage(
+			db,
+			{ ...filters, cursor: first.nextCursor ?? undefined },
+			2,
+		);
+		expect(more.listings.map((row) => row.category)).toEqual(["rental", "gear", "sale"]);
+		expect(more.nextCursor).toBeNull();
+	});
+	it("reorders the whole expanded feed when a listing price crosses the previous page boundary", async () => {
+		const filters = { category: "all", sort: "price_asc" } as const;
+		const first = await searchListingPage(db, filters, 2);
+		const window = { ...filters, cursor: first.nextCursor ?? undefined };
+		const before = await searchListingPage(db, window, 2);
+		expect(before.listings.map((row) => row.category)).toEqual(["part", "rental", "gear", "sale"]);
+		try {
+			sqlite.exec("update listing_part set price = 95000");
+			const restored = await searchListingPage(db, window, 2);
+			expect(restored.listings.map((row) => row.category)).toEqual([
+				"rental",
+				"gear",
+				"sale",
+				"part",
+			]);
+			expect(restored.totalCount).toBe(4);
+		} finally {
+			sqlite.exec("update listing_part set price = 4000");
+		}
+	});
 });

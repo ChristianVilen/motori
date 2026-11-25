@@ -39,27 +39,41 @@ function createCountIcon(count: number, active: boolean): L.DivIcon {
 
 function FitBounds({ pins, selectedCity }: { pins: MapPin[]; selectedCity?: string | null }) {
 	const map = useMap();
+	const selected = selectedCity ? findMunicipality(selectedCity) : undefined;
+	const bounds =
+		!selected && pins.length
+			? L.latLngBounds(pins.map((pin) => L.latLng(pin.lat, pin.lng)))
+			: undefined;
+	const south = bounds?.getSouth(),
+		west = bounds?.getWest();
+	const north = bounds?.getNorth(),
+		east = bounds?.getEast();
 
 	useEffect(() => {
-		function framePins() {
-			map.invalidateSize({ pan: false });
-			const selected = selectedCity ? findMunicipality(selectedCity) : undefined;
-			if (selected) {
-				map.setView([selected.lat, selected.lng], 9, { animate: false });
-			} else if (pins.length) {
-				map.fitBounds(L.latLngBounds(pins.map((p) => L.latLng(p.lat, p.lng))), {
-					padding: [40, 40],
-					maxZoom: 10,
-					animate: false,
-				});
-			}
-		}
-		framePins();
-		const observer = new ResizeObserver(framePins);
+		const observer = new ResizeObserver(() => map.invalidateSize({ pan: false }));
 		observer.observe(map.getContainer());
 		return () => observer.disconnect();
-	}, [selectedCity, map, pins]);
+	}, [map]);
 
+	useEffect(() => {
+		map.invalidateSize({ pan: false });
+		if (selected) {
+			map.setView([selected.lat, selected.lng], 9, { animate: false });
+		} else if (
+			south !== undefined &&
+			west !== undefined &&
+			north !== undefined &&
+			east !== undefined
+		) {
+			map.fitBounds(
+				[
+					[south, west],
+					[north, east],
+				],
+				{ padding: [40, 40], maxZoom: 10, animate: false },
+			);
+		}
+	}, [map, selected, south, west, north, east]);
 	return null;
 }
 

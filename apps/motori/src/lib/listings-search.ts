@@ -20,6 +20,6 @@ export const searchListings = createServerFn({ method: "GET" })
 	.validator(browseSearchSchema.extend({ category: categorySchema }))
 	.handler(async ({ data }): Promise<SearchResult> => {
 		const { db } = await import("~/lib/db/index");
-		const { searchListingPage } = await import("~/lib/listings-search.server");
-		return searchListingPage(db, data);
+		const { searchListingFeed } = await import("~/lib/listings-search.server");
+		return searchListingFeed(db, data);
 	});
