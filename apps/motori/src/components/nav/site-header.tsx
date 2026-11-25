@@ -11,7 +11,7 @@ import { MobileSearchTrigger, SiteSearch } from "./site-search";
 const navLink =
 	"inline-flex min-h-11 items-center gap-2 rounded-full px-2 lg:px-3 hover:bg-muted-light";
 const sellButton =
-	"inline-flex min-h-11 items-center gap-1.5 rounded-full bg-reflector pl-4 pr-5 font-semibold text-foreground hover:bg-reflector-press";
+	"sell-action inline-flex min-h-11 items-center gap-1.5 rounded-full bg-reflector pl-4 pr-5 font-semibold text-foreground hover:bg-reflector-press";
 
 function AccountLink({
 	loggedIn,

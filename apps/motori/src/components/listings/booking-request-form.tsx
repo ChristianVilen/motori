@@ -82,7 +82,7 @@ export function BookingRequestForm(props: Props) {
 			<div
 				data-testid="booking-success"
 				role="status"
-				className="rounded-l border border-success/30 bg-success/5 p-4"
+				className="rounded-lg border border-success/30 bg-success/5 p-4"
 			>
 				<h3 className="font-semibold text-success">{t("booking.successTitle")}</h3>
 				<p className="mt-1 text-sm text-muted">{t("booking.successBody")}</p>

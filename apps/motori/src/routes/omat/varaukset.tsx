@@ -93,7 +93,7 @@ function BookingsListPage() {
 							<Link
 								to="/omat/varaukset/$bookingId"
 								params={{ bookingId: b.short_id }}
-								className="block rounded-l border border-border bg-card p-4 hover:border-accent"
+								className="block rounded-lg border border-border bg-card p-4 hover:border-accent"
 								data-testid="booking-row"
 							>
 								<div className="flex items-center justify-between gap-3">

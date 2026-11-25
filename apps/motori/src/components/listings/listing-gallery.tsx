@@ -1,6 +1,6 @@
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import type { ListingImage } from "~/lib/db/schema";
 import { useTranslation } from "~/lib/i18n";
 import { useFocusTrap } from "~/lib/use-focus-trap";
@@ -22,12 +22,12 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 	});
 
 	const onMainSelect = useCallback(() => {
-		if (!mainApi || !thumbApi) {
+		if (!mainApi) {
 			return;
 		}
 		const index = mainApi.selectedScrollSnap();
 		setSelectedIndex(index);
-		thumbApi.scrollTo(index);
+		thumbApi?.scrollTo(index);
 	}, [mainApi, thumbApi]);
 
 	useEffect(() => {
@@ -55,25 +55,6 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 	const scrollNext = useCallback(() => mainApi?.scrollNext(), [mainApi]);
 
 	useEffect(() => {
-		if (!lightboxOpen) {
-			return;
-		}
-		function onKey(e: KeyboardEvent) {
-			if (e.key === "Escape") {
-				setLightboxOpen(false);
-			}
-			if (e.key === "ArrowLeft") {
-				mainApi?.scrollPrev();
-			}
-			if (e.key === "ArrowRight") {
-				mainApi?.scrollNext();
-			}
-		}
-		window.addEventListener("keydown", onKey);
-		return () => window.removeEventListener("keydown", onKey);
-	}, [lightboxOpen, mainApi]);
-
-	useEffect(() => {
 		if (lightboxOpen) {
 			document.body.style.overflow = "hidden";
 			return () => {
@@ -84,7 +65,7 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 
 	if (images.length === 0) {
 		return (
-			<div className="flex aspect-[4/3] items-center justify-center bg-muted-light md:rounded-l">
+			<div className="-mx-4 flex aspect-[4/3] items-center justify-center bg-muted-light min-[900px]:mx-0 min-[900px]:aspect-[3/2] min-[900px]:rounded-lg">
 				<svg
 					className="h-16 w-16 text-border"
 					fill="none"
@@ -107,23 +88,24 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 		<>
 			{/* Main carousel — edge-to-edge on mobile, rounded on desktop */}
 			<section
-				className="group relative -mx-4 bg-black md:mx-0 md:overflow-hidden md:rounded-l md:shadow-lg"
+				className="group relative -mx-4 aspect-[4/3] overflow-hidden bg-muted-light min-[900px]:mx-0 min-[900px]:aspect-[3/2] min-[900px]:rounded-lg"
 				aria-roledescription="carousel"
 				aria-label={t("gallery.carouselAriaLabel", { title })}
 			>
-				<div className="overflow-hidden" ref={mainRef}>
-					<div className="flex touch-pan-y">
+				<div className="h-full overflow-hidden" ref={mainRef}>
+					<div className="flex h-full touch-pan-y">
 						{images.map((img, i) => (
-							<div key={img.id} className="relative aspect-[4/3] w-full flex-[0_0_100%] min-w-0">
+							<div key={img.id} className="relative h-full w-full min-w-0 flex-[0_0_100%]">
 								<button
 									type="button"
-									className="h-full w-full cursor-zoom-in"
+									className="block h-full w-full cursor-zoom-in"
+									tabIndex={selectedIndex === i ? 0 : -1}
 									onClick={() => setLightboxOpen(true)}
 									aria-label={t("gallery.openLightboxAriaLabel", { title, index: i + 1 })}
 								>
 									<img
 										src={img.url}
-										alt={i === 0 ? title : `${title}, kuva ${i + 1}`}
+										alt={i === 0 ? title : t("gallery.imageAlt", { title, index: i + 1 })}
 										className="h-full w-full object-cover"
 										draggable={false}
 										loading={i === 0 ? "eager" : "lazy"}
@@ -140,7 +122,7 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 						<button
 							type="button"
 							onClick={scrollPrev}
-							className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-foreground shadow-md opacity-0 transition-all hover:bg-white group-hover:opacity-100 max-md:opacity-100"
+							className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-foreground hidden size-11 place-items-center opacity-0 hover:bg-white focus-visible:opacity-100 group-hover:opacity-100 min-[900px]:grid"
 							aria-label={t("gallery.prevAriaLabel")}
 						>
 							<ChevronLeft className="h-5 w-5" />
@@ -148,27 +130,41 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 						<button
 							type="button"
 							onClick={scrollNext}
-							className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-foreground shadow-md opacity-0 transition-all hover:bg-white group-hover:opacity-100 max-md:opacity-100"
+							className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-foreground hidden size-11 place-items-center opacity-0 hover:bg-white focus-visible:opacity-100 group-hover:opacity-100 min-[900px]:grid"
 							aria-label={t("gallery.nextAriaLabel")}
 						>
 							<ChevronRight className="h-5 w-5" />
 						</button>
 
-						{/* Counter pill */}
-						<span
-							className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs font-medium tabular-nums text-white"
-							aria-live="polite"
+						<div
+							aria-hidden="true"
+							className="pointer-events-none absolute bottom-[18px] left-1/2 flex -translate-x-1/2 gap-1.5 min-[900px]:hidden"
 						>
-							{selectedIndex + 1} / {images.length}
-						</span>
+							{images.map((img, index) => (
+								<span
+									key={img.id}
+									className={`size-1.5 rounded-full ${index === selectedIndex ? "scale-125 bg-white" : "bg-white/55"}`}
+								/>
+							))}
+						</div>
 					</>
 				)}
+				<span
+					className="absolute bottom-3 right-3 rounded-full bg-primary/80 px-2.5 py-[3px] text-xs font-semibold tabular-nums text-white"
+					aria-live="polite"
+				>
+					{selectedIndex + 1} / {images.length}
+				</span>
 			</section>
 
 			{/* Thumbnail strip */}
 			{images.length > 1 && (
-				<nav className="mt-3" ref={thumbRef} aria-label={t("gallery.thumbnailsAriaLabel")}>
-					<div className="flex gap-2 px-0.5 py-0.5 flex-wrap">
+				<nav
+					className="mt-2.5 hidden overflow-hidden min-[900px]:block"
+					ref={thumbRef}
+					aria-label={t("gallery.thumbnailsAriaLabel")}
+				>
+					<div className="flex gap-2.5 p-1">
 						{images.map((img, i) => (
 							<button
 								key={img.id}
@@ -176,9 +172,9 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
 								onClick={() => onThumbClick(i)}
 								aria-label={t("gallery.goToImageAriaLabel", { index: i + 1 })}
 								aria-current={i === selectedIndex ? "true" : undefined}
-								className={`h-18 w-18 transition-all ${
+								className={`aspect-[4/3] w-24 shrink-0 overflow-hidden rounded-md ${
 									i === selectedIndex
-										? "ring-2 ring-accent ring-offset-2 ring-offset-background"
+										? "ring-2 ring-foreground ring-offset-2 ring-offset-background"
 										: "opacity-60 hover:opacity-90"
 								}`}
 							>
@@ -222,16 +218,17 @@ function Lightbox({
 	onClose: () => void;
 	onSlideChange: (index: number) => void;
 }) {
+	const [initialIndex] = useState(startIndex);
 	const [emblaRef, emblaApi] = useEmblaCarousel({
 		loop: true,
-		startIndex,
+		startIndex: initialIndex,
 		skipSnaps: false,
 	});
 	const { t } = useTranslation("listings");
 	const [currentIndex, setCurrentIndex] = useState(startIndex);
 	const trapRef = useFocusTrap(true);
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!emblaApi) {
 			return;
 		}
@@ -246,25 +243,23 @@ function Lightbox({
 		};
 	}, [emblaApi, onSlideChange]);
 
-	useEffect(() => {
-		function onKey(e: KeyboardEvent) {
-			if (e.key === "Escape") {
-				onClose();
-			}
-			if (e.key === "ArrowLeft") {
-				emblaApi?.scrollPrev();
-			}
-			if (e.key === "ArrowRight") {
-				emblaApi?.scrollNext();
-			}
-		}
-		window.addEventListener("keydown", onKey);
-		return () => window.removeEventListener("keydown", onKey);
-	}, [emblaApi, onClose]);
-
 	return (
 		<div
 			ref={trapRef}
+			onKeyDown={(event) => {
+				if (event.key === "Escape") {
+					event.preventDefault();
+					onClose();
+				}
+				if (event.key === "ArrowLeft") {
+					event.preventDefault();
+					emblaApi?.scrollPrev();
+				}
+				if (event.key === "ArrowRight") {
+					event.preventDefault();
+					emblaApi?.scrollNext();
+				}
+			}}
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/95"
 			role="dialog"
 			aria-modal="true"
@@ -281,7 +276,7 @@ function Lightbox({
 			<button
 				type="button"
 				onClick={onClose}
-				className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2.5 text-white transition-colors hover:bg-white/20"
+				className="absolute right-4 top-4 z-10 rounded-full grid size-11 place-items-center bg-white text-foreground hover:bg-muted-light"
 				aria-label={t("gallery.closeLightboxAriaLabel")}
 			>
 				<X className="h-6 w-6" />
@@ -297,7 +292,7 @@ function Lightbox({
 						>
 							<img
 								src={img.url}
-								alt={`${title}, kuva ${i + 1}`}
+								alt={t("gallery.imageAlt", { title, index: i + 1 })}
 								className="max-h-full max-w-full select-none object-contain"
 								draggable={false}
 								loading={i === startIndex ? "eager" : "lazy"}
@@ -311,16 +306,18 @@ function Lightbox({
 				<>
 					<button
 						type="button"
+						disabled={!emblaApi}
 						onClick={() => emblaApi?.scrollPrev()}
-						className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/20"
+						className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full grid size-11 place-items-center bg-white text-foreground hover:bg-muted-light"
 						aria-label={t("gallery.prevAriaLabel")}
 					>
 						<ChevronLeft className="h-7 w-7" />
 					</button>
 					<button
 						type="button"
+						disabled={!emblaApi}
 						onClick={() => emblaApi?.scrollNext()}
-						className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/20"
+						className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full grid size-11 place-items-center bg-white text-foreground hover:bg-muted-light"
 						aria-label={t("gallery.nextAriaLabel")}
 					>
 						<ChevronRight className="h-7 w-7" />

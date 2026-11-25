@@ -113,7 +113,7 @@ function ListingRow({ listing, firstImage, onStatusChange, verified }: ListingRo
 
 	return (
 		<div
-			className="flex gap-4 rounded-l border border-border bg-card p-4"
+			className="flex gap-4 rounded-lg border border-border bg-card p-4"
 			data-testid="dashboard-listing-row"
 			data-listing-id={listing.short_id}
 		>
@@ -411,7 +411,7 @@ function ProfilePage() {
 
 				{/* Unified list */}
 				{allItems.length === 0 ? (
-					<div className="flex flex-col items-center gap-4 rounded-l border border-dashed border-border py-16 text-center">
+					<div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-border py-16 text-center">
 						<p className="text-muted">{t("dashboard.emptyState")}</p>
 						{verified ? (
 							<Link to="/ilmoitukset/uusi">

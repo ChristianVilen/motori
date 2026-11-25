@@ -3,12 +3,12 @@
 //
 // The factory holds the duplicated server fn + loader + component + notFoundComponent.
 // Each route file owns its createFileRoute path (the codegen reads the literal
-// string) and supplies the category-specific sidebar and head meta.
+// string) and supplies its head metadata.
 
 import { type LinkProps, notFound, useLoaderData } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
-import type { FC, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { ListingDetailShell } from "~/components/listings/listing-detail-shell";
 import { useTranslation } from "~/lib/i18n";
 import { getListingForDisplay, type ListingForDisplay, recordView } from "~/lib/listings-detail";
@@ -28,10 +28,6 @@ type HeadInput = LoaderResult;
 interface DefineCategoryDetailRouteArgs<C extends "sale" | "gear" | "part"> {
 	category: C;
 	backTo: LinkProps["to"];
-	Sidebar: FC<{
-		data: LoaderResult;
-		isOwner: boolean;
-	}>;
 	head: (loaderData: HeadInput | undefined) => Record<string, unknown>;
 }
 
@@ -60,7 +56,7 @@ const getCategoryListing = createServerFn({ method: "GET" })
 export function defineCategoryDetailRoute<C extends "sale" | "gear" | "part">(
 	args: DefineCategoryDetailRouteArgs<C>,
 ) {
-	const { category, backTo, Sidebar, head } = args;
+	const { category, backTo, head } = args;
 
 	async function loader({ params }: { params: { listingId: string } }): Promise<LoaderResult> {
 		const [result, session] = await Promise.all([
@@ -75,18 +71,8 @@ export function defineCategoryDetailRoute<C extends "sale" | "gear" | "part">(
 
 	function Component(): ReactNode {
 		const data = useLoaderData({ strict: false }) as LoaderResult;
-		const { t } = useTranslation("listings");
-		const isOwner = data.session?.user.id === data.listing.owner_id;
 
-		return (
-			<ListingDetailShell
-				data={data}
-				session={data.session}
-				backTo={backTo}
-				backLabel={t("detail.back")}
-				sidebar={<Sidebar data={data} isOwner={isOwner} />}
-			/>
-		);
+		return <ListingDetailShell data={data} session={data.session} backTo={backTo} />;
 	}
 
 	function NotFoundComponent(): ReactNode {

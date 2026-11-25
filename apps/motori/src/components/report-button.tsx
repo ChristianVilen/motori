@@ -70,7 +70,7 @@ export function ReportButton({ targetType, targetId }: ReportButtonProps) {
 						role="dialog"
 						aria-modal="true"
 						aria-label={t("report.modalTitle")}
-						className="w-full max-w-md rounded-l bg-white p-6 shadow-lg"
+						className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
 					>
 						<form onSubmit={handleSubmit}>
 							<h2 className="mb-4 text-lg font-semibold text-foreground">

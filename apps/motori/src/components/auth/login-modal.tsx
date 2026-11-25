@@ -51,7 +51,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 		>
 			<div
 				ref={trapRef}
-				className="w-full max-w-sm rounded-l bg-card p-6 shadow-xl"
+				className="w-full max-w-sm rounded-lg bg-card p-6 shadow-xl"
 				role="document"
 			>
 				<div className="mb-5 flex items-start justify-between">

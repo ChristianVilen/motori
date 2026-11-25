@@ -1,7 +1,6 @@
 // src/routes/pyorat/vuokraus/$listingId_.$slug.tsx
 // $slug is decorative — only $listingId (the short_id) is used for DB lookup.
 
-import { Button } from "@motori/ui/button";
 import { createFileRoute, Link, notFound, useRouterState } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
@@ -9,7 +8,7 @@ import { useState } from "react";
 import { BookingRequestForm } from "~/components/listings/booking-request-form";
 import { ListingDetailShell } from "~/components/listings/listing-detail-shell";
 import { MessageSellerButton } from "~/components/listings/message-seller-button";
-import { ReportButton } from "~/components/report-button";
+import { OwnerActions } from "~/components/listings/non-rental-sidebar";
 import { MobileFullscreenModal } from "~/components/ui/mobile-fullscreen-modal";
 import { createBookingRequest } from "~/lib/bookings.server";
 import { SITE_NAME, SITE_URL } from "~/lib/constants";
@@ -113,76 +112,6 @@ export const Route = createFileRoute("/pyorat/vuokraus/$listingId_/$slug")({
 	},
 });
 
-interface PricingCardProps {
-	pricePerDayCents: number;
-	pricePerWeekCents: number | null;
-	pricePerWeekendCents: number | null;
-	priceDescription: string | null;
-	listing: Listing;
-	isOwner: boolean;
-}
-
-function PricingCard({
-	pricePerDayCents,
-	pricePerWeekCents,
-	pricePerWeekendCents,
-	priceDescription,
-	listing,
-	isOwner,
-}: PricingCardProps) {
-	const { t } = useTranslation("listings");
-
-	return (
-		<div className="rounded-l border border-border bg-card p-5 shadow-sm">
-			<div data-testid="price-info" className="mb-4">
-				<span
-					data-testid="price-per-day"
-					className="text-3xl font-bold text-foreground font-heading tabular-nums"
-				>
-					{formatEur(pricePerDayCents)}
-				</span>
-				<span className="ml-1 text-sm text-muted">{t("detail.pricing.perDay")}</span>
-				{!!pricePerWeekCents && (
-					<div
-						data-testid="price-per-week"
-						className="mt-1 text-sm text-muted font-heading tabular-nums"
-					>
-						{t("detail.pricing.perWeek", { price: formatEur(pricePerWeekCents) })}
-					</div>
-				)}
-				{!!pricePerWeekendCents && (
-					<div
-						data-testid="price-per-weekend"
-						className="mt-1 text-sm text-muted font-heading tabular-nums"
-					>
-						{t("detail.pricing.perWeekend", { price: formatEur(pricePerWeekendCents) })}
-					</div>
-				)}
-				{!!priceDescription && <div className="mt-1 text-xs text-muted">{priceDescription}</div>}
-			</div>
-			{!!isOwner && (
-				<div className="mt-3 flex gap-2">
-					<Link
-						data-testid="listing-edit-link"
-						to="/ilmoitukset/$listingId/muokkaa"
-						params={{ listingId: listing.short_id }}
-						className="flex-1"
-					>
-						<Button variant="outline" className="w-full" size="sm">
-							{t("detail.ownerActions.edit")}
-						</Button>
-					</Link>
-					<Link data-testid="listing-owner-profile-link" to="/omat" className="flex-1">
-						<Button variant="outline" className="w-full" size="sm">
-							{t("detail.ownerActions.myListings")}
-						</Button>
-					</Link>
-				</div>
-			)}
-		</div>
-	);
-}
-
 function MobileBottomBar({
 	pricePerDayCents,
 	pricePerWeekCents,
@@ -201,8 +130,8 @@ function MobileBottomBar({
 	const { t } = useTranslation("listings");
 	return (
 		<>
-			<div aria-hidden="true" className="h-20 lg:hidden" />
-			<div className="fixed inset-x-0 bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] z-40 border-t border-border bg-card/95 px-4 py-3 backdrop-blur-md md:bottom-0 lg:hidden">
+			<div aria-hidden="true" className="h-20 min-[900px]:hidden" />
+			<div className="fixed inset-x-0 bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] z-40 border-t border-border bg-card/95 px-4 py-3 backdrop-blur-md md:bottom-0 min-[900px]:hidden">
 				<div className="flex items-center justify-between gap-4">
 					<div>
 						<div>
@@ -279,18 +208,7 @@ function BookingSidebar({
 	const isOwner = session?.user.id === listing.owner_id;
 
 	if (isOwner) {
-		return (
-			<div id="pricing" className="space-y-4 lg:self-start">
-				<PricingCard
-					pricePerDayCents={rental?.price_per_day ?? 0}
-					pricePerWeekCents={rental?.price_per_week ?? null}
-					pricePerWeekendCents={rental?.price_per_weekend ?? null}
-					priceDescription={rental?.price_description ?? null}
-					listing={listing}
-					isOwner={true}
-				/>
-			</div>
-		);
+		return <OwnerActions listingShortId={listing.short_id} />;
 	}
 
 	if (listing.status !== "active") {
@@ -316,8 +234,8 @@ function BookingSidebar({
 
 	return (
 		<>
-			<div id="pricing" className="space-y-4 lg:self-start">
-				<div className="hidden lg:block" data-testid="booking-section">
+			<div id="pricing" className="space-y-4 min-[900px]:self-start">
+				<div className="hidden min-[900px]:block" data-testid="booking-section">
 					<BookingRequestForm {...bookingFormProps} />
 				</div>
 				{!!session && !isOwner && (
@@ -325,11 +243,6 @@ function BookingSidebar({
 						listingId={listing.id}
 						className="mt-2 block w-full rounded-lg border border-accent px-4 py-2.5 text-center text-sm font-medium text-accent hover:bg-accent/5"
 					/>
-				)}
-				{!!session && (
-					<div className="text-center">
-						<ReportButton targetType="listing" targetId={listing.id} />
-					</div>
 				)}
 			</div>
 			<MobileBottomBar
@@ -354,7 +267,6 @@ function BookingSidebar({
 }
 
 function ListingDetailPage() {
-	const { t } = useTranslation("listings");
 	const {
 		listing,
 		rental,
@@ -368,7 +280,7 @@ function ListingDetailPage() {
 		ownerCity,
 		ownerSince,
 		ownerReviewSummary,
-		ownerContact,
+		ownerPhoneVisible,
 	} = Route.useLoaderData();
 
 	const sidebar = (
@@ -397,11 +309,10 @@ function ListingDetailPage() {
 				ownerCity,
 				ownerSince,
 				ownerReviewSummary,
-				ownerContact,
+				ownerPhoneVisible,
 			}}
 			session={session}
 			backTo="/pyorat/vuokraus"
-			backLabel={t("detail.back")}
 			sidebar={sidebar}
 		/>
 	);

@@ -6,6 +6,7 @@ export class ListingDetailPage {
 	readonly root: Locator;
 	readonly title: Locator;
 	readonly back: Locator;
+	readonly facts: Locator;
 	readonly edit: Locator;
 	readonly priceInfo: Locator;
 	readonly pricePerDay: Locator;
@@ -21,6 +22,7 @@ export class ListingDetailPage {
 		this.page = page;
 		this.root = page.getByTestId("listing-detail");
 		this.title = page.getByTestId("listing-detail-title");
+		this.facts = page.getByTestId("listing-facts");
 		this.back = page.getByTestId("listing-detail-back");
 		this.edit = page.getByTestId("listing-edit-link");
 		this.priceInfo = page.getByTestId("price-info");

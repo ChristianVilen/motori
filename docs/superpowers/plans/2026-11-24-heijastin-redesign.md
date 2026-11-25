@@ -294,32 +294,34 @@ The current theme is one `@theme` block in `packages/ui/src/theme.css`. Phase 1 
 
 **Steps.**
 
-- [ ] **5.1 Shell layout.**
+- [x] **5.1 Shell layout.**
 	- Mobile order: back row, gallery, price, title, meta chips, fact grid, description, seller card, bill-of-sale row (sale only), report link.
 	- Desktop: two columns with a 1240px max width. Left: title, meta chips, gallery, fact grid, description. Right: a sticky card 360px wide with the price, the contact buttons, the seller card, and the bill-of-sale row. Keep the DOM order the same as the visual order on desktop (title before gallery), so that keyboard order is correct.
 	- Back row: "‹ Takaisin" on the left (`listing-detail-back`), share and heart on the right as 44px round buttons. If the router can go back inside the app, the back control calls history back. Otherwise it links to the category page. Check whether the installed TanStack Router has `useCanGoBack` and use it if it exists.
 	- Keep the sold and expired banners, the "Oma" badge, and the status badge.
-- [ ] **5.2 Price and facts.** Move the price and the fact rows out of `NonRentalSidebar` into the shell's main column on mobile. `NonRentalSidebar` keeps the contact actions and the owner actions. The price is in the heading font, weight 800, about 30px, with "Hinta joustaa" beside it. Keep `price-info` and `price-sale`. The fact grid has two columns of label and value with hairlines between rows.
+- [x] **5.2 Price and facts.** Move the price and the fact rows out of `NonRentalSidebar` into the shell's main column on mobile. `NonRentalSidebar` keeps the contact actions and the owner actions. The price is in the heading font, weight 800, about 30px, with "Hinta joustaa" beside it. Keep `price-info` and `price-sale`. The fact grid has two columns of label and value with hairlines between rows.
 	- Facts per category. Sale: Vuosimalli, Kilometrit, Kuutiotilavuus, Teho, Kunto, Väri, Omistajia, Vaihto. Gear: Tyyppi, Merkki, Koko, Kunto. Part: Osaluokka, Sopii, OEM-numero, Kunto. Rental: Vuosimalli, Kuutiotilavuus, Ajokortti, Kilometriraja.
 	- **Bug fix.** The part page shows the raw `part_category` value (for example "brakes"). Show the Finnish label from the constants.
 	- **Bug fix.** Several cards use the class `rounded-l`, which rounds only the left corners. Replace it with the card radius. Run `grep -rn "rounded-l " apps/motori/src` to find them.
-- [ ] **5.3 Gallery.** Keep Embla and the lightbox. Restyle: edge to edge with a 4:3 ratio on mobile, a counter pill "1 / 4" at the bottom right, dots at the bottom centre. On desktop: a large main image with a 10px radius and a thumbnail strip under it, where the current thumbnail has an ink ring. The lightbox has a dark backdrop and round white controls.
-- [ ] **5.4 Contact.**
-	- Mobile: a sticky bar above the tab bar for sale, gear, and part pages, shown to non-owners when the listing is active. Left: the price. Right: the lime button "Lähetä viesti" (`MessageSellerButton`), or "Kirjaudu ottaaksesi yhteyttä" (`login-to-contact`) when logged out. When the seller shows a phone number, add a round outline button with a phone icon.
+- [x] **5.3 Gallery.** Keep Embla and the lightbox. Restyle: edge to edge with a 4:3 ratio on mobile, a counter pill "1 / 4" at the bottom right, dots at the bottom centre. On desktop: a large main image with a 10px radius and a thumbnail strip under it, where the current thumbnail has an ink ring. The lightbox has a dark backdrop and round white controls.
+- [x] **5.4 Contact.**
+	- Mobile: a sticky bar above the tab bar for sale, gear, and part pages, shown to non-owners when the listing is active. Left: the price. Right: the lime button "Lähetä viesti" (`MessageSellerButton`), or "Kirjaudu ottaaksesi yhteyttä" (`login-to-contact`) when logged out. On active non-rental pages viewed by a buyer, Myy uses an outline in the header and tab bar so contact is the only lime action. When the seller shows a phone number, add a round outline button with a phone icon.
 	- The phone number is not in the page until the user asks for it: the button "Näytä puhelinnumero" swaps to a `tel:` link with the number.
 	- Desktop: the same actions in the sticky right card.
 	- The spacer under the page content uses the action bar variable from step 2.10.
-- [ ] **5.5 Seller card.** Initial avatar, name, rating ("★ 4,7 (3 arvostelua)" or "Ei vielä arvosteluja"), city, "Jäsen vuodesta 2023", and a chevron. The whole card is the link (`seller-profile-link`). Draw the star as SVG.
-- [ ] **5.6 Bill-of-sale row.** A bordered row with a document icon, the title "Tee kauppakirja", and the line "Esitäyttää ajoneuvon tiedot ja hinnan. Nimet ja muut tiedot pysyvät selaimessasi." The link text must still match the role query `link "Tee kauppakirja"` in the tests. The target does not change (`/kauppakirja?ilmoitus=<short_id>`).
-- [ ] **5.7 Owner view.** The owner sees "Muokkaa" and "Omat ilmoitukset" as outline pills in place of the contact actions, and no sticky contact bar. Keep `listing-edit-link`.
-- [ ] **5.8 Seller profile.** Restyle `/profiili/$userId`: header with avatar, name, city, member since, and the rating. Then the review list (name, date, stars, comment). Then the active listings in the shared grid. Change the back link target from `/ilmoitukset` to `/`.
-- [ ] **5.9 Tests.** Update `non-rental-sidebar.test.tsx` for the moved price and facts. Add a unit test for the part category label. Update the page objects. `reviews.spec.ts` and `sale-contract.spec.ts` must pass without logic changes.
+- [x] **5.5 Seller card.** Initial avatar, name, rating ("★ 4,7 (3 arvostelua)" or "Ei vielä arvosteluja"), city, "Jäsen vuodesta 2023", and a chevron. The whole card is the link (`seller-profile-link`). Draw the star as SVG.
+- [x] **5.6 Bill-of-sale row.** A bordered row with a document icon, the title "Tee kauppakirja", and the line "Esitäyttää ajoneuvon tiedot ja hinnan. Nimet ja muut tiedot pysyvät selaimessasi." The link text must still match the role query `link "Tee kauppakirja"` in the tests. The target does not change (`/kauppakirja?ilmoitus=<short_id>`).
+- [x] **5.7 Owner view.** The owner sees "Muokkaa" and "Omat ilmoitukset" as outline pills in place of the contact actions, and no sticky contact bar. Keep `listing-edit-link`.
+- [x] **5.8 Seller profile.** Restyle `/profiili/$userId`: header with avatar, name, city, member since, and the rating. Then the review list (name, date, stars, comment). Then the active listings in the shared grid. Change the back link target from `/ilmoitukset` to `/`.
+- [x] **5.9 Tests.** Update `non-rental-sidebar.test.tsx` for the moved price and facts. Add a unit test for the part category label. Update the page objects. `reviews.spec.ts` and `sale-contract.spec.ts` must pass without logic changes.
 
 **Acceptance.**
 
 - At 390px the sticky contact bar never covers the last content line or the tab bar.
 - One tap on a card photo or title opens the listing page. The heart only saves.
 - The detail pages of all four categories render with their own fact rows.
+
+**Phase 5 verification (2026-11-25).** All six required commands passed. The unit suite passed 472 tests. Motori’s browser suite passed 148 tests and skipped 9. On port 3011, production checks at 390×844 and 1280×800 verified the gallery, price and contact layout, phone reveal, owner controls, sold and expired banners, direct-entry Back link, and return to a filtered list. The initial listing HTML omitted the sample phone number. No horizontal overflow, console errors or CSP violations were observed in the captured views.
 
 ---
 

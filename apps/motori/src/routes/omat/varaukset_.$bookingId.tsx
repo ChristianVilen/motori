@@ -279,7 +279,7 @@ function ReviewSection(props: {
 
 	if (submitted && !props.reviewStatus.windowOpen) {
 		return (
-			<div className="mt-6 rounded-l border border-border bg-card p-4">
+			<div className="mt-6 rounded-lg border border-border bg-card p-4">
 				<p className="text-sm text-muted">{t("reviews.revealed")}</p>
 			</div>
 		);
@@ -287,7 +287,7 @@ function ReviewSection(props: {
 
 	if (!props.reviewStatus.windowOpen) {
 		return (
-			<div className="mt-6 rounded-l border border-border bg-card p-4">
+			<div className="mt-6 rounded-lg border border-border bg-card p-4">
 				<p className="text-sm text-muted">{t("reviews.windowClosed")}</p>
 			</div>
 		);
@@ -295,7 +295,7 @@ function ReviewSection(props: {
 
 	if (submitted) {
 		return (
-			<div className="mt-6 rounded-l border border-border bg-card p-4">
+			<div className="mt-6 rounded-lg border border-border bg-card p-4">
 				<p className="text-sm text-muted">{t("reviews.waitingReveal")}</p>
 			</div>
 		);
@@ -323,7 +323,7 @@ function ReviewSection(props: {
 	}
 
 	return (
-		<div data-testid="review-section" className="mt-6 rounded-l border border-border bg-card p-4">
+		<div data-testid="review-section" className="mt-6 rounded-lg border border-border bg-card p-4">
 			<h3 className="mb-3 font-semibold">{t("reviews.submitHeading")}</h3>
 			<form onSubmit={handleSubmit} data-testid="review-form">
 				<fieldset className="mb-3">
@@ -392,7 +392,7 @@ function BookingDetailPage() {
 				← {t("bookings.listTitle")}
 			</Link>
 			<h1 className="mt-2 text-2xl font-bold">{t("bookings.detail.heading")}</h1>
-			<div className="mt-4 rounded-l border border-border bg-card p-4">
+			<div className="mt-4 rounded-lg border border-border bg-card p-4">
 				<div className="font-medium">{booking.listing_title}</div>
 				<div className="mt-1 text-sm text-muted">
 					{booking.start_date} – {booking.end_date}

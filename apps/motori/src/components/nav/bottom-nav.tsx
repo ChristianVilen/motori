@@ -47,7 +47,7 @@ export function BottomNav({ session, verified, unread, onSignInClick }: Props) {
 				testId="bottom-nav-add"
 				label={t("nav.bottom.add")}
 			>
-				<span className="grid size-11 place-items-center rounded-full bg-reflector text-foreground group-disabled:bg-muted-light group-disabled:text-muted">
+				<span className="sell-action grid size-11 place-items-center rounded-full bg-reflector text-foreground group-disabled:bg-muted-light group-disabled:text-muted">
 					<Plus />
 				</span>
 			</Tab>

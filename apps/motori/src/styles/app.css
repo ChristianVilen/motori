@@ -115,3 +115,9 @@ button,
 		--listing-columns: 5;
 	}
 }
+
+body:has([data-contact-primary]) .sell-action:not(:disabled):not(:disabled *) {
+	background-color: var(--color-card);
+	color: var(--color-foreground);
+	border: 1px solid var(--color-foreground);
+}

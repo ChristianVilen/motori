@@ -1,4 +1,5 @@
 export default {
+	linkHint: "Esitäyttää ajoneuvon tiedot ja hinnan. Nimet ja muut tiedot pysyvät selaimessasi.",
 	title: "Moottoripyörän kauppakirja",
 	seoTitle: "Moottoripyörän kauppakirja – tulostettava malli | Motori",
 	description:

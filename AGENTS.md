@@ -108,6 +108,8 @@ Validate enum and union inputs from the client with `createServerFn().validator(
 
 Image URLs from the client must pass `isValidImageUrl()` before they are stored (`${STORAGE_PUBLIC_URL}/` prefix or `/api/uploads/`; see Storage).
 
+Public listing loaders return whether a phone number can be shown. Fetch the number only when a buyer selects “Näytä puhelinnumero”. The phone lookup checks that the listing is active, is a sale, gear, or part listing, and that the seller still shares the number. On these listings the buyer’s contact button uses reflector and the navigation’s Myy action uses an outline.
+
 ### Bill of sale (`/kauppakirja`)
 
 A public bill-of-sale editor. Only public vehicle fields and price are read from a sale listing; names and other party data must never be read from a session or owner profile. Typed fields stay in context-keyed `sessionStorage` and must never be sent to a server function. Clear stores a blank draft for the same context so reload cannot reapply listing values. The editor renders only in the browser (`ClientOnly`) and reads the saved draft in its first render. Catch every storage access.

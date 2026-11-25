@@ -10,6 +10,8 @@ vi.mock("~/lib/i18n", () => ({
 	useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key }),
 }));
 
+vi.mock("~/lib/listings-detail", () => ({ revealListingPhone: vi.fn() }));
+
 vi.mock("~/lib/messages", () => ({
 	startConversation: vi.fn(async () => ({ conversationId: "conv-1" })),
 }));
@@ -56,12 +58,9 @@ function renderSidebar(overrides: Partial<Parameters<typeof NonRentalSidebar>[0]
 	return render(
 		<NonRentalSidebar
 			price={10000}
-			priceTestId="price-sale"
-			statRows={[]}
 			listing={baseListing}
 			isOwner={false}
 			ownerPhoneVisible={false}
-			ownerPhone={null}
 			{...overrides}
 		/>,
 	);

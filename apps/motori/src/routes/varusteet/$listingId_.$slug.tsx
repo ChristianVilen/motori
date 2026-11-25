@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { NonRentalSidebar } from "~/components/listings/non-rental-sidebar";
-import { CONDITION_LABELS, GEAR_TYPE_LABELS, SITE_NAME, SITE_URL } from "~/lib/constants";
+import { SITE_NAME, SITE_URL } from "~/lib/constants";
 import { centsToEuros } from "~/lib/currency";
 import { defineCategoryDetailRoute } from "~/lib/listings-detail-route";
 import { slugify } from "~/lib/slug";
@@ -8,26 +7,6 @@ import { slugify } from "~/lib/slug";
 const { loader, head, component, notFoundComponent } = defineCategoryDetailRoute({
 	category: "gear",
 	backTo: "/varusteet",
-	Sidebar: ({ data, isOwner }) => {
-		const g = data.gear as NonNullable<typeof data.gear>;
-		return (
-			<NonRentalSidebar
-				price={g.price}
-				priceTestId="price-gear"
-				statRows={[
-					{ label: "Tyyppi", value: GEAR_TYPE_LABELS[g.gear_type] ?? g.gear_type },
-					...(g.brand ? [{ label: "Merkki", value: g.brand }] : []),
-					...(g.size ? [{ label: "Koko", value: g.size === "muu" ? "Muu" : g.size }] : []),
-					{ label: "Kunto", value: CONDITION_LABELS[g.condition] ?? g.condition },
-				]}
-				listing={data.listing}
-				isOwner={isOwner}
-				ownerPhoneVisible={data.ownerContact.showPhone}
-				ownerPhone={data.ownerContact.phone}
-				currentUserId={data.session?.user.id}
-			/>
-		);
-	},
 	head: (loaderData) => {
 		const l = loaderData?.listing;
 		if (!l) {

@@ -4,6 +4,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { ListingCard } from "~/components/listings/listing-card";
+import { SellerAvatar } from "~/components/listings/seller-card";
 import { ReportButton } from "~/components/report-button";
 import { SITE_NAME } from "~/lib/constants";
 import type { ListingImage } from "~/lib/db/schema";
@@ -49,7 +50,7 @@ export const Route = createFileRoute("/profiili/$userId")({
 });
 
 function PublicProfilePage() {
-	const { t } = useTranslation("profile");
+	const { t, i18n } = useTranslation("profile");
 	const { profile, listings, images, session, reviewSummary, reviews } = Route.useLoaderData();
 	const isOwnProfile = session?.user.id === profile.user_id;
 	const imagesByListing = new Map<string, ListingImage[]>();
@@ -61,14 +62,13 @@ function PublicProfilePage() {
 
 	const memberSince = formatDate(new Date(profile.member_since), {
 		year: "numeric",
-		month: "long",
 	});
 
 	return (
 		<div className="min-h-screen bg-background">
 			<div className="mx-auto max-w-[1304px] px-4 py-8 lg:px-8">
 				<Link
-					to="/ilmoitukset"
+					to="/"
 					className="mb-6 flex items-center gap-1 text-sm text-muted hover:text-foreground"
 				>
 					<ArrowLeft className="h-4 w-4" />
@@ -76,41 +76,53 @@ function PublicProfilePage() {
 				</Link>
 
 				{/* Header */}
-				<div className="mb-8 rounded-l border border-border bg-card p-6">
-					<h1 className="text-2xl font-bold text-primary">{profile.display_name}</h1>
-					<div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted">
-						{!!profile.city && (
-							<span className="flex items-center gap-1">
-								<MapPin className="h-3 w-3" />
-								{profile.city}
-							</span>
-						)}
-						<span>{t("publicProfile.memberSince", { date: memberSince })}</span>
-						{reviewSummary.averageRating !== null && (
-							<span className="font-medium text-foreground">
-								{reviewSummary.reviewCount === 1
-									? t("reviews.summaryOne", { rating: reviewSummary.averageRating })
-									: t("reviews.summary", {
-											rating: reviewSummary.averageRating,
-											count: reviewSummary.reviewCount,
-										})}
-							</span>
+				<div className="mb-8 flex items-start gap-4 border-b border-border pb-6">
+					<SellerAvatar name={profile.display_name} large />
+					<div className="min-w-0">
+						<h1 className="break-words text-2xl font-bold text-foreground">
+							{profile.display_name}
+						</h1>
+						<div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted">
+							{!!profile.city && (
+								<span className="flex items-center gap-1">
+									<MapPin className="h-3 w-3" />
+									{profile.city}
+								</span>
+							)}
+							<span>{t("listings:detail.memberSince", { year: memberSince })}</span>
+							{reviewSummary.averageRating !== null ? (
+								<span className="font-medium text-foreground">
+									{reviewSummary.reviewCount === 1
+										? t("reviews.summaryOne", {
+												rating: new Intl.NumberFormat(i18n.language).format(
+													reviewSummary.averageRating,
+												),
+											})
+										: t("reviews.summary", {
+												rating: new Intl.NumberFormat(i18n.language).format(
+													reviewSummary.averageRating,
+												),
+												count: reviewSummary.reviewCount,
+											})}
+								</span>
+							) : (
+								<span>{t("listings:detail.noReviews")}</span>
+							)}
+						</div>
+						{!!session && !isOwnProfile && (
+							<div className="mt-3">
+								<ReportButton targetType="user" targetId={profile.user_id} />
+							</div>
 						)}
 					</div>
-					{!!session && !isOwnProfile && (
-						<div className="mt-3">
-							<ReportButton targetType="user" targetId={profile.user_id} />
-						</div>
-					)}
 				</div>
-
 				{/* Reviews */}
 				{reviews.length > 0 && (
 					<div data-testid="reviews-section" className="mb-8">
-						<h2 className="mb-4 text-sm font-semibold text-foreground">{t("reviews.heading")}</h2>
-						<div className="space-y-3">
+						<h2 className="mb-4 text-lg font-bold text-foreground">{t("reviews.heading")}</h2>
+						<div className="divide-y divide-border border-y border-border">
 							{reviews.map((review) => (
-								<div key={review.id} className="rounded-l border border-border bg-card p-4">
+								<div key={review.id} className="py-4">
 									<div className="flex items-center justify-between">
 										<span className="text-sm font-medium">{review.reviewer_display_name}</span>
 										<span className="text-xs text-muted">
@@ -121,9 +133,9 @@ function PublicProfilePage() {
 											})}
 										</span>
 									</div>
-									<div className="mt-1 text-yellow-500">
+									<div className="mt-1 text-foreground">
 										{"★".repeat(review.rating)}
-										<span className="text-gray-300">{"★".repeat(5 - review.rating)}</span>
+										<span className="text-border">{"★".repeat(5 - review.rating)}</span>
 									</div>
 									{!!review.comment && (
 										<p className="mt-2 text-sm text-foreground">{review.comment}</p>

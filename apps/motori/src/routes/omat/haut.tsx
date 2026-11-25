@@ -44,7 +44,7 @@ function SavedSearchesPage() {
 				<h1 className="mb-6 text-2xl font-bold text-primary">{t("savedSearches.title")}</h1>
 
 				{savedSearches.length === 0 ? (
-					<div className="rounded-l border border-dashed border-border py-16 text-center">
+					<div className="rounded-lg border border-dashed border-border py-16 text-center">
 						<p className="text-muted">{t("savedSearches.empty")}</p>
 					</div>
 				) : (
@@ -62,7 +62,7 @@ function SavedSearchesPage() {
 								<div
 									key={row.id}
 									data-testid="saved-search-row"
-									className="flex items-center gap-4 rounded-l border border-border bg-card p-4"
+									className="flex items-center gap-4 rounded-lg border border-border bg-card p-4"
 								>
 									<Link
 										to={categoryBrowsePath(row.category)}

@@ -42,7 +42,7 @@ export function ShareButton({ title, path }: ShareButtonProps) {
 				aria-label={t("detail.share")}
 				onClick={handleClick}
 				onKeyDown={menu.handleButtonKeyDown}
-				className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted transition-transform hover:scale-110"
+				className="grid size-11 place-items-center rounded-full border border-border bg-card text-foreground hover:bg-muted-light"
 			>
 				<Share2 className="h-4 w-4" />
 			</button>

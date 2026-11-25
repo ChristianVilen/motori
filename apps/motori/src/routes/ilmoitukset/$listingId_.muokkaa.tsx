@@ -170,7 +170,7 @@ function AvailabilityEditor(props: {
 
 	return (
 		<section
-			className="mt-8 rounded-l border border-border bg-card p-4"
+			className="mt-8 rounded-lg border border-border bg-card p-4"
 			data-testid="availability-editor"
 		>
 			<h2 className="font-semibold">{t("availability.formTitle")}</h2>
